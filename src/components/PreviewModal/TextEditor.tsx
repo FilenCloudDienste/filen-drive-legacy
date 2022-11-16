@@ -22,6 +22,7 @@ import { sql } from "@codemirror/lang-sql"
 import Button from "../Button"
 import { BiChevronDown } from "react-icons/bi"
 import { i18n } from "../../i18n"
+import memoryCache from "../../lib/memoryCache"
 
 export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
     const ext: string = getFileExt(name)
@@ -216,7 +217,7 @@ const FileMenu = memo(({ darkMode, isMobile, lang, isNewFile }: FileMenuProps) =
                         color: getColor(darkMode, "textPrimary")
                     }}
                     onClick={() => {
-                        if(!isNewFile){
+                        if(!memoryCache.get("textEditorChanged")){
                             eventListener.emit("previewModalBeforeClose")
                         }
                         else{
@@ -419,6 +420,9 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 
             save()
         }
+        else{
+            memoryCache.set("textEditorChanged", true)
+        }
     }, [newText.current, currentItem])
 
     useEffect(() => {
@@ -429,10 +433,7 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
         window.addEventListener("keydown", windowOnKeyDownListener)
 
         const previewModalBeforeCloseListener = eventListener.on("previewModalBeforeClose", () => {
-            if(
-                beforeText.current !== newText.current
-                || beforeText.current.length !== newText.current.length
-            ){
+            if(memoryCache.get("textEditorChanged")){
                 eventListener.emit("openBeforeCloseModal")
 
                 return

@@ -258,6 +258,8 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
         else if(previewType == "text"){
             getFileBuffer(item).then((buffer) => {
                 try{
+                    memoryCache.set("textEditorChanged", false)
+
                     setText(new TextDecoder().decode(buffer))
                 }
                 catch(e: any){
@@ -347,11 +349,13 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
     return (
         <Modal
             onClose={() => {
-                if(type == "text"){
+                if(type == "text" && memoryCache.get("textEditorChanged")){
                     eventListener.emit("previewModalBeforeClose")
 
                     return
                 }
+
+                memoryCache.set("textEditorChanged", false)
                 
                 close()
             }}

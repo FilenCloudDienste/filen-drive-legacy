@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from "uuid"
 import { i18n } from "../../i18n"
 import TextEditor from "../PreviewModal/TextEditor"
 import { UPLOAD_VERSION } from "../../lib/constants"
+import memoryCache from "../../lib/memoryCache"
 
 export const CreateTextFileModalEditor = memo(({ darkMode, isMobile, lang, windowHeight, windowWidth }: CreateFolderModalProps) => {
     const [open, setOpen] = useState<boolean>(false)
@@ -18,11 +19,15 @@ export const CreateTextFileModalEditor = memo(({ darkMode, isMobile, lang, windo
 
     useEffect(() => {
         const openCreateTextFileModalEditorListener = eventListener.on("openCreateTextFileModalEditor", (n: string) => {
+            memoryCache.set("textEditorChanged", false)
+
             setNewName(n)
             setOpen(true)
         })
 
         const closeCreateTextFileModalEditorListener = eventListener.on("closeCreateTextFileModalEditor", (n: string) => {
+            memoryCache.set("textEditorChanged", false)
+
             setNewName("")
             setOpen(false)
         })
@@ -35,7 +40,15 @@ export const CreateTextFileModalEditor = memo(({ darkMode, isMobile, lang, windo
 
     return (
         <Modal
-            onClose={() => eventListener.emit("openBeforeCloseModal")}
+            onClose={() => {
+                if(memoryCache.get("textEditorChanged")){
+                    eventListener.emit("openBeforeCloseModal")
+
+                    return
+                }
+
+                setOpen(false)
+            }}
             isOpen={open}
             size="full"
         >
