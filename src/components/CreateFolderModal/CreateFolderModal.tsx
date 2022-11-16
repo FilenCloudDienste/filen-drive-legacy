@@ -92,7 +92,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
         setNewName("")
     }
 
-    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){
             create(newName)
         }
@@ -108,9 +108,13 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 
     useEffect(() => {
         const openCreateFolderModalListener = eventListener.on("openCreateFolderModal", () => setOpen(true))
+
+        window.addEventListener("keydown", windowOnKeyDown)
         
         return () => {
             openCreateFolderModalListener.remove()
+
+            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
@@ -160,7 +164,6 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
                         onChange={(e) => setNewName(e.target.value.trim())}
                         isDisabled={loading}
                         ref={inputRef}
-                        onKeyDown={(e) => inputKeyDown(e)}
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")
