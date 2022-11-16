@@ -244,18 +244,10 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
         const item: ItemProps = parent
 
         setActiveItem(item)
-
-        const selectedCount: number = currentItems.current.filter(filterItem => filterItem.selected).length
-        
-        if(selectedCount > 1){
-            setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem))
-        }
-        else{
-            setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
-        }
+        setItems(prev => prev.map(mapItem => ({ ...mapItem, selected: false })))
 
         contextMenu.show({
-            id: "itemsContextMenu",
+            id: "sidebarContextMenu",
             event: e,
             position: {
                 x: e.nativeEvent.clientX,
