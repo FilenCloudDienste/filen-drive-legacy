@@ -1070,6 +1070,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                     sidebarWidth={sidebarWidth}
                     windowHeight={windowHeight}
                     lang={lang}
+                    items={items}
+                    setItems={setItems}
+                    setActiveItem={setActiveItem}
                 />
                 <Flex
                     width={windowWidth - sidebarWidth + "px"}

@@ -149,8 +149,8 @@ export interface ItemComponentProps {
     item: ItemProps,
     items: ItemProps[],
     setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
-    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
-    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>
+    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>,
+    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>,
     setDragSelectState: React.Dispatch<React.SetStateAction<DragSelectState>>,
     listWidth: number,
     mode: "list" | "grid",
@@ -179,8 +179,8 @@ export interface ListProps {
     sidebarWidth: number,
     items: ItemProps[],
     setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
-    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
-    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>
+    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>,
+    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>,
     setDragSelectState: React.Dispatch<React.SetStateAction<DragSelectState>>,
     loadingItems: boolean,
     gridFolders: any,
@@ -326,7 +326,10 @@ export interface SidebarBaseProps {
 export interface SidebarProps extends SidebarBaseProps {
     sidebarWidth: number,
     windowHeight: number,
-    lang: string
+    lang: string,
+    items: ItemProps[],
+    setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
+    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
 }
 
 export interface DividerProps {
@@ -352,7 +355,10 @@ export interface CloudTreeProps extends SidebarBaseProps {
         [key: string]: boolean | undefined | null
     },
     setSidebarFolderOpen: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
-    path: string
+    path: string,
+    items: ItemProps[],
+    setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
+    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
 }
 
 export interface SidebarFolderOpenProps {
@@ -366,7 +372,10 @@ export interface CloudTreeItemProps extends SidebarBaseProps {
     sidebarFolderOpen: SidebarFolderOpenProps,
     setSidebarFolderOpen: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
     loading: boolean,
-    path: string
+    path: string,
+    items: ItemProps[],
+    setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
+    setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
 }
 
 export interface TopbarProps {
@@ -639,7 +648,7 @@ export interface ListBodyProps {
     items: ItemProps[],
     setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
     setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>,
-    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>
+    setItemDragState: React.Dispatch<React.SetStateAction<ItemDragState>>,
     setDragSelectState: React.Dispatch<React.SetStateAction<DragSelectState>>,
     lang: string
 }

@@ -17,6 +17,7 @@ import { debounce } from "lodash"
 import { fetchUserInfo } from "../../lib/services/user"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
+import { contextMenu } from "react-contexify"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
     return (
@@ -179,11 +180,12 @@ export const AccountButton = memo(({ darkMode, isMobile }: AccountButtonProps) =
     )
 })
 
-export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders, sidebarFolderOpen, setSidebarFolderOpen, loading, path }: CloudTreeItemProps) => {
+export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders, sidebarFolderOpen, setSidebarFolderOpen, loading, path, setItems, items, setActiveItem }: CloudTreeItemProps) => {
     const navigate = useNavigate()
     const [hovering, setHovering] = useState<boolean>(false)
     const dropNavigationTimer = useRef<number | undefined | ReturnType<typeof setTimeout>>(undefined)
     const location = useLocation()
+    const currentItems = useRef<ItemProps[]>([])
 
     const active: boolean = useMemo(() => {
         return getCurrentParent() == parent.uuid
@@ -238,6 +240,34 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
         dropNavigationTimer.current = undefined
     }, [])
 
+    const handleItemOnContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+        const item: ItemProps = parent
+
+        setActiveItem(item)
+
+        const selectedCount: number = currentItems.current.filter(filterItem => filterItem.selected).length
+        
+        if(selectedCount > 1){
+            setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem))
+        }
+        else{
+            setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
+        }
+
+        contextMenu.show({
+            id: "itemsContextMenu",
+            event: e,
+            position: {
+                x: e.nativeEvent.clientX,
+                y: e.nativeEvent.clientY
+            }
+        })
+    }, [])
+
+    useEffect(() => {
+        currentItems.current = items
+    }, [items])
+
     useEffect(() => {
         db.get("defaultDriveUUID").then((defaultDriveUUID) => {
             Promise.all([
@@ -275,6 +305,7 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
                 onDragOver={handleItemOnDragOver}
                 onDragLeave={handleItemOnDragLeave}
                 onDrop={handleItemOnDrop}
+                onContextMenu={handleItemOnContextMenu}
             >
                 <Flex
                     height={parent.uuid == "base" ? "40px" : "35px"}
@@ -421,6 +452,9 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
                                 sidebarFolderOpen={sidebarFolderOpen}
                                 setSidebarFolderOpen={setSidebarFolderOpen}
                                 path={path + "/" + folder.uuid}
+                                items={items}
+                                setItems={setItems}
+                                setActiveItem={setActiveItem}
                             />
                         )
                     })
@@ -430,7 +464,7 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
     )
 })
 
-export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolderOpen, setSidebarFolderOpen, path }: CloudTreeProps) => {
+export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolderOpen, setSidebarFolderOpen, path, items, setItems, setActiveItem }: CloudTreeProps) => {
     const [folders, setFolders] = useState<ItemProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -527,6 +561,9 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             setSidebarFolderOpen={setSidebarFolderOpen}
             loading={loading}
             path={path}
+            items={items}
+            setItems={setItems}
+            setActiveItem={setActiveItem}
         />
     )
 })
@@ -682,7 +719,7 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
     )
 })
 
-const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang }: SidebarProps) => {
+const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, items, setActiveItem, setItems }: SidebarProps) => {
     //const [sidebarFolderOpen, setSidebarFolderOpen] = useDb("sidebarFolderOpen", {})
     const [sidebarFolderOpen, setSidebarFolderOpen] = useState<{ [key: string]: boolean }>({ "base": true })
 
@@ -752,6 +789,9 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang }: 
                             depth={0}
                             sidebarFolderOpen={sidebarFolderOpen}
                             setSidebarFolderOpen={setSidebarFolderOpen}
+                            items={items}
+                            setItems={setItems}
+                            setActiveItem={setActiveItem}
                         />
                     ) : (
                         <Button
