@@ -341,7 +341,8 @@ const en: {
     newTextFileName: "New text file name",
     passwordResetSuccess: "Password changed",
     resetPasswordBtn: "Reset password",
-    publicLinkDisabled: "Public link disabled"
+    publicLinkDisabled: "Public link disabled",
+    expireAfter: "Expire after"
 }
 
 export default en

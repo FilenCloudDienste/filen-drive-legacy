@@ -296,8 +296,19 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 }}
                                                             />
                                                         </Flex>
-                                                        <Flex
+                                                        <AppText
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
                                                             marginTop="30px"
+                                                        >
+                                                            {i18n(lang, "publicLink")}
+                                                        </AppText>
+                                                        <Flex
+                                                            marginTop="5px"
                                                             gap="20px"
                                                             alignItems="center"
                                                         >
@@ -335,8 +346,19 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 {i18n(lang, "copy")}
                                                             </Button>
                                                         </Flex>
+                                                        <AppText
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
+                                                            marginTop="20px"
+                                                        >
+                                                            {i18n(lang, "expireAfter")}
+                                                        </AppText>
                                                         <Select
-                                                            marginTop="15px"
+                                                            marginTop="5px"
                                                             value={info.expirationText}
                                                             onChange={(e) => {
                                                                 setInfo((prev: any) => ({
@@ -379,11 +401,22 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 })
                                                             }
                                                         </Select>
-                                                        <Input
-                                                            marginTop="15px"
+                                                        <AppText
                                                             darkMode={darkMode}
                                                             isMobile={isMobile}
-                                                            placeholder={i18n(lang, "publicLinkPassword")}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
+                                                            marginTop="20px"
+                                                        >
+                                                            {i18n(lang, "publicLinkPassword")}
+                                                        </AppText>
+                                                        <Input
+                                                            marginTop="5px"
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            placeholder={i18n(lang, "password")}
                                                             value={passwordDummy}
                                                             type="password"
                                                             onChange={(e) => setPasswordDummy(e.target.value)}
@@ -482,8 +515,19 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 }}
                                                             />
                                                         </Flex>
-                                                        <Flex
+                                                        <AppText
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
                                                             marginTop="30px"
+                                                        >
+                                                            {i18n(lang, "publicLink")}
+                                                        </AppText>
+                                                        <Flex
+                                                            marginTop="5px"
                                                             gap="20px"
                                                             alignItems="center"
                                                         >
@@ -521,8 +565,19 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 {i18n(lang, "copy")}
                                                             </Button>
                                                         </Flex>
+                                                        <AppText
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
+                                                            marginTop="20px"
+                                                        >
+                                                            {i18n(lang, "expireAfter")}
+                                                        </AppText>
                                                         <Select
-                                                            marginTop="15px"
+                                                            marginTop="5px"
                                                             value={info.expirationText}
                                                             onChange={(e) => {
                                                                 setInfo((prev: any) => ({
@@ -565,14 +620,25 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                                                                 })
                                                             }
                                                         </Select>
+                                                        <AppText
+                                                            darkMode={darkMode}
+                                                            isMobile={isMobile}
+                                                            color={getColor(darkMode, "textSecondary")}
+                                                            noOfLines={1}
+                                                            wordBreak="break-all"
+                                                            fontSize={12}
+                                                            marginTop="20px"
+                                                        >
+                                                            {i18n(lang, "publicLinkPassword")}
+                                                        </AppText>
                                                         <Input
                                                             darkMode={darkMode}
                                                             isMobile={isMobile}
-                                                            placeholder={i18n(lang, "publicLinkPassword")}
+                                                            placeholder={i18n(lang, "password")}
                                                             value={passwordDummy}
                                                             type="password"
                                                             onChange={(e) => setPasswordDummy(e.target.value)}
-                                                            marginTop="15px"
+                                                            marginTop="5px"
                                                             color={getColor(darkMode, "textSecondary")}
                                                             _placeholder={{
                                                                 color: getColor(darkMode, "textSecondary")
