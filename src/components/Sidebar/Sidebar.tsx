@@ -19,6 +19,7 @@ import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
 import { contextMenu } from "react-contexify"
 import type { SocketEvent } from "../../lib/services/socket"
+import memoryCache from "../../lib/memoryCache"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
     return (
@@ -203,19 +204,32 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
 
         dropNavigationTimer.current = undefined
 
-        let droppedItems: ItemProps[] = []
-
-        try{
-            droppedItems = JSON.parse(e.dataTransfer.getData("draggedItems")) as ItemProps[]
-        }
-        catch(e){
-            return
-        }
+        const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
         moveToParent(droppedItems, parent.uuid)
     }, [])
 
+    const canMove = useCallback((uuids: string[]): boolean => {
+        const pathEx: string[] = path.split("/")
+
+        for(let i = 0; i < pathEx.length; i++){
+            if(uuids.includes(pathEx[i])){
+                return false
+            }
+        }
+
+        return true
+    }, [path])
+
     const handleItemOnDragOver = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
+        const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
+
+        const uuids: string[] = droppedItems.map(item => item.uuid)
+
+        if(!canMove(uuids)){
+            return
+        }
+
         setHovering(true)
 
         if(typeof dropNavigationTimer.current !== "number"){

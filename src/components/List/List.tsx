@@ -12,6 +12,7 @@ import { orderItemsByType, getCurrentURLParentFolder, isBetween, getCurrentParen
 import { moveToParent } from "../../lib/services/move"
 import ListEmpty from "../ListEmpty"
 import { DEFAULT_PARENTS } from "../../lib/services/metadata"
+import memoryCache from "../../lib/memoryCache"
 
 const ListBody = memo(({ darkMode, isMobile, gridFolders, windowHeight, windowWidth, sidebarWidth, setListScrollState, loadingItems, items, setItems, setActiveItem, setDragSelectState, setItemDragState, lang }: ListBodyProps) => {
     const [columnCount, rowCount] = useMemo(() => {
@@ -189,14 +190,7 @@ const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWi
             || (e.target as HTMLElement).classList.contains("ReactVirtualized__Grid__innerScrollContainer")
             || (e.target as HTMLElement).classList.contains("no-items-uploaded")
         ){
-            let droppedItems: ItemProps[] = []
-
-            try{
-                droppedItems = JSON.parse(e.dataTransfer.getData("draggedItems")) as ItemProps[]
-            }
-            catch(e){
-                return
-            }
+            const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
             moveToParent(droppedItems, getCurrentURLParentFolder())
         }

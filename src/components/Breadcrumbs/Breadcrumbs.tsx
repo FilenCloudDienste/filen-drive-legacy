@@ -58,14 +58,7 @@ const Breadcrumb = memo(({ darkMode, isMobile, crumb, length, index, lang }: Bre
     const handleOnDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
         e.preventDefault()
 
-        let droppedItems: ItemProps[] = []
-
-        try{
-            droppedItems = JSON.parse(e.dataTransfer.getData("draggedItems")) as ItemProps[]
-        }
-        catch(e){
-            return
-        }
+        const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
         clearTimeout(dropNavigationTimer.current)
 

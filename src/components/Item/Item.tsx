@@ -355,6 +355,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
 
         e.dataTransfer.setDragImage(dragImg, 0, 0)
         e.dataTransfer.setData("draggedItems", JSON.stringify(draggedItems))
+        memoryCache.set("draggedItems", draggedItems)
 
         setItemDragState(prev => ({
             ...prev,
@@ -371,14 +372,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
 
         setDragHover(false)
 
-        let droppedItems: ItemProps[] = []
-
-        try{
-            droppedItems = JSON.parse(e.dataTransfer.getData("draggedItems")) as ItemProps[]
-        }
-        catch(e){
-            return
-        }
+        const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
         clearTimeout(dropNavigationTimer.current)
 
