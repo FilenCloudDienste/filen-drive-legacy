@@ -120,7 +120,10 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 
     return (
         <Modal
-            onClose={() => setOpen(false)}
+            onClose={() => {
+                setNewName("")
+                setOpen(false)
+            }}
             isOpen={open}
             isCentered={true}
             size={isMobile ? "full" : "md"}
