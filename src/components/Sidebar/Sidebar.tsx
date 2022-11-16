@@ -7,7 +7,7 @@ import { IoTrash, IoCloud, IoFolderOpen, IoFolder, IoChevronDown, IoChevronForwa
 import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri"
 import { MdOutlineFavorite } from "react-icons/md"
 import { HiClock } from "react-icons/hi"
-import type { SidebarProps, DividerProps, ButtonProps, AccountButtonProps, CloudTreeProps, CloudTreeItemProps, ItemProps, FolderRenamedEvent, ItemColorChangedEvent, ItemTrashedEvent, FolderCreatedEvent, SidebarUsageProps, UserInfoV1 } from "../../types"
+import type { SidebarProps, DividerProps, ButtonProps, AccountButtonProps, CloudTreeProps, CloudTreeItemProps, ItemProps, ItemMovedEvent, FolderRenamedEvent, ItemColorChangedEvent, ItemTrashedEvent, FolderCreatedEvent, SidebarUsageProps, UserInfoV1 } from "../../types"
 import { loadSidebarItems } from "../../lib/services/items"
 import { getFolderColor, getCurrentParent, formatBytes } from "../../lib/helpers"
 import db from "../../lib/db"
@@ -541,12 +541,26 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             }
         })
 
+        const itemMovedListener = eventListener.on("itemMoved", async (data: ItemMovedEvent) => {
+            const defaultDriveUUID = await db.get("defaultDriveUUID")
+            const thisParent = parent.uuid == "base" ? defaultDriveUUID : parent.uuid
+
+            if(data.from == thisParent){
+                fetchSidebarItems(true)
+            }
+
+            if(data.to == thisParent){
+                fetchSidebarItems(true)
+            }
+        })
+
         return () => {
             folderCreatedListener.remove()
             folderRenamedListener.remove()
             itemTrashedListener.remove()
             openSidebarFolderListener.remove()
             itemColorChangedListener.remove()
+            itemMovedListener.remove()
         }
     }, [])
 
