@@ -340,7 +340,8 @@ const en: {
     uploadErrored: "Failed",
     newTextFileName: "New text file name",
     passwordResetSuccess: "Password changed",
-    resetPasswordBtn: "Reset password"
+    resetPasswordBtn: "Reset password",
+    publicLinkDisabled: "Public link disabled"
 }
 
 export default en

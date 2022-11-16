@@ -36,33 +36,63 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
         }
     }, [lang])
 
-    const fetchInfo = (item: ItemProps): void => {
+    const fetchInfo = (item: ItemProps, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
         setInfo(undefined)
         setFetchingInfo(true)
         setKey("")
         setPasswordDummy("")
 
-        itemPublicLinkInfo(item).then(async (info) => {
-            if(item.type == "folder" && typeof info.exists == "boolean" && info.exists){
-                const masterKeys: string[] = await db.get("masterKeys")
-                const keyDecrypted: string = await decryptFolderLinkKey(info.key, masterKeys)
-
-                if(keyDecrypted.length == 0){
-                    setOpen(false)
-
-                    return
+        const req = () => {
+            itemPublicLinkInfo(item).then(async (info) => {
+                if(waitUntilEnabled){
+                    if(item.type == "folder"){
+                        if(typeof info.exists == "boolean" && !info.exists){
+                            return setTimeout(req, 250)
+                        }
+                    }
+                    else{
+                        if(typeof info.enabled == "boolean" && !info.enabled){
+                            return setTimeout(req, 250)
+                        }
+                    }
                 }
 
-                setKey(keyDecrypted)
-            }
+                if(waitUntilDisabled){
+                    if(item.type == "folder"){
+                        if(typeof info.exists == "boolean" && info.exists){
+                            return setTimeout(req, 250)
+                        }
+                    }
+                    else{
+                        if(typeof info.enabled == "boolean" && info.enabled){
+                            return setTimeout(req, 250)
+                        }
+                    }
+                }
 
-            setInfo(info)
-            setFetchingInfo(false)
-        }).catch((err) => {
-            setFetchingInfo(false)
+                if(item.type == "folder" && typeof info.exists == "boolean" && info.exists){
+                    const masterKeys: string[] = await db.get("masterKeys")
+                    const keyDecrypted: string = await decryptFolderLinkKey(info.key, masterKeys)
+    
+                    if(keyDecrypted.length == 0){
+                        setOpen(false)
+    
+                        return
+                    }
+    
+                    setKey(keyDecrypted)
+                }
+    
+                setInfo(info)
+                setFetchingInfo(false)
+            }).catch((err) => {
+                setFetchingInfo(false)
+    
+                console.error(err)
+            })
+        }
 
-            console.error(err)
-        })
+        req()
     }
 
     const enable = async (): Promise<void> => {
@@ -79,6 +109,8 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
                 const left: number = (total - current)
 
                 if(left <= 0){
+                    updateToast(loading, "loading", i18n(lang, "addingItemsToPublicLinkProgress", true, ["__LEFT__"], ["0"]), ONE_YEAR)
+
                     return
                 }
 
@@ -86,16 +118,18 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
             })
 
             addItemsToStore([currentItem], "links").catch(console.error)
+
+            fetchInfo(currentItem, true)
         }
         catch(e: any){
             console.error(e)
 
             showToast("error", e.toString(), "bottom", 5000)
+
+            fetchInfo(currentItem)
         }
 
         dismissToast(loading)
-
-        fetchInfo(currentItem)
     }
 
     const disable = async (): Promise<void> => {
@@ -113,6 +147,8 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
             if(window.location.href.indexOf("links") !== -1){
                 setItems(prev => prev.filter(item => item.uuid !== currentItem.uuid))
             }
+
+            showToast("success", i18n(lang, "publicLinkDisabled"), "bottom", 5000)
 
             setOpen(false)
         }
