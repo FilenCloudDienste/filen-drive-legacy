@@ -206,7 +206,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
             })
         }
         else if(previewType == "video"){
-            getFileBuffer(item, false).then((buffer) => {
+            getFileBuffer(item).then((buffer) => {
                 try{
                     const blob = new Blob([buffer], {
                         type: item.mime
