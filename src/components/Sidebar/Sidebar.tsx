@@ -18,6 +18,7 @@ import { fetchUserInfo } from "../../lib/services/user"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
 import { contextMenu } from "react-contexify"
+import type { SocketEvent } from "../../lib/services/socket"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
     return (
@@ -546,6 +547,24 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             }
         })
 
+        const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+            await new Promise(resolve => setTimeout(resolve, 250))
+
+            const defaultDriveUUID = await db.get("defaultDriveUUID")
+            const thisParent = parent.uuid == "base" ? defaultDriveUUID : parent.uuid
+
+            if(event.type == "folderSubCreated" || event.type == "folderRestore"){
+                if(thisParent == event.data.parent){
+                    fetchSidebarItems(true)
+                }
+            }
+            else if(event.type == "folderMove"){
+                if(thisParent == event.data.parent){
+                    fetchSidebarItems(true)
+                }
+            }
+        })
+
         return () => {
             folderCreatedListener.remove()
             folderRenamedListener.remove()
@@ -553,6 +572,7 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             openSidebarFolderListener.remove()
             itemColorChangedListener.remove()
             itemMovedListener.remove()
+            socketEventListener.remove()
         }
     }, [])
 
