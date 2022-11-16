@@ -266,21 +266,17 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
     const bodyOnDropListener = useCallback((e: DragEvent): void => {
         setShowDragAndDropModal(false)
 
-        if(draggingItems.current){
-            return
-        }
+        setItemDragState({
+            clientX: 0,
+            clientY: 0,
+            items: []
+        })
 
         e.preventDefault()
 
         if(e.dataTransfer?.files && e.dataTransfer?.files[0]){
             readDroppedFiles(e)
         }
-
-        setItemDragState({
-            clientX: 0,
-            clientY: 0,
-            items: []
-        })
     }, [])
 
     const bodyOnDragLeaveListener = useCallback((e: DragEvent): void => {
