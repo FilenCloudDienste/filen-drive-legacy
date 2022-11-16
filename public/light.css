@@ -1,0 +1,20 @@
+* {
+    scrollbar-width: auto;
+    scrollbar-color: #f0f0f0 transparent;
+  }
+
+  /* Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    border: 3px solid transparent;
+  }
