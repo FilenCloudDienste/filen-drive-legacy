@@ -1857,7 +1857,7 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                 <TabList
                     position="fixed"
                     width={isMobile ? "100%" : (windowWidth - sidebarWidth - 70) + "px"}
-                    backgroundColor="transparent"
+                    backgroundColor={getColor(darkMode, "backgroundPrimary")}
                     zIndex={1001}
                     overflowX={isMobile ? "auto" : undefined}
                 >

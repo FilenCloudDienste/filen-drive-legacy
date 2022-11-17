@@ -28,7 +28,8 @@ import AbuseReportModal from "../../components/AbuseReportModal"
 import { i18n } from "../../i18n"
 import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewModal/TextEditor"
 
-const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf"]
+const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video"]
+const MAX_SIZE: number = (1024 * 1024 * 64)
 
 const getItemFromFile = (info: LinkGetInfoV1, file: { name: string, size: number, mime: string }, key: string): ItemProps => {
     const item: ItemProps = {
@@ -76,6 +77,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
     const [pdf, setPDF] = useState<string>("")
     const [loadingPassword, setLoadingPassword] = useState<boolean>(false)
     const [passwordCorrect, setPasswordCorrect] = useState<boolean>(false)
+    const [video, setVideo] = useState<string>("")
 
     const [previewContainerWidth, previewContainerHeight] = useMemo(() => {
         if(isMobile){
@@ -134,7 +136,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
     
                             setInfo(linkInfo)
     
-                            if(SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name)))){
+                            if(SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name))) && MAX_SIZE > parseFloat(size)){
                                 memoryCache.set("hideTransferProgress:" + linkInfo.uuid, true)
     
                                 downloadFile(getItemFromFile(linkInfo, { name, size: parseInt(size), mime }, key), false).then((buffer) => {
@@ -169,6 +171,20 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
                                                 const url = window.URL.createObjectURL(blob)
                             
                                                 setPDF(url)
+                                            }
+                                            catch(e){
+                                                console.error(e) 
+                                            }
+                                        }
+                                        else if(getFilePreviewType(getFileExt(name)) == "video"){
+                                            try{
+                                                const blob = new Blob([buffer], {
+                                                    type: mime
+                                                })
+    
+                                                const url = window.URL.createObjectURL(blob)
+                            
+                                                setVideo(url)
                                             }
                                             catch(e){
                                                 console.error(e) 
@@ -364,7 +380,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
                                 ) : (
                                     <>
                                         {
-                                            SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) ? (
+                                            SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) && MAX_SIZE > file.size ? (
                                                 <>
                                                     {
                                                         getFilePreviewType(getFileExt(file.name)) == "image" && (
@@ -503,6 +519,53 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
                                                                                 src={pdf}
                                                                                 width="100%"
                                                                                 height="100%"
+                                                                            />
+                                                                        </PreviewContainer>
+                                                                    )
+                                                                }
+                                                            </>
+                                                        )
+                                                    }
+                                                    {
+                                                        getFilePreviewType(getFileExt(file.name)) == "video" && (
+                                                            <>
+                                                                {
+                                                                    (typeof previewBuffer == "undefined" || video.length == 0) ? (
+                                                                        <Flex
+                                                                            width="300px"
+                                                                            flexDirection="column"
+                                                                            justifyContent="center"
+                                                                            alignItems="center"
+                                                                        >
+                                                                            <Spinner 
+                                                                                width="32px"
+                                                                                height="32px"
+                                                                                color={getColor(darkMode, "textPrimary")}
+                                                                            />
+                                                                        </Flex>
+                                                                    ) : (
+                                                                        <PreviewContainer
+                                                                            darkMode={darkMode}
+                                                                            isMobile={isMobile}
+                                                                            windowWidth={windowWidth}
+                                                                            windowHeight={windowHeight}
+                                                                            lang={lang}
+                                                                            info={info}
+                                                                            file={file}
+                                                                            download={download}
+                                                                            toggleColorMode={toggleColorMode}
+                                                                            previewContainerWidth={previewContainerWidth}
+                                                                            previewContainerHeight={previewContainerHeight}
+                                                                            password={password}
+                                                                        >
+                                                                            <video
+                                                                                autoPlay={true}
+                                                                                controls={true}
+                                                                                src={video}
+                                                                                style={{
+                                                                                    maxHeight: "100%",
+                                                                                    maxWidth: "100%"
+                                                                                }}
                                                                             />
                                                                         </PreviewContainer>
                                                                     )
