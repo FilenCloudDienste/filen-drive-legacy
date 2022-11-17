@@ -474,6 +474,7 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
 export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolderOpen, setSidebarFolderOpen, path, items, setItems, setActiveItem }: CloudTreeProps) => {
     const [folders, setFolders] = useState<ItemProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const treeFolders = useRef<ItemProps[]>([])
 
     const fetchSidebarItems = useCallback(async (refresh: boolean = false): Promise<void> => {
         const getItemsInDb = await db.get("loadSidebarItems:" + parent.uuid, "metadata")
@@ -503,6 +504,10 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             fetchSidebarItems(false)
         }
     }, [sidebarFolderOpen[parent.uuid]])
+
+    useEffect(() => {
+        treeFolders.current = folders
+    }, [folders])
 
     useEffect(() => {
         const folderCreatedListener = eventListener.on("folderCreated", async (data: FolderCreatedEvent) => {
@@ -574,6 +579,11 @@ export const CloudTree = memo(({ darkMode, isMobile, depth, parent, sidebarFolde
             }
             else if(event.type == "folderMove"){
                 if(thisParent == event.data.parent){
+                    fetchSidebarItems(true)
+                }
+            }
+            else if(event.type == "folderColorChanged"){
+                if(treeFolders.current.filter(folder => folder.uuid == event.data.uuid).length > 0){
                     fetchSidebarItems(true)
                 }
             }
