@@ -182,7 +182,7 @@ const TransfersToast = memo(({}) => {
     }, [JSON.stringify(currentUploads), JSON.stringify(currentDownloads)])
 
     if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) <= 0){
-        return null
+        //return null
     }
 
     return (
@@ -195,6 +195,15 @@ const TransfersToast = memo(({}) => {
             flexDirection="column"
             alignItems="flex-start"
             zIndex={1000001}
+            cursor={Object.keys(currentUploads).length > 0 ? "pointer" : undefined}
+            onClick={() => {
+                if(Object.keys(currentUploads).length > 0){
+                    eventListener.emit("openUploadModal", {
+                        files: undefined,
+                        openModal: true
+                    })
+                }
+            }}
         >
             <Flex
                 paddingTop="6px"
