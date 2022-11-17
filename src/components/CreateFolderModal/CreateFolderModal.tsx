@@ -20,13 +20,14 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
     const inputRef = useRef()
     const currentItems = useRef<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
+    const newNameRef = useRef<string>("")
 
     const create = async (): Promise<void> => {
         if(loading){
             return
         }
 
-        const value = newName.trim()
+        const value = newNameRef.current.trim()
 
         if(value.length == 0){
             showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
@@ -96,7 +97,11 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
         if(e.which == 13 && isOpen.current){
             create()
         }
-    }, [newName, isOpen.current, newName])
+    }, [isOpen.current])
+
+    useEffect(() => {
+        newNameRef.current = newName
+    }, [newName])
 
     useEffect(() => {
         currentItems.current = items
