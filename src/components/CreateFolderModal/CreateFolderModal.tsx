@@ -21,12 +21,12 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
     const currentItems = useRef<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
 
-    const create = async (name: string): Promise<void> => {
+    const create = async (): Promise<void> => {
         if(loading){
             return
         }
 
-        const value = name.trim()
+        const value = newName.trim()
 
         if(value.length == 0){
             showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
@@ -94,9 +94,9 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 
     const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){
-            create(newName)
+            create()
         }
-    }, [newName, isOpen.current])
+    }, [newName, isOpen.current, newName])
 
     useEffect(() => {
         currentItems.current = items
@@ -189,7 +189,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
                                 wordBreak="break-all"
                                 color={getColor(darkMode, "linkPrimary")}
                                 cursor="pointer"
-                                onClick={() => create(newName)}
+                                onClick={() => create()}
                             >
                                 {i18n(lang, "create")}
                             </AppText>
