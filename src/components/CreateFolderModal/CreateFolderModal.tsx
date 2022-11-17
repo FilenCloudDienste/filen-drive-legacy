@@ -104,7 +104,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 
     useEffect(() => {
         isOpen.current = open
-    }, [])
+    }, [open])
 
     useEffect(() => {
         const openCreateFolderModalListener = eventListener.on("openCreateFolderModal", () => setOpen(true))
