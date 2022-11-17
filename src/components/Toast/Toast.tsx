@@ -182,7 +182,7 @@ const TransfersToast = memo(({}) => {
     }, [JSON.stringify(currentUploads), JSON.stringify(currentDownloads)])
 
     if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) <= 0){
-        //return null
+        return null
     }
 
     return (
