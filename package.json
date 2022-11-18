@@ -49,6 +49,7 @@
 		"heic-convert": "1.2.4",
 		"helmet": "6.0.0",
 		"idb-keyval": "6.2.0",
+		"js-base64": "^3.7.3",
 		"js-cookie": "3.0.1",
 		"js-md2": "0.2.2",
 		"js-md4": "0.3.2",

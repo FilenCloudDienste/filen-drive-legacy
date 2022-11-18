@@ -342,7 +342,9 @@ const en: {
     passwordResetSuccess: "Password changed",
     resetPasswordBtn: "Reset password",
     publicLinkDisabled: "Public link disabled",
-    expireAfter: "Expire after"
+    expireAfter: "Expire after",
+    exportMasterKeys: "Export master keys",
+    export: "Export"
 }
 
 export default en

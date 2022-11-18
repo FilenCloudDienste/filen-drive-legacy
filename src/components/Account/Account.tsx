@@ -819,6 +819,38 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
                         />
                     </Flex>
                 </Flex>
+                <Flex
+                    alignItems="center"
+                    justifyContent="space-between"
+                    height="60px"
+                    borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+                    marginTop="50px"
+                >
+                    <Flex>
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "textSecondary")}
+                        >
+                            {i18n(lang, "exportMasterKeys")}
+                        </AppText>
+                    </Flex>
+                    <Flex>
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "textSecondary")}
+                            marginLeft="20px"
+                            textDecoration="underline"
+                            fontWeight="bold"
+                            cursor="pointer"
+                            noOfLines={1}
+                            onClick={() => eventListener.emit("openExportMasterKeysModal")}
+                        >
+                            {i18n(lang, "export")}
+                        </AppText>
+                    </Flex>
+                </Flex>
             </Flex>
             <Modals.PasswordModal
                 darkMode={darkMode}
@@ -836,6 +868,11 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
                 lang={lang}
             />
             <Modals.DisableTwoFactorModal
+                darkMode={darkMode}
+                isMobile={isMobile}
+                lang={lang}
+            />
+            <Modals.ExportMasterKeysModal
                 darkMode={darkMode}
                 isMobile={isMobile}
                 lang={lang}

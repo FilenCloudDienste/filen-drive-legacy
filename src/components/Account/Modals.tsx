@@ -14,6 +14,8 @@ import QRCode from "react-qr-code"
 import type { UserGetSettingsV1 } from "../../types"
 import { i18n } from "../../i18n"
 import cookies from "../../lib/cookies"
+import useDb from "../../lib/hooks/useDb"
+import { Base64 } from "js-base64"
 
 export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobile: boolean, lang: string }) => {
     const [open, setOpen] = useState<boolean>(false)
@@ -1411,7 +1413,7 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
                                             try{
                                                 navigator.clipboard.writeText(settings.twoFactorKey)
 
-                                                showToast("success", "Copied", "bottom", 3000)
+                                                showToast("success", i18n(lang, "copied"), "bottom", 3000)
                                             }
                                             catch(e){
                                                 console.error(e)
@@ -1529,7 +1531,7 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
                                 try{
                                     navigator.clipboard.writeText(key)
 
-                                    showToast("success", "Copied", "bottom", 3000)
+                                    showToast("success", i18n(lang, "copied"), "bottom", 3000)
                                 }
                                 catch(e){
                                     console.error(e)
@@ -1699,6 +1701,119 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
                         </ModalFooter>
                     )
                 }
+            </ModalContent>
+        </Modal>
+    )
+})
+
+export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobile: boolean, lang: string }) => {
+    const [open, setOpen] = useState<boolean>(false)
+    const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
+
+    const copy = (text: string) => {
+        try{
+            navigator.clipboard.writeText(text)
+
+            showToast("success", i18n(lang, "copied"), "bottom", 3000)
+        }
+        catch(e){
+            console.error(e)
+        }
+    }
+
+    useEffect(() => {
+        const openExportMasterKeysModalListener = eventListener.on("openExportMasterKeysModal", () => {
+            setOpen(true)
+        })
+        
+        return () => {
+            openExportMasterKeysModalListener.remove()
+        }
+    }, [])
+
+    return (
+        <Modal
+            onClose={() => setOpen(false)}
+            isOpen={open}
+            isCentered={true}
+            size={isMobile ? "full" : "md"}
+            autoFocus={false}
+        >
+            <ModalOverlay 
+                backgroundColor="rgba(0, 0, 0, 0.4)"
+            />
+            <ModalContent
+                backgroundColor={getColor(darkMode, "backgroundSecondary")}
+                color={getColor(darkMode, "textSecondary")}
+                borderRadius={isMobile ? "0px" : "5px"}
+            >
+                <ModalHeader
+                    color={getColor(darkMode, "textPrimary")}
+                >
+                    {i18n(lang, "exportMasterKeys")}
+                </ModalHeader>
+                <ModalCloseButton
+                    color={getColor(darkMode, "textSecondary")}
+                    backgroundColor={getColor(darkMode, "backgroundTertiary")}
+                    _hover={{
+                        color: getColor(darkMode, "textPrimary"),
+                        backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    }}
+                    autoFocus={false}
+                    tabIndex={-1}
+                    borderRadius="full"
+                />
+                <ModalBody
+                    height="100%"
+                    width="100%"
+                >
+                    <Flex
+                        flexDirection="column"
+                    >
+                        <Flex
+                            width="100%"
+                            padding="10px"
+                            paddingLeft="15px"
+                            paddingRight="15px"
+                            borderRadius="10px"
+                            backgroundColor={getColor(darkMode, "backgroundTertiary")}
+                            boxShadow="sm"
+                            cursor="pointer"
+                            onClick={() => copy(Base64.encode(masterKeys.join("|")))}
+                        >
+                            <AppText
+                                darkMode={darkMode}
+                                isMobile={isMobile}
+                                color={getColor(darkMode, "textSecondary")}
+                                wordBreak="break-all"
+                            >
+                                {Base64.encode(masterKeys.join("|"))}
+                            </AppText>
+                        </Flex>
+                        <Button
+                            onClick={() => copy(Base64.encode(masterKeys.join("|")))}
+                            marginTop="15px"
+                        >
+                            {i18n(lang, "copy")}
+                        </Button>
+                    </Flex>
+                </ModalBody>
+                <ModalFooter>
+                    <AppText
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        noOfLines={1}
+                        wordBreak="break-all"
+                        color={getColor(darkMode, "textSecondary")}
+                        cursor="pointer"
+                        onClick={() => setOpen(false)}
+                        _hover={{
+                            color: getColor(darkMode, "textPrimary")
+                        }}
+                    >
+                        {i18n(lang, "close")}
+                    </AppText>
+                </ModalFooter>
             </ModalContent>
         </Modal>
     )
