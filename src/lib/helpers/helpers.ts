@@ -1078,6 +1078,16 @@ export function downloadObjectAsJson(exportObj: any, exportName: string){
     downloadAnchorNode.remove();
 }
 
+export function downloadObjectAsText(string: string, exportName: string){
+    const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(string);
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".txt");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
 export const downloadPDF = (pdf: string, name: string) => {
     let linkSource = `data:application/pdf;base64,${pdf}`
     let downloadLink = document.createElement("a")

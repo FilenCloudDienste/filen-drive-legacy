@@ -9,7 +9,7 @@ import { generatePasswordAndMasterKeysBasedOnAuthVersion, encryptMetadata } from
 import db from "../../lib/db"
 import { show as showToast } from "../Toast/Toast"
 import { fetchUserAccount, fetchUserSettings } from "../../lib/services/user"
-import { generateRandomString } from "../../lib/helpers"
+import { generateRandomString, downloadObjectAsText } from "../../lib/helpers"
 import QRCode from "react-qr-code"
 import type { UserGetSettingsV1 } from "../../types"
 import { i18n } from "../../i18n"
@@ -1817,6 +1817,8 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                             boxShadow="sm"
                             cursor="pointer"
                             onClick={() => copy(Base64.encode(masterKeys.map(key => "_VALID_FILEN_MASTERKEY_" + key + "_VALID_FILEN_MASTERKEY_").join("|")))}
+                            maxHeight="500px"
+                            overflowY="auto"
                         >
                             <AppText
                                 darkMode={darkMode}
@@ -1841,6 +1843,21 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                             autoFocus={false}
                         >
                             {i18n(lang, "copy")}
+                        </Button>
+                        <Button
+                            onClick={() => downloadObjectAsText(Base64.encode(masterKeys.map(key => "_VALID_FILEN_MASTERKEY_" + key + "_VALID_FILEN_MASTERKEY_").join("|")), "masterKeys")}
+                            marginTop="20px"
+                            backgroundColor={darkMode ? "white" : "gray"}
+                            color={darkMode ? "black" : "white"}
+                            border={"1px solid " + (darkMode ? "white" : "gray")}
+                            _hover={{
+                                backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                border: "1px solid " + (darkMode ? "white" : "gray"),
+                                color: darkMode ? "white" : "gray"
+                            }}
+                            autoFocus={false}
+                        >
+                            {i18n(lang, "save")}
                         </Button>
                     </Flex>
                 </ModalBody>
