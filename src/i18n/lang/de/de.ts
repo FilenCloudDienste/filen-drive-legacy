@@ -347,7 +347,7 @@ const de: {
     export: "Exportieren",
     resetPasswordCheckbox: "Ich verstehe, dass durch das Zurücksetzen meines Passworts ohne meine exportierten Masterschlüssel alle auf meinem Konto gespeicherten Daten unzugänglich werden, auf Basis der Zero-Knowledge-End-to-End-Verschlüsselung.",
     invalidAuthVersion: "Ungültige Authentifizierungs Version",
-    recoveryMasterKeysInput: "Exportierte Masterschlüssel (optional)",
+    recoveryMasterKeysInput: "Exportierte Masterschlüssel",
     exportMasterKeysInfo: "Durch den Export Ihrer Masterschlüssel können Sie Ihr Konto ohne Datenverlust wiederherstellen, falls Sie Ihr Passwort vergessen. Bitte stellen Sie sicher, dass Sie Ihre neuen Masterschlüssel jedes Mal exportieren, wenn Sie Ihr Passwort ändern.",
     import: "Importieren"
 }
