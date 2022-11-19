@@ -300,7 +300,7 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 marginTop="30px"
-                placeholder={i18n(lang, "email")}
+                placeholder={i18n(lang, "email") + " *"}
                 type="email"
                 color={getColor(darkMode, "textSecondary")}
                 _placeholder={{
@@ -313,7 +313,7 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 marginTop="10px"
-                placeholder={i18n(lang, "password")}
+                placeholder={i18n(lang, "password") + " *"}
                 type="password"
                 color={getColor(darkMode, "textSecondary")}
                 _placeholder={{
@@ -326,7 +326,7 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 marginTop="10px"
-                placeholder={i18n(lang, "confirmPassword")}
+                placeholder={i18n(lang, "confirmPassword") + " *"}
                 type="password"
                 color={getColor(darkMode, "textSecondary")}
                 _placeholder={{

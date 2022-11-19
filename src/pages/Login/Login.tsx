@@ -155,7 +155,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 marginTop="30px"
-                placeholder={i18n(lang, "email")}
+                placeholder={i18n(lang, "email") + " *"}
                 type="email"
                 onKeyDown={(e) => {
                     if(e.which == 13){
@@ -173,7 +173,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 marginTop="10px"
-                placeholder={i18n(lang, "password")}
+                placeholder={i18n(lang, "password") + " *"}
                 type="password"
                 onKeyDown={(e) => {
                     if(e.which == 13){
@@ -193,7 +193,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
                         value={tfa}
                         onChange={(e) => setTfa(e.target.value)}
                         marginTop="15px"
-                        placeholder={i18n(lang, "tfaCode")}
+                        placeholder={i18n(lang, "tfaCode") + " *"}
                         type="number"
                         maxLength={6}
                         onKeyDown={(e) => {

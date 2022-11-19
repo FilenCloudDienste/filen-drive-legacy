@@ -201,7 +201,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     marginTop="30px"
-                    placeholder={i18n(lang, "newPassword")}
+                    placeholder={i18n(lang, "newPassword") + " *"}
                     type="password"
                     color={getColor(darkMode, "textSecondary")}
                     _placeholder={{
@@ -214,7 +214,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     marginTop="10px"
-                    placeholder={i18n(lang, "confirmNewPassword")}
+                    placeholder={i18n(lang, "confirmNewPassword") + " *"}
                     type="password"
                     color={getColor(darkMode, "textSecondary")}
                     _placeholder={{
@@ -441,7 +441,7 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 marginTop="30px"
-                placeholder="Email"
+                placeholder={i18n(lang, "email") + " *"}
                 type="email"
                 color={getColor(darkMode, "textSecondary")}
                 _placeholder={{

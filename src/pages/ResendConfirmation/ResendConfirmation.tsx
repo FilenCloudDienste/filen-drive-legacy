@@ -104,7 +104,7 @@ const ResendConfirmationForm = memo(({ windowWidth, windowHeight, darkMode, isMo
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 marginTop="30px"
-                placeholder={i18n(lang, "email")}
+                placeholder={i18n(lang, "email") + " *"}
                 type="email"
                 color={getColor(darkMode, "textSecondary")}
                 _placeholder={{
