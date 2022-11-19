@@ -211,17 +211,17 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
                     <Button
                         darkMode={darkMode}
                         isMobile={isMobile}
+                        height="45px"
+                        width="100%"
+                        onClick={() => buy()}
                         backgroundColor={darkMode ? "white" : "gray"}
                         color={darkMode ? "black" : "white"}
                         border={"1px solid " + (darkMode ? "white" : "gray")}
-                        height="45px"
-                        width="100%"
                         _hover={{
                             backgroundColor: getColor(darkMode, "backgroundSecondary"),
                             border: "1px solid " + (darkMode ? "white" : "gray"),
                             color: darkMode ? "white" : "gray"
                         }}
-                        onClick={() => buy()}
                         autoFocus={false}
                     >
                         {

@@ -997,11 +997,15 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
             const response = await changePassword({ password: newPasswordHash, passwordRepeat: newPasswordHash, currentPassword: currentPasswordHash, authVersion, salt: newSalt, masterKeys: newMasterKeys })
 
             await Promise.all([
-                db.set("apiKey", response.apiKey),
+                db.set("apiKey", response.newAPIKey),
                 db.set("masterKeys", masterKeys)
             ])
 
             showToast("success", i18n(lang, "passwordChanged"), "bottom", 5000)
+
+            setOpen(false)
+
+            eventListener.emit("openExportMasterKeysModal")
         }
         catch(e: any){
             console.error(e)
@@ -1418,6 +1422,15 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
                                             }
                                         }}
                                         marginLeft="15px"
+                                        backgroundColor={darkMode ? "white" : "gray"}
+                                        color={darkMode ? "black" : "white"}
+                                        border={"1px solid " + (darkMode ? "white" : "gray")}
+                                        _hover={{
+                                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                            border: "1px solid " + (darkMode ? "white" : "gray"),
+                                            color: darkMode ? "white" : "gray"
+                                        }}
+                                        autoFocus={false}
                                     >
                                         {i18n(lang, "copy")}
                                     </Button>
@@ -1536,6 +1549,15 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
                                 }
                             }}
                             marginLeft="15px"
+                            backgroundColor={darkMode ? "white" : "gray"}
+                            color={darkMode ? "black" : "white"}
+                            border={"1px solid " + (darkMode ? "white" : "gray")}
+                            _hover={{
+                                backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                border: "1px solid " + (darkMode ? "white" : "gray"),
+                                color: darkMode ? "white" : "gray"
+                            }}
+                            autoFocus={false}
                         >
                             {i18n(lang, "copy")}
                         </Button>
@@ -1800,6 +1822,15 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                         <Button
                             onClick={() => copy(Base64.encode(masterKeys.join("|")))}
                             marginTop="20px"
+                            backgroundColor={darkMode ? "white" : "gray"}
+                            color={darkMode ? "black" : "white"}
+                            border={"1px solid " + (darkMode ? "white" : "gray")}
+                            _hover={{
+                                backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                border: "1px solid " + (darkMode ? "white" : "gray"),
+                                color: darkMode ? "white" : "gray"
+                            }}
+                            autoFocus={false}
                         >
                             {i18n(lang, "copy")}
                         </Button>
