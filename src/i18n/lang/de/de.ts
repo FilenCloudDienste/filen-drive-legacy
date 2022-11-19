@@ -339,10 +339,16 @@ const de: {
     invalidAbuseReason: "Ungültiger Grund",
     uploadErrored: "Fehlgeschlagen",
     newTextFileName: "Neuer Textdateiname",
-    passwordResetSuccess: "Passwort geändert",
+    passwordResetSuccess: "Passwort geändert. Bitte loggen Sie sich auf allen Geräten neu ein.",
     resetPasswordBtn: "Passwort zurücksetzen",
     publicLinkDisabled: "Öffentlicher Link deaktiviert",
-    expireAfter: "Ablaufen nach"
+    expireAfter: "Ablaufen nach",
+    exportMasterKeys: "Master Schlüssel exportieren",
+    export: "Exportieren",
+    resetPasswordCheckbox: "Ich verstehe, dass durch das Zurücksetzen meines Passworts ohne meine exportierten Masterschlüssel alle auf meinem Konto gespeicherten Daten unzugänglich werden, auf Basis der Zero-Knowledge-End-to-End-Verschlüsselung.",
+    invalidAuthVersion: "Ungültige Authentifizierungs Version",
+    recoveryMasterKeysInput: "Exportierte Masterschlüssel (optional)",
+    exportMasterKeysInfo: "Durch den Export Ihrer Masterschlüssel können Sie Ihr Konto ohne Datenverlust wiederherstellen, falls Sie Ihr Passwort vergessen. Bitte stellen Sie sicher, dass Sie Ihre neuen Masterschlüssel jedes Mal exportieren, wenn Sie Ihr Passwort ändern."
 }
 
 export default de

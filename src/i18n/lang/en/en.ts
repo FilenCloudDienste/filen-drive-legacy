@@ -339,15 +339,15 @@ const en: {
     invalidAbuseReason: "Invalid reason",
     uploadErrored: "Failed",
     newTextFileName: "New text file name",
-    passwordResetSuccess: "Password changed",
+    passwordResetSuccess: "Password changed. Please re-login from all devices.",
     resetPasswordBtn: "Reset password",
     publicLinkDisabled: "Public link disabled",
     expireAfter: "Expire after",
     exportMasterKeys: "Export master keys",
     export: "Export",
-    resetPasswordCheckbox: "I understand that by resetting my password without my recovery master keys I will render all data stored on my account inaccessible due to how zero-knowledge end-to-end encryption works.",
+    resetPasswordCheckbox: "I understand that by resetting my password without my exported master keys I will render all data stored on my account inaccessible due to how zero-knowledge end-to-end encryption works.",
     invalidAuthVersion: "Invalid authentication version",
-    recoveryMasterKeysInput: "Recovery master keys (optional)",
+    recoveryMasterKeysInput: "Exported master keys (optional)",
     exportMasterKeysInfo: "Exporting your master keys makes it possible to recover your account without data loss in case you forget your password. Please make sure to export your new master keys everytime you change your password."
 }
 
