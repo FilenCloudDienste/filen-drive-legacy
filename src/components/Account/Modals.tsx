@@ -1751,6 +1751,14 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
         }
     }, [])
 
+    if(!Array.isArray(masterKeys)){
+        return null
+    }
+
+    if(masterKeys.length == 0){
+        return null
+    }
+
     return (
         <Modal
             onClose={() => setOpen(false)}
@@ -1808,7 +1816,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                             backgroundColor={getColor(darkMode, "backgroundTertiary")}
                             boxShadow="sm"
                             cursor="pointer"
-                            onClick={() => copy(Base64.encode(masterKeys.join("|")))}
+                            onClick={() => copy(Base64.encode(masterKeys.map(key => "_VALID_FILEN_MASTERKEY_" + key + "_VALID_FILEN_MASTERKEY_").join("|")))}
                         >
                             <AppText
                                 darkMode={darkMode}
@@ -1816,11 +1824,11 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                                 color={getColor(darkMode, "textSecondary")}
                                 wordBreak="break-all"
                             >
-                                {Base64.encode(masterKeys.join("|"))}
+                                {Base64.encode(masterKeys.map(key => "_VALID_FILEN_MASTERKEY_" + key + "_VALID_FILEN_MASTERKEY_").join("|"))}
                             </AppText>
                         </Flex>
                         <Button
-                            onClick={() => copy(Base64.encode(masterKeys.join("|")))}
+                            onClick={() => copy(Base64.encode(masterKeys.map(key => "_VALID_FILEN_MASTERKEY_" + key + "_VALID_FILEN_MASTERKEY_").join("|")))}
                             marginTop="20px"
                             backgroundColor={darkMode ? "white" : "gray"}
                             color={darkMode ? "black" : "white"}

@@ -85,8 +85,14 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                 const decodedRecoveryKeys = window.atob(sMasterKeys).split("|")
 
                 for(let i = 0; i < decodedRecoveryKeys.length; i++){
-                    if(decodedRecoveryKeys[i].length > 16 && decodedRecoveryKeys[i].length < 128){
-                        newMasterKeys.push(decodedRecoveryKeys[i])
+                    let key = decodedRecoveryKeys[i]
+
+                    if(key.split("_VALID_FILEN_MASTERKEY_").length == 3){
+                        key = key.split("_VALID_FILEN_MASTERKEY_").join("")
+
+                        if(key.length > 16 && key.length < 128){
+                            newMasterKeys.push(key)
+                        }
                     }
                 }
             }
