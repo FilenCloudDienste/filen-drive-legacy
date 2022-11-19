@@ -56,7 +56,7 @@ const ja: {
     deleteAccount: "アカウントを削除",
     changePassword: "パスワードを変更",
     tfa: "二段階認証",
-    subMoreInfo: "契約の詳細",
+    subMoreInfo: "ご契約の詳細",
     paymentMethod: "お支払い方法",
     stripe: "Stripe",
     paypal: "PayPal",
@@ -342,7 +342,13 @@ const ja: {
     passwordResetSuccess: "パスワードを変更しました",
     resetPasswordBtn: "パスワードを再設定",
     publicLinkDisabled: "共有を停止しました",
-    expireAfter: "リンクの有効期限"
+    expireAfter: "リンクの有効期限",
+    exportMasterKeys: "マスターキーを保存",
+    resetPasswordCheckbox: "マスターキーを保存せずにパスワードを再設定した場合、Filenの採用する暗号化方式の仕組みによりすべてのデータにアクセスすることが不可能になります。それに対し、我々は一切の責任を負いかねることに同意します。",
+    invalidAuthVersion: "認証のバージョンが正しくありません",
+    recoveryMasterKeysInput: "保存したマスターキー",
+    exportMasterKeysInfo: "マスターキーを保存すると、パスワードをお忘れの場合にもデータにアクセスすることができるようになります。パスワードを変更するたびこのマスターキーも変わるので、その都度保存してください。",
+    import: "インポート"
 }
 
 export default ja
