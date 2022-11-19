@@ -8,17 +8,13 @@ import Input from "../../components/Input"
 import Button from "../../components/Button"
 import AppText from "../../components/AppText"
 import { Link } from "react-router-dom"
-import Cookies from "../../lib/cookies"
-import eventListener from "../../lib/eventListener"
 import AuthContainer from "../../components/AuthContainer"
 import { i18n } from "../../i18n"
 import toast from "../../components/Toast"
-import { apiRequest, deriveKeyFromPassword } from "../../lib/worker/worker.com"
+import { apiRequest, encryptMetadata, generatePasswordAndMasterKeysBasedOnAuthVersion } from "../../lib/worker/worker.com"
 import { useParams, useNavigate } from "react-router-dom"
-import { generateRandomString } from "../../lib/helpers"
+import { generateRandomString, toggleColorMode } from "../../lib/helpers"
 import { AUTH_VERSION } from "../../lib/constants"
-
-const CryptoJS = require("crypto-js")
 
 const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
     const [newPassword, setNewPassword] = useState<string>("")
@@ -28,44 +24,14 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
     const navigate = useNavigate()
     const checkboxRef = useRef(null)
     const [checkboxRequired, setCheckboxRequired] = useState<boolean>(false)
-
-    const toggleColorMode = (): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark", {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
-
-        eventListener.emit("colorModeChanged", !darkMode)
-    }
+    const [masterKeys, setMasterKeys] = useState<string>("")
 
     const reset = async () => {
-        setLoading(true)
-
         const sNewPassword: string = newPassword.trim()
         const sConfirmNewPassword: string = confirmNewPassword.trim()
+        const sMasterKeys: string = masterKeys.trim()
 
-        if(!sNewPassword || !sConfirmNewPassword){
-            toast.show("error", i18n(lang, "invalidPassword"), "bottom", 5000)
-
-            setLoading(false)
-
-            return
-        }
-
-        if(sNewPassword !== sConfirmNewPassword){
-            toast.show("error", i18n(lang, "passwordsDoNotMatch"), "bottom", 5000)
-
-            setLoading(false)
-
-            return
-        }
-
-        if(sNewPassword.length < 10){
-            toast.show("error", i18n(lang, "registerWeakPassword"), "bottom", 5000)
-
-            setLoading(false)
-
-            return
-        }
+        setLoading(true)
 
         if(!checkboxRef.current){
             setLoading(false)
@@ -82,20 +48,69 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
             return
         }
 
-        setNewPassword("")
-        setConfirmNewPassword("")
-        setCheckboxRequired(false)
+        if(!sNewPassword || !sConfirmNewPassword){
+            toast.show("error", i18n(lang, "invalidPassword"), "bottom", 5000)
+
+            setLoading(false)
+            setNewPassword("")
+            setConfirmNewPassword("")
+
+            return
+        }
+
+        if(sNewPassword !== sConfirmNewPassword){
+            toast.show("error", i18n(lang, "passwordsDoNotMatch"), "bottom", 5000)
+
+            setLoading(false)
+            setNewPassword("")
+            setConfirmNewPassword("")
+
+            return
+        }
+
+        if(sNewPassword.length < 10){
+            toast.show("error", i18n(lang, "registerWeakPassword"), "bottom", 5000)
+
+            setLoading(false)
+            setNewPassword("")
+            setConfirmNewPassword("")
+
+            return
+        }
+
+        const newMasterKeys: string[] = []
+
+        if(sMasterKeys.length > 0){
+            try{
+                const decodedRecoveryKeys = window.atob(sMasterKeys).split("|")
+
+                for(let i = 0; i < decodedRecoveryKeys.length; i++){
+                    if(decodedRecoveryKeys[i].length > 16 && decodedRecoveryKeys[i].length < 128){
+                        newMasterKeys.push(decodedRecoveryKeys[i])
+                    }
+                }
+            }
+            catch(e){
+                toast.show("error", i18n(lang, "invalidMasterKeys"), "bottom", 5000)
+
+                setLoading(false)
+                setMasterKeys("")
+
+                return
+            }
+        }
 
         try{
             if(AUTH_VERSION == 2){
                 var salt = generateRandomString(256)
-                const derivedKey = await deriveKeyFromPassword(sNewPassword, salt, 200000, "SHA-512", 512, true) as string
-                const derivedAuthKey = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
-                var password = CryptoJS.SHA512(derivedAuthKey).toString()
-                var passwordRepeat = password
+                const { derivedMasterKeys, derivedPassword } = await generatePasswordAndMasterKeysBasedOnAuthVersion(sNewPassword, AUTH_VERSION, salt)
+                var password = derivedPassword
+                var passwordRepeat = derivedPassword
+
+                newMasterKeys.push(derivedMasterKeys)
             }
             else{
-                toast.show("error", "Invalid auth version", "bottom", 5000)
+                toast.show("error", i18n(lang, "invalidAuthVersion"), "bottom", 5000)
 
                 setLoading(false)
 
@@ -110,7 +125,9 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     password,
                     passwordRepeat,
                     salt,
-                    authVersion: AUTH_VERSION
+                    authVersion: AUTH_VERSION,
+                    newMasterKeys: await encryptMetadata(newMasterKeys.join("|"), newMasterKeys[newMasterKeys.length - 1]),
+                    hasRecoveryKeys: newMasterKeys.length >= 2 ? 1 : 0
                 }
             })
 
@@ -123,12 +140,16 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
             }
 
             setLoading(false)
+            setNewPassword("")
+            setCheckboxRequired(false)
+            setConfirmNewPassword("")
+            setMasterKeys("")
 
             toast.show("success", i18n(lang, "passwordResetSuccess"), "bottom", 5000)
 
             setTimeout(() => {
                 navigate("/login")
-            }, 5000)
+            }, 3000)
         }
         catch(e: any){
             console.error(e)
@@ -156,7 +177,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     src={darkMode ? LightLogo : DarkLogo}
                     width="64px"
                     height="64px"
-                    onClick={toggleColorMode}
+                    onClick={() => toggleColorMode(darkMode)}
                     cursor="pointer"
                 />
                 <Input
@@ -165,7 +186,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     marginTop="30px"
-                    placeholder="New password"
+                    placeholder={i18n(lang, "newPassword")}
                     type="password"
                     color={getColor(darkMode, "textSecondary")}
                     _placeholder={{
@@ -178,8 +199,21 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     marginTop="10px"
-                    placeholder="Confirm new password"
+                    placeholder={i18n(lang, "confirmNewPassword")}
                     type="password"
+                    color={getColor(darkMode, "textSecondary")}
+                    _placeholder={{
+                        color: getColor(darkMode, "textSecondary")
+                    }}
+                />
+                <Input
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    value={masterKeys}
+                    onChange={(e) => setMasterKeys(e.target.value)}
+                    marginTop="10px"
+                    placeholder={i18n(lang, "recoveryMasterKeysInput")}
+                    type="text"
                     color={getColor(darkMode, "textSecondary")}
                     _placeholder={{
                         color: getColor(darkMode, "textSecondary")
@@ -200,10 +234,10 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                     darkMode={darkMode}
                     isMobile={isMobile}
                     marginLeft="15px"
-                    fontSize={14}
+                    fontSize={13}
                     color={getColor(darkMode, "textSecondary")}
                 >
-                    I understand that by resetting my password I will render all data stored on my account inaccessible due to how zero-knowledge end-to-end encryption works.
+                    {i18n(lang, "resetPasswordCheckbox")}
                 </AppText>
             </Flex>
             <Flex
@@ -213,7 +247,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                 <Button
                     darkMode={darkMode}
                     isMobile={isMobile}
-                    marginTop="20px"
+                    marginTop="30px"
                     width="100%"
                     colorMode="blue"
                     height="35px"
@@ -255,21 +289,16 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
     const [email, setEmail] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(false)
 
-    const toggleColorMode = (): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark", {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
-
-        eventListener.emit("colorModeChanged", !darkMode)
-    }
-
     const forgot = async () => {
         const userEmail: string = email.trim()
+
+        setLoading(true)
 
         if(!userEmail){
             toast.show("error", i18n(lang, "invalidEmail"), "bottom", 5000)
 
             setLoading(false)
+            setEmail("")
 
             return
         }
@@ -278,6 +307,7 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
             toast.show("error", i18n(lang, "invalidEmailAndPassword"), "bottom", 5000)
 
             setLoading(false)
+            setEmail("")
 
             return
         }
@@ -302,7 +332,6 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
             }
 
             setEmail("")
-
             setLoading(false)
 
             toast.show("success", i18n(lang, "forgotPasswordEmailSent"), "bottom", 5000)
@@ -311,7 +340,6 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
             console.error(e)
 
             setEmail("")
-
             setLoading(false)
 
             toast.show("error", e.toString(), "bottom", 5000)
@@ -332,7 +360,7 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
                 src={darkMode ? LightLogo : DarkLogo}
                 width="64px"
                 height="64px"
-                onClick={toggleColorMode}
+                onClick={() => toggleColorMode(darkMode)}
                 cursor="pointer"
             />
             <Input

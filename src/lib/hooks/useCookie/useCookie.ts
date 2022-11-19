@@ -6,9 +6,7 @@ const useCookie = (key: string): [string | null, (key: string) => boolean] => {
     const [cookie, setCookie] = useState<string | null>(Cookies.get(key))
 
     const set = (value: string): boolean => {
-        Cookies.set(key, value, {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
+        Cookies.set(key, value)
 
         return true
     }

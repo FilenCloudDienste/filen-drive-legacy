@@ -10,9 +10,7 @@ const useWindowWidth = (): number => {
         const listener = (): void => {
             setWidth(window.innerWidth)
             
-            Cookies.set("windowWidth", window.innerWidth.toString(), {
-                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-            })
+            Cookies.set("windowWidth", window.innerWidth.toString())
         }
 
         window.addEventListener("resize", listener)

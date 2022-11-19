@@ -10,9 +10,7 @@ const useWindowHeight = (): number => {
         const listener = (): void => {
             setHeight(window.innerHeight)
             
-            Cookies.set("windowHeight", window.innerHeight.toString(), {
-                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-            })
+            Cookies.set("windowHeight", window.innerHeight.toString())
         }
 
         window.addEventListener("resize", listener)

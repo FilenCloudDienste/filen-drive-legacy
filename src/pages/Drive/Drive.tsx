@@ -347,9 +347,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             db.get("masterKeys")
         ]).then(([_, apiKey, defaultDriveUUID, userId, masterKeys]) => {
             if(apiKey == null || defaultDriveUUID == null || userId == null || masterKeys == null){
-                cookies.set("loggedIn", "false", {
-                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                })
+                cookies.set("loggedIn", "false")
 
                 navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
 
@@ -359,9 +357,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             }
 
             if(typeof apiKey !== "string" || typeof defaultDriveUUID !== "string" || typeof userId !== "number"){
-                cookies.set("loggedIn", "false", {
-                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                })
+                cookies.set("loggedIn", "false")
 
                 navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
 
@@ -371,9 +367,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             }
 
             if(!apiKey || !defaultDriveUUID || apiKey.length !== 64 || defaultDriveUUID.length < 32 || userId <= 0){
-                cookies.set("loggedIn", "false", {
-                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                })
+                cookies.set("loggedIn", "false")
 
                 navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
 
@@ -383,9 +377,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             }
 
             if(!masterKeys || !Array.isArray(masterKeys)){
-                cookies.set("loggedIn", "false", {
-                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                })
+                cookies.set("loggedIn", "false")
 
                 navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
 
@@ -408,9 +400,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             
                 console.error(err)
 
-                cookies.set("loggedIn", "false", {
-                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                })
+                cookies.set("loggedIn", "false")
     
                 navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
             })
@@ -419,9 +409,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             
             console.error(err)
 
-            cookies.set("loggedIn", "false", {
-                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-            })
+            cookies.set("loggedIn", "false")
 
             navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), { replace: true })
         })

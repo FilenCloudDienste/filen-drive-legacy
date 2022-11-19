@@ -29,9 +29,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
     const [params] = useSearchParams()
 
     const toggleColorMode = (): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark", {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
+        Cookies.set("colorMode", darkMode ? "light" : "dark")
 
         eventListener.emit("colorModeChanged", !darkMode)
     }
@@ -104,9 +102,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
                 db.set("userEmail", sEmail)
             ])
 
-            cookies.set("loggedIn", "true", {
-                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-            })
+            cookies.set("loggedIn", "true")
 
             if(typeof params.get("pro") == "string"){
                 navigate("/#/account/plans")

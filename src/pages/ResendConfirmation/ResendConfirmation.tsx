@@ -21,9 +21,7 @@ const ResendConfirmationForm = memo(({ windowWidth, windowHeight, darkMode, isMo
     const [loading, setLoading] = useState<boolean>(false)
 
     const toggleColorMode = (): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark", {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
+        Cookies.set("colorMode", darkMode ? "light" : "dark")
 
         eventListener.emit("colorModeChanged", !darkMode)
     }

@@ -26,9 +26,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
     }, [isMobile])
 
     const toggleColorMode = useCallback((): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark", {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-        })
+        Cookies.set("colorMode", darkMode ? "light" : "dark")
 
         eventListener.emit("colorModeChanged", !darkMode)
     }, [darkMode])

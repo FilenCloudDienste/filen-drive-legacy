@@ -129,9 +129,7 @@ export const getItemDragIndicatorCoords = (clientX: number, clientY: number, off
 }
 
 export const toggleColorMode = (darkMode: boolean): void => {
-    cookies.set("colorMode", darkMode ? "light" : "dark", {
-        domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-    })
+    cookies.set("colorMode", darkMode ? "light" : "dark")
 
     eventListener.emit("colorModeChanged", !darkMode)
 }

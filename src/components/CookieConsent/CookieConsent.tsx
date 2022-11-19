@@ -63,9 +63,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                         borderRadius="10px"
                                         cursor="pointer"
                                         onClick={() => {
-                                            cookies.set("cookieConsent", "deny", {
-                                                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                                            })
+                                            cookies.set("cookieConsent", "deny")
 
                                             toast.close(cookieToastId)
                                         }}
@@ -94,9 +92,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                         borderRadius="10px"
                                         cursor="pointer"
                                         onClick={() => {
-                                            cookies.set("cookieConsent", "needed", {
-                                                domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                                            })
+                                            cookies.set("cookieConsent", "needed")
 
                                             toast.close(cookieToastId)
                                         }}
@@ -128,9 +124,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                         color: darkMode ? "white" : "gray"
                                     }}
                                     onClick={() => {
-                                        cookies.set("cookieConsent", "full", {
-                                            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                                        })
+                                        cookies.set("cookieConsent", "full")
 
                                         toast.close(cookieToastId)
                                     }}

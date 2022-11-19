@@ -438,9 +438,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                             colorScheme={CHAKRA_COLOR_SCHEME}
                             isChecked={darkMode}
                             onChange={(e) => {
-                                Cookies.set("colorMode", e.target.checked ? "dark" : "light", {
-                                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                                })
+                                Cookies.set("colorMode", e.target.checked ? "dark" : "light")
 
                                 eventListener.emit("colorModeChanged", e.target.checked)
                             }}

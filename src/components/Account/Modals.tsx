@@ -95,9 +95,7 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
                                         marginRight="15px"
                                         onClick={() => {
                                             try{
-                                                cookies.set("lang", language.code, {
-                                                    domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
-                                                })
+                                                cookies.set("lang", language.code)
 
                                                 setOpen(false)
                                             }
@@ -1770,6 +1768,15 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                     <Flex
                         flexDirection="column"
                     >
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "textSecondary")}
+                            marginBottom="15px"
+                            fontSize={13}
+                        >
+                            {i18n(lang, "exportMasterKeysInfo")}
+                        </AppText>
                         <Flex
                             width="100%"
                             padding="10px"
@@ -1792,7 +1799,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                         </Flex>
                         <Button
                             onClick={() => copy(Base64.encode(masterKeys.join("|")))}
-                            marginTop="15px"
+                            marginTop="20px"
                         >
                             {i18n(lang, "copy")}
                         </Button>
