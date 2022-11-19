@@ -348,7 +348,8 @@ const en: {
     resetPasswordCheckbox: "I understand that by resetting my password without my exported master keys I will render all data stored on my account inaccessible due to how zero-knowledge end-to-end encryption works.",
     invalidAuthVersion: "Invalid authentication version",
     recoveryMasterKeysInput: "Exported master keys (optional)",
-    exportMasterKeysInfo: "Exporting your master keys makes it possible to recover your account without data loss in case you forget your password. Please make sure to export your new master keys everytime you change your password."
+    exportMasterKeysInfo: "Exporting your master keys makes it possible to recover your account without data loss in case you forget your password. Please make sure to export your new master keys everytime you change your password.",
+    import: "Import"
 }
 
 export default en

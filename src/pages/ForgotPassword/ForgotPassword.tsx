@@ -25,6 +25,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
     const checkboxRef = useRef(null)
     const [checkboxRequired, setCheckboxRequired] = useState<boolean>(false)
     const [masterKeys, setMasterKeys] = useState<string>("")
+    const importInputRef = useRef(null)
 
     const reset = async () => {
         const sNewPassword: string = newPassword.trim()
@@ -93,6 +94,14 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                         if(key.length > 16 && key.length < 128){
                             newMasterKeys.push(key)
                         }
+                    }
+                    else{
+                        toast.show("error", i18n(lang, "invalidMasterKeys"), "bottom", 5000)
+
+                        setLoading(false)
+                        setMasterKeys("")
+
+                        return
                     }
                 }
             }
@@ -173,7 +182,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
     return (
         <Flex
             flexDirection="column"
-            width="300px"
+            width="400px"
         >
             <Flex
                 alignItems="center"
@@ -212,19 +221,76 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
                         color: getColor(darkMode, "textSecondary")
                     }}
                 />
-                <Input
-                    darkMode={darkMode}
-                    isMobile={isMobile}
-                    value={masterKeys}
-                    onChange={(e) => setMasterKeys(e.target.value)}
+                <Flex
+                    alignItems="center"
                     marginTop="10px"
-                    placeholder={i18n(lang, "recoveryMasterKeysInput")}
-                    type="text"
-                    color={getColor(darkMode, "textSecondary")}
-                    _placeholder={{
-                        color: getColor(darkMode, "textSecondary")
-                    }}
-                />
+                    width="100%"
+                >
+                    <Input
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        value={masterKeys}
+                        onChange={(e) => setMasterKeys(e.target.value)}
+                        placeholder={i18n(lang, "recoveryMasterKeysInput")}
+                        type="text"
+                        color={getColor(darkMode, "textSecondary")}
+                        _placeholder={{
+                            color: getColor(darkMode, "textSecondary")
+                        }}
+                    />
+                    <input
+                        type="file"
+                        accept="text/plain, .txt"
+                        multiple={false}
+                        hidden={true}
+                        ref={importInputRef}
+                        onChange={async (e) => {
+                            if(!e.target.files){
+                                e.target.value = ""
+                                
+                                return
+                            }
+        
+                            const file = e.target.files[0]
+
+                            if(!file){
+                                e.target.value = ""
+                                
+                                return
+                            }
+
+                            try{
+                                const buffer = await file.arrayBuffer()
+                                const text = new TextDecoder().decode(buffer)
+
+                                if(text.length > 16){
+                                    window.atob(text)
+
+                                    setMasterKeys(text)
+                                }
+                            }
+                            catch(e){
+                                console.error(e)
+                            }
+        
+                            e.target.value = ""
+                        }}
+                    />
+                    <AppText
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        marginLeft="15px"
+                        fontSize={13}
+                        color={getColor(darkMode, "linkPrimary")}
+                        cursor="pointer"
+                        _hover={{
+                            textDecoration: "underline"
+                        }}
+                        onClick={() => ((importInputRef as any).current as HTMLInputElement).click()}
+                    >
+                        {i18n(lang, "import")}
+                    </AppText>
+                </Flex>
             </Flex>
             <Flex
                 marginTop="15px"
