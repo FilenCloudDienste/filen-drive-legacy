@@ -63,7 +63,7 @@ const en: {
     crypto: "Crypto",
     update: "Update",
     cancel: "Cancel",
-    noSubs: "Your currently do not have active subscriptions.",
+    noSubs: "You currently do not have active subscriptions.",
     noInvoices: "You do not have any invoices yet.",
     planFeatures_1: "Unlimited bandwidth",
     planFeatures_2: "Client side encryption",
