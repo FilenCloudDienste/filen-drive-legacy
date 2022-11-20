@@ -332,7 +332,7 @@ const pl: {
     registration: "Rejestracja",
     registrationEmailInstructions: "Aby zakończyć rejestrację, potwierdź swój adres e-mail. Link z instrukcjami został do Ciebie wysłany.",
     forgotPasswordEmailSent: "Wiadomość e-mail z instrukcjami dotyczącymi resetowania hasła została do Ciebie wysłana.",
-    maxStorageReached: "Pamięć pełna",
+    maxStorageReached: "Pełna przestrzeń dyskowa",
     maxStorageReachedInfo: "Osiągnąłeś maksymalny limit miejsca na dane. Ulepsz swoje konto, aby przesłać więcej plików.",
     upgradeNow: "Ulepsz teraz",
     abuseReportSubmitted: "Zgłoszenie nadużycia wysłane!",
