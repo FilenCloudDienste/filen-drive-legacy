@@ -348,7 +348,18 @@ const ja: {
     invalidAuthVersion: "認証のバージョンが正しくありません",
     recoveryMasterKeysInput: "保存したマスターキー",
     exportMasterKeysInfo: "マスターキーを保存すると、パスワードをお忘れの場合にもデータにアクセスすることができるようになります。パスワードを変更するたびこのマスターキーも変わるので、その都度保存してください。",
-    import: "インポート"
+    import: "インポート",
+    invite: "招待",
+    yourReferralLink: "招待用リンク",
+    requestPayout: "送金を申請",
+    invalidPayoutAddress: "送金先アドレスが正しくありません",
+    affiliatePayoutSuccess: "送金の申請を受け付けました。",
+    requestPayoutInfo: "1〜7営業日のうちにクレジットをお客様のビットコインアドレスに送金いたします。",
+    comissionEarned: "お客様のクレジット",
+    receivedBonusStorage: "追加ストレージの合計",
+    referInfo: "招待をすると、最大__STORAGE__の容量が追加されます。",
+    referInfo2: "一人あたりのご招待につき__STORAGE__の容量がお客様のアカウントに追加され、招待された側は__OTHER_STORAGE__の容量が最初から上乗せされます。招待リンクから登録されると、お客様のアカウントにはクレジットも追加されます。クレジットの上限は__THRESHOLD__€までです。",
+    yourBtcAddress: "ビットコインアドレス"
 }
 
 export default ja
