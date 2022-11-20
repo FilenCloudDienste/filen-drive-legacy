@@ -349,7 +349,18 @@ const en: {
     invalidAuthVersion: "Invalid authentication version",
     recoveryMasterKeysInput: "Exported master keys",
     exportMasterKeysInfo: "Exporting your master keys makes it possible to recover your account without data loss in case you forget your password. Please make sure to export your new master keys everytime you change your password.",
-    import: "Import"
+    import: "Import",
+    invite: "Invite",
+    yourReferralLink: "Your link",
+    requestPayout: "Request payout",
+    invalidPayoutAddress: "Invalid payout address",
+    affiliatePayoutSuccess: "Payout request submitted",
+    requestPayoutInfo: "We will send your earned affiliate comission to the given Bitcoin address within 1-7 working days.",
+    comissionEarned: "Comission earned",
+    receivedBonusStorage: "Total received bonus storage",
+    referInfo: "Receive up to __STORAGE__ of storage by inviting others",
+    referInfo2: "For every friend you invite to Filen you receive __STORAGE__ - and your friend also receives __OTHER_STORAGE__. Your friend can register for a subscription of their choice and you earn comission. The comission payout threshold is __THRESHOLD__€.",
+    yourBtcAddress: "Your Bitcoin address"
 }
 
 export default en

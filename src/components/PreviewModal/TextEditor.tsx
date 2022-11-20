@@ -404,6 +404,8 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
         })
 
         beforeText.current = newText.current
+
+        memoryCache.set("textEditorChanged", false)
     }, [newText.current, currentItem, beforeText.current])
 
     const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {

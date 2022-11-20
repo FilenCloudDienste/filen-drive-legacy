@@ -23,6 +23,7 @@ import { FaBitcoin } from "react-icons/fa"
 import { RiPaypalLine } from "react-icons/ri"
 import { logout } from "../../lib/services/user/logout"
 import { i18n } from "../../i18n"
+import Input from "../Input"
 
 const SHOW_PLANS: boolean = false
 const SALE_ACTIVE: boolean = false
@@ -50,6 +51,9 @@ const getTabIndex = (tab: string): number => {
         break
         case "account/events":
             return 6
+        break
+        case "account/invite":
+            return 7
         break
         default:
             return 0
@@ -97,7 +101,11 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
             setUserAccount(account)
             setUserInfo(info)
             setUserSettings(settings)
-        }).catch(console.error)
+        }).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
     }
 
     const onAvatarFileInputChanged = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,8 +142,10 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 
             fetchData()
         }
-        catch(e){
+        catch(e: any){
             console.error(e)
+
+            showToast("error", e.toString(), "bottom", 5000)
         }
 
         e.target.value = ""
@@ -167,7 +177,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                 flexDirection="column"
             >
                 <Flex
-                    height={isMobile ? "120px" : "100px"}
+                    height={isMobile ? "80px" : "100px"}
                     borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
                     flexDirection="column"
                     width="100%"
@@ -178,15 +188,19 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                         justifyContent="space-between"
                         flexDirection={isMobile ? "column" : "row"}
                     >
-                        <Flex>
-                            <AppText
-                                darkMode={darkMode}
-                                isMobile={isMobile}
-                                color={getColor(darkMode, "textSecondary")}
-                            >
-                                {i18n(lang, "storageUsed")}
-                            </AppText>
-                        </Flex>
+                        {
+                            !isMobile && (
+                                <Flex>
+                                    <AppText
+                                        darkMode={darkMode}
+                                        isMobile={isMobile}
+                                        color={getColor(darkMode, "textSecondary")}
+                                    >
+                                        {i18n(lang, "storageUsed")}
+                                    </AppText>
+                                </Flex>
+                            )
+                        }
                         <Flex
                             marginTop={isMobile ? "5px" : undefined}
                         >
@@ -194,7 +208,6 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                                 darkMode={darkMode}
                                 isMobile={isMobile}
                                 color={getColor(darkMode, "textSecondary")}
-                                fontSize={isMobile ? 13 : undefined}
                             >
                                 <b>{i18n(lang, "storageUsedInfo", true, ["__USED__", "__MAX__"], [formatBytes(userInfo.storageUsed), formatBytes(userInfo.maxStorage)])}</b>
                             </AppText>
@@ -518,8 +531,10 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 
                                             downloadObjectAsJson(data, "GDPR_Data_" + new Date().toDateString().split(" ").join("_"))
                                         }
-                                        catch(e){
+                                        catch(e: any){
                                             console.error(e)
+
+                                            showToast("error", e.toString(), "bottom", 5000)
                                         }
 
                                         setDownloadingGDPR(false)
@@ -583,7 +598,11 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
     const [userSettings, setUserSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
 
     useEffect(() => {
-        fetchUserSettings().then((settings) => setUserSettings(settings)).catch(console.error)
+        fetchUserSettings().then((settings) => setUserSettings(settings)).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
     }, [])
 
     if(typeof userSettings == "undefined"){
@@ -732,7 +751,11 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
     const fetchSettings = () => {
         setUserSettings(undefined)
 
-        fetchUserSettings().then((settings) => setUserSettings(settings)).catch(console.error)
+        fetchUserSettings().then((settings) => setUserSettings(settings)).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
     }
 
     useEffect(() => {
@@ -885,7 +908,11 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
     useEffect(() => {
         fetchUserAccount().then((account) => {
             setUserAccount(account)
-        }).catch(console.error)
+        }).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
     }, [])
 
     if(typeof userAccount == "undefined"){
@@ -1114,7 +1141,11 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
     useEffect(() => {
         fetchUserAccount().then((account) => {
             setUserAccount(account)
-        }).catch(console.error)
+        }).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
     }, [])
 
     const downloadInvoice = (id: string) => {
@@ -1124,8 +1155,10 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
             try{
                 downloadPDF(data, "Invoice_" + id + ".pdf")
             }
-            catch(e){
+            catch(e: any){
                 console.error(e)
+
+                showToast("error", e.toString(), "bottom", 5000)
             }
 
             setDownloadingInvoice(false)
@@ -1133,6 +1166,8 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
             setDownloadingInvoice(false)
 
             console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
         })
     }
 
@@ -1316,7 +1351,11 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
                 lang
             }).then((got) => {
                 setText(got)
-            }).catch(console.error)
+            }).catch((err) => {
+                console.error(err)
+    
+                showToast("error", err.toString(), "bottom", 5000)
+            })
         }
     }, [masterKeys, event, lang, loading, text])
 
@@ -1426,7 +1465,11 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
     const fetchData = (): void => {
         fetchUserInfo().then((info) => {
             setUserInfo(info)
-        }).catch(console.error)
+        }).catch((err) => {
+            console.error(err)
+
+            setLoading(false)
+        })
     }
 
     const getEvents = (lastId: number = 0, filter: string = "all") => {
@@ -1859,6 +1902,168 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
     )
 })
 
+const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
+    const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+
+    const copy = (text: string) => {
+        try{
+            navigator.clipboard.writeText(text)
+
+            showToast("success", i18n(lang, "copied"), "bottom", 3000)
+        }
+        catch(e: any){
+            console.error(e)
+
+            showToast("error", e.toString(), "bottom", 5000)
+        }
+    }
+
+    const load = () => {
+        setUserAccount(undefined)
+
+        fetchUserAccount().then((account) => {
+            setUserAccount(account)
+        }).catch((err) => {
+            console.error(err)
+
+            showToast("error", err.toString(), "bottom", 5000)
+        })
+    }
+
+    useEffect(() => {
+        load()
+
+        const reloadListener = eventListener.on("reloadInvitePage", () => load())
+
+        return () => {
+            reloadListener.remove()
+        }
+    }, [])
+
+    if(typeof userAccount == "undefined"){
+        return <Skeletons count={6} darkMode={darkMode} />
+    }
+
+    return (
+        <Flex
+            width={isMobile ? "100%" : "40%"}
+            flexDirection="column"
+        >
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
+                color={getColor(darkMode, "textPrimary")}
+                fontWeight="bold"
+            >
+                {i18n(lang, "referInfo", true, ["__STORAGE__"], [formatBytes(userAccount.refStorage * userAccount.refLimit)])}
+            </AppText>
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
+                color={getColor(darkMode, "textSecondary")}
+                fontSize={13}
+                marginTop="10px"
+                maxWidth="500px"
+            >
+                {i18n(lang, "referInfo2", true, ["__STORAGE__", "__OTHER_STORAGE__", "__THRESHOLD__"], [formatBytes(userAccount.refStorage), formatBytes(userAccount.refStorage), "100"])}
+                
+            </AppText>
+            <Flex
+                alignItems="center"
+                marginTop="40px"
+            >
+                <Input
+                    width={isMobile ? "100%" : "450px"}
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    value={"https://filen.io/r/" + userAccount.refId}
+                    autoFocus={false}
+                    onChange={() => {}}
+                    color={getColor(darkMode, "textSecondary")}
+                    _placeholder={{
+                        color: getColor(darkMode, "textSecondary")
+                    }}
+                />
+                <Button
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    height="38px"
+                    onClick={() => copy("https://filen.io/r/" + userAccount.refId)}
+                    backgroundColor={darkMode ? "white" : "gray"}
+                    color={darkMode ? "black" : "white"}
+                    border={"1px solid " + (darkMode ? "white" : "gray")}
+                    _hover={{
+                        backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                        border: "1px solid " + (darkMode ? "white" : "gray"),
+                        color: darkMode ? "white" : "gray"
+                    }}
+                    autoFocus={false}
+                    marginLeft="15px"
+                >
+                    {i18n(lang, "copy")}
+                </Button>
+            </Flex>
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
+                color={getColor(darkMode, "textPrimary")}
+                marginTop="40px"
+            >
+                {i18n(lang, "receivedBonusStorage")}
+            </AppText>
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
+                color={getColor(darkMode, "textSecondary")}
+                marginTop="5px"
+            >
+                {formatBytes(userAccount.referStorage > (userAccount.refStorage * userAccount.refLimit) ? (userAccount.refStorage * userAccount.refLimit) : userAccount.referStorage)} of {formatBytes(userAccount.refStorage * userAccount.refLimit)}
+            </AppText>
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
+                color={getColor(darkMode, "textPrimary")}
+                marginTop="40px"
+            >
+                {i18n(lang, "comissionEarned")}
+            </AppText>
+            <Flex
+                marginTop="5px"
+            >
+                <AppText
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    color={getColor(darkMode, "textSecondary")}
+                >
+                    {userAccount.affBalance}€
+                </AppText>
+                {
+                    userAccount.affBalance >= 100 && (
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "linkPrimary")}
+                            cursor="pointer"
+                            marginLeft="15px"
+                            _hover={{
+                                textDecoration: "underline"
+                            }}
+                            onClick={() => eventListener.emit("openAffiliatePayoutModal")}
+                        >
+                            {i18n(lang, "requestPayout")}
+                        </AppText>
+                    )
+                }
+            </Flex>
+            <Modals.AffiliatePayoutModal
+                darkMode={darkMode}
+                isMobile={isMobile}
+                lang={lang}
+            />
+        </Flex>
+    )
+})
+
 const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
     const location = useLocation()
     const navigate = useNavigate()
@@ -1956,6 +2161,14 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                     >
                         {i18n(lang, "events")}
                     </Tab>
+                    <Tab
+                        _hover={{
+                            backgroundColor: getColor(darkMode, "backgroundSecondary")
+                        }}
+                        onClick={() => navigate("/#/account/invite")}
+                    >
+                        {i18n(lang, "invite")}
+                    </Tab>
                 </TabList>
                 <TabPanels
                     paddingTop={activeTab == "account/events" ? "30px" : "50px"}
@@ -2027,6 +2240,16 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                     </TabPanel>
                     <TabPanel>
                         <Events
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            windowHeight={windowHeight}
+                            windowWidth={windowWidth}
+                            sidebarWidth={sidebarWidth}
+                            lang={lang}
+                        />
+                    </TabPanel>
+                    <TabPanel>
+                        <Invite
                             darkMode={darkMode}
                             isMobile={isMobile}
                             windowHeight={windowHeight}

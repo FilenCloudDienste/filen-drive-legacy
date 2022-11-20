@@ -2892,3 +2892,22 @@ export const buySub = async (planId: number, paymentMethod: PaymentMethods, life
 
     return response.data.url
 }
+
+export const requestAffiliatePayout = async (method: string, address: string): Promise<boolean> => {
+    const apiKey: string = await db.get("apiKey")
+    const response = await apiRequest({
+        method: "POST",
+        endpoint: "/v1/user/affiliate/payout",
+        data: {
+            apiKey,
+            method,
+            address
+        }
+    })
+
+    if(!response.status){
+        throw new Error(response.message)
+    }
+
+    return true
+}

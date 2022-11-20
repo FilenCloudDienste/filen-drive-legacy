@@ -4,7 +4,7 @@ import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import Input from "../Input"
-import { authInfo, changeEmail, updatePersonal, deleteAccount, deleteAll, deleteVersioned, changePassword, enable2FA, disable2FA } from "../../lib/api"
+import { authInfo, changeEmail, updatePersonal, deleteAccount, deleteAll, deleteVersioned, changePassword, enable2FA, disable2FA, requestAffiliatePayout } from "../../lib/api"
 import { generatePasswordAndMasterKeysBasedOnAuthVersion, encryptMetadata } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
 import { show as showToast } from "../Toast/Toast"
@@ -1862,6 +1862,156 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
                             autoFocus={false}
                         >
                             {i18n(lang, "save")}
+                        </Button>
+                    </Flex>
+                </ModalBody>
+                <ModalFooter>
+                    <AppText
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        noOfLines={1}
+                        wordBreak="break-all"
+                        color={getColor(darkMode, "textSecondary")}
+                        cursor="pointer"
+                        onClick={() => setOpen(false)}
+                        _hover={{
+                            color: getColor(darkMode, "textPrimary")
+                        }}
+                    >
+                        {i18n(lang, "close")}
+                    </AppText>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    )
+})
+
+export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobile: boolean, lang: string }) => {
+    const [open, setOpen] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(false)
+    const [address, setAddress] = useState<string>("")
+
+    const request = async () => {
+        if(loading){
+            return
+        }
+
+        const sAddress: string = address.trim()
+
+        if(!sAddress.trim()){
+            showToast("error", i18n(lang, "invalidPayoutAddress"), "bottom", 5000)
+
+            return
+        }
+
+        setLoading(true)
+
+        try{
+            await requestAffiliatePayout("bitcoin", sAddress)
+            await new Promise(resolve => setTimeout(resolve, 3000))
+
+            showToast("success", i18n(lang, "affiliatePayoutSuccess"), "bottom", 10000)
+
+            eventListener.emit("reloadInvitePage")
+
+            setOpen(false)
+        }
+        catch(e: any){
+            console.error(e)
+
+            showToast("error", e.toString(), "bottom", 5000)
+        }
+
+        setAddress("")
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        const openAffiliatePayoutModalListener = eventListener.on("openAffiliatePayoutModal", () => {
+            setOpen(true)
+            setAddress("")
+        })
+        
+        return () => {
+            openAffiliatePayoutModalListener.remove()
+        }
+    }, [])
+
+    return (
+        <Modal
+            onClose={() => setOpen(false)}
+            isOpen={open}
+            isCentered={true}
+            size={isMobile ? "full" : "md"}
+            autoFocus={false}
+        >
+            <ModalOverlay 
+                backgroundColor="rgba(0, 0, 0, 0.4)"
+            />
+            <ModalContent
+                backgroundColor={getColor(darkMode, "backgroundSecondary")}
+                color={getColor(darkMode, "textSecondary")}
+                borderRadius={isMobile ? "0px" : "5px"}
+            >
+                <ModalHeader
+                    color={getColor(darkMode, "textPrimary")}
+                >
+                    {i18n(lang, "requestPayout")}
+                </ModalHeader>
+                <ModalCloseButton
+                    color={getColor(darkMode, "textSecondary")}
+                    backgroundColor={getColor(darkMode, "backgroundTertiary")}
+                    _hover={{
+                        color: getColor(darkMode, "textPrimary"),
+                        backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    }}
+                    autoFocus={false}
+                    tabIndex={-1}
+                    borderRadius="full"
+                />
+                <ModalBody
+                    height="100%"
+                    width="100%"
+                >
+                    <Flex
+                        flexDirection="column"
+                    >
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "textSecondary")}
+                            marginBottom="15px"
+                            fontSize={13}
+                        >
+                            {i18n(lang, "requestPayoutInfo")}
+                        </AppText>
+                        <Input
+                            width="100%"
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            value={address}
+                            autoFocus={false}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder={i18n(lang, "yourBtcAddress")}
+                            color={getColor(darkMode, "textSecondary")}
+                            _placeholder={{
+                                color: getColor(darkMode, "textSecondary")
+                            }}
+                        />
+                        <Button
+                            onClick={() => request()}
+                            marginTop="20px"
+                            backgroundColor={darkMode ? "white" : "gray"}
+                            color={darkMode ? "black" : "white"}
+                            border={"1px solid " + (darkMode ? "white" : "gray")}
+                            _hover={{
+                                backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                border: "1px solid " + (darkMode ? "white" : "gray"),
+                                color: darkMode ? "white" : "gray"
+                            }}
+                            autoFocus={false}
+                        >
+                            {i18n(lang, "request")}
                         </Button>
                     </Flex>
                 </ModalBody>
