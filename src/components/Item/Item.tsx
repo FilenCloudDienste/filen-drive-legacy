@@ -488,15 +488,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
         }
     }, [item, didGenerateThumbnail.current])
 
-    useEffect(() => {
-        currentItems.current = items
-    }, [items])
-
-    useEffect(() => {
-        window.visibleItems.push(item)
-
-        queueThumbnailGeneration()
-
+    const loadFolderSize = useCallback(() => {
         if(item.type == "folder"){
             if(window.location.href.indexOf("/f/") == -1){
                 Promise.all([
@@ -523,11 +515,26 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
                 })
             }).catch(console.error)
         }
+    }, [item, window.location.href, startURL, setItems])
+
+    useEffect(() => {
+        currentItems.current = items
+    }, [items])
+
+    useEffect(() => {
+        window.visibleItems.push(item)
+
+        queueThumbnailGeneration()
+        loadFolderSize()
 
         const thumbnailGeneratedListener = eventListener.on("thumbnailGenerated", ({ uuid, url }: { uuid: string, url: string }) => {
             if(uuid == item.uuid){
                 setThumbnail(url)
             }
+        })
+
+        const reloadFolderSizesListener = eventListener.on("reloadFolderSizes", () => {
+            loadFolderSize()
         })
 
         return () => {
@@ -536,6 +543,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
             dropNavigationTimer.current = undefined
 
             thumbnailGeneratedListener.remove()
+            reloadFolderSizesListener.remove()
         }
     }, [])
 

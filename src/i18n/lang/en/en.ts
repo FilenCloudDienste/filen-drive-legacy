@@ -360,7 +360,8 @@ const en: {
     receivedBonusStorage: "Total received bonus storage",
     referInfo: "Receive up to __STORAGE__ of storage by inviting others",
     referInfo2: "For every friend you invite to Filen you receive __STORAGE__ - and your friend also receives __OTHER_STORAGE__. Your friend can register for a subscription of their choice and you earn comission. The comission payout threshold is __THRESHOLD__€.",
-    yourBtcAddress: "Your Bitcoin address"
+    yourBtcAddress: "Your Bitcoin address",
+    openUploads: "Open uploads"
 }
 
 export default en

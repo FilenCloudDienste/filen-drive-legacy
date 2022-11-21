@@ -46,6 +46,7 @@ import { addItemsToStore, removeItemsFromStore, clearItemsInStore } from "../../
 import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
+import { debounce } from "lodash"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
     const navigate = useNavigate()
@@ -71,6 +72,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
     const currentSearchTerm = useRef<string>("")
     const itemsBeforeSearch = useRef<ItemProps[]>([])
     const [showDragAndDropModal, setShowDragAndDropModal] = useState<boolean>(false)
+
+    const debounceReloadSizesEvent = useCallback(debounce(() => {
+        eventListener.emit("reloadFolderSizes")
+    }, 60000), [])
 
     const resetDragSelect = useCallback(throttle((): void => {
         document.body.removeEventListener("mousemove", mouseMoveListener)
@@ -884,6 +889,26 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             }
         })
 
+
+        const socketEventReloadSizesListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+            await new Promise(resolve => setTimeout(resolve, 250))
+
+            if(
+                event.type == "fileArchived"
+                || event.type == "fileTrash"
+                || event.type == "folderTrash"
+                || event.type == "folderSubCreated"
+                || event.type == "folderRestore"
+                || event.type == "fileNew"
+                || event.type == "fileRestore"
+                || event.type == "fileArchiveRestored"
+                || event.type == "fileMove"
+                || event.type == "folderMove"
+            ){
+                debounceReloadSizesEvent()
+            }
+        })
+
         return () => {
             window.removeEventListener("keydown", windowOnKeyDown)
 
@@ -906,6 +931,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             itemColorChangedListener.remove()
             updateItemListener.remove()
             socketEventListener.remove()
+            socketEventReloadSizesListener.remove()
         }
     }, [])
 

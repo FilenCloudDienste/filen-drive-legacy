@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { Flex, Menu, MenuButton, MenuList, MenuItem, forwardRef, Button } from "@chakra-ui/react"
+import { Flex, Menu, MenuButton, MenuList, MenuItem, forwardRef, Button, MenuDivider } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import type { UploadButtonProps } from "../../types"
 import eventListener from "../../lib/eventListener"
@@ -119,6 +119,30 @@ const UploadButton = memo(({ darkMode, isMobile, lang, enabled }: UploadButtonPr
                         onClick={() => eventListener.emit("openCreateFolderModal")}
                     >
                         {i18n(lang, "newFolder")}
+                    </MenuItem>
+                    <MenuDivider />
+                    <MenuItem 
+                        height="auto"
+                        fontSize={14}
+                        paddingTop="5px"
+                        paddingBottom="5px"
+                        backgroundColor={getColor(darkMode, "backgroundPrimary")}
+                        color={getColor(darkMode, "textSecondary")}
+                        _hover={{
+                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                            color: getColor(darkMode, "textPrimary")
+                        }}
+                        _active={{
+                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                            color: getColor(darkMode, "textPrimary")
+                        }}
+                        _focus={{
+                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                            color: getColor(darkMode, "textPrimary")
+                        }}
+                        onClick={() => eventListener.emit("openUploadModal", { files: undefined, openModal: true })}
+                    >
+                        {i18n(lang, "openUploads")}
                     </MenuItem>
                 </MenuList>
             </Menu>
