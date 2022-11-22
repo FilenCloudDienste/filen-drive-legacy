@@ -359,7 +359,8 @@ const ja: {
     receivedBonusStorage: "追加ストレージの合計",
     referInfo: "招待をすると、最大__STORAGE__の容量が追加されます。",
     referInfo2: "一人あたりのご招待につき__STORAGE__の容量がお客様のアカウントに追加され、招待された側は__OTHER_STORAGE__の容量が最初から上乗せされます。招待リンクから登録されると、お客様のアカウントにはクレジットも追加されます。クレジットの上限は__THRESHOLD__€までです。",
-    yourBtcAddress: "ビットコインアドレス"
+    yourBtcAddress: "ビットコインアドレス",
+    openUploads: "アップロードを開く"
 }
 
 export default ja
