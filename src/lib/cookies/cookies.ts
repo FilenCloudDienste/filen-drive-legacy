@@ -4,8 +4,8 @@ import eventListener from "../eventListener"
 export const set = (key: string, value: string, opts: { domain: string | undefined } | undefined = undefined): boolean => {
     try{
         Cookies.set(key, value, {
-            expires: new Date().getTime() + (86400000 * 3650),
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
+            expires: new Date().getTime() + (86400000 * 365),
+            domain: process.env.NODE_ENV == "development" ? undefined : ".filen.io"
         })
 
         eventListener.emit("cookiesSet", {
@@ -35,7 +35,7 @@ export const get = (key: string): string | null => {
 export const remove = (key: string): boolean => {
     try{
         Cookies.remove(key, {
-            domain: process.env.NODE_ENV == "development" ? undefined : "filen.io"
+            domain: process.env.NODE_ENV == "development" ? undefined : ".filen.io"
         })
 
         eventListener.emit("cookiesRemove", {
