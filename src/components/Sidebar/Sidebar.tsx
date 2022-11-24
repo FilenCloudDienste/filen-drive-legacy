@@ -258,6 +258,10 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
     const handleItemOnContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
         const item: ItemProps = parent
 
+        if(item.uuid == "base"){
+            return
+        }
+
         setActiveItem(item)
         setItems(prev => prev.map(mapItem => ({ ...mapItem, selected: false })))
 

@@ -208,7 +208,7 @@ const MoveSubmenu = memo(({ parent, load, uuid, darkMode, isMobile, items, lang 
     )
 })
 
-const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProps) => {
+const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: ContextMenusProps) => {
     const location = useLocation()
 
     const [selected, selectedCount, fileCount, folderCount, canEdit, canPreview, favoriteEnabledCount, favoriteDisabledCount] = useMemo(() => {
@@ -224,7 +224,13 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         return [selected, selectedCount, fileCount, folderCount, canEdit, canPreview, favoriteEnabledCount, favoriteDisabledCount]
     }, [items, location])
 
-    const deleteItems = useCallback(() => {
+    const deleteItems = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(passedItem){
+            eventListener.emit("openDeleteModal", {
+                items: [passedItem]
+            })
+        }
+
         if(selected.length == 0){
             return
         }
@@ -232,9 +238,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openDeleteModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const deleteItemsPermanently = useCallback(() => {
+    const deleteItemsPermanently = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openDeletePermanentlyModal", {
+                items: [passedItem]
+            })
+        }
+
         if(selected.length == 0){
             return
         }
@@ -242,9 +254,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openDeletePermanentlyModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const removeSharedIn = useCallback(() => {
+    const removeSharedIn = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openRemoveSharedInModal", {
+                items: [passedItem]
+            })
+        }
+
         if(selected.length == 0){
             return
         }
@@ -252,9 +270,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openRemoveSharedInModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const stopSharing = useCallback(() => {
+    const stopSharing = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openStopSharingModal", {
+                items: [passedItem]
+            })
+        }
+
         if(selected.length == 0){
             return
         }
@@ -262,19 +286,28 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openStopSharingModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const shareItems = useCallback(() => {
-        if(selected.length == 0){
-            return
+    const shareItems = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openShareModal", {
+                items: [passedItem]
+            })
         }
 
         eventListener.emit("openShareModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const publicLink = useCallback(() => {
+    const publicLink = useCallback((passedItem: ItemProps | undefined = undefined) => {
+
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openPublicLinkModal", {
+                item: passedItem
+            })
+        }
+
         if(selected.length !== 1){
             return
         }
@@ -282,9 +315,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openPublicLinkModal", {
             item: selected[0]
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const versions = useCallback(() => {
+    const versions = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openVersionsModal", {
+                items: passedItem
+            })
+        }
+
         if(selected.length !== 1){
             return
         }
@@ -292,9 +331,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openVersionsModal", {
             item: selected[0]
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const moveModal = useCallback(() => {
+    const moveModal = useCallback((passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            eventListener.emit("openMoveModal", {
+                items: [passedItem]
+            })
+        }
+
         if(selected.length == 0){
             return
         }
@@ -302,15 +347,21 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
         eventListener.emit("openMoveModal", {
             items: selected
         })
-    }, [selected])
+    }, [selected, activeItem])
 
-    const color = useCallback((color: FolderColors) => {
+    const color = useCallback((color: FolderColors, passedItem: ItemProps | undefined = undefined) => {
+        if(typeof passedItem !== "undefined"){
+            changeColor([passedItem], color)
+
+            return
+        }
+
         if(selected.length == 0){
             return
         }
 
         changeColor(selected, color)
-    }, [selected])
+    }, [selected, activeItem])
 
     const createTextFile = useCallback(() => {
         eventListener.emit("openCreateTextFileModal")
@@ -718,224 +769,228 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang }: ContextMenusProp
                     )
                 }
             </ContextMenu>
-            <ContextMenu
-                id="sidebarContextMenu"
-                animation={{
-                    enter: animation.fade,
-                    exit: false
-                }}
-                theme={darkMode ? "filendark" : "filenlight"}
-            >
-                <ContextMenuItem
-                    onClick={() => {
-                        const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
-
-                        normalDownload(selected, () => {
-                            dismissToast(downloadingToast)
-                        }).catch((err) => {
-                            console.error(err)
-
-                            showToast("error", err.toString(), "bottom", 5000)
-
-                            dismissToast(downloadingToast)
-                        })
-                    }}
-                >
-                    {i18n(lang, "download")}
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                    onClick={() => publicLink()}
-                >
-                    {i18n(lang, "publicLink")}
-                </ContextMenuItem>
-                <ContextMenuItem 
-                    onClick={() => shareItems()}
-                >
-                    {i18n(lang, "share")}
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuSubmenu
-                    label={i18n(lang, "color")}
-                    arrow={<IoChevronForward fontSize={16} />}
-                >
-                    <ContextMenuItem
-                        onClick={() => color("default")}
+            {
+                activeItem && typeof activeItem !== "undefined" && (
+                    <ContextMenu
+                        id="sidebarContextMenu"
+                        animation={{
+                            enter: animation.fade,
+                            exit: false
+                        }}
+                        theme={darkMode ? "filendark" : "filenlight"}
                     >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("default")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_default")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                        onClick={() => color("blue")}
-                    >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("blue")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_blue")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                        onClick={() => color("green")}
-                    >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("green")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_green")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                        onClick={() => color("purple")}
-                    >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("purple")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_purple")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                        onClick={() => color("red")}
-                    >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("red")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_red")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                        onClick={() => color("gray")}
-                    >
-                        <Flex
-                            justifyContent="flex-start"
-                            alignItems="center"
-                        >
-                            <Flex
-                                width="16px"
-                                height="16px"
-                                borderRadius="50%"
-                                backgroundColor={getFolderColor("gray")}
-                            />
-                            <Flex
-                                marginLeft="8px"
-                            >
-                                {i18n(lang, "color_gray")}
-                            </Flex>
-                        </Flex>
-                    </ContextMenuItem>
-                </ContextMenuSubmenu>
-                {
-                    favoriteEnabledCount > 0 && (
                         <ContextMenuItem
-                            onClick={() => markAsFavorite(selected, 0)}
+                            onClick={() => {
+                                const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
+
+                                normalDownload([activeItem], () => {
+                                    dismissToast(downloadingToast)
+                                }).catch((err) => {
+                                    console.error(err)
+
+                                    showToast("error", err.toString(), "bottom", 5000)
+
+                                    dismissToast(downloadingToast)
+                                })
+                            }}
                         >
-                            {i18n(lang, "unfavorite")}
+                            {i18n(lang, "download")}
                         </ContextMenuItem>
-                    )
-                }
-                {
-                    favoriteDisabledCount > 0 && (
+                        <ContextMenuSeparator />
                         <ContextMenuItem
-                            onClick={() => markAsFavorite(selected, 1)}
+                            onClick={() => publicLink(activeItem)}
                         >
-                            {i18n(lang, "favorite")}
+                            {i18n(lang, "publicLink")}
                         </ContextMenuItem>
-                    )
-                }
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => {
-                    eventListener.emit("openRenameModal", {
-                        item: selected[0]
-                    })
-                }}>
-                    {i18n(lang, "rename")}
-                </ContextMenuItem>
-                {
-                    location.hash.indexOf("shared-out") == -1 && (
+                        <ContextMenuItem 
+                            onClick={() => shareItems(activeItem)}
+                        >
+                            {i18n(lang, "share")}
+                        </ContextMenuItem>
+                        <ContextMenuSeparator />
                         <ContextMenuSubmenu
-                            label={i18n(lang, "move")}
+                            label={i18n(lang, "color")}
                             arrow={<IoChevronForward fontSize={16} />}
                         >
                             <ContextMenuItem
-                                onClick={() => moveModal()}
+                                onClick={() => color("default", activeItem)}
                             >
-                                {i18n(lang, "selectDestination")}
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("default")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_default")}
+                                    </Flex>
+                                </Flex>
                             </ContextMenuItem>
-                            <ContextMenuSeparator />
-                            <MoveSubmenu
-                                parent={i18n(lang, "move")}
-                                uuid="base"
-                                load={true}
-                                darkMode={darkMode}
-                                isMobile={isMobile}
-                                items={items}
-                                lang={lang}
-                            />
+                            <ContextMenuItem
+                                onClick={() => color("blue", activeItem)}
+                            >
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("blue")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_blue")}
+                                    </Flex>
+                                </Flex>
+                            </ContextMenuItem>
+                            <ContextMenuItem
+                                onClick={() => color("green", activeItem)}
+                            >
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("green")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_green")}
+                                    </Flex>
+                                </Flex>
+                            </ContextMenuItem>
+                            <ContextMenuItem
+                                onClick={() => color("purple", activeItem)}
+                            >
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("purple")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_purple")}
+                                    </Flex>
+                                </Flex>
+                            </ContextMenuItem>
+                            <ContextMenuItem
+                                onClick={() => color("red", activeItem)}
+                            >
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("red")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_red")}
+                                    </Flex>
+                                </Flex>
+                            </ContextMenuItem>
+                            <ContextMenuItem
+                                onClick={() => color("gray", activeItem)}
+                            >
+                                <Flex
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    <Flex
+                                        width="16px"
+                                        height="16px"
+                                        borderRadius="50%"
+                                        backgroundColor={getFolderColor("gray")}
+                                    />
+                                    <Flex
+                                        marginLeft="8px"
+                                    >
+                                        {i18n(lang, "color_gray")}
+                                    </Flex>
+                                </Flex>
+                            </ContextMenuItem>
                         </ContextMenuSubmenu>
-                    )
-                }
-                <ContextMenuItem
-                    onClick={() => deleteItems()}
-                >
-                    {i18n(lang, "delete")}
-                </ContextMenuItem>
-            </ContextMenu>
+                        {
+                            favoriteEnabledCount > 0 && (
+                                <ContextMenuItem
+                                    onClick={() => markAsFavorite([activeItem], 0)}
+                                >
+                                    {i18n(lang, "unfavorite")}
+                                </ContextMenuItem>
+                            )
+                        }
+                        {
+                            favoriteDisabledCount > 0 && (
+                                <ContextMenuItem
+                                    onClick={() => markAsFavorite([activeItem], 1)}
+                                >
+                                    {i18n(lang, "favorite")}
+                                </ContextMenuItem>
+                            )
+                        }
+                        <ContextMenuSeparator />
+                        <ContextMenuItem onClick={() => {
+                            eventListener.emit("openRenameModal", {
+                                item: activeItem
+                            })
+                        }}>
+                            {i18n(lang, "rename")}
+                        </ContextMenuItem>
+                        {
+                            location.hash.indexOf("shared-out") == -1 && (
+                                <ContextMenuSubmenu
+                                    label={i18n(lang, "move")}
+                                    arrow={<IoChevronForward fontSize={16} />}
+                                >
+                                    <ContextMenuItem
+                                        onClick={() => moveModal(activeItem)}
+                                    >
+                                        {i18n(lang, "selectDestination")}
+                                    </ContextMenuItem>
+                                    <ContextMenuSeparator />
+                                    <MoveSubmenu
+                                        parent={i18n(lang, "move")}
+                                        uuid="base"
+                                        load={true}
+                                        darkMode={darkMode}
+                                        isMobile={isMobile}
+                                        items={items}
+                                        lang={lang}
+                                    />
+                                </ContextMenuSubmenu>
+                            )
+                        }
+                        <ContextMenuItem
+                            onClick={() => deleteItems(activeItem)}
+                        >
+                            {i18n(lang, "delete")}
+                        </ContextMenuItem>
+                    </ContextMenu>
+                )
+            }
         </>
     )
 })

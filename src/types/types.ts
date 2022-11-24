@@ -47,7 +47,8 @@ export interface ContextMenusProps {
     darkMode: boolean,
     isMobile: boolean,
     items: ItemProps[],
-    lang: string
+    lang: string,
+    activeItem?: ItemProps | null
 }
 
 export interface DragSelectState {

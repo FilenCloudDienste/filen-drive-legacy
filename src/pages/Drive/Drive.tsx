@@ -1153,6 +1153,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                 isMobile={isMobile}
                 items={items}
                 lang={lang}
+                activeItem={activeItem}
             />
             <UploadModal
                 darkMode={darkMode}
