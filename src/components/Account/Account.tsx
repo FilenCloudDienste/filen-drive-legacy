@@ -2067,7 +2067,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
                     isMobile={isMobile}
                     color={getColor(darkMode, "textSecondary")}
                 >
-                    {userAccount.affBalance}€
+                    {userAccount.affBalance.toFixed(2)}€
                 </AppText>
                 {
                     userAccount.affBalance >= 100 && (
