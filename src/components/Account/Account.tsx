@@ -25,8 +25,8 @@ import { logout } from "../../lib/services/user/logout"
 import { i18n } from "../../i18n"
 import Input from "../Input"
 
-const SHOW_PLANS: boolean = false
-const SALE_ACTIVE: boolean = false
+const SHOW_PLANS: boolean = true
+const SALE_ACTIVE: boolean = true
 
 const getTabIndex = (tab: string): number => {
     switch(tab){
@@ -1572,104 +1572,128 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 
     const PRICES = useMemo(() => {
         return [
+            //Starter
+            {
+                termType: 1,
+                id: 90,
+                name: "Starter annually",
+                cost: 11.99,
+                sale: 7.99,
+                storage: 107374182400,
+                popular: false,
+                term: "annually",
+                features: DEFAULT_FEATURES
+            },
+            {
+                termType: 1,
+                id: 75,
+                name: "Starter lifetime",
+                cost: 29.99,
+                sale: 19.99,
+                storage: 107374182400,
+                popular: false,
+                term: "lifetime",
+                features: DEFAULT_FEATURES
+            },
             // Monthly
             {
-                id: 27,
+                termType: 2,
+                id: 57,
                 name: "Pro I",
-                cost: 2.99,
-                sale: 1.99,
+                cost: 1.99,
+                sale: 1.39,
                 storage: 214748364800,
-                info: "To get you started",
                 popular: false,
                 term: "monthly",
                 features: DEFAULT_FEATURES
             },
             {
-                id: 30,
+                termType: 2,
+                id: 60,
                 name: "Pro II",
-                cost: 4.99,
-                sale: 1.99,
-                storage: (536870912000 + 2),
-                info: "To get you started",
-                popular: true,
+                cost: 3.99,
+                sale: 2.69,
+                storage: 536870912000,
+                popular: false,
                 term: "monthly",
                 features: DEFAULT_FEATURES
             },
             {
-                id: 33,
+                termType: 2,
+                id: 63,
                 name: "Pro III",
                 cost: 8.99,
-                sale: 1.99,
+                sale: 6.99,
                 storage: 2199023255552,
-                info: "To get you started",
                 popular: false,
                 term: "monthly",
                 features: DEFAULT_FEATURES
             },
             // Annually
             {
-                id: 36,
+                termType: 3,
+                id: 66,
                 name: "Pro I",
-                cost: 29.99,
-                sale: 1.99,
+                cost: 19.99,
+                sale: 13.99,
                 storage: 214748364800,
-                info: "To get you started",
                 popular: false,
                 term: "annually",
                 features: DEFAULT_FEATURES
             },
             {
-                id: 39,
+                termType: 3,
+                id: 69,
                 name: "Pro II",
-                cost: 49.99,
-                sale: 1.99,
-                storage: (536870912000 * 2),
-                info: "To get you started",
-                popular: true,
+                cost: 39.99,
+                sale: 27.99,
+                storage: 536870912000,
+                popular: false,
                 term: "annually",
                 features: DEFAULT_FEATURES
             },
             {
-                id: 42,
+                termType: 3,
+                id: 72,
                 name: "Pro III",
                 cost: 89.99,
-                sale: 1.99,
+                sale: 74.99,
                 storage: 2199023255552,
-                info: "To get you started",
                 popular: false,
                 term: "annually",
                 features: DEFAULT_FEATURES
             },
             // Lifetime
             {
-                id: 45,
-                name: "Starter",
-                cost: 29.99,
-                sale: 1.99,
-                storage: 107374182400,
+                termType: 4,
+                id: 78,
+                name: "Pro I",
+                cost: 54.99,
+                sale: 36.99,
+                storage: 214748364800,
+                popular: false,
+                term: "lifetime",
+                features: DEFAULT_FEATURES
+            },
+            {
+                termType: 4,
+                id: 81,
+                name: "Pro II",
+                cost: 129.99,
+                sale: 87.99,
+                storage: 536870912000,
                 info: "To get you started",
                 popular: false,
                 term: "lifetime",
                 features: DEFAULT_FEATURES
             },
             {
-                id: 48,
-                name: "Pro I",
+                termType: 4,
+                id: 84,
+                name: "Pro III",
                 cost: 299.99,
-                sale: 1.99,
+                sale: 219.99,
                 storage: 2199023255552,
-                info: "To get you started",
-                popular: true,
-                term: "lifetime",
-                features: DEFAULT_FEATURES
-            },
-            {
-                id: 51,
-                name: "Pro X",
-                cost: 1299.99,
-                sale: 1.99,
-                storage: 10995116277760,
-                info: "To get you started",
                 popular: false,
                 term: "lifetime",
                 features: DEFAULT_FEATURES
@@ -1680,21 +1704,29 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
     const TERMS = useMemo(() => {
         return [
             {
+                type: "starter",
+                name: i18n(lang, "planTerms_starter"),
+                termType: 1
+            },
+            {
                 type: "monthly",
-                name: i18n(lang, "planTerms_monthly")
+                name: i18n(lang, "planTerms_monthly"),
+                termType: 2
             },
             {
                 type: "annually",
-                name: i18n(lang, "planTerms_annually")
+                name: i18n(lang, "planTerms_annually"),
+                termType: 3
             },
             {
                 type: "lifetime",
-                name: i18n(lang, "planTerms_lifetime")
+                name: i18n(lang, "planTerms_lifetime"),
+                termType: 4
             }
         ]
     }, [lang])
 
-    const [activeTerm, setActiveTerm] = useState<string>(TERMS[0].type)
+    const [activeTerm, setActiveTerm] = useState<number>(2)
 
     return (
         <Flex
@@ -1730,22 +1762,22 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                                         key={term.type}
                                         width="100%"
                                         height="100%"
-                                        backgroundColor={activeTerm == term.type ? getColor(darkMode, "backgroundPrimary") : "transparent"}
+                                        backgroundColor={activeTerm == term.termType ? getColor(darkMode, "backgroundPrimary") : "transparent"}
                                         padding="10px"
                                         paddingTop="5px"
                                         paddingBottom="5px"
                                         borderRadius="10px"
                                         transition="200ms"
                                         cursor="pointer"
-                                        onClick={() => setActiveTerm(term.type)}
+                                        onClick={() => setActiveTerm(term.termType)}
                                     >
                                         <AppText
                                             darkMode={darkMode}
-                                            fontWeight={activeTerm == term.type ? "bold" : "normal"}
+                                            fontWeight={activeTerm == term.termType ? "bold" : "normal"}
                                             fontSize={15}
-                                            color={activeTerm == term.type ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+                                            color={activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
                                             isMobile={isMobile}
-                                            bgGradient={term.type == "lifetime" ? "linear(to-r, #7928CA, #FF0080)" : "linear(to-r, " + (activeTerm == term.type ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ", " + (activeTerm == term.type ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ")"}
+                                            bgGradient={term.type == "lifetime" ? "linear(to-r, #7928CA, #FF0080)" : "linear(to-r, " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ", " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ")"}
                                             bgClip="text"
                                         >
                                             {term.name}
@@ -1764,7 +1796,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                 >
                     {
                         PRICES.map((price, index) => {
-                            if(activeTerm !== price.term){
+                            if(activeTerm !== price.termType){
                                 return null
                             }
 
@@ -1775,7 +1807,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                                     borderRadius="25px"
                                     flexDirection="column"
                                     flex={1}
-                                    minWidth="300px"
+                                    minWidth={price.termType == 1 ? "400px" : "300px"}
                                     backgroundImage={"linear-gradient(1deg, " + getColor(darkMode, "backgroundSecondary") + " 0%, " + getColor(darkMode, "backgroundSecondary") + " 100%)"}
                                 >
                                     <Flex
@@ -1965,7 +1997,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
                 marginTop="10px"
                 maxWidth="500px"
             >
-                {i18n(lang, "referInfo2", true, ["__STORAGE__", "__OTHER_STORAGE__", "__THRESHOLD__"], [formatBytes(userAccount.refStorage), formatBytes(userAccount.refStorage), "100"])}
+                {i18n(lang, "referInfo2", true, ["__STORAGE__", "__OTHER_STORAGE__", "__THRESHOLD__", "__RATE__"], [formatBytes(userAccount.refStorage), formatBytes(userAccount.refStorage), "100", (userAccount.affRate * 100).toFixed(0).toString()])}
                 
             </AppText>
             <Flex

@@ -71,6 +71,7 @@ const de: {
     planTerms_monthly: "Monatlich",
     planTerms_annually: "Jährlich",
     planTerms_lifetime: "Lebenslang",
+    planTerms_starter: "Starter",
     buyNow: "Jetzt kaufen",
     general: "Allgemein",
     settings: "Einstellungen",
