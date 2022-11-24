@@ -177,7 +177,7 @@ export const changeItemsInStore = async (items: ItemProps[], parent: string): Pr
     
         if(presentList.length > 0){
             for(let i = 0; i < presentList.length; i++){
-                for(let x = 0; x < items.length; i++){
+                for(let x = 0; x < items.length; x++){
                     if(presentList[i].uuid == items[x].uuid){
                         presentList[i] = items[x]
                     }
@@ -187,7 +187,7 @@ export const changeItemsInStore = async (items: ItemProps[], parent: string): Pr
     
         if(presentSidebar.length > 0){
             for(let i = 0; i < presentSidebar.length; i++){
-                for(let x = 0; x < items.length; i++){
+                for(let x = 0; x < items.length; x++){
                     if(items[x].type == "folder" && presentSidebar[i].uuid == items[x].uuid){
                         presentSidebar[i] = items[x]
                     }
