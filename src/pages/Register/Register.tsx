@@ -356,6 +356,16 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
             <AppText
                 darkMode={darkMode}
                 isMobile={isMobile}
+                marginTop="15px"
+                fontSize={11}
+                color={getColor(darkMode, "textSecondary")}
+                textAlign="center"
+            >
+                By creating an account you automatically agree with our <a href="https://filen.io/terms" rel="noreferrer" target="_blank" style={{ color: getColor(darkMode, "linkPrimary") }}>Terms of Service</a> and <a href="https://filen.io/privacy" rel="noreferrer" target="_blank" style={{ color: getColor(darkMode, "linkPrimary") }}>Privacy Policy</a>.
+            </AppText>
+            <AppText
+                darkMode={darkMode}
+                isMobile={isMobile}
                 marginTop="25px"
             >
                 {i18n(lang, "alreadyHaveAnAccount")}

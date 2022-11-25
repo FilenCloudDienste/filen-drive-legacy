@@ -1911,7 +1911,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                                             onClick={() => eventListener.emit("openBuyModal", {
                                                 id: price.id,
                                                 name: price.name,
-                                                cost: price.cost,
+                                                cost: SALE_ACTIVE ? price.sale : price.cost,
                                                 term: price.term,
                                                 lifetime: price.term == "lifetime"
                                             })}

@@ -206,6 +206,16 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
                             activePaymentMethod == "crypto" && "Bitcoin, Ethereum, Litecoin, Bitcoin Cash, Dogecoin"
                         }
                     </AppText>
+                    <AppText
+                        darkMode={darkMode}
+                        fontWeight="bold"
+                        fontSize={11}
+                        color={getColor(darkMode, "textSecondary")}
+                        isMobile={isMobile}
+                        marginTop="30px"
+                    >
+                        By purchasing a plan you automatically agree with our <a href="https://filen.io/terms" rel="noreferrer" target="_blank" style={{ color: getColor(darkMode, "linkPrimary") }}>Terms of Service</a> and <a href="https://filen.io/privacy" rel="noreferrer" target="_blank" style={{ color: getColor(darkMode, "linkPrimary") }}>Privacy Policy</a>.
+                    </AppText>
                 </ModalBody>
                 <ModalFooter>
                     <Button
