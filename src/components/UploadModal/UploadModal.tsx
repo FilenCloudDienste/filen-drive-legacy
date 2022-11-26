@@ -641,7 +641,7 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "xl"}
+            size={isMobile ? "xl" : "xl"}
         >
             <ModalOverlay 
                 backgroundColor="rgba(0, 0, 0, 0.4)"

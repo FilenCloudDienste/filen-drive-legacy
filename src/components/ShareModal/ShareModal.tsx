@@ -94,7 +94,7 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
         >
             <ModalOverlay 
                 backgroundColor="rgba(0, 0, 0, 0.4)"

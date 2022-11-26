@@ -16,8 +16,9 @@ import memoryCache from "../../lib/memoryCache"
 
 const ListBody = memo(({ darkMode, isMobile, gridFolders, windowHeight, windowWidth, sidebarWidth, setListScrollState, loadingItems, items, setItems, setActiveItem, setDragSelectState, setItemDragState, lang }: ListBodyProps) => {
     const [columnCount, rowCount] = useMemo(() => {
-        const columnCount: number = Math.floor((windowWidth - sidebarWidth) / GRID_CELL_WIDTH)
-        const rowCount: number = Math.floor(items.length / ((windowWidth - sidebarWidth) / GRID_CELL_HEIGHT)) + 1
+        const containerWidth: number = (windowWidth - sidebarWidth)
+        const columnCount: number = Math.floor(containerWidth / GRID_CELL_WIDTH)
+        const rowCount: number = Math.floor(items.length / columnCount) + 1
 
         return [columnCount, rowCount]
     }, [items, windowWidth, sidebarWidth])

@@ -79,7 +79,7 @@ const DragAndDropModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, 
             onClose={() => setIsOpen(false)}
             isOpen={isOpen}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalContent

@@ -131,7 +131,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
             }}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
         >
             <ModalOverlay 
                 backgroundColor="rgba(0, 0, 0, 0.4)"
@@ -169,7 +169,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
                         value={newName}
                         placeholder={i18n(lang, "newFolderName")}
                         autoFocus={true}
-                        onChange={(e) => setNewName(e.target.value.trim())}
+                        onChange={(e) => setNewName(e.target.value)}
                         isDisabled={loading}
                         ref={inputRef}
                         color={getColor(darkMode, "textSecondary")}

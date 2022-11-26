@@ -1,25 +1,22 @@
-import { get as idbGet, set as idbSet, del as idbDel, clear as idbClear, keys as idbKeys, createStore, UseStore } from "idb-keyval"
-import { DB_VERSION, USE_MEMORY_CACHE } from "../constants"
+import { USE_MEMORY_CACHE } from "../constants"
 import eventListener from "../eventListener"
 import memoryCache from "../memoryCache"
+import { normalStore, metadataStore, thumbnailStore } from "../localForage/localForage"
 
-const store = createStore("Filen", "filen_v" + DB_VERSION)
-const thumbnailsStore = createStore("Filen_Thumbnails", "filen_v" + DB_VERSION)
-const metadataStore = createStore("Filen_Metadata", "filen_v" + DB_VERSION)
 const indexKey = "@internal:index"
 const USE_INTERNAL_INDEX = false
 
 export type StoreTypes = "normal" | "thumbnails" | "metadata"
 
-const getStore = (type: StoreTypes): UseStore => {
+const getStore = (type: StoreTypes): LocalForage => {
     if(type == "thumbnails"){
-        return thumbnailsStore
+        return thumbnailStore
     }
     else if(type == "metadata"){
         return metadataStore
     }
 
-    return store
+    return normalStore
 }
 
 const updateIndex = (key: string, type: "add" | "remove", storeType: StoreTypes = "normal"): Promise<boolean> => {
@@ -80,7 +77,7 @@ export const get = (key: string, storeType: StoreTypes = "normal", index: boolea
             }
         }
 
-        idbGet(key, getStore(storeType)).then((value: any) => {
+        getStore(storeType).getItem(key).then((value: any) => {
             if(typeof value == "undefined"){
                 value = null
             }
@@ -103,7 +100,7 @@ export const get = (key: string, storeType: StoreTypes = "normal", index: boolea
 
 export const set = (key: string, value: any, storeType: StoreTypes = "normal", index: boolean = true): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        idbSet(key, value, getStore(storeType)).then(() => {
+        getStore(storeType).setItem(key, value).then(() => {
             if(USE_MEMORY_CACHE){
                 memoryCache.set("db:" + storeType + ":" + key, value)
             }
@@ -131,7 +128,7 @@ export const set = (key: string, value: any, storeType: StoreTypes = "normal", i
 
 export const remove = (key: string, storeType: StoreTypes = "normal"): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        idbDel(key, getStore(storeType)).then(() => {
+        getStore(storeType).removeItem(key).then(() => {
             if(USE_MEMORY_CACHE){
                 memoryCache.remove("db:" + storeType + ":" + key)
                 memoryCache.remove("db:" + storeType + ":keys:allKeys")
@@ -150,7 +147,7 @@ export const remove = (key: string, storeType: StoreTypes = "normal"): Promise<b
 
 export const clear = (storeType: StoreTypes = "normal"): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        idbClear(getStore(storeType)).then(() => {
+        getStore(storeType).clear().then(() => {
             if(USE_MEMORY_CACHE){
                 memoryCache.remove("db:" + storeType + ":keys:allKeys")
 
@@ -168,9 +165,9 @@ export const clear = (storeType: StoreTypes = "normal"): Promise<boolean> => {
     })
 }
 
-export const keys = (storeType: StoreTypes = "normal"): Promise<IDBValidKey[]> => {
+export const keys = (storeType: StoreTypes = "normal"): Promise<string[]> => {
     return new Promise((resolve, reject) => {
-        idbKeys(getStore(storeType)).then(resolve).catch(reject)
+        getStore(storeType).keys().then(resolve).catch(reject)
     })
 }
 

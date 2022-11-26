@@ -26,7 +26,7 @@ const MaxStorageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean,
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 

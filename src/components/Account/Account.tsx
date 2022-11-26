@@ -24,6 +24,7 @@ import { RiPaypalLine } from "react-icons/ri"
 import { logout } from "../../lib/services/user/logout"
 import { i18n } from "../../i18n"
 import Input from "../Input"
+import { useSearchParams } from "react-router-dom"
 
 const SHOW_PLANS: boolean = true
 const SALE_ACTIVE: boolean = true
@@ -1085,21 +1086,25 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
                                                                     </AppText>
                                                                 )
                                                             }
-                                                            <AppText
-                                                                darkMode={darkMode}
-                                                                isMobile={isMobile}
-                                                                color={getColor(darkMode, "textSecondary")}
-                                                                fontSize={14}
-                                                                marginTop="10px"
-                                                                onClick={() => eventListener.emit("openCancelSubModal", sub.id)}
-                                                                _hover={{
-                                                                    color: getColor(darkMode, "textPrimary")
-                                                                }}
-                                                                cursor="pointer"
-                                                                textDecoration="underline"
-                                                            >
-                                                                {i18n(lang, "cancel")}
-                                                            </AppText>
+                                                            {
+                                                                sub.cancelled == 0 && (
+                                                                    <AppText
+                                                                    darkMode={darkMode}
+                                                                    isMobile={isMobile}
+                                                                    color={getColor(darkMode, "textSecondary")}
+                                                                    fontSize={14}
+                                                                    marginTop="10px"
+                                                                    onClick={() => eventListener.emit("openCancelSubModal", sub.id)}
+                                                                    _hover={{
+                                                                        color: getColor(darkMode, "textPrimary")
+                                                                    }}
+                                                                    cursor="pointer"
+                                                                    textDecoration="underline"
+                                                                >
+                                                                    {i18n(lang, "cancel")}
+                                                                </AppText>
+                                                                )
+                                                            }
                                                         </Flex>
                                                     )
                                                 }
@@ -1562,6 +1567,8 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 })
 
 const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
+    const [params] = useSearchParams()
+
     const DEFAULT_FEATURES: string[] = useMemo(() => {
         return [
             i18n(lang, "planFeatures_1"),
@@ -1727,6 +1734,26 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
     }, [lang])
 
     const [activeTerm, setActiveTerm] = useState<number>(2)
+
+    useEffect(() => {
+        const selectedPlan: number = window.location.href.indexOf("?pro=") !== -1 ? parseInt(window.location.href.split("?pro=")[1]) : -1
+
+        if(selectedPlan !== -1){
+            const selected = PRICES.filter(price => price.id == selectedPlan)
+
+            if(selected.length == 1){
+                const price = selected[0]
+
+                eventListener.emit("openBuyModal", {
+                    id: price.id,
+                    name: price.name,
+                    cost: SALE_ACTIVE ? price.sale : price.cost,
+                    term: price.term,
+                    lifetime: price.term == "lifetime"
+                })
+            }
+        }
+    }, [PRICES])
 
     return (
         <Flex
@@ -2101,7 +2128,7 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
     const navigate = useNavigate()
 
     const [activeTab, activeTabIndex] = useMemo(() => {
-        const activeTab: string = location.hash.split("/").slice(1).join("/")
+        const activeTab: string = location.hash.split("/").slice(1).join("/").split("?")[0]
         const activeTabIndex: number = getTabIndex(activeTab)
 
         return [activeTab, activeTabIndex]

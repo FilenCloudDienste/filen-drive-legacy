@@ -219,7 +219,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "xl"}
+            size={isMobile ? "xl" : "xl"}
             autoFocus={false}
         >
             <ModalOverlay 

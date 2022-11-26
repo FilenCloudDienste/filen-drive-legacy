@@ -33,7 +33,7 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -203,7 +203,7 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -401,7 +401,7 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "xl"}
+            size={isMobile ? "xl" : "xl"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -759,7 +759,7 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -868,7 +868,7 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -1046,7 +1046,7 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -1196,7 +1196,7 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -1347,7 +1347,7 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -1505,7 +1505,7 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
             closeOnEsc={false}
             closeOnOverlayClick={false}
@@ -1651,7 +1651,7 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             blockScrollOnMount={false}
         >
             <ModalOverlay 
@@ -1772,7 +1772,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 
@@ -1946,7 +1946,7 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 

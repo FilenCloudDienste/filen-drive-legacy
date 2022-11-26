@@ -38,7 +38,7 @@ export const RegisterDoneModal = memo(({ darkMode, isMobile, lang }: { darkMode:
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 

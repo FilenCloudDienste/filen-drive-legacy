@@ -22,6 +22,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
     const [plan, setPlan] = useState<PlanProps | undefined>(undefined)
     const [activePaymentMethod, setActivePaymentMethod] = useState<PaymentMethods>("stripe")
     const [loadingPayURL, setLoadingPayURL] = useState<boolean>(false)
+    const [payURL, setPayURL] = useState<string>("")
 
     const PAYMENT_METHODS: { [key: string]: string } = useMemo(() => {
         return {
@@ -47,7 +48,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
 
             window.open(url, "_blank")
 
-            setOpen(false)
+            setPayURL(url)
         }
         catch(e: any){
             console.error(e)
@@ -63,6 +64,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
             setPlan(plan)
             setOpen(true)
             setActivePaymentMethod("stripe")
+            setPayURL("")
         })
         
         return () => {
@@ -79,7 +81,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 
@@ -107,7 +109,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
                     borderRadius="full"
                 />
                 <ModalBody
-                    height="100%"
+                    height="auto"
                     width="100%"
                     alignItems="center"
                     justifyContent="center"
@@ -218,31 +220,63 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
                     </AppText>
                 </ModalBody>
                 <ModalFooter>
-                    <Button
-                        darkMode={darkMode}
-                        isMobile={isMobile}
-                        height="45px"
-                        width="100%"
-                        onClick={() => buy()}
-                        backgroundColor={darkMode ? "white" : "gray"}
-                        color={darkMode ? "black" : "white"}
-                        border={"1px solid " + (darkMode ? "white" : "gray")}
-                        _hover={{
-                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
-                            border: "1px solid " + (darkMode ? "white" : "gray"),
-                            color: darkMode ? "white" : "gray"
-                        }}
-                        autoFocus={false}
-                    >
-                        {
-                            loadingPayURL ? (
-                                <Spinner
-                                    width="16px"
-                                    height="16px"
-                                />
-                            ) : i18n(lang, "buyNow")
-                        }
-                    </Button>
+                    {
+                        payURL.length > 0 ? (
+                            <a
+                                href={payURL}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{
+                                    height: "45px",
+                                    width: "100%"
+                                }}
+                            >
+                                <Button
+                                    darkMode={darkMode}
+                                    isMobile={isMobile}
+                                    height="45px"
+                                    width="100%"
+                                    backgroundColor={darkMode ? "white" : "gray"}
+                                    color={darkMode ? "black" : "white"}
+                                    border={"1px solid " + (darkMode ? "white" : "gray")}
+                                    _hover={{
+                                        backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                        border: "1px solid " + (darkMode ? "white" : "gray"),
+                                        color: darkMode ? "white" : "gray"
+                                    }}
+                                    autoFocus={false}
+                                >
+                                    {i18n(lang, "payNow")}
+                                </Button>
+                            </a>
+                        ) : (
+                            <Button
+                                darkMode={darkMode}
+                                isMobile={isMobile}
+                                height="45px"
+                                width="100%"
+                                onClick={() => buy()}
+                                backgroundColor={darkMode ? "white" : "gray"}
+                                color={darkMode ? "black" : "white"}
+                                border={"1px solid " + (darkMode ? "white" : "gray")}
+                                _hover={{
+                                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                    border: "1px solid " + (darkMode ? "white" : "gray"),
+                                    color: darkMode ? "white" : "gray"
+                                }}
+                                autoFocus={false}
+                            >
+                                {
+                                    loadingPayURL ? (
+                                        <Spinner
+                                            width="16px"
+                                            height="16px"
+                                        />
+                                    ) : i18n(lang, "buyNow")
+                                }
+                            </Button>
+                        )
+                    }
                 </ModalFooter>
             </ModalContent>
         </Modal>

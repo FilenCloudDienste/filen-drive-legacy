@@ -2911,3 +2911,20 @@ export const requestAffiliatePayout = async (method: string, address: string): P
 
     return true
 }
+
+export const detectOrphans = async (): Promise<boolean> => {
+    const apiKey: string = await db.get("apiKey")
+    const response = await apiRequest({
+        method: "POST",
+        endpoint: "/v1/user/orphans",
+        data: {
+            apiKey
+        }
+    })
+
+    if(!response.status){
+        throw new Error(response.message)
+    }
+
+    return true
+}

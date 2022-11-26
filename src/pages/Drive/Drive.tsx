@@ -47,6 +47,7 @@ import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
 import { debounce } from "lodash"
+import { detectOrphans } from "../../lib/api"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
     const navigate = useNavigate()
@@ -396,7 +397,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                 //setLoadingItems(true)
 
                 if(typeof params.get("pro") == "string"){
-                    navigate("/#/account/plans")
+                    navigate("/#/account/plans?pro=" + params.get("pro"))
                 }
 
                 window.doingSetup = false

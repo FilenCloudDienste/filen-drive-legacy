@@ -66,7 +66,7 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
             onClose={() => setOpen(false)}
             isOpen={open}
             isCentered={true}
-            size={isMobile ? "full" : "md"}
+            size={isMobile ? "xl" : "md"}
             autoFocus={false}
         >
             <ModalOverlay 
