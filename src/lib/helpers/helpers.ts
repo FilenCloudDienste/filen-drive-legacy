@@ -995,72 +995,93 @@ export const getEveryPossibleFolderPathFromPath = (path: string) => {
     return paths
 }
 
+async function getAllFileEntries(dataTransferItemList: DataTransferItemList){
+    const fileEntries = []
+    const queue = []
+
+    for(let i = 0; i < dataTransferItemList.length; i++){
+        queue.push(dataTransferItemList[i].webkitGetAsEntry())
+    }
+
+    while(queue.length > 0){
+        const entry: any = queue.shift()
+        
+        if(entry.isFile){
+            fileEntries.push(entry)
+        }
+        else if(entry.isDirectory){
+            const reader: any = entry.createReader()
+
+            queue.push(...await readAllDirectoryEntries(reader))
+        }
+    }
+
+    return fileEntries
+}
+
+async function readAllDirectoryEntries(directoryReader: any){
+    const entries = []
+    let readEntries: any = await readEntriesPromise(directoryReader)
+
+    while(readEntries.length > 0){
+        entries.push(...readEntries)
+        readEntries = await readEntriesPromise(directoryReader)
+    }
+
+    return entries
+}
+
+async function readEntriesPromise(directoryReader: any) {
+    try{
+        return await new Promise((resolve, reject) => {
+            directoryReader.readEntries(resolve, reject)
+        })
+    }
+    catch(e){
+        console.log(e)
+    }
+}
+
 export const readLocalDroppedDirectory = (items: DataTransferItemList): Promise<UploadQueueItemFile[]> => {
     return new Promise(async (resolve, reject) => {
-        const traverseDirectory = (entry: any): Promise<any> => {
-            const reader = entry.createReader()
-
-            return new Promise((resolve, reject) => {
-                const iterationAttempts: any = []
-
-                const readEntries = (): void => {
-                    reader.readEntries((entries: any) => {
-                        if(!entries.length){
-                            resolve(Promise.all(iterationAttempts))
-                        }
-                        else{
-                            iterationAttempts.push(Promise.all(entries.map((itemEntry: any) => {
-                                if(itemEntry.isFile){
-                                    return itemEntry
-                                }
-
-                                return traverseDirectory(itemEntry)
-                            })))
-
-                            readEntries()
-                        }
-                    }, reject)
-                }
-
-                readEntries()
-            })
-        }
-
+        const list = await getAllFileEntries(items)
+        const fileList = list.flat(Number.MAX_SAFE_INTEGER)
         const files: UploadQueueItemFile[] = []
 
-        for(let i = 0; i < items.length; i++){
-            const item = items[i]
-            const entry = item.webkitGetAsEntry()
+        for(let i = 0; i < fileList.length; i++){
+            try{
+                const file = fileList[i]
 
-            if(entry){
-                if(entry.isDirectory){
-                    const dir = (await traverseDirectory(entry) as any).flat(Number.MAX_SAFE_INTEGER)
-    
-                    for(let x = 0; x < dir.length; x++){
-                        files.push(await new Promise((resolve) => {
-                            dir[x].file((file: any) => {
-                                Object.defineProperty(file, "fullPath", {
-                                    value: dir[x].fullPath.slice(1),
+                const fileEntry = await new Promise((resolve, reject) => {
+                    file.file((fEntry: any) => {
+                        try{
+                            if(typeof file.isFile == "function" && file.isFile()){
+                                Object.defineProperty(fEntry, "fullPath", {
+                                    value: file.name,
                                     writable: true
                                 })
+                
+                                files.push(fEntry as UploadQueueItemFile)
+                            }
+                            else{
+                                Object.defineProperty(fEntry, "fullPath", {
+                                    value: file.fullPath.slice(1),
+                                    writable: true
+                                })
+                            }
     
-                                return resolve(file)
-                            })
-                        }))
-                    }
-                }
-                else{
-                    const file = items[i].getAsFile()
-    
-                    if(file){
-                        Object.defineProperty(file, "fullPath", {
-                            value: file.name,
-                            writable: true
-                        })
-        
-                        files.push(file as UploadQueueItemFile)
-                    }
-                }
+                            return resolve(fEntry)
+                        }
+                        catch(e){
+                            return reject(e)
+                        }
+                    })
+                })
+
+                files.push(fileEntry as UploadQueueItemFile)
+            }
+            catch(e){
+                return reject(e)
             }
         }
 

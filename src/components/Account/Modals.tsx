@@ -736,6 +736,10 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
 
         try{
             await deleteVersioned()
+
+            eventListener.emit("versionedDeleted")
+
+            setOpen(false)
         }
         catch(e: any){
             console.error(e)

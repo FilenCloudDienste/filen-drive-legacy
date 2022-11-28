@@ -244,16 +244,20 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
                                         </Flex>
                                     )
                                 }
-                                <UploadModalListItemActionButtons
-                                    darkMode={darkMode}
-                                    isMobile={isMobile}
-                                    paused={paused}
-                                    setPaused={setPaused}
-                                    done={item.done}
-                                    uuid={item.uuid}
-                                    lang={lang}
-                                    hovering={hovering}
-                                />
+                                {
+                                    (progress >= 1 || progress <= 99) && !item.done && (
+                                        <UploadModalListItemActionButtons
+                                            darkMode={darkMode}
+                                            isMobile={isMobile}
+                                            paused={paused}
+                                            setPaused={setPaused}
+                                            done={item.done}
+                                            uuid={item.uuid}
+                                            lang={lang}
+                                            hovering={hovering}
+                                        />
+                                    )
+                                }
                             </>
                         )
                     }

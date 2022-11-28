@@ -194,7 +194,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
                         value={newName}
                         placeholder={i18n(lang, "renameNewName")}
                         autoFocus={true}
-                        onChange={(e) => setNewName(e.target.value.trim())}
+                        onChange={(e) => setNewName(e.target.value)}
                         isDisabled={loading}
                         ref={inputRef}
                         onFocus={() => setSelectionRange()}

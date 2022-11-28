@@ -246,7 +246,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             return
         }
 
-        const preparingToast = showToast("loading", "Preparing files..")
+        const preparingToast = showToast("loading", "Preparing files..", "bottom", 8640000)
 
         try{
             const files = await readLocalDroppedDirectory(items)
@@ -262,8 +262,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                 openModal: true
             })
         }
-        catch(e){
+        catch(e: any){
             console.error(e)
+
+            showToast("error", e.toString(), "bottom", 5000)
         }
 
         dismissToast(preparingToast)
@@ -278,11 +280,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
             items: []
         })
 
-        e.preventDefault()
-
-        if(e.dataTransfer?.files && e.dataTransfer?.files[0]){
+        if((e.dataTransfer?.files && e.dataTransfer?.files[0]) || (e.dataTransfer?.items && e.dataTransfer?.items[0])){
             readDroppedFiles(e)
         }
+
+        e.preventDefault()
     }, [])
 
     const bodyOnDragLeaveListener = useCallback((e: DragEvent): void => {

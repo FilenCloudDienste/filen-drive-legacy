@@ -130,9 +130,10 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
     const inputRef = useRef()
     const currentItems = useRef<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
+    const newNameRef = useRef<string>("")
 
     const create = async (name: string): Promise<void> => {
-        const value = name.trim()
+        const value = newNameRef.current.trim()
 
         if(value.length == 0){
             showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
@@ -193,6 +194,10 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
     }, [])
 
     useEffect(() => {
+        newNameRef.current = newName
+    }, [newName])
+
+    useEffect(() => {
         const openCreateTextFileModalListener = eventListener.on("openCreateTextFileModal", () => {
             setOpen(true)
             setNewName(".txt")
@@ -247,7 +252,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
                         value={newName}
                         placeholder={i18n(lang, "newTextFileName")}
                         autoFocus={true}
-                        onChange={(e) => setNewName(e.target.value.trim())}
+                        onChange={(e) => setNewName(e.target.value)}
                         ref={inputRef}
                         onKeyDown={(e) => inputKeyDown(e)}
                         color={getColor(darkMode, "textSecondary")}

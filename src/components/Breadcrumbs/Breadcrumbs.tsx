@@ -281,7 +281,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
                 className="do-not-unselect-items"
             >
                 {
-                    location.hash.indexOf("trash") !== -1 && items.length > 0 && (
+                    location.hash.indexOf("trash") !== -1 && (
                         <Button
                             darkMode={darkMode}
                             isMobile={isMobile}
@@ -295,6 +295,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
                             borderRadius="5px"
                             marginRight="15px"
                             backgroundColor="red.500"
+                            flexShrink={0}
                             _hover={{
                                 color: "white",
                                 backgroundColor: "red.600"
@@ -317,6 +318,9 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
                                         className="do-not-unselect-items"
                                         onMouseEnter={() => setHoveringListLayoutToggle(true)}
                                         onMouseLeave={() => setHoveringListLayoutToggle(false)}
+                                        style={{
+                                            flexShrink: 0
+                                        }}
                                     />
                                 ) : (
                                     <IoList
@@ -327,6 +331,9 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
                                         className="do-not-unselect-items"
                                         onMouseEnter={() => setHoveringListLayoutToggle(true)}
                                         onMouseLeave={() => setHoveringListLayoutToggle(false)}
+                                        style={{
+                                            flexShrink: 0
+                                        }}
                                     />
                                 )
                             }

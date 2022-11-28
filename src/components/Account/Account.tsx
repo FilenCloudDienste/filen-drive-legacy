@@ -597,13 +597,23 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 
 const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
     const [userSettings, setUserSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+    const [versionedSize, setVersionedSize] = useState<number>(0)
 
     useEffect(() => {
-        fetchUserSettings().then((settings) => setUserSettings(settings)).catch((err) => {
+        fetchUserSettings().then((settings) => {
+            setUserSettings(settings)
+            setVersionedSize(settings.versionedStorage)
+        }).catch((err) => {
             console.error(err)
 
             showToast("error", err.toString(), "bottom", 5000)
         })
+
+        const versionedDeletedListener = eventListener.on("versionedDeleted", () => setVersionedSize(0))
+
+        return () => {
+            versionedDeletedListener.remove()
+        }
     }, [])
 
     if(typeof userSettings == "undefined"){
@@ -638,21 +648,25 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
                             color={getColor(darkMode, "textSecondary")}
                             noOfLines={1}
                         >
-                            {formatBytes(userSettings.versionedStorage)}
+                            {formatBytes(versionedSize)}
                         </AppText>
-                        <AppText
-                            darkMode={darkMode}
-                            isMobile={isMobile}
-                            color={getColor(darkMode, "textSecondary")}
-                            marginLeft="20px"
-                            textDecoration="underline"
-                            fontWeight="bold"
-                            cursor="pointer"
-                            noOfLines={1}
-                            onClick={() => eventListener.emit("openDeleteVersionedModal")}
-                        >
-                            {i18n(lang, "delete")}
-                        </AppText>
+                        {
+                            versionedSize > 0 && (
+                                <AppText
+                                    darkMode={darkMode}
+                                    isMobile={isMobile}
+                                    color={getColor(darkMode, "textSecondary")}
+                                    marginLeft="20px"
+                                    textDecoration="underline"
+                                    fontWeight="bold"
+                                    cursor="pointer"
+                                    noOfLines={1}
+                                    onClick={() => eventListener.emit("openDeleteVersionedModal")}
+                                >
+                                    {i18n(lang, "delete")}
+                                </AppText>
+                            )
+                        }
                     </Flex>
                 </Flex>
                 <Flex
@@ -679,19 +693,23 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
                         >
                             {formatBytes(userSettings.storageUsed)}
                         </AppText>
-                        <AppText
-                            darkMode={darkMode}
-                            isMobile={isMobile}
-                            color={getColor(darkMode, "textSecondary")}
-                            marginLeft="20px"
-                            textDecoration="underline"
-                            fontWeight="bold"
-                            cursor="pointer"
-                            noOfLines={1}
-                            onClick={() => eventListener.emit("openDeleteAllModal")}
-                        >
-                            {i18n(lang, "delete")}
-                        </AppText>
+                        {
+                            userSettings.storageUsed > 0 && (
+                                <AppText
+                                    darkMode={darkMode}
+                                    isMobile={isMobile}
+                                    color={getColor(darkMode, "textSecondary")}
+                                    marginLeft="20px"
+                                    textDecoration="underline"
+                                    fontWeight="bold"
+                                    cursor="pointer"
+                                    noOfLines={1}
+                                    onClick={() => eventListener.emit("openDeleteAllModal")}
+                                >
+                                    {i18n(lang, "delete")}
+                                </AppText>
+                            )
+                        }
                     </Flex>
                 </Flex>
                 <Flex
