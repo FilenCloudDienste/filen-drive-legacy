@@ -179,7 +179,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
         input.setSelectionRange(0, 0)
     }
 
-    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){
             create(newName)
         }
@@ -204,8 +204,12 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
             setSelectionRange()
         })
         
+        window.addEventListener("keydown", windowOnKeyDown)
+
         return () => {
             openCreateTextFileModalListener.remove()
+
+            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
@@ -254,7 +258,6 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
                         autoFocus={true}
                         onChange={(e) => setNewName(e.target.value)}
                         ref={inputRef}
-                        onKeyDown={(e) => inputKeyDown(e)}
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")

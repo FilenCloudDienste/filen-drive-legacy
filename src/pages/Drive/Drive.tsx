@@ -47,6 +47,7 @@ import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
 import { debounce } from "lodash"
+import EmptryTrashModal from "../../components/EmptyTrashModal"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
     const navigate = useNavigate()
@@ -1252,6 +1253,15 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                 lang={lang}
             />
             <DeletePermanentlyModal
+                darkMode={darkMode}
+                isMobile={isMobile}
+                windowWidth={windowWidth}
+                windowHeight={windowHeight}
+                items={items}
+                setItems={setItems}
+                lang={lang}
+            />
+            <EmptryTrashModal
                 darkMode={darkMode}
                 isMobile={isMobile}
                 windowWidth={windowWidth}

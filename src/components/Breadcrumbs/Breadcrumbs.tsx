@@ -286,12 +286,12 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
                             darkMode={darkMode}
                             isMobile={isMobile}
                             color="white"
-                            height="28px"
+                            height="25px"
                             paddingLeft="10px"
                             paddingRight="10px"
                             fontSize={13}
                             border={"1px solid " + darkMode ? "white" : "gray"}
-                            onClick={() => eventListener.emit("openDeletePermanentlyModal", { items })}
+                            onClick={() => eventListener.emit("openEmptyTrashModal")}
                             borderRadius="5px"
                             marginRight="15px"
                             backgroundColor="red.500"

@@ -363,7 +363,9 @@ const en: {
     referInfo2: "For every friend you invite to Filen you receive __STORAGE__ - and your friend also receives __OTHER_STORAGE__. Your friend can register for a subscription of their choice and you earn comission. The comission payout threshold is __THRESHOLD__€. Your rate is __RATE__%.",
     yourBtcAddress: "Your Bitcoin address",
     openUploads: "Open uploads",
-    payNow: "Pay invoice now"
+    payNow: "Pay invoice now",
+    emptyTrashModalSure: "Are you sure you want to empty you trash? This action cannot be undone!",
+    emptyTrashSuccess: "Trash emptied"
 }
 
 export default en
