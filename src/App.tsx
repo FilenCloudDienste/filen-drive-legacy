@@ -55,7 +55,7 @@ const App = memo(() => {
     }, [darkMode])
 
     useEffect(() => {
-        const includeAnalyticsListener = eventListener.on("includeAnal", () => setAnalytics(true))
+        const includeAnalyticsListener = eventListener.on("includeAnalytics", () => setAnalytics(true))
 
         return () => {
             includeAnalyticsListener.remove()
