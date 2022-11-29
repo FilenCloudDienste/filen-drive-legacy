@@ -11,11 +11,11 @@ import { orderItemsByType, getFileExt, fileAndFolderNameValidation } from "../..
 import { show as showToast } from "../Toast/Toast"
 import { addFolderNameToDb } from "../../lib/services/items"
 import { i18n } from "../../i18n"
-import { changeItemsInStore, DEFAULT_PARENTS } from "../../lib/services/metadata"
+import { changeItemsInStore } from "../../lib/services/metadata"
 
 const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameModalProps) => {
     const [open, setOpen] = useState<boolean>(false)
-    const [currentItem, setCurrentItem] = useState<ItemProps>()
+    const [currentItem, setCurrentItem] = useState<ItemProps | undefined>(undefined)
     const [newName, setNewName] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(false)
     const inputRef = useRef()
@@ -74,6 +74,8 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
                 selected: false
             }], currentItem.parent).catch(console.error)
 
+            showToast("success", i18n(lang, "itemRenamed"))
+
             setOpen(false)
         }
         catch(e: any){
@@ -117,11 +119,11 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         input.setSelectionRange(0, (currentItem.name.length - extLength))
     }
 
-    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
-        if(e.which == 13 && isOpen.current){
+    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
+        if(e.which == 13 && isOpen.current && newNameRef.current.length > 0){
             rename()
         }
-    }, [isOpen.current])
+    }, [isOpen.current, newNameRef.current])
 
     useEffect(() => {
         currentItems.current = items
@@ -140,14 +142,19 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
             setCurrentItem(item)
             setNewName(item.name)
             setOpen(true)
+            setSelectionRange()
         })
+
+        window.addEventListener("keydown", windowOnKeyDown)
         
         return () => {
             openRenameModalListener.remove()
+
+            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
-    if(typeof currentItem == "undefined" || newName.length == 0){
+    if(typeof currentItem == "undefined"){
         return null
     }
 
@@ -195,10 +202,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
                         placeholder={i18n(lang, "renameNewName")}
                         autoFocus={true}
                         onChange={(e) => setNewName(e.target.value)}
-                        isDisabled={loading}
                         ref={inputRef}
-                        onFocus={() => setSelectionRange()}
-                        onKeyDown={(e) => inputKeyDown(e)}
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")

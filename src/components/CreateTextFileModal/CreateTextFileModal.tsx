@@ -132,7 +132,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
     const isOpen = useRef<boolean>(false)
     const newNameRef = useRef<string>("")
 
-    const create = async (name: string): Promise<void> => {
+    const create = async (): Promise<void> => {
         const value = newNameRef.current.trim()
 
         if(value.length == 0){
@@ -181,9 +181,9 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
 
     const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){
-            create(newName)
+            create()
         }
-    }, [newName, isOpen.current])
+    }, [isOpen.current])
 
     useEffect(() => {
         currentItems.current = items
@@ -272,7 +272,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
                         wordBreak="break-all"
                         color={getColor(darkMode, "linkPrimary")}
                         cursor="pointer"
-                        onClick={() => create(newName)}
+                        onClick={() => create()}
                     >
                         {i18n(lang, "create")}
                     </AppText>

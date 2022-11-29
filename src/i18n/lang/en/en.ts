@@ -365,7 +365,8 @@ const en: {
     openUploads: "Open uploads",
     payNow: "Pay invoice now",
     emptyTrashModalSure: "Are you sure you want to empty you trash? This action cannot be undone!",
-    emptyTrashSuccess: "Trash emptied"
+    emptyTrashSuccess: "Trash emptied",
+    itemRenamed: "Item renamed"
 }
 
 export default en

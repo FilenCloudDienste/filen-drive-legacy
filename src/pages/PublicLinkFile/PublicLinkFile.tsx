@@ -29,7 +29,7 @@ import { i18n } from "../../i18n"
 import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewModal/TextEditor"
 
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video"]
-const MAX_SIZE: number = (1024 * 1024 * 64)
+const MAX_SIZE: number = (1024 * 1024 * 16)
 
 const getItemFromFile = (info: LinkGetInfoV1, file: { name: string, size: number, mime: string }, key: string): ItemProps => {
     const item: ItemProps = {
@@ -134,7 +134,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
     
                             setInfo(linkInfo)
     
-                            if(SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name))) && MAX_SIZE > parseFloat(size)){
+                            if(SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name))) && MAX_SIZE > parseInt(size)){
                                 memoryCache.set("hideTransferProgress:" + linkInfo.uuid, true)
     
                                 downloadFile(getItemFromFile(linkInfo, { name, size: parseInt(size), mime }, key), false).then((buffer) => {
