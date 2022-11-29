@@ -23,6 +23,7 @@ import Button from "../Button"
 import { BiChevronDown } from "react-icons/bi"
 import { i18n } from "../../i18n"
 import memoryCache from "../../lib/memoryCache"
+import { EditorView } from "@codemirror/view"
 
 export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
     const ext: string = getFileExt(name)
@@ -527,9 +528,13 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                         }}
                         style={{
                             paddingLeft: "5px",
-                            paddingRight: "5px"
+                            paddingRight: "5px",
+                            maxWidth: windowWidth + "px",
+                            maxHeight: (windowHeight - 50) + "px",
+                            width: windowWidth + "px",
+                            height: (windowHeight - 50) + "px"
                         }}
-                        extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name)]}
+                        extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
                     />
                 </Flex>
             </Flex>

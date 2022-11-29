@@ -7,7 +7,7 @@ import { contextMenu } from "react-contexify"
 import { isBetween, generateRandomString, getRandomArbitrary, formatBytes, getFolderColor, getImageForFileByExt, getFileExt, getFilePreviewType, simpleDate, canCompressThumbnail, getCurrentParent } from "../../lib/helpers"
 import { IoFolder } from "react-icons/io5"
 import { useLocation, useNavigate } from "react-router-dom"
-import { GRID_CELL_WIDTH, GRID_CELL_HEIGHT, LIST_ITEM_HEIGHT, CHAKRA_COLOR_SCHEME, THEME_COLOR, DROP_NAVIGATION_TIMEOUT } from "../../lib/constants"
+import { GRID_CELL_WIDTH, GRID_CELL_HEIGHT, LIST_ITEM_HEIGHT, PREVIEW_MAX_SIZE, THEME_COLOR, DROP_NAVIGATION_TIMEOUT } from "../../lib/constants"
 import { BsThreeDots } from "react-icons/bs"
 import { generateThumbnail } from "../../lib/services/thumbnails"
 import memoryCache from "../../lib/memoryCache"
@@ -17,6 +17,8 @@ import db from "../../lib/db"
 import { MdOutlineFavorite } from "react-icons/md"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
+import { isMobile as mobileDevice, isTablet as tabletDevice } from "react-device-detect"
+import { useDoubleTap } from "use-double-tap"
 
 const dragImg = new Image()
 
@@ -198,6 +200,16 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
     const didGenerateThumbnail = useRef<boolean>(false)
     const startURL = useRef<string>(window.location.href).current
 
+    const doubleTap = useDoubleTap((e) => {
+        if(!(mobileDevice || tabletDevice)){
+            return
+        }
+
+        e.detail = 2
+
+        return handleItemOnClick(e as React.MouseEvent<HTMLDivElement, MouseEvent>)
+    })
+
     const [markerWidth, nameWidth, sizeWidth, lastModifiedWidth, actionsWidth] = useMemo(() => {
         let markerWidth: number = 0
         let listWidthMinusMarker: number = Math.floor(listWidth - markerWidth)
@@ -241,7 +253,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
                     }
                 }
             }
-            else if(getFilePreviewType(getFileExt(item.name)) !== "none"){
+            else if(getFilePreviewType(getFileExt(item.name)) !== "none" && item.size < PREVIEW_MAX_SIZE){
                 eventListener.emit("openPreviewModal", {
                     item,
                     items: currentItems.current
@@ -251,10 +263,10 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
             return
         }
 
-        if(e.ctrlKey){
+        if(e.ctrlKey && !(mobileDevice || tabletDevice)){
             setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : mapItem))
         }
-        else if(e.shiftKey){
+        else if(e.shiftKey && !(mobileDevice || tabletDevice)){
             setItems(prev => {
                 const current = [...prev]
 
@@ -312,7 +324,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
                 setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : { ...mapItem, selected: false }))
             }
         }
-    }, [item])
+    }, [item, mobileDevice, tabletDevice])
 
     const handleItemOnContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
         setActiveItem(item)
@@ -450,6 +462,19 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
     }, [])
 
     const interactionProps = useMemo(() => {
+        if(mobileDevice || tabletDevice){
+            console.log("yes")
+
+            return {
+                draggable: false,
+                className: "drag-select-item list-item do-not-unselect-items",
+                "data-uuid": item.uuid,
+                transition: "100ms",
+                onClick: doubleTap.onClick,
+                onContextMenu: handleItemOnContextMenu
+            }
+        }
+
         return {
             onMouseEnter: () => setHovering(true),
             onMouseLeave: () => setHovering(false),
@@ -465,7 +490,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
             onClick: handleItemOnClick,
             onContextMenu: handleItemOnContextMenu
         }
-    }, [item])
+    }, [item.uuid, mobileDevice, tabletDevice])
 
     const queueThumbnailGeneration = useCallback(() => {
         if(canCompressThumbnail(getFileExt(item.name)) && !didGenerateThumbnail.current){

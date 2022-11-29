@@ -26,6 +26,7 @@ export const THEME_COLOR = "#805AD5" // Chakra UI purple accent color
 export const DROP_NAVIGATION_TIMEOUT = 1500
 export const ONE_YEAR = (86400000 * 365)
 export const AUTH_VERSION = 2
+export const PREVIEW_MAX_SIZE = (1024 * 1024 * 128)
 export const API_DOMAINS = [
     "https://api.filen.io",
     "https://api.filen.net",

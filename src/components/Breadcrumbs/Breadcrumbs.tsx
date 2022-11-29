@@ -234,11 +234,11 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
         catch(e){
             console.error(e)
         }
-    }, [location.hash])
+    }, [location])
 
     useEffect(() => {
         update()
-    }, [location.hash])
+    }, [location])
 
     return (
         <Flex

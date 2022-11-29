@@ -21,6 +21,7 @@ import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import { IoChevronForward } from "react-icons/io5"
 import { ONE_YEAR } from "../../lib/constants"
 import { i18n } from "../../i18n"
+import { PREVIEW_MAX_SIZE } from "../../lib/constants"
 
 const MoveSubmenu = memo(({ parent, load, uuid, darkMode, isMobile, items, lang }: MoveSubmenuProps) => {
     const didLoad = useRef<boolean>(false)
@@ -410,7 +411,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
                 theme={darkMode ? "filendark" : "filenlight"}
             >
                 {
-                    canPreview && (
+                    selectedCount == 1 && canPreview && selected[0].size < PREVIEW_MAX_SIZE && (
                         <>
                             <ContextMenuItem
                                 onClick={() => {

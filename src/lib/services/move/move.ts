@@ -18,39 +18,43 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 
     const toastId = showToast("loading", i18n(lang, "movingItems", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 
+    const toMove: ItemProps[] = []
+
     for(let i = 0; i < items.length; i++){
         if(items[i].type == "folder"){
             const exists = await folderExists({ name: items[i].name, parent })
 
             if(exists.exists){
                 showToast("error", i18n(lang, "folderExistsAtDest", true, ["__NAME__"], [items[i].name]), "bottom", 5000)
-
-                dismissToast(toastId)
-
-                return
             }
+            else{
+                toMove.push(items[i])
+            }
+        }
+        else{
+            toMove.push(items[i])
         }
     }
 
     const promises = []
     const moved: { item: ItemProps, from: string, to: string }[] = []
 
-    for(let i = 0; i < items.length; i++){
+    for(let i = 0; i < toMove.length; i++){
         promises.push(new Promise((resolve, reject) => {
-            const promise = items[i].type == "file" ? moveFile({ file: items[i], parent, emitEvents: false }) : moveFolder({ folder: items[i], parent, emitEvents: false })
+            const promise = toMove[i].type == "file" ? moveFile({ file: toMove[i], parent, emitEvents: false }) : moveFolder({ folder: toMove[i], parent, emitEvents: false })
 
             promise.then(() => {
                 moved.push({
-                    item: items[i],
-                    from: items[i].parent,
+                    item: toMove[i],
+                    from: toMove[i].parent,
                     to: parent
                 })
 
-                return resolve(items[i])
+                return resolve(toMove[i])
             }).catch((err) => {
                 return reject({
                     err,
-                    item: items[i]
+                    item: toMove[i]
                 })
             })
         }))

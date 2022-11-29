@@ -1006,13 +1006,17 @@ async function getAllFileEntries(dataTransferItemList: DataTransferItemList){
     while(queue.length > 0){
         const entry: any = queue.shift()
         
-        if(entry.isFile){
-            fileEntries.push(entry)
-        }
-        else if(entry.isDirectory){
-            const reader: any = entry.createReader()
-
-            queue.push(...await readAllDirectoryEntries(reader))
+        if(entry){
+            if(typeof entry.isFile !== "undefined" && typeof entry.isDirectory !== "undefined"){
+                if(entry.isFile){
+                    fileEntries.push(entry)
+                }
+                else if(entry.isDirectory){
+                    const reader: any = entry.createReader()
+        
+                    queue.push(...await readAllDirectoryEntries(reader))
+                }
+            }
         }
     }
 
@@ -1052,33 +1056,35 @@ export const readLocalDroppedDirectory = (items: DataTransferItemList): Promise<
             try{
                 const file = fileList[i]
 
-                const fileEntry = await new Promise((resolve, reject) => {
-                    file.file((fEntry: any) => {
-                        try{
-                            if(typeof file.isFile == "function" && file.isFile()){
-                                Object.defineProperty(fEntry, "fullPath", {
-                                    value: file.name,
-                                    writable: true
-                                })
-                
-                                files.push(fEntry as UploadQueueItemFile)
+                if(file && typeof file.file == "function"){
+                    const fileEntry = await new Promise((resolve, reject) => {
+                        file.file((fEntry: any) => {
+                            try{
+                                if(typeof file.isFile == "function" && file.isFile()){
+                                    Object.defineProperty(fEntry, "fullPath", {
+                                        value: file.name,
+                                        writable: true
+                                    })
+                    
+                                    files.push(fEntry as UploadQueueItemFile)
+                                }
+                                else{
+                                    Object.defineProperty(fEntry, "fullPath", {
+                                        value: file.fullPath.slice(1),
+                                        writable: true
+                                    })
+                                }
+        
+                                return resolve(fEntry)
                             }
-                            else{
-                                Object.defineProperty(fEntry, "fullPath", {
-                                    value: file.fullPath.slice(1),
-                                    writable: true
-                                })
+                            catch(e){
+                                return reject(e)
                             }
-    
-                            return resolve(fEntry)
-                        }
-                        catch(e){
-                            return reject(e)
-                        }
+                        })
                     })
-                })
-
-                files.push(fileEntry as UploadQueueItemFile)
+    
+                    files.push(fileEntry as UploadQueueItemFile)
+                }
             }
             catch(e){
                 return reject(e)
