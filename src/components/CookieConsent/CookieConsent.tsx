@@ -1,10 +1,11 @@
-import { memo, useEffect } from "react"
+import { memo, useEffect, useRef } from "react"
 import { useToast, ToastId, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import Button from "../Button"
 import eventListener from "../../lib/eventListener"
 import cookies from "../../lib/cookies"
+import useCookie from "../../lib/hooks/useCookie"
 
 export interface CookieConsentProps {
     darkMode: boolean,
@@ -13,12 +14,13 @@ export interface CookieConsentProps {
 
 const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
     const toast = useToast()
+    const [cookieConsent, setCookieConsent] = useCookie("cookieConsent")
+    const toastRef = useRef<ToastId>(0)
+    const toastRemoved = useRef<boolean>(false)
 
     useEffect(() => {
-        let cookieToastId: ToastId = 0
-
-        if(typeof cookies.get("cookieConsent") !== "string"){
-            cookieToastId = toast({
+        if(!["all", "full"].includes(cookieConsent as string) && !toastRemoved.current){
+            toastRef.current = toast({
                 duration: 864000000,
                 position: "bottom",
                 styleConfig: {
@@ -66,7 +68,9 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
                                         onClick={() => {
                                             cookies.set("cookieConsent", "deny")
 
-                                            toast.close(cookieToastId)
+                                            toastRemoved.current = true
+
+                                            toast.close(toastRef.current)
                                         }}
                                     >
                                         <AppText
@@ -95,7 +99,9 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
                                         onClick={() => {
                                             cookies.set("cookieConsent", "needed")
 
-                                            toast.close(cookieToastId)
+                                            toastRemoved.current = true
+
+                                            toast.close(toastRef.current)
                                         }}
                                     >
                                         <AppText
@@ -121,7 +127,9 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
 
                                         eventListener.emit("includeAnalytics")
 
-                                        toast.close(cookieToastId)
+                                        toastRemoved.current = true
+
+                                        toast.close(toastRef.current)
                                     }}
                                     _hover={{
                                         textDecoration: "underline"
@@ -135,11 +143,15 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
                 }
             })
         }
+    }, [darkMode, isMobile, toast, cookieConsent])
 
-        return () => {
-            toast.close(cookieToastId)
+    useEffect(() => {
+        if(["all", "full"].includes(cookieConsent as string)){
+            toastRemoved.current = true
+
+            toast.close(toastRef.current)
         }
-    }, [darkMode, isMobile, toast])
+    }, [toastRef.current, cookieConsent])
 
     return null
 })
