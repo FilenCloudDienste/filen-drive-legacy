@@ -3,17 +3,15 @@ import { useToast, ToastId, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import Button from "../Button"
+import eventListener from "../../lib/eventListener"
 import cookies from "../../lib/cookies"
-import { ONE_YEAR } from "../../lib/constants"
-import { i18n } from "../../i18n"
 
 export interface CookieConsentProps {
     darkMode: boolean,
-    isMobile: boolean,
-    lang: string
+    isMobile: boolean
 }
 
-const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) => {
+const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
     const toast = useToast()
 
     useEffect(() => {
@@ -21,8 +19,11 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
 
         if(typeof cookies.get("cookieConsent") !== "string"){
             cookieToastId = toast({
-                duration: ONE_YEAR,
+                duration: 864000000,
                 position: "bottom",
+                styleConfig: {
+                    zIndex: 999999
+                },
                 render: () => {
                     return (
                         <Flex
@@ -33,7 +34,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                             flexDirection="column"
                             padding="15px"
                             borderRadius="10px"
-                            zIndex={1}
+                            zIndex={999999}
                         >
                             <AppText
                                 darkMode={darkMode}
@@ -42,7 +43,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                 fontSize={16}
                                 color={getColor(darkMode, "textPrimary")}
                             >
-                                {i18n(lang, "cookieConsent")}
+                                This site uses cookies to measure and improve your experience.
                             </AppText>
                             <Flex
                                 flexDirection="row"
@@ -76,7 +77,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                             color={getColor(darkMode, "textPrimary")}
                                             textDecoration="underline"
                                         >
-                                            {i18n(lang, "optOut")}
+                                            Opt-out
                                         </AppText>
                                     </Flex>
                                 </Flex>
@@ -105,7 +106,7 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                             color={getColor(darkMode, "textPrimary")}
                                             textDecoration="underline"
                                         >
-                                            {i18n(lang, "onlyNeeded")}
+                                            Only needed
                                         </AppText>
                                     </Flex>
                                 </Flex>
@@ -113,23 +114,20 @@ const CookieConsent = memo(({ darkMode, isMobile, lang }: CookieConsentProps) =>
                                     flex={2}
                                     darkMode={darkMode}
                                     isMobile={isMobile}
-                                    backgroundColor={darkMode ? "white" : "gray"}
-                                    color={darkMode ? "black" : "white"}
-                                    border={"1px solid " + (darkMode ? "white" : "gray")}
                                     height="35px"
                                     width="100%"
-                                    _hover={{
-                                        backgroundColor: getColor(darkMode, "backgroundPrimary"),
-                                        border: "1px solid " + (darkMode ? "white" : "gray"),
-                                        color: darkMode ? "white" : "gray"
-                                    }}
                                     onClick={() => {
                                         cookies.set("cookieConsent", "full")
 
+                                        eventListener.emit("includeAnalytics")
+
                                         toast.close(cookieToastId)
                                     }}
+                                    _hover={{
+                                        textDecoration: "underline"
+                                    }}
                                 >
-                                    {i18n(lang, "accept")}
+                                    Accept
                                 </Button>
                             </Flex>
                         </Flex>

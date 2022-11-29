@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react"
+import { memo, useEffect, useState } from "react"
 import useWindowWidth from "./lib/hooks/useWindowWidth"
 import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsMobile from "./lib/hooks/useIsMobile"
@@ -17,6 +17,9 @@ import type { ItemProps } from "./types"
 import type { ToastId } from "@chakra-ui/react"
 import PublicLinkFile from "./pages/PublicLinkFile"
 import PublicLinkFolder from "./pages/PublicLinkFolder"
+import CookieConsent from "./components/CookieConsent"
+import eventListener from "./lib/eventListener"
+import cookies from "./lib/cookies"
 
 declare global {
     interface Window {
@@ -38,6 +41,7 @@ const App = memo(() => {
     const isMobile: boolean = useIsMobile()
     const lang: string = useLang()
     const [loggedIn, setLoggedIn] = useCookie("loggedIn")
+    const [analytics, setAnalytics] = useState<boolean>(typeof cookies.get("cookieConsent") == "string" && (cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all") ? true : false)
     
     const paramsEx: string[] = window.location.href.split("?")
     const includesPlanRedirect: boolean = paramsEx.length >= 2 && paramsEx[1].indexOf("pro=") !== -1
@@ -50,10 +54,23 @@ const App = memo(() => {
         }
     }, [darkMode])
 
+    useEffect(() => {
+        const includeAnalyticsListener = eventListener.on("includeAnal", () => setAnalytics(true))
+
+        return () => {
+            includeAnalyticsListener.remove()
+        }
+    }, [])
+
     return (
         <>
             <Helmet>
                 <link rel="stylesheet" href={darkMode ? "/dark.css" : "/light.css"} />
+                {
+                    typeof analytics == "boolean" && analytics && (
+                        <script defer data-domain="drive.filen.io" src="https://analytics.filen.io/js/plausible.js"></script>
+                    )
+                }
             </Helmet>
             <BrowserRouter>
                 <Routes>
@@ -197,6 +214,10 @@ const App = memo(() => {
                     />
                 </Routes>
             </BrowserRouter>
+            <CookieConsent
+                darkMode={darkMode}
+                isMobile={isMobile}
+            />
         </>
     )
 })
