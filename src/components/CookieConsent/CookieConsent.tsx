@@ -143,7 +143,7 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
                 }
             })
         }
-    }, [darkMode, isMobile, toast, cookieConsent])
+    }, [cookieConsent])
 
     useEffect(() => {
         if(["all", "full"].includes(cookieConsent as string)){
@@ -151,7 +151,7 @@ const CookieConsent = memo(({ darkMode, isMobile }: CookieConsentProps) => {
 
             toast.close(toastRef.current)
         }
-    }, [toastRef.current, cookieConsent])
+    }, [cookieConsent])
 
     return null
 })
