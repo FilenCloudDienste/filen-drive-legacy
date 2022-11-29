@@ -194,8 +194,8 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
                         onChange={(e) => setTfa(e.target.value)}
                         marginTop="15px"
                         placeholder={i18n(lang, "tfaCode")}
-                        type="number"
-                        maxLength={6}
+                        type="text"
+                        maxLength={64}
                         onKeyDown={(e) => {
                             if(e.which == 13){
                                 login()

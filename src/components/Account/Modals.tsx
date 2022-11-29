@@ -1452,12 +1452,12 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
                                     isMobile={isMobile}
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
-                                    type="number"
+                                    type="text"
                                     isDisabled={loading}
                                     placeholder={i18n(lang, "enter2FA")}
                                     marginTop="25px"
                                     onKeyDown={inputKeyDown}
-                                    maxLength={6}
+                                    maxLength={64}
                                     color={getColor(darkMode, "textSecondary")}
                                     _placeholder={{
                                         color: getColor(darkMode, "textSecondary")
@@ -1702,11 +1702,11 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
                                     isMobile={isMobile}
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
-                                    type="number"
+                                    type="text"
                                     isDisabled={loading}
                                     placeholder={i18n(lang, "enter2FA")}
                                     onKeyDown={inputKeyDown}
-                                    maxLength={6}
+                                    maxLength={64}
                                     color={getColor(darkMode, "textSecondary")}
                                     _placeholder={{
                                         color: getColor(darkMode, "textSecondary")
