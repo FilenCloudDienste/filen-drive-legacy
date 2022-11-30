@@ -19,6 +19,7 @@ import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
 import { isMobile as mobileDevice, isTablet as tabletDevice } from "react-device-detect"
 import { useDoubleTap } from "use-double-tap"
+import { useLongPress } from "use-long-press"
 
 const dragImg = new Image()
 
@@ -208,6 +209,17 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
         e.detail = 2
 
         return handleItemOnClick(e as React.MouseEvent<HTMLDivElement, MouseEvent>)
+    })
+
+    const longPress = useLongPress((e) => {
+        if(!(mobileDevice || tabletDevice)){
+            return
+        }
+        
+        return handleItemOnContextMenu(e as React.MouseEvent<HTMLDivElement, MouseEvent>)
+    }, {
+        threshold: 500,
+        captureEvent: true
     })
 
     const [markerWidth, nameWidth, sizeWidth, lastModifiedWidth, actionsWidth] = useMemo(() => {
@@ -463,15 +475,13 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
 
     const interactionProps = useMemo(() => {
         if(mobileDevice || tabletDevice){
-            console.log("yes")
-
             return {
                 draggable: false,
                 className: "drag-select-item list-item do-not-unselect-items",
                 "data-uuid": item.uuid,
                 transition: "100ms",
                 onClick: doubleTap.onClick,
-                onContextMenu: handleItemOnContextMenu
+                ...longPress()
             }
         }
 
