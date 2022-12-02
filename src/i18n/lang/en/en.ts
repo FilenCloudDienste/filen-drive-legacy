@@ -334,7 +334,7 @@ const en: {
     registrationEmailInstructions: "To complete your registration please confirm your email address. A link with instructions has been sent to you.",
     forgotPasswordEmailSent: "An email with instructions on how to reset your password has been sent to you.",
     maxStorageReached: "Storage full",
-    maxStorageReachedInfo: "You have reached your maxiumum storage allowance. Please upgrade your account to upload more files.",
+    maxStorageReachedInfo: "You have reached your maximum storage allowance. Please upgrade your account to upload more files.",
     upgradeNow: "Upgrade now",
     abuseReportSubmitted: "Abuse report sent!",
     invalidAbuseReason: "Invalid reason",
