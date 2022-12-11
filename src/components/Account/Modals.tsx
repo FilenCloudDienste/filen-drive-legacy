@@ -68,6 +68,8 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
                         height="100%"
                         width="100%"
                         flexDirection="row"
+                        gap="15px"
+                        flexFlow="wrap"
                     >
                         {
                             [
@@ -90,6 +92,14 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
                                 {
                                     code: "es",
                                     name: "Español"
+                                },
+                                {
+                                    code: "uk",
+                                    name: "Українська"
+                                },
+                                {
+                                    code: "ru",
+                                    name: "Русский"
                                 }
                             ].map((language) => {
                                 return (
@@ -97,14 +107,11 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
                                         key={language.code}
                                         darkMode={darkMode}
                                         isMobile={isMobile}
-                                        noOfLines={1}
-                                        wordBreak="break-all"
                                         color={getColor(darkMode, "linkPrimary")}
                                         cursor="pointer"
                                         _hover={{
                                             textDecoration: "underline"
                                         }}
-                                        marginRight="15px"
                                         onClick={() => {
                                             try{
                                                 cookies.set("lang", language.code)
