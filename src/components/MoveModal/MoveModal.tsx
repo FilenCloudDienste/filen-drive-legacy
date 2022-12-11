@@ -355,13 +355,13 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
                     borderRadius="full"
                 />
                 <ModalBody
-                    height={isMobile ? ((window.innerHeight - 62 - 75) + "px") : "500px"}
+                    height={isMobile ? (((document.documentElement.clientHeight || window.innerHeight) - 62 - 75) + "px") : "500px"}
                     width="100%"
                     alignItems="center"
                     justifyContent="center"
                 >
                     <Flex
-                        height={isMobile ? ((window.innerHeight - 62 - 75) + "px") : "500px"}
+                        height={isMobile ? (((document.documentElement.clientHeight || window.innerHeight) - 62 - 75) + "px") : "500px"}
                         overflow="auto"
                     >
                         <CloudTree

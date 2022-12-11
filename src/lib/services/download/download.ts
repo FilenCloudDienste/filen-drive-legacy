@@ -446,12 +446,12 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
             }
         }
 
-        if(zipItems.length <= 0){
-            return
-        }
-
         if(typeof loadCallback == "function"){
             loadCallback(true)
+        }
+
+        if(zipItems.length <= 0){
+            return
         }
 
         downloadMultipleFilesAsZipStream(zipItems, paths).catch(console.error)
@@ -518,7 +518,9 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
             paths[selected[i].uuid] = selected[i].name
         }
 
-        downloadMultipleFilesAsZipStream(selected, paths).catch(console.error)
+        if(selected.length > 0){
+            downloadMultipleFilesAsZipStream(selected, paths).catch(console.error)
+        }
 
         if(typeof loadCallback == "function"){
             loadCallback(true)

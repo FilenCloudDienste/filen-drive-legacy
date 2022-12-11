@@ -338,7 +338,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
         }
     }, [item, mobileDevice, tabletDevice])
 
-    const handleItemOnContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+    const handleItemOnContextMenu = useCallback((e: any): void => {
         setActiveItem(item)
 
         const selectedCount: number = currentItems.current.filter(filterItem => filterItem.selected).length
@@ -350,6 +350,19 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
             setItems(prev => prev.map(mapItem => mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
         }
 
+        if(tabletDevice || mobileDevice){
+            contextMenu.show({
+                id: "itemsContextMenu",
+                event: e,
+                position: {
+                    x: (document.documentElement.clientWidth || window.innerWidth) - 200,
+                    y: e.nativeEvent.touches[0]?.clientY || 250
+                }
+            })
+
+            return
+        }
+
         contextMenu.show({
             id: "itemsContextMenu",
             event: e,
@@ -358,7 +371,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
                 y: e.nativeEvent.clientY
             }
         })
-    }, [])
+    }, [tabletDevice, mobileDevice])
 
     const handleItemOnDragStart = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
         if(window.location.hash.indexOf("shared-in") !== -1){

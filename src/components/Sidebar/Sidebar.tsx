@@ -448,7 +448,7 @@ export const CloudTreeItem = memo(({ darkMode, isMobile, parent, depth, folders,
             </Flex>
             <Flex
                 height="auto"
-                width={window.innerWidth * window.innerWidth}
+                width={(document.documentElement.clientWidth || window.innerWidth) * (document.documentElement.clientWidth || window.innerWidth)}
                 flexDirection="column"
             >
                 {

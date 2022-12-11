@@ -22,6 +22,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
     const currentItems = useRef<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
     const newNameRef = useRef<string>("")
+    const oldNameRef = useRef<string>("")
 
     const rename = async (): Promise<void> => {
         if(loading){
@@ -87,11 +88,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         setLoading(false)
     }
 
-    const setSelectionRange = async (): Promise<void> => {
-        if(!currentItem){
-            return
-        }
-
+    const setSelectionRange = useCallback(async (): Promise<void> => {
         await new Promise((resolve) => {
             const wait = setInterval(() => {
                 if(inputRef.current){
@@ -107,23 +104,27 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         }
 
         const input = (inputRef.current as HTMLInputElement)
+
+        if(!input){
+            return
+        }
         
-        if(currentItem.name.indexOf(".") == -1){
-            input.setSelectionRange(0, currentItem.name.length)
+        if(oldNameRef.current.indexOf(".") == -1){
+            input.setSelectionRange(0, oldNameRef.current.length, "forward")
 
             return
         }
 
-        const extLength = getFileExt(currentItem.name).length + 1
+        const extLength = getFileExt(oldNameRef.current).length + 1
 
-        input.setSelectionRange(0, (currentItem.name.length - extLength))
-    }
+        input.setSelectionRange(0, (oldNameRef.current.length - extLength), "forward")
+    }, [])
 
     const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
-        if(e.which == 13 && isOpen.current && newNameRef.current.length > 0){
+        if(e.which == 13 && isOpen.current){
             rename()
         }
-    }, [isOpen.current, newNameRef.current])
+    }, [])
 
     useEffect(() => {
         currentItems.current = items
@@ -143,6 +144,8 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
             setNewName(item.name)
             setOpen(true)
             setSelectionRange()
+
+            oldNameRef.current = item.name
         })
 
         window.addEventListener("keydown", windowOnKeyDown)

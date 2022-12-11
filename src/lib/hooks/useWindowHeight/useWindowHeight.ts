@@ -5,12 +5,12 @@ const useWindowHeight = (): number => {
     const [height, setHeight] = useState<number>(typeof Cookies.get("windowHeight") == "string" ? parseInt(Cookies.get("windowHeight") as string) : 1080)
 
     useEffect(() => {
-        setHeight(window.innerHeight)
+        setHeight((document.documentElement.clientHeight || window.innerHeight))
 
         const listener = (): void => {
-            setHeight(window.innerHeight)
+            setHeight((document.documentElement.clientHeight || window.innerHeight))
             
-            Cookies.set("windowHeight", window.innerHeight.toString())
+            Cookies.set("windowHeight", (document.documentElement.clientHeight || window.innerHeight).toString())
         }
 
         window.addEventListener("resize", listener)

@@ -109,6 +109,20 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
         })
     }
 
+    const [filesAndFoldersStorage, freeStorage] = useMemo(() => {
+        if(!userInfo || !userSettings){
+            return [0, 0]
+        }
+
+        const fafStorage: number = (userInfo.storageUsed - userSettings.versionedStorage)
+        const free: number = (userInfo.maxStorage - userInfo.storageUsed)
+
+        return [
+            isNaN(fafStorage) ? userInfo.storageUsed : fafStorage,
+            isNaN(free) ? 0 : free
+        ]
+    }, [userInfo, userSettings])
+
     const onAvatarFileInputChanged = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         if(!e.target.files){
             e.target.value = ""
@@ -258,7 +272,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                                         fontSize={13}
                                         marginLeft="10px"
                                     >
-                                        {i18n(lang, "storageUsedFilesAndFolders", true, ["__USED__"], [formatBytes(userInfo.storageUsed - userSettings.versionedStorage)])}
+                                        {i18n(lang, "storageUsedFilesAndFolders", true, ["__USED__"], [formatBytes(filesAndFoldersStorage)])}
                                     </AppText>
                                 </Flex>
                                 <Flex
@@ -300,7 +314,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                                         fontSize={13}
                                         marginLeft="10px"
                                     >
-                                        {i18n(lang, "storageUsedFree", true, ["__FREE__"], [formatBytes(userInfo.maxStorage - userInfo.storageUsed)])}
+                                        {i18n(lang, "storageUsedFree", true, ["__FREE__"], [formatBytes(freeStorage)])}
                                     </AppText>
                                 </Flex>
                             </Flex>
@@ -563,7 +577,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                             fontWeight="bold"
                             cursor="pointer"
                             noOfLines={1}
-                            onClick={async () => {
+                            onClick={() => {
                                 if(!window.confirm("Are you sure?")){
                                     return
                                 }
@@ -572,6 +586,20 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                             }}
                         >
                             {i18n(lang, "logout")}
+                        </AppText>
+                    </Flex>
+                    <Flex>
+                        <AppText
+                            darkMode={darkMode}
+                            isMobile={isMobile}
+                            color={getColor(darkMode, "textSecondary")}
+                            textDecoration="underline"
+                            fontWeight="bold"
+                            cursor="pointer"
+                            noOfLines={1}
+                            onClick={() => window.open("https://filen.io/support", "_blank")}
+                        >
+                            {i18n(lang, "support")}
                         </AppText>
                     </Flex>
                 </Flex>
@@ -1105,22 +1133,32 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
                                                                 )
                                                             }
                                                             {
-                                                                sub.cancelled == 0 && (
+                                                                sub.cancelled == 0 ? (
                                                                     <AppText
-                                                                    darkMode={darkMode}
-                                                                    isMobile={isMobile}
-                                                                    color={getColor(darkMode, "textSecondary")}
-                                                                    fontSize={14}
-                                                                    marginTop="10px"
-                                                                    onClick={() => eventListener.emit("openCancelSubModal", sub.id)}
-                                                                    _hover={{
-                                                                        color: getColor(darkMode, "textPrimary")
-                                                                    }}
-                                                                    cursor="pointer"
-                                                                    textDecoration="underline"
-                                                                >
-                                                                    {i18n(lang, "cancel")}
-                                                                </AppText>
+                                                                        darkMode={darkMode}
+                                                                        isMobile={isMobile}
+                                                                        color={getColor(darkMode, "textSecondary")}
+                                                                        fontSize={14}
+                                                                        marginTop="10px"
+                                                                        onClick={() => eventListener.emit("openCancelSubModal", sub.id)}
+                                                                        _hover={{
+                                                                            color: getColor(darkMode, "textPrimary")
+                                                                        }}
+                                                                        cursor="pointer"
+                                                                        textDecoration="underline"
+                                                                    >
+                                                                        {i18n(lang, "cancel")}
+                                                                    </AppText>
+                                                                ) : (
+                                                                    <AppText
+                                                                        darkMode={darkMode}
+                                                                        isMobile={isMobile}
+                                                                        color="red.500"
+                                                                        fontSize={14}
+                                                                        marginTop="10px"
+                                                                    >
+                                                                        {i18n(lang, "subCancelled")}
+                                                                    </AppText>
                                                                 )
                                                             }
                                                         </Flex>

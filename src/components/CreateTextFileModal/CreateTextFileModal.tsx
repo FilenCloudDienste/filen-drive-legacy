@@ -191,7 +191,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
 
     useEffect(() => {
         isOpen.current = open
-    }, [])
+    }, [open])
 
     useEffect(() => {
         newNameRef.current = newName

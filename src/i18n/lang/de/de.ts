@@ -352,7 +352,9 @@ const de: {
     exportMasterKeysInfo: "Durch den Export Ihrer Masterschlüssel können Sie Ihr Konto ohne Datenverlust wiederherstellen, falls Sie Ihr Passwort vergessen. Bitte stellen Sie sicher, dass Sie Ihre neuen Masterschlüssel jedes Mal exportieren, wenn Sie Ihr Passwort ändern.",
     import: "Importieren",
     invite: "Einladen",
-    yourReferralLink: "Dein Link"
+    yourReferralLink: "Dein Link",
+    subCancelled: "Gekündigt",
+    support: "Support"
 }
 
 export default de

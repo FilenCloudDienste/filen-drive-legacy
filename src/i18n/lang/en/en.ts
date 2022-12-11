@@ -366,7 +366,9 @@ const en: {
     payNow: "Pay invoice now",
     emptyTrashModalSure: "Are you sure you want to empty you trash? This action cannot be undone!",
     emptyTrashSuccess: "Trash emptied",
-    itemRenamed: "Item renamed"
+    itemRenamed: "Item renamed",
+    subCancelled: "Cancelled",
+    support: "Support"
 }
 
 export default en

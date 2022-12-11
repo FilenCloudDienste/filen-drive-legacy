@@ -242,7 +242,7 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
                     width="100%"
                     alignItems="center"
                     justifyContent="center"
-                    maxHeight={isMobile ? (window.innerHeight - 100) + "px" : "500px"}
+                    maxHeight={isMobile ? ((document.documentElement.clientHeight || window.innerHeight) - 100) + "px" : "500px"}
                     overflowY="auto"
                 >
                     {
