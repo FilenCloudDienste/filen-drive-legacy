@@ -27,7 +27,7 @@ import Input from "../Input"
 import { useSearchParams } from "react-router-dom"
 
 const SHOW_PLANS: boolean = true
-const SALE_ACTIVE: boolean = true
+const SALE_ACTIVE: boolean = false
 
 const getTabIndex = (tab: string): number => {
     switch(tab){
@@ -1638,7 +1638,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             //Starter
             {
                 termType: 1,
-                id: 90,
+                id: 87,
                 name: "Starter annually",
                 cost: 11.99,
                 sale: 7.99,
@@ -1649,7 +1649,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 1,
-                id: 75,
+                id: 45,
                 name: "Starter lifetime",
                 cost: 29.99,
                 sale: 19.99,
@@ -1661,7 +1661,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             // Monthly
             {
                 termType: 2,
-                id: 57,
+                id: 27,
                 name: "Pro I",
                 cost: 1.99,
                 sale: 1.39,
@@ -1672,7 +1672,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 2,
-                id: 60,
+                id: 30,
                 name: "Pro II",
                 cost: 3.99,
                 sale: 2.69,
@@ -1683,7 +1683,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 2,
-                id: 63,
+                id: 33,
                 name: "Pro III",
                 cost: 8.99,
                 sale: 6.99,
@@ -1695,7 +1695,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             // Annually
             {
                 termType: 3,
-                id: 66,
+                id: 36,
                 name: "Pro I",
                 cost: 19.99,
                 sale: 13.99,
@@ -1706,7 +1706,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 3,
-                id: 69,
+                id: 39,
                 name: "Pro II",
                 cost: 39.99,
                 sale: 27.99,
@@ -1717,7 +1717,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 3,
-                id: 72,
+                id: 42,
                 name: "Pro III",
                 cost: 89.99,
                 sale: 74.99,
@@ -1729,7 +1729,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             // Lifetime
             {
                 termType: 4,
-                id: 78,
+                id: 48,
                 name: "Pro I",
                 cost: 54.99,
                 sale: 36.99,
@@ -1740,7 +1740,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 4,
-                id: 81,
+                id: 51,
                 name: "Pro II",
                 cost: 129.99,
                 sale: 87.99,
@@ -1752,7 +1752,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             },
             {
                 termType: 4,
-                id: 84,
+                id: 54,
                 name: "Pro III",
                 cost: 299.99,
                 sale: 219.99,
