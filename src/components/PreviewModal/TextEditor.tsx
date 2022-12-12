@@ -1,6 +1,6 @@
-import { memo, useState, useEffect, useCallback, useRef } from "react"
+import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { ItemProps, UploadQueueItemFile } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Flex, ModalHeader, Spinner, ModalFooter, Menu, MenuButton, MenuList, MenuItem, forwardRef  } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Flex, ModalHeader, ModalFooter, Menu, MenuButton, MenuList, MenuItem, forwardRef  } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import { getFileExt } from "../../lib/helpers"
@@ -24,6 +24,8 @@ import { BiChevronDown } from "react-icons/bi"
 import { i18n } from "../../i18n"
 import memoryCache from "../../lib/memoryCache"
 import { EditorView } from "@codemirror/view"
+import MarkdownPreview from "@uiw/react-markdown-preview"
+import { useLocation } from "react-router-dom"
 
 export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
     const ext: string = getFileExt(name)
@@ -379,6 +381,28 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
     const [textEdited, setTextEdited] = useState<string>("")
     const newText = useRef<string>("")
     const beforeText = useRef<string>(text)
+    const location = useLocation()
+
+    const showMarkDownPreview: boolean = useMemo(() => {
+        if(
+            getFileExt(currentItem.name) == "md"
+            && (location.pathname.indexOf("/d/") == -1
+            && location.pathname.indexOf("/f/") == -1)
+            && (window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1)
+        ){
+            return true
+        }
+
+        return false
+    }, [currentItem, location])
+
+    const textEditorWidth: number = useMemo(() => {
+        if(showMarkDownPreview){
+            return Math.floor(windowWidth / 2)
+        }
+
+        return windowWidth
+    }, [showMarkDownPreview, windowWidth])
 
     const save = useCallback(() => {
         if(beforeText.current == newText.current){
@@ -424,7 +448,9 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
             save()
         }
         else{
-            memoryCache.set("textEditorChanged", true)
+            if(!e.ctrlKey && !e.metaKey && !e.altKey && !(e.which == 27)){
+                memoryCache.set("textEditorChanged", true)
+            }
         }
     }, [newText.current, currentItem])
 
@@ -433,6 +459,8 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
     }, [textEdited])
 
     useEffect(() => {
+        memoryCache.set("textEditorChanged", false)
+
         window.addEventListener("keydown", windowOnKeyDownListener)
 
         const previewModalBeforeCloseListener = eventListener.on("previewModalBeforeClose", () => {
@@ -498,12 +526,10 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                 <Flex
                     width={windowWidth + "px"}
                     height={(windowHeight - 50) + "px"}
-                    alignItems="center"
-                    justifyContent="center"
                 >
                     <CodeMirror
                         value={text}
-                        width={windowWidth + "px"}
+                        width={textEditorWidth + "px"}
                         height={(windowHeight - 50) + "px"}
                         theme={createCodeMirrorTheme(darkMode)}
                         indentWithTab={true}
@@ -529,13 +555,40 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                         style={{
                             paddingLeft: "5px",
                             paddingRight: "5px",
-                            maxWidth: windowWidth + "px",
+                            maxWidth: textEditorWidth + "px",
                             maxHeight: (windowHeight - 50) + "px",
-                            width: windowWidth + "px",
+                            width: textEditorWidth + "px",
                             height: (windowHeight - 50) + "px"
                         }}
                         extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
                     />
+                    {
+                        showMarkDownPreview && (window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1) && (
+                            <Flex
+                                width={textEditorWidth + "px"}
+                                height={(windowHeight - 50) + "px"}
+                                overflowY="auto"
+                                backgroundColor={darkMode ? "#0D1117" : "white"}
+                            >
+                                <MarkdownPreview
+                                    source={textEdited}
+                                    style={{
+                                        width: textEditorWidth + "px",
+                                        height: (windowHeight - 50) + "px",
+                                        paddingLeft: "15px",
+                                        paddingRight: "15px",
+                                        paddingTop: "6px",
+                                        paddingBottom: "15px",
+                                        color: getColor(darkMode, "textPrimary")
+                                    }}
+                                    skipHtml={false}
+                                    warpperElement={{
+                                        "data-color-mode": darkMode ? "dark" : "light"
+                                    }}
+                                />
+                            </Flex>
+                        )
+                    }
                 </Flex>
             </Flex>
             <BeforeCloseModal

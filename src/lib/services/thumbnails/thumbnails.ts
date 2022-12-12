@@ -223,7 +223,7 @@ export const generateThumbnail = (item: ItemProps, skipVisibleCheck: boolean = f
                     memoryCache.set("hideTransferProgress:" + item.uuid, true)
 
                     if(getFilePreviewType(getFileExt(item.name)) == "video"){
-                        downloadFile(item, false, 8).then((data) => {
+                        downloadFile(item, false, 16).then((data) => {
                             if(!skipVisibleCheck){
                                 if(!isItemVisible(item)){
                                     thumbnailSemaphore.release()
@@ -240,11 +240,25 @@ export const generateThumbnail = (item: ItemProps, skipVisibleCheck: boolean = f
     
                             generateVideoThumbnail(blob).then((videoThumbnailBlob) => {
                                 if(!videoThumbnailBlob){
+                                    increaseErrorCount(maxTriesKey)
+                
+                                    thumbnailSemaphore.release()
+            
+                                    isGeneratingThumbnailForUUID[item.uuid] = false
+
                                     return reject(new Error("videoThumbnailBlob null"))
                                 }
 
                                 return compress(videoThumbnailBlob)
-                            }).catch(reject)
+                            }).catch((err) => {
+                                increaseErrorCount(maxTriesKey)
+                
+                                thumbnailSemaphore.release()
+        
+                                isGeneratingThumbnailForUUID[item.uuid] = false
+                
+                                return reject(err)
+                            })
                         }).catch((err) => {
                             increaseErrorCount(maxTriesKey)
             

@@ -468,7 +468,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
                                                                                     closeBracketsKeymap: false,
                                                                                     foldGutter: false
                                                                                 }}
-                                                                                onChange={() => {}}
+                                                                                onChange={() => setText(prev => prev)}
                                                                                 style={{
                                                                                     paddingLeft: "5px",
                                                                                     paddingRight: "5px"
