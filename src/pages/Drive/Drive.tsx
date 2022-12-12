@@ -257,10 +257,14 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                 return
             }
 
-            eventListener.emit("openUploadModal", {
-                files: files.filter(file => file.size > 0),
-                openModal: true
-            })
+            const filteredFiles = files.filter(file => file.size > 0)
+
+            if(filteredFiles.length > 0){
+                eventListener.emit("openUploadModal", {
+                    files: filteredFiles,
+                    openModal: filteredFiles.length > 0
+                })
+            }
         }
         catch(e: any){
             console.error(e)
