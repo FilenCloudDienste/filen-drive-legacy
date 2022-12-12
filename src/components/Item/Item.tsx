@@ -519,9 +519,7 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
         if(canCompressThumbnail(getFileExt(item.name)) && !didGenerateThumbnail.current){
             didGenerateThumbnail.current = true
 
-            generateThumbnail(item).then((url) => {
-                setThumbnail(url)
-            }).catch((err) => {
+            generateThumbnail(item).then((url) => setThumbnail(url)).catch((err) => {
                 if(err == "notVisible"){
                     didGenerateThumbnail.current = false
 

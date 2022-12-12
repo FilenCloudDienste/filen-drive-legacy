@@ -142,7 +142,7 @@ export const sleep = (ms: number = 1000) => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const fileAndFolderNameValidation = (name: string) => {
+export const fileAndFolderNameValidation = memoize((name: string) => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
   
     if(regex.test(name)){
@@ -150,7 +150,7 @@ export const fileAndFolderNameValidation = (name: string) => {
     }
   
     return true
-}
+})
 
 export const formatBytes = (bytes: number, decimals: number = 2) => {
     if(bytes == 0){
@@ -239,7 +239,7 @@ export const Semaphore = function(this: SemaphoreProps, max: number){
     }
 } as any as { new (max: number): SemaphoreProps }
 
-export const convertTimestampToMs = (timestamp: number) => {
+export const convertTimestampToMs = memoize((timestamp: number) => {
     const date = new Date(timestamp * 1000)
 
     if(date.getFullYear() > 2100){
@@ -248,9 +248,9 @@ export const convertTimestampToMs = (timestamp: number) => {
     else{
         return Math.floor(timestamp * 1000)
     }
-}
+})
 
-export const fileNameToLowerCaseExt = (name: string) => {
+export const fileNameToLowerCaseExt = memoize((name: string) => {
     if(name.indexOf(".") == -1){
 		return name
 	}
@@ -266,7 +266,7 @@ export const fileNameToLowerCaseExt = (name: string) => {
     generatedFileName = fileNameWithLowerCaseEnding
 
     return generatedFileName
-}
+})
 
 export const bpsToReadable = (bps: number) => {
     if(!(bps > 0 && bps < (1024 * 1024 * 1024 * 1024))){
@@ -294,7 +294,7 @@ export const bpsToReadable = (bps: number) => {
     return Math.max(bps, 0.1).toFixed(1) + byteUnits[i]
 }
 
-export function getTimeRemaining(endtime: number){
+export const getTimeRemaining = memoize((endtime: number) => {
     // @ts-ignore
     const total = Date.parse(new Date(endtime)) - Date.parse(new Date())
     const seconds = Math.floor((total / 1000) % 60)
@@ -309,7 +309,7 @@ export function getTimeRemaining(endtime: number){
         minutes,
         seconds
     }
-}
+})
 
 export function timeSince(timestamp: number, lang: string = "en") {
     const date = new Date(timestamp)
@@ -483,7 +483,7 @@ export const getFolderColor = (color: string) => {
     return colors['default']
 }
 
-export const simpleDate = (timestamp: number) => {
+export const simpleDate = memoize((timestamp: number) => {
     try{
         // @ts-ignore
         const date = new Date(convertTimestampToMs(parseInt(timestamp)))
@@ -495,19 +495,21 @@ export const simpleDate = (timestamp: number) => {
 
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
     }
-}
+})
 
 export const randomIdUnsafe = () => {
     return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
 }
 
-export const canCompressThumbnail = (ext: string) => {
+export const canCompressThumbnail = memoize((ext: string) => {
     switch(ext.toLowerCase()){
         case "jpeg":
         case "jpg":
         case "png":
         case "gif":
         case "svg":
+        case "mp4":
+        case "webm":
         //case "heif":
         //case "heic":
             return true
@@ -516,26 +518,28 @@ export const canCompressThumbnail = (ext: string) => {
             return false
         break
     }
-}
+})
 
-export const canShowThumbnail = (ext: string) => {
+export const canShowThumbnail = memoize((ext: string) => {
     switch(ext.toLowerCase()){
         case "jpeg":
         case "jpg":
         case "png":
         case "gif":
         case "svg":
-        case "heif":
-        case "heic":
+        case "mp4":
+        case "webm":
+        //case "heif":
+        //case "heic":
             return true
         break
         default:
             return false
         break
     }
-}
+})
 
-export const getFilePreviewType = (ext: string) => {
+export const getFilePreviewType = memoize((ext: string) => {
     ext = ext.split(".").join("")
 
     switch(ext.toLowerCase()){
@@ -607,7 +611,7 @@ export const getFilePreviewType = (ext: string) => {
             return "none"
         break
     }
-}
+})
 
 export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedAsc" | "lastModifiedDesc", href?: string) => {
     const files = []
@@ -799,7 +803,7 @@ export function replaceAll(str: string, find: string, replace: string) {
     return str.replace(new RegExp(find, "g"), replace)
 }
 
-export const getFileExt = (name: string) => {
+export const getFileExt = memoize((name: string) => {
     if(name.indexOf(".") == -1){
         return ""
     }
@@ -807,9 +811,9 @@ export const getFileExt = (name: string) => {
     const ex = name.split(".")
 
     return ex[ex.length - 1].toLowerCase()
-}
+})
 
-export const getImageForFileByExt = (ext: string) => {
+export const getImageForFileByExt = memoize((ext: string) => {
     switch(ext){
         case "pdf":
             return require("../../assets/files/pdf.png")
@@ -893,7 +897,7 @@ export const getImageForFileByExt = (ext: string) => {
             return require("../../assets/files/file.png")
         break
     }
-}
+})
 
 export const getCurrentParent = (href?: string): string => {
     let ex: string[] = []
@@ -908,7 +912,7 @@ export const getCurrentParent = (href?: string): string => {
     return ex[ex.length - 1]
 }
 
-export const buildBreadcrumbHashLink = (uuid: string): string => {
+export const buildBreadcrumbHashLink = memoize((uuid: string): string => {
     const ex = window.location.hash.split("/")
 
     if(ex.indexOf(uuid) !== -1){
@@ -917,7 +921,7 @@ export const buildBreadcrumbHashLink = (uuid: string): string => {
     else{
         return window.location.hash + "/" + uuid
     }
-}
+})
 
 export const readChunk = (file: File, chunkIndex: number, chunkSize: number): Promise<ArrayBuffer> => {
     return new Promise((resolve, reject) => {
@@ -947,7 +951,7 @@ export const getCurrentURLParentFolder = (): string => {
     return ex[ex.length - 1]
 }
 
-export const pathGetDirname = (path: string) => {
+export const pathGetDirname = memoize((path: string) => {
 	const ex = path.split("/")
   
     if(ex.length <= 1){
@@ -957,9 +961,9 @@ export const pathGetDirname = (path: string) => {
     ex.pop()
   
     return ex.join("/")
-}
+})
 
-export const pathGetBasename = (path: string) => {
+export const pathGetBasename = memoize((path: string) => {
 	const ex = path.split("/")
   
     if(ex.length <= 1){
@@ -967,9 +971,9 @@ export const pathGetBasename = (path: string) => {
     }
   
     return ex.pop() || path
-}
+})
 
-export const getEveryPossibleFolderPathFromPath = (path: string) => {
+export const getEveryPossibleFolderPathFromPath = memoize((path: string) => {
     const ex = path.split("/")
   
     if(ex.length <= 1){
@@ -993,7 +997,7 @@ export const getEveryPossibleFolderPathFromPath = (path: string) => {
     }
 
     return paths
-}
+})
 
 async function getAllFileEntries(dataTransferItemList: DataTransferItemList){
     const fileEntries = []
@@ -1128,9 +1132,9 @@ export const downloadPDF = (pdf: string, name: string) => {
 
 export const areBuffersEqual = (first: Uint8Array, second: Uint8Array) => first.length === second.length && first.every((value, index) => value === second[index])
 
-export const firstToLowerCase = (str: string) => {
+export const firstToLowerCase = memoize((str: string) => {
     return str.charAt(0).toLowerCase() + str.slice(1)
-}
+})
 
 export const getLang = (): string => {
     const cookie = cookies.get("lang")

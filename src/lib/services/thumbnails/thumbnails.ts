@@ -4,7 +4,7 @@ import { downloadFile } from "../download"
 import db from "../../db"
 import memoryCache from "../../memoryCache"
 import { MAX_THUMBNAIL_TRIES, MAX_CONCURRENT_THUMBNAIL_GENERATIONS, THUMBNAIL_DIMENSIONS, THUMBNAIL_VERSION } from "../../constants"
-import { Semaphore, getFileExt } from "../../helpers"
+import { Semaphore, getFileExt, getFilePreviewType } from "../../helpers"
 import { convertHeic } from "../../worker/worker.com"
 import eventListener from "../../eventListener"
 
@@ -18,6 +18,58 @@ const increaseErrorCount = (key: string, by: number = 1): void => {
     else{
         memoryCache.set(key, 1)
     }
+}
+
+export const generateVideoThumbnail = (file: Blob, seekTo: number = 0.0): Promise<Blob | null> => {
+    console.log("getting video cover for file: ", file);
+
+    return new Promise((resolve, reject) => {
+        const videoPlayer = document.createElement("video")
+
+        const blobURL = window.URL.createObjectURL(file)
+
+        videoPlayer.setAttribute("src", blobURL)
+        videoPlayer.load()
+
+        videoPlayer.addEventListener("error", (err) => {
+            window.URL.revokeObjectURL(blobURL)
+
+            return reject(err)
+        })
+
+        videoPlayer.addEventListener("loadedmetadata", () => {
+            if(videoPlayer.duration < seekTo){
+                window.URL.revokeObjectURL(blobURL)
+
+                return reject(new Error("Video is too short to generate thumbnail"))
+            }
+            
+            setTimeout(() => {
+                videoPlayer.currentTime = seekTo;
+            }, 200)
+            
+            videoPlayer.addEventListener("seeked", () => {
+                const canvas = document.createElement("canvas")
+
+                canvas.width = videoPlayer.videoWidth
+                canvas.height = videoPlayer.videoHeight
+
+                const ctx = canvas.getContext("2d")
+
+                if(!ctx){
+                    window.URL.revokeObjectURL(blobURL)
+                    canvas.remove()
+
+                    return reject(new Error("CTX invalid"))
+                }
+
+                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height)
+                ctx.canvas.toBlob(resolve, "image/jpeg", 0.7)
+                window.URL.revokeObjectURL(blobURL)
+                canvas.remove()
+            })
+        })
+    })
 }
 
 export const isItemVisible = (item: ItemProps): boolean => {
@@ -115,97 +167,132 @@ export const generateThumbnail = (item: ItemProps, skipVisibleCheck: boolean = f
                     }
                 }
                 else{
-                    memoryCache.set("hideTransferProgress:" + item.uuid, true)
+                    const compress = (blob: Blob) => {
+                        imageCompression(blob as File, {
+                            maxWidthOrHeight: THUMBNAIL_DIMENSIONS.width,
+                            maxSizeMB: 0.1,
+                            useWebWorker: true,
+                            fileType: "image/jpeg"
+                        }).then((output: Blob) => {
+                            memoryCache.remove("hideTransferProgress:" + item.uuid)
         
-                    downloadFile(item, false).then((data) => {
-                        if(!skipVisibleCheck){
-                            if(!isItemVisible(item)){
-                                thumbnailSemaphore.release()
-            
-                                isGeneratingThumbnailForUUID[item.uuid] = false
-            
-                                return reject("notVisible")
-                            }
-                        }
-
-                        const compress = (blob: Blob) => {
-                            imageCompression(blob as File, {
-                                maxWidthOrHeight: THUMBNAIL_DIMENSIONS.width,
-                                maxSizeMB: 0.1,
-                                useWebWorker: true,
-                                fileType: "image/jpeg"
-                            }).then((output: Blob) => {
-                                memoryCache.remove("hideTransferProgress:" + item.uuid)
-            
-                                db.set(dbKey, output, "thumbnails").then(() => {
-                                    try{
-                                        const url = window.URL.createObjectURL(output)
-                            
-                                        memoryCache.set(cacheKey, url)
-            
-                                        thumbnailSemaphore.release()
-
-                                        isGeneratingThumbnailForUUID[item.uuid] = false
-
-                                        eventListener.emit("thumbnailGenerated", {
-                                            uuid: item.uuid,
-                                            url
-                                        })
-                            
-                                        return resolve(url)
-                                    }
-                                    catch(e){
-                                        thumbnailSemaphore.release()
-
-                                        isGeneratingThumbnailForUUID[item.uuid] = false
-            
-                                        return reject(e)
-                                    }
-                                }).catch((err) => {
-                                    increaseErrorCount(maxTriesKey)
+                            db.set(dbKey, output, "thumbnails").then(() => {
+                                try{
+                                    const url = window.URL.createObjectURL(output)
+                        
+                                    memoryCache.set(cacheKey, url)
         
                                     thumbnailSemaphore.release()
 
                                     isGeneratingThumbnailForUUID[item.uuid] = false
-                    
-                                    return reject(err)
-                                })
+
+                                    eventListener.emit("thumbnailGenerated", {
+                                        uuid: item.uuid,
+                                        url
+                                    })
+                        
+                                    return resolve(url)
+                                }
+                                catch(e){
+                                    thumbnailSemaphore.release()
+
+                                    isGeneratingThumbnailForUUID[item.uuid] = false
+        
+                                    return reject(e)
+                                }
                             }).catch((err) => {
                                 increaseErrorCount(maxTriesKey)
-            
+    
                                 thumbnailSemaphore.release()
 
                                 isGeneratingThumbnailForUUID[item.uuid] = false
-        
+                
                                 return reject(err)
                             })
-                        }
+                        }).catch((err) => {
+                            increaseErrorCount(maxTriesKey)
+        
+                            thumbnailSemaphore.release()
 
-                        if(getFileExt(item.name) == "heic" || getFileExt(item.name) == "heif"){
-                            convertHeic(data as Uint8Array, "JPEG").then((converted) => {
-                                const blob = new Blob([converted], {
+                            isGeneratingThumbnailForUUID[item.uuid] = false
+    
+                            return reject(err)
+                        })
+                    }
+
+                    memoryCache.set("hideTransferProgress:" + item.uuid, true)
+
+                    if(getFilePreviewType(getFileExt(item.name)) == "video"){
+                        downloadFile(item, false, 8).then((data) => {
+                            if(!skipVisibleCheck){
+                                if(!isItemVisible(item)){
+                                    thumbnailSemaphore.release()
+                
+                                    isGeneratingThumbnailForUUID[item.uuid] = false
+                
+                                    return reject("notVisible")
+                                }
+                            }
+
+                            const blob = new Blob([data as Uint8Array], {
+                                type: item.mime
+                            })
+    
+                            generateVideoThumbnail(blob).then((videoThumbnailBlob) => {
+                                if(!videoThumbnailBlob){
+                                    return reject(new Error("videoThumbnailBlob null"))
+                                }
+
+                                return compress(videoThumbnailBlob)
+                            }).catch(reject)
+                        }).catch((err) => {
+                            increaseErrorCount(maxTriesKey)
+            
+                            thumbnailSemaphore.release()
+    
+                            isGeneratingThumbnailForUUID[item.uuid] = false
+            
+                            return reject(err)
+                        })
+                    }
+                    else{
+                        downloadFile(item, false).then((data) => {
+                            if(!skipVisibleCheck){
+                                if(!isItemVisible(item)){
+                                    thumbnailSemaphore.release()
+                
+                                    isGeneratingThumbnailForUUID[item.uuid] = false
+                
+                                    return reject("notVisible")
+                                }
+                            }
+    
+                            if(getFileExt(item.name) == "heic" || getFileExt(item.name) == "heif"){
+                                convertHeic(data as Uint8Array, "JPEG").then((converted) => {
+                                    const blob = new Blob([converted], {
+                                        type: "image/jpeg"
+                                    })
+        
+                                    return compress(blob)
+                                }).catch(reject)
+                            }
+                            else{
+                                const blob = new Blob([data as Uint8Array], {
                                     type: "image/jpeg"
                                 })
     
                                 return compress(blob)
-                            }).catch(reject)
-                        }
-                        else{
-                            const blob = new Blob([data as Uint8Array], {
-                                type: "image/jpeg"
-                            })
-
-                            return compress(blob)
-                        }
-                    }).catch((err) => {
-                        increaseErrorCount(maxTriesKey)
-        
-                        thumbnailSemaphore.release()
-
-                        isGeneratingThumbnailForUUID[item.uuid] = false
-        
-                        return reject(err)
-                    })
+                            }
+                        }).catch((err) => {
+                            increaseErrorCount(maxTriesKey)
+            
+                            thumbnailSemaphore.release()
+    
+                            isGeneratingThumbnailForUUID[item.uuid] = false
+            
+                            return reject(err)
+                        })
+                    }
                 }
             }).catch((err) => {
                 isGeneratingThumbnailForUUID[item.uuid] = false

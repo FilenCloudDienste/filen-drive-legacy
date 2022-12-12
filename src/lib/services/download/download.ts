@@ -13,7 +13,7 @@ const downloadSemaphore = new Semaphore(MAX_CONCURRENT_DOWNLOADS)
 const downloadThreadsSemaphore = new Semaphore(MAX_DOWNLOAD_THREADS)
 const writersSemaphore = new Semaphore(MAX_DOWNLOAD_WRITERS)
 
-export const downloadFile = (item: ItemProps, streamToDisk: boolean = true): Promise<ItemProps | Uint8Array> => {
+export const downloadFile = (item: ItemProps, streamToDisk: boolean = true, maxChunks: number = Infinity): Promise<ItemProps | Uint8Array> => {
     return new Promise(async (resolve, reject) => {
         let currentWriteIndex = 0
         let paused = false
@@ -128,11 +128,13 @@ export const downloadFile = (item: ItemProps, streamToDisk: boolean = true): Pro
             data: item
         })
 
+        const chunksToDownload = maxChunks === Infinity ? item.chunks : maxChunks > item.chunks ? item.chunks : maxChunks
+
         try{
             await new Promise((resolve, reject) => {
                 let done = 0
 
-                for(let i = 0; i < item.chunks; i++){
+                for(let i = 0; i < chunksToDownload; i++){
                     Promise.all([
                         downloadThreadsSemaphore.acquire(),
                         writersSemaphore.acquire()
@@ -158,7 +160,7 @@ export const downloadFile = (item: ItemProps, streamToDisk: boolean = true): Pro
 
                             downloadThreadsSemaphore.release()
 
-                            if(done >= item.chunks){
+                            if(done >= chunksToDownload){
                                 return resolve(true)
                             }
                         }).catch((err) => {
@@ -172,12 +174,12 @@ export const downloadFile = (item: ItemProps, streamToDisk: boolean = true): Pro
             })
 
             await new Promise((resolve) => {
-                if(currentWriteIndex >= item.chunks){
+                if(currentWriteIndex >= chunksToDownload){
                     return resolve(true)
                 }
 
                 const wait = setInterval(() => {
-                    if(currentWriteIndex >= item.chunks){
+                    if(currentWriteIndex >= chunksToDownload){
                         clearInterval(wait)
 
                         return resolve(true)
