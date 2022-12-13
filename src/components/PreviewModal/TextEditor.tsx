@@ -26,6 +26,24 @@ import memoryCache from "../../lib/memoryCache"
 import { EditorView } from "@codemirror/view"
 import MarkdownPreview from "@uiw/react-markdown-preview"
 import { useLocation } from "react-router-dom"
+import rehypeRewrite, { RehypeRewriteOptions } from "rehype-rewrite"
+import { PluggableList } from "unified"
+
+const rehypePlugins: PluggableList = [
+    [rehypeRewrite, {
+        rewrite: (node, index, parent) => {
+            if(
+                node.type === "element"
+                && node.tagName === "a"
+                && parent 
+                && parent.type === "element"
+                && /^h(1|2|3|4|5|6)/.test(parent.tagName)
+            ){
+                parent.children = [parent.children[1]]
+            }
+        }
+    } as RehypeRewriteOptions]
+]
 
 export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
     const ext: string = getFileExt(name)
@@ -579,9 +597,12 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                                         paddingRight: "15px",
                                         paddingTop: "6px",
                                         paddingBottom: "15px",
-                                        color: getColor(darkMode, "textPrimary")
+                                        color: getColor(darkMode, "textPrimary"),
+                                        userSelect: "all"
                                     }}
-                                    skipHtml={false}
+                                    skipHtml={true}
+                                    rehypePlugins={rehypePlugins}
+                                    linkTarget="_blank"
                                     warpperElement={{
                                         "data-color-mode": darkMode ? "dark" : "light"
                                     }}
