@@ -132,7 +132,7 @@ const ja: {
     oneTimePayment: "一回きりのお支払い",
     buyRecurringInfo: "購入すると、お客様が契約を解除するまで自動的に料金の引き落としが行われます。契約の解除はアカウントのページから行っていただけます。部分的な返金には対応しておりません。",
     buyLifetimeInfo: "購入すると、決済が自動的に行われます。部分的な返金は行っておりません。",
-    creditDebit: "クレジット・デビットカード",
+    creditDebit: "クレジットカードまたはデビットカードが使用可",
     cancelSub: "契約を解除",
     cancelSubSure: "この契約を解除しますか？",
     cancellingSub: "契約を解除",
