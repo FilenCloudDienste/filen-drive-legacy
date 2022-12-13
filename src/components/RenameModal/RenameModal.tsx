@@ -41,10 +41,14 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
             return
         }
 
-        if(currentItems.current.filter(item => item.name == value && item.type == currentItem.type).length > 0){
-            showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
+        const sameName = currentItems.current.filter(item => item.name.toLowerCase() == value.toLowerCase() && item.type == currentItem.type)
 
-            return
+        if(sameName.length > 0){
+            if(sameName[0].uuid !== currentItem.uuid){
+                showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
+
+                return
+            }
         }
 
         if(!fileAndFolderNameValidation(value)){
@@ -124,7 +128,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         if(e.which == 13 && isOpen.current){
             rename()
         }
-    }, [])
+    }, [isOpen.current])
 
     useEffect(() => {
         currentItems.current = items
