@@ -19,7 +19,6 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
     const [loading, setLoading] = useState<boolean>(false)
     const inputRef = useRef()
     const currentItems = useRef<ItemProps[]>([])
-    const isOpen = useRef<boolean>(false)
     const newNameRef = useRef<string>("")
 
     const create = async (): Promise<void> => {
@@ -93,12 +92,6 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
         setNewName("")
     }
 
-    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
-        if(e.which == 13 && isOpen.current){
-            create()
-        }
-    }, [isOpen.current])
-
     useEffect(() => {
         newNameRef.current = newName
     }, [newName])
@@ -108,18 +101,10 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
     }, [items])
 
     useEffect(() => {
-        isOpen.current = open
-    }, [open])
-
-    useEffect(() => {
         const openCreateFolderModalListener = eventListener.on("openCreateFolderModal", () => setOpen(true))
-
-        window.addEventListener("keydown", windowOnKeyDown)
         
         return () => {
             openCreateFolderModalListener.remove()
-
-            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
@@ -175,6 +160,11 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")
+                        }}
+                        onKeyDown={(e) => {
+                            if(e.which == 13){
+                                create()
+                            }
                         }}
                     />
                 </ModalBody>

@@ -129,7 +129,6 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
     const [newName, setNewName] = useState<string>("")
     const inputRef = useRef()
     const currentItems = useRef<ItemProps[]>([])
-    const isOpen = useRef<boolean>(false)
     const newNameRef = useRef<string>("")
 
     const create = async (): Promise<void> => {
@@ -141,7 +140,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
             return
         }
 
-        if(currentItems.current.filter(item => item.name == value && item.type == "folder").length > 0){
+        if(currentItems.current.filter(item => item.name.toLowerCase() == value.toLowerCase() && item.type == "file").length > 0){
             showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
 
             return
@@ -179,19 +178,9 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
         input.setSelectionRange(0, 0)
     }
 
-    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
-        if(e.which == 13 && isOpen.current){
-            create()
-        }
-    }, [isOpen.current])
-
     useEffect(() => {
         currentItems.current = items
     }, [items])
-
-    useEffect(() => {
-        isOpen.current = open
-    }, [open])
 
     useEffect(() => {
         newNameRef.current = newName
@@ -203,13 +192,9 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
             setNewName(".txt")
             setSelectionRange()
         })
-        
-        window.addEventListener("keydown", windowOnKeyDown)
 
         return () => {
             openCreateTextFileModalListener.remove()
-
-            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
@@ -261,6 +246,11 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")
+                        }}
+                        onKeyDown={(e) => {
+                            if(e.which == 13){
+                                create()
+                            }
                         }}
                     />
                 </ModalBody>

@@ -20,7 +20,6 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
     const [loading, setLoading] = useState<boolean>(false)
     const inputRef = useRef()
     const currentItems = useRef<ItemProps[]>([])
-    const isOpen = useRef<boolean>(false)
     const newNameRef = useRef<string>("")
     const oldNameRef = useRef<string>("")
 
@@ -35,7 +34,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 
         const value = newNameRef.current.trim()
 
-        if(value.length == 0 || value == currentItem.name){
+        if(value.length == 0 || value == currentItem.name || (newNameRef.current == oldNameRef.current)){
             showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
 
             return
@@ -124,19 +123,9 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         input.setSelectionRange(0, (oldNameRef.current.length - extLength), "forward")
     }, [])
 
-    const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
-        if(e.which == 13 && isOpen.current){
-            rename()
-        }
-    }, [isOpen.current])
-
     useEffect(() => {
         currentItems.current = items
     }, [items])
-
-    useEffect(() => {
-        isOpen.current = open
-    }, [open])
 
     useEffect(() => {
         newNameRef.current = newName
@@ -150,14 +139,11 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
             setSelectionRange()
 
             oldNameRef.current = item.name
+            newNameRef.current = item.name
         })
-
-        window.addEventListener("keydown", windowOnKeyDown)
         
         return () => {
             openRenameModalListener.remove()
-
-            window.removeEventListener("keydown", windowOnKeyDown)
         }
     }, [])
 
@@ -213,6 +199,11 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")
+                        }}
+                        onKeyDown={(e) => {
+                            if(e.which == 13){
+                                rename()
+                            }
                         }}
                     />
                 </ModalBody>

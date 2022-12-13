@@ -71,12 +71,6 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
         setEmail("")
     }
 
-    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
-        if(e.which == 13){
-            share()
-        }
-    }, [])
-
     useEffect(() => {
         const openShareModalListener = eventListener.on("openShareModal", ({ items }: { items: ItemProps[] }) => {
             toShare.current = items
@@ -135,7 +129,11 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
                         onChange={(e) => setEmail(e.target.value.trim())}
                         isDisabled={loading}
                         ref={inputRef}
-                        onKeyDown={(e) => inputKeyDown(e)}
+                        onKeyDown={(e) => {
+                            if(e.which == 13){
+                                share()
+                            }
+                        }}
                         color={getColor(darkMode, "textSecondary")}
                         _placeholder={{
                             color: getColor(darkMode, "textSecondary")
