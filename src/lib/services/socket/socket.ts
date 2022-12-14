@@ -181,8 +181,8 @@ export const connect = () => {
 
     SOCKET_HANDLE = io(SOCKET, {
         path: "",
-        reconnect: true,
-        reconnection: true,
+        reconnect: false,
+        reconnection: false,
         transports: [
             "websocket"
         ]
