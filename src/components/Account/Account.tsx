@@ -1952,7 +1952,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                                                             marginLeft="8px"
                                                             isMobile={isMobile}
                                                         >
-                                                            {price.sale}€ {price.term}
+                                                            {price.sale}€ {firstToLowerCase(price.term)}
                                                         </AppText>
                                                     </Flex>
                                                 </>
@@ -1965,7 +1965,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                                                     marginTop="5px"
                                                     isMobile={isMobile}
                                                 >
-                                                    {price.cost}€ {firstToLowerCase(TERMS.filter(term => term.type == price.term)[0].name)}
+                                                    {price.cost}€ {firstToLowerCase(price.term)}
                                                 </AppText>
                                             )
                                         }
