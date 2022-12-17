@@ -1781,11 +1781,11 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                 name: i18n(lang, "planTerms_annually"),
                 termType: 3
             },
-            {
+            /*{
                 type: "lifetime",
                 name: i18n(lang, "planTerms_lifetime"),
                 termType: 4
-            }
+            }*/
         ]
     }, [lang])
 
