@@ -1727,7 +1727,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                 features: DEFAULT_FEATURES
             },
             // Lifetime
-            {
+            /*{
                 termType: 4,
                 id: 48,
                 name: "Pro I",
@@ -1760,7 +1760,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                 popular: false,
                 term: "lifetime",
                 features: DEFAULT_FEATURES
-            }
+            }*/
         ]
     }, [lang])
 
