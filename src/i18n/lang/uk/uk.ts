@@ -366,7 +366,9 @@ const uk: {
     payNow: "Оплатити рахунок зараз",
     emptyTrashModalSure: "Ви впевнені, що хочете очистити кошик? Цю дію не можна скасувати!",
     emptyTrashSuccess: "Кошик очищено",
-    itemRenamed: "Об'єкт перейменовано"
+    itemRenamed: "Об'єкт перейменовано",
+    subCancelled: "Підписку скасовано",
+    support: "Підтримка"
 }
 
 export default uk
