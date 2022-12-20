@@ -163,7 +163,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
                                 </AppText>
                             </Flex>
                             {
-                                loggedIn == "true" && (
+                                loggedIn !== "true" && (
                                     <Flex
                                         flexDirection="row"
                                         alignItems="center"
@@ -180,6 +180,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
                                                 border: "1px solid " + (darkMode ? "white" : "gray"),
                                                 color: darkMode ? "white" : "gray"
                                             }}
+                                            onClick={() => window.location.href = "https://drive.filen.io/register"}
                                         >
                                             Sign up for free
                                         </Button>
