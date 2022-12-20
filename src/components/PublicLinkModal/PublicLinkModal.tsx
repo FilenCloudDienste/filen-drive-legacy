@@ -14,7 +14,7 @@ import { ONE_YEAR } from "../../lib/constants"
 import { i18n } from "../../i18n"
 import { removeItemsFromStore, addItemsToStore } from "../../lib/services/metadata"
 
-const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: PublicLinkModalProps) => {
+const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLinkModalProps) => {
     const [open, setOpen] = useState<boolean>(false)
     const [currentItem, setCurrentItem] = useState<ItemProps>()
     const [fetchingInfo, setFetchingInfo] = useState<boolean>(false)
@@ -179,10 +179,6 @@ const PublicLinkModal = memo(({ darkMode, isMobile, items, lang, setItems }: Pub
 
         fetchInfo(currentItem)
     }
-
-    const selected: ItemProps[] = useMemo(() => {
-        return items.filter(item => item.selected)
-    }, [items])
 
     const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && typeof currentItem !== "undefined" && isOpen.current){
