@@ -4,10 +4,9 @@ import eventListener from "../../eventListener"
 import { Semaphore, getDownloadServer, mergeUInt8Arrays } from "../../helpers"
 import streamSaver from "../../streamSaver"
 import { downloadAndDecryptChunk } from "../../worker/worker.com"
-// @ts-ignore
-import { Writer as ZIPWriter } from "@transcend-io/conflux"
 import { getDirectoryTree } from "../items"
 import db from "../../db"
+import { downloadZip } from "client-zip"
 
 const downloadSemaphore = new Semaphore(MAX_CONCURRENT_DOWNLOADS)
 const downloadThreadsSemaphore = new Semaphore(MAX_DOWNLOAD_THREADS)
@@ -242,167 +241,139 @@ export const queueFileDownload = (item: ItemProps, streamToDisk: boolean = true)
 export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [key: string]: string }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         const totalSize: number = items.reduce((prev, current) => prev + current.size, 0)
-        const itemsToDownload: ItemProps[] = []
 
         if(totalSize <= 0 || items.length == 0){
             return reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
         }
 
-        const readable: ReadableStream<any> = new ReadableStream({
-            async start(controller){
-                await new Promise(async (resolve) => {
-                    let doneFiles: number = 0
+        const stream = streamSaver.createWriteStream("Download_" + new Date().getTime() + ".zip", {
+            size: totalSize
+        })
 
-                    for(let i = 0; i < items.length; i++){
-                        const item: ItemProps = items[i]
-
-                        itemsToDownload.push(item)
-
+        downloadZip(items.map(item => {
+            return {
+                name: paths[item.uuid],
+                lastModified: item.lastModified,
+                input: new ReadableStream({
+                    async start(controller){
                         eventListener.emit("download", {
                             type: "start",
                             data: item
                         })
 
-                        downloadSemaphore.acquire().then(() => {
-                            controller.enqueue({
-                                name: paths[item.uuid],
-                                stream: () => new ReadableStream({
-                                    async start(controller){
-                                        let currentWriteIndex: number = 0
-            
-                                        const write = (index: number, chunk: Uint8Array) => {
-                                            if(index !== currentWriteIndex){
-                                                return setTimeout(() => {
-                                                    write(index, chunk)
-                                                }, 10)
-                                            }
-                                
-                                            controller.enqueue(chunk)
-            
-                                            currentWriteIndex += 1
-            
-                                            writersSemaphore.release()
-                                        }
-            
-                                        const download = (index: number): Promise<{ index: number, chunk: Uint8Array }> => {
-                                            return new Promise(async (resolve, reject) => {
-                                                const url = getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
-                                
-                                                downloadAndDecryptChunk(item, url).then((chunk) => {
-                                                    return resolve({
-                                                        index,
-                                                        chunk
-                                                    })
-                                                }).catch(reject)
-                                            })
-                                        }
+                        await downloadSemaphore.acquire()
 
-                                        eventListener.emit("download", {
-                                            type: "started",
-                                            data: item
-                                        })
-            
-                                        try{
-                                            await new Promise((resolve) => {
-                                                let done: number = 0
-                                
-                                                for(let i = 0; i < item.chunks; i++){
-                                                    Promise.all([
-                                                        downloadThreadsSemaphore.acquire(),
-                                                        writersSemaphore.acquire()
-                                                    ]).then(() => {
-                                                        download(i).then(({ index, chunk }) => {
-                                                            write(index, chunk)
-                                
-                                                            done += 1
-                
-                                                            downloadThreadsSemaphore.release()
-                                
-                                                            if(done >= item.chunks){
-                                                                return resolve(true)
-                                                            }
-                                                        }).catch((err) => {
-                                                            downloadThreadsSemaphore.release()
-                                                            writersSemaphore.release()
-    
-                                                            return reject(err)
-                                                        })
-                                                    })
-                                                }
-                                            })
-                                
-                                            await new Promise((resolve) => {
-                                                if(currentWriteIndex >= item.chunks){
-                                                    return resolve(true)
-                                                }
-                                
-                                                const wait = setInterval(() => {
-                                                    if(currentWriteIndex >= item.chunks){
-                                                        clearInterval(wait)
-                                
-                                                        return resolve(true)
-                                                    }
-                                                }, 10)
-                                            })
-                                        }
-                                        catch(e: any){
-                                            eventListener.emit("download", {
-                                                type: "err",
-                                                err: e.toString(),
-                                                data: item
-                                            })
+                        let currentWriteIndex: number = 0
 
-                                            throw e
-                                        }
-
-                                        eventListener.emit("download", {
-                                            type: "done",
-                                            data: item
-                                        })
-
-                                        doneFiles += 1
-
-                                        downloadSemaphore.release()
-            
-                                        return controller.close()
-                                    }
-                                })
-                            })
-                        })
-                    }
-
-                    await new Promise((resolve) => {
-                        if(doneFiles >= items.length){
-                            return resolve(true)
-                        }
-        
-                        const wait = setInterval(() => {
-                            if(doneFiles >= items.length){
-                                clearInterval(wait)
-        
-                                return resolve(true)
+                        const write = (index: number, chunk: Uint8Array) => {
+                            if(index !== currentWriteIndex){
+                                return setTimeout(() => {
+                                    write(index, chunk)
+                                }, 10)
                             }
-                        }, 10)
-                    })
+                
+                            controller.enqueue(chunk)
 
-                    return resolve(true)
+                            currentWriteIndex += 1
+
+                            writersSemaphore.release()
+                        }
+
+                        const download = (index: number): Promise<{ index: number, chunk: Uint8Array }> => {
+                            return new Promise(async (resolve, reject) => {
+                                const url = getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
+                
+                                downloadAndDecryptChunk(item, url).then((chunk) => {
+                                    return resolve({
+                                        index,
+                                        chunk
+                                    })
+                                }).catch(reject)
+                            })
+                        }
+
+                        eventListener.emit("download", {
+                            type: "started",
+                            data: item
+                        })
+
+                        try{
+                            await new Promise((resolve) => {
+                                let done: number = 0
+                
+                                for(let i = 0; i < item.chunks; i++){
+                                    Promise.all([
+                                        downloadThreadsSemaphore.acquire(),
+                                        writersSemaphore.acquire()
+                                    ]).then(() => {
+                                        download(i).then(({ index, chunk }) => {
+                                            write(index, chunk)
+                
+                                            done += 1
+
+                                            downloadThreadsSemaphore.release()
+                
+                                            if(done >= item.chunks){
+                                                return resolve(true)
+                                            }
+                                        }).catch((err) => {
+                                            downloadThreadsSemaphore.release()
+                                            writersSemaphore.release()
+
+                                            return reject(err)
+                                        })
+                                    })
+                                }
+                            })
+                
+                            await new Promise((resolve) => {
+                                if(currentWriteIndex >= item.chunks){
+                                    return resolve(true)
+                                }
+                
+                                const wait = setInterval(() => {
+                                    if(currentWriteIndex >= item.chunks){
+                                        clearInterval(wait)
+                
+                                        return resolve(true)
+                                    }
+                                }, 10)
+                            })
+                        }
+                        catch(e: any){
+                            eventListener.emit("download", {
+                                type: "err",
+                                err: e.toString(),
+                                data: item
+                            })
+
+                            throw e
+                        }
+
+                        eventListener.emit("download", {
+                            type: "done",
+                            data: item
+                        })
+
+                        downloadSemaphore.release()
+
+                        return controller.close()
+                    }
                 })
-
-                return controller.close()
             }
-        })
-
-        const stream = streamSaver.createWriteStream("Download_" + new Date().getTime() + ".zip", {
-            size: totalSize
-        })
-
-        readable.pipeThrough(new ZIPWriter()).pipeTo(stream).then(() => {
+        })).body?.pipeTo(stream).then(() => {
             return resolve(true)
         }).catch((err) => {
-            for(let i = 0; i < itemsToDownload.length; i++){
+            for(let i = 0; i < items.length; i++){
+                downloadSemaphore.release()
+                
+                for(let x = 0; x < (items[i].chunks + 1); x++){
+                    writersSemaphore.release()
+                }
+
                 eventListener.emit("download", {
                     type: "err",
-                    data: itemsToDownload[i],
+                    data: items[i],
                     err: "Stream stopped"
                 } as Download)
             }
