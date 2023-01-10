@@ -1176,6 +1176,25 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobile: boolean, lang: string }) => {
     const [open, setOpen] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
+    const [twoFactorKey, setTwoFactorKey] = useState<string>("")
+    const [needs2FA, setNeeds2FA] = useState<boolean>(false)
+    const [fetchingInfo, setFetchingInfo] = useState<boolean>(false)
+
+    const fetchInfo = async () => {
+        setFetchingInfo(true)
+        setNeeds2FA(false)
+        setTwoFactorKey("")
+
+        fetchUserSettings().then((settings) => {
+            setNeeds2FA(settings.twoFactorEnabled == 1)
+
+            setFetchingInfo(false)
+        }).catch((err) => {
+            setFetchingInfo(false)
+
+            console.error(err)
+        })
+    }
 
     const deleteIt = async (): Promise<void> => {
         if(!window.confirm(i18n(lang, "areYouSure"))){
@@ -1185,21 +1204,36 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
         setLoading(true)
 
         try{
-            await deleteAccount()
+            await deleteAccount(twoFactorKey.length > 0 ? twoFactorKey : "XXXXXX")
 
             showToast("success", i18n(lang, "deleteAccountConfirm"), "bottom", 10000)
+
+            setOpen(false)
         }
         catch(e: any){
             console.error(e)
+
+            fetchInfo()
 
             showToast("error", e.toString(), "bottom", 5000)
         }
 
         setLoading(false)
+        setTwoFactorKey("")
+    }
+
+    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+        if(e.which == 13 && twoFactorKey.length >= 6){
+            deleteIt()
+        }
     }
 
     useEffect(() => {
-        const openListener = eventListener.on("openDeleteAccountModal", () => setOpen(true))
+        const openListener = eventListener.on("openDeleteAccountModal", () => {
+            fetchInfo()
+
+            setOpen(true)
+        })
 
         return () => {
             openListener.remove()
@@ -1245,25 +1279,45 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
                     justifyContent="center"
                 >
                     {
-                        loading ? (
+                        loading || fetchingInfo ? (
                             <Spinner
                                 width="32px"
                                 height="32px"
                                 color={getColor(darkMode, "textPrimary")}
                             />
                         ) : (
-                            <AppText
-                                darkMode={darkMode}
-                                isMobile={isMobile}
-                                color={getColor(darkMode, "textPrimary")}
+                            <Flex
+                                flexDirection="column"
                             >
-                                {i18n(lang, "areYouSureDeleteAccount")}
-                            </AppText>
+                                <AppText
+                                    darkMode={darkMode}
+                                    isMobile={isMobile}
+                                    color={getColor(darkMode, "textPrimary")}
+                                >
+                                    {i18n(lang, "areYouSureDeleteAccount")}
+                                </AppText>
+                                <Input
+                                    darkMode={darkMode}
+                                    isMobile={isMobile}
+                                    value={twoFactorKey}
+                                    onChange={(e) => setTwoFactorKey(e.target.value)}
+                                    type="text"
+                                    isDisabled={loading}
+                                    placeholder={i18n(lang, "enter2FA")}
+                                    onKeyDown={inputKeyDown}
+                                    maxLength={64}
+                                    marginTop="15px"
+                                    color={getColor(darkMode, "textSecondary")}
+                                    _placeholder={{
+                                        color: getColor(darkMode, "textSecondary")
+                                    }}
+                                />
+                            </Flex>
                         )
                     }
                 </ModalBody>
                 {
-                    !loading && (
+                    !loading && !fetchingInfo && (
                         <ModalFooter>
                             <AppText
                                 darkMode={darkMode}
@@ -1271,8 +1325,17 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
                                 noOfLines={1}
                                 wordBreak="break-all"
                                 color="red"
-                                cursor="pointer"
-                                onClick={() => deleteIt()}
+                                cursor={needs2FA && twoFactorKey.length < 6 ? "not-allowed" : "pointer"}
+                                onClick={() => {
+                                    if(needs2FA){
+                                        if(twoFactorKey.length >= 6){
+                                            deleteIt()
+                                        }
+                                    }
+                                    else{
+                                        deleteIt()
+                                    }
+                                }}
                             >
                                 {i18n(lang, "delete")}
                             </AppText>
