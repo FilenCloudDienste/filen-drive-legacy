@@ -9,9 +9,9 @@ import { v4 as uuidv4 } from "uuid"
 import { FileVersionsV1 } from "../../types"
 
 const createFolderSemaphore = new Semaphore(1)
-const fetchFolderSizeSemaphore = new Semaphore(32)
-const shareItemsSemaphore = new Semaphore(8)
-const linkItemsSemaphore = new Semaphore(8)
+const fetchFolderSizeSemaphore = new Semaphore(8192)
+const shareItemsSemaphore = new Semaphore(10)
+const linkItemsSemaphore = new Semaphore(10)
 
 export const authInfo = ({ email }: { email: string }): Promise<any> => {
     return new Promise((resolve, reject) => {

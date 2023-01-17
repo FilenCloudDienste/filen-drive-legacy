@@ -1,9 +1,28 @@
-export interface Colors {
-    [key: string]: {
-        textPrimary: string,
-        textSecondary: string
-    }
-}
+import { memoize } from "lodash"
+
+export type Color = 
+    "textPrimary"
+    | "textSecondary"
+    | "backgroundPrimary"
+    | "backgroundSecondary"
+    | "backgroundTertiary"
+    | "borderPrimary"
+    | "borderSecondary"
+    | "borderActive"
+    | "linkPrimary"
+    | "dragSelect"
+    | "red"
+    | "orange"
+    | "yellow"
+    | "green"
+    | "mint"
+    | "teal"
+    | "cyan"
+    | "blue"
+    | "indigo"
+    | "purple"
+    | "pink"
+    | "brown"
 
 const colors: any = {
     light: {
@@ -16,7 +35,19 @@ const colors: any = {
         borderSecondary: "rgba(0, 0, 0, 0.08)",
         borderActive: "rgba(0, 0, 0, 0.3)",
         linkPrimary: "#2997ff",
-        dragSelect: "rgb(21, 21, 21, 0.15)"
+        dragSelect: "rgb(21, 21, 21, 0.15)",
+        red: "rgba(255, 59, 48, 1)",
+        orange: "rgba(255, 149, 0, 1)",
+        yellow: "rgba(255, 204, 0, 1)",
+        green: "rgba(52, 199, 89, 1)",
+        mint: "rgba(0, 199, 190, 1)",
+        teal: "rgba(48, 176, 199, 1)",
+        cyan: "rgba(50, 173, 230, 1)",
+        blue: "rgba(0, 122, 255, 1)",
+        indigo: "rgba(88, 86, 214, 1)",
+        purple: "rgba(175, 82, 222, 1)",
+        pink: "rgba(255, 45, 85, 1)",
+        brown: "rgba(162, 132, 94, 1)",
     },
     dark: {
         textPrimary: "#ffffff",
@@ -28,7 +59,19 @@ const colors: any = {
         borderSecondary: "rgba(255, 255, 255, 0.06)",
         borderActive: "rgba(255, 255, 255, 0.28)",
         linkPrimary: "#2997ff",
-        dragSelect: "rgb(21, 21, 21, 0.5)"
+        dragSelect: "rgb(21, 21, 21, 0.5)",
+        red: "rgba(255, 59, 48, 1)",
+        orange: "rgba(255, 149, 0, 1)",
+        yellow: "rgba(255, 204, 0, 1)",
+        green: "rgba(52, 199, 89, 1)",
+        mint: "rgba(0, 199, 190, 1)",
+        teal: "rgba(48, 176, 199, 1)",
+        cyan: "rgba(50, 173, 230, 1)",
+        blue: "rgba(0, 122, 255, 1)",
+        indigo: "rgba(88, 86, 214, 1)",
+        purple: "rgba(175, 82, 222, 1)",
+        pink: "rgba(255, 45, 85, 1)",
+        brown: "rgba(162, 132, 94, 1)",
     }
 }
 
@@ -37,12 +80,12 @@ export const mainGradient = {
     b: "#FF0080"
 }
 
-export const getColor = (darkMode: boolean, type: string): string => {
+export const getColor = memoize((darkMode: boolean, type: Color): string => {
     if(!colors[darkMode ? "dark" : "light"][type]){
         return darkMode ? "white" : "black"
     }
 
     return colors[darkMode ? "dark" : "light"][type]
-}
+}, (darkMode: boolean, type: Color) => darkMode.toString() + ":" + type)
 
 export default colors

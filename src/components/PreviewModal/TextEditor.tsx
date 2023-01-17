@@ -28,6 +28,7 @@ import MarkdownPreview from "@uiw/react-markdown-preview"
 import { useLocation } from "react-router-dom"
 import rehypeRewrite, { RehypeRewriteOptions } from "rehype-rewrite"
 import { PluggableList } from "unified"
+import { memoize } from "lodash"
 
 const rehypePlugins: PluggableList = [
     [rehypeRewrite, {
@@ -45,7 +46,7 @@ const rehypePlugins: PluggableList = [
     } as RehypeRewriteOptions]
 ]
 
-export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
+export const getCodeMirrorLanguageExtensionForFile = memoize((name: string) => {
     const ext: string = getFileExt(name)
 
     switch(ext){
@@ -103,7 +104,7 @@ export const getCodeMirrorLanguageExtensionForFile = (name: string) => {
             return markdown()
         break
     }
-}
+})
 
 export interface TextEditorProps {
     darkMode: boolean,
