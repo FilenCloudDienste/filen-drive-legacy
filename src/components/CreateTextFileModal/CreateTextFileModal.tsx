@@ -131,7 +131,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
     const currentItems = useRef<ItemProps[]>([])
     const newNameRef = useRef<string>("")
 
-    const create = async (): Promise<void> => {
+    const create = useCallback(() => {
         const value = newNameRef.current.trim()
 
         if(value.length == 0){
@@ -156,9 +156,9 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
 
         setNewName("")
         setOpen(false)
-    }
+    }, [newNameRef.current, currentItems.current])
 
-    const setSelectionRange = async (): Promise<void> => {
+    const setSelectionRange = useCallback(async () => {
         await new Promise((resolve) => {
             const wait = setInterval(() => {
                 if(inputRef.current){
@@ -176,7 +176,7 @@ export const CreateTextFileModal = memo(({ darkMode, isMobile, windowHeight, win
         const input = (inputRef.current as HTMLInputElement)
 
         input.setSelectionRange(0, 0)
-    }
+    }, [inputRef.current])
 
     useEffect(() => {
         currentItems.current = items

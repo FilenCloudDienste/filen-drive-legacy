@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from "react"
+import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { DeleteModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
@@ -18,7 +18,7 @@ const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setIt
     const toDelete = useRef<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
 
-    const deleteItems = async () => {
+    const deleteItems = useCallback(async () => {
         if(loading){
             return
         }
@@ -79,13 +79,13 @@ const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setIt
         setLoading(false)
         setSelected([])
         setOpen(false)
-    }
+    }, [loading, toDelete.current])
 
-    const windowOnKeyDown = (e: KeyboardEvent): void => {
+    const windowOnKeyDown = useCallback((e: KeyboardEvent) => {
         if(e.which == 13 && toDelete.current.length > 0 && isOpen.current){
             deleteItems()
         }
-    }
+    }, [toDelete.current, isOpen.current])
 
     useEffect(() => {
         isOpen.current = open

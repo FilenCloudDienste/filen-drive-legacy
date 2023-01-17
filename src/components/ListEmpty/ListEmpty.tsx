@@ -22,6 +22,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <RiFolderReceivedFill
                     size={128}
@@ -59,6 +61,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <RiFolderSharedFill
                     size={128}
@@ -96,6 +100,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <RiLink
                     size={128}
@@ -133,6 +139,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <MdOutlineFavorite
                     size={128}
@@ -170,6 +178,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <HiClock
                     size={128}
@@ -207,6 +217,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 justifyContent="center"
                 alignItems="center"
                 className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
             >
                 <IoTrash
                     size={128}
@@ -244,6 +256,8 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
             alignItems="center"
             className="no-items-uploaded open-main-context-menu"
             onContextMenu={handleContextMenu}
+            paddingLeft="15px"
+            paddingRight="15px"
         >
             <IoFolder
                 size={128}

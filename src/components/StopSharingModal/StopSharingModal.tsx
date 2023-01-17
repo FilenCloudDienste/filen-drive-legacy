@@ -16,7 +16,7 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
     const [selected, setSelected] = useState<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
 
-    const stopSharing = async () => {
+    const stopSharing = useCallback(async () => {
         if(loading){
             return
         }
@@ -82,7 +82,7 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
         setSelected([])
         setLoading(false)
         setOpen(false)
-    }
+    }, [loading, stopSharingItems.current])
 
     const windowKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){

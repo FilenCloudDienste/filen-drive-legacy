@@ -36,7 +36,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
         }
     }, [lang])
 
-    const fetchInfo = (item: ItemProps, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
+    const fetchInfo = useCallback((item: ItemProps, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false) => {
         setInfo(undefined)
         setFetchingInfo(true)
         setKey("")
@@ -93,9 +93,9 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
         }
 
         req()
-    }
+    }, [])
 
-    const enable = async (): Promise<void> => {
+    const enable = useCallback(async () => {
         if(typeof currentItem == "undefined"){
             return
         }
@@ -130,10 +130,10 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
         }
 
         dismissToast(loading)
-    }
+    }, [currentItem])
 
-    const disable = async (): Promise<void> => {
-        if(typeof currentItem == "undefined"){
+    const disable = useCallback(async () => {
+        if(typeof currentItem == "undefined" || typeof info == "undefined"){
             return
         }
 
@@ -159,10 +159,10 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 
             fetchInfo(currentItem)
         }
-    }
+    }, [currentItem, info])
 
-    const save = async (): Promise<void> => {
-        if(typeof currentItem == "undefined"){
+    const save = useCallback(async () => {
+        if(typeof currentItem == "undefined" || typeof info == "undefined"){
             return
         }
 
@@ -178,7 +178,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
         }
 
         fetchInfo(currentItem)
-    }
+    }, [currentItem, info, passwordDummy])
 
     const windowOnKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && typeof currentItem !== "undefined" && isOpen.current){

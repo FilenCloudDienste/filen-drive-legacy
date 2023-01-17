@@ -16,7 +16,7 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
     const [selected, setSelected] = useState<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
 
-    const removeSharedIn = async () => {
+    const removeSharedIn = useCallback(async () => {
         if(loading){
             return
         }
@@ -69,7 +69,7 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
         setSelected([])
         setLoading(false)
         setOpen(false)
-    }
+    }, [loading, removeSharedInItems.current])
 
     const windowKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){

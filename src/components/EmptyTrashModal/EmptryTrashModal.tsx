@@ -14,7 +14,7 @@ const EmptryTrashModal = memo(({ darkMode, isMobile, setItems, lang }: DeletePer
     const [loading, setLoading] = useState<boolean>(false)
     const isOpen = useRef<boolean>(false)
 
-    const empty = async (): Promise<void> => {
+    const empty = useCallback(async () => {
         if(loading){
             return
         }
@@ -44,7 +44,7 @@ const EmptryTrashModal = memo(({ darkMode, isMobile, setItems, lang }: DeletePer
         }
 
         setLoading(false)
-    }
+    }, [loading, window.location.href])
 
     const windowKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && window.location.hash.indexOf("trash") !== -1 && isOpen.current){

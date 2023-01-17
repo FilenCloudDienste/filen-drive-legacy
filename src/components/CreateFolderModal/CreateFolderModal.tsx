@@ -21,7 +21,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
     const currentItems = useRef<ItemProps[]>([])
     const newNameRef = useRef<string>("")
 
-    const create = async (): Promise<void> => {
+    const create = useCallback(async () => {
         if(loading){
             return
         }
@@ -90,7 +90,7 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
         setOpen(false)
         setLoading(false)
         setNewName("")
-    }
+    }, [loading, currentItems.current, newNameRef.current])
 
     useEffect(() => {
         newNameRef.current = newName

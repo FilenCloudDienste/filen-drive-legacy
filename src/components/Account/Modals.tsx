@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useState, useCallback } from "react"
 import { Flex, Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Spinner, FormLabel, ModalCloseButton, Button } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -147,7 +147,7 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
     const [password, setPassword] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(false)
 
-    const save = async (): Promise<void> => {
+    const save = useCallback(async () => {
         if(loading){
             return
         }
@@ -197,13 +197,13 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
         setConfirmEmail("")
         setPassword("")
         setLoading(false)
-    }
+    }, [loading, email, confirmEmail, password])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
         if(e.which == 13){
             save()
         }
-    }
+    }, [])
 
     useEffect(() => {
         const openListener = eventListener.on("openEmailModal", () => setOpen(true))
@@ -345,7 +345,7 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
         vatId?: string
     } | undefined>(undefined)
 
-    const fetchAccount = async (): Promise<boolean> => {
+    const fetchAccount = useCallback(async () => {
         setPersonal(undefined)
 
         try{
@@ -368,11 +368,9 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 
             showToast("error", e.toString(), "bottom", 5000)
         }
+    }, [])
 
-        return true
-    }
-
-    const save = async (): Promise<void> => {
+    const save = useCallback(async () => {
         if(loading || typeof personal == "undefined"){
             return
         }
@@ -392,13 +390,13 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
         }
 
         setLoading(false)
-    }
+    }, [loading, personal])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
         if(e.which == 13){
             save()
         }
-    }
+    }, [])
 
     useEffect(() => {
         const openListener = eventListener.on("openPersonalModal", () => {
@@ -742,7 +740,7 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
     const [open, setOpen] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
 
-    const deleteVersionedFiles = async (): Promise<void> => {
+    const deleteVersionedFiles = useCallback(async () => {
         if(!window.confirm(i18n(lang, "areYouSure"))){
             return
         }
@@ -763,7 +761,7 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
         }
 
         setLoading(false)
-    }
+    }, [])
 
     useEffect(() => {
         const openListener = eventListener.on("openDeleteVersionedModal", () => setOpen(true))
@@ -855,7 +853,7 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
     const [open, setOpen] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
 
-    const deleteAllFiles = async (): Promise<void> => {
+    const deleteAllFiles = useCallback(async () => {
         if(!window.confirm(i18n(lang, "areYouSure"))){
             return
         }
@@ -872,7 +870,7 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
         }
 
         setLoading(false)
-    }
+    }, [])
 
     useEffect(() => {
         const openListener = eventListener.on("openDeleteAllModal", () => setOpen(true))
@@ -967,7 +965,7 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
     const [password, setPassword] = useState<string>("")
     const [loading, setLoading] = useState<boolean>(false)
 
-    const save = async (): Promise<void> => {
+    const save = useCallback(async () => {
         if(loading){
             return
         }
@@ -999,7 +997,10 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
         setLoading(true)
 
         try{
-            const [userEmail, masterKeys] = await Promise.all([db.get("userEmail"), db.get("masterKeys")])
+            const [userEmail, masterKeys] = await Promise.all([
+                db.get("userEmail"),
+                db.get("masterKeys")
+            ])
 
             if(!Array.isArray(masterKeys)){
                 showToast("error", i18n(lang, "invalidMasterKeys"), "bottom", 5000)
@@ -1044,13 +1045,13 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
         setConfirmNewPassword("")
         setPassword("")
         setLoading(false)
-    }
+    }, [loading, newPassword, confirmNewPassword, password])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
         if(e.which == 13){
             save()
         }
-    }
+    }, [])
 
     useEffect(() => {
         const openListener = eventListener.on("openPasswordModal", () => setOpen(true))
@@ -1184,23 +1185,22 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
     const [needs2FA, setNeeds2FA] = useState<boolean>(false)
     const [fetchingInfo, setFetchingInfo] = useState<boolean>(false)
 
-    const fetchInfo = async () => {
+    const fetchInfo = useCallback(() => {
         setFetchingInfo(true)
         setNeeds2FA(false)
         setTwoFactorKey("")
 
         fetchUserSettings().then((settings) => {
             setNeeds2FA(settings.twoFactorEnabled == 1)
-
             setFetchingInfo(false)
         }).catch((err) => {
             setFetchingInfo(false)
 
             console.error(err)
         })
-    }
+    }, [])
 
-    const deleteIt = async (): Promise<void> => {
+    const deleteIt = useCallback(async () => {
         if(!window.confirm(i18n(lang, "areYouSure"))){
             return
         }
@@ -1224,13 +1224,13 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 
         setLoading(false)
         setTwoFactorKey("")
-    }
+    }, [twoFactorKey])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
         if(e.which == 13 && twoFactorKey.length >= 6){
             deleteIt()
         }
-    }
+    }, [twoFactorKey])
 
     useEffect(() => {
         const openListener = eventListener.on("openDeleteAccountModal", () => {
@@ -1361,7 +1361,7 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
     const [settings, setSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
     const [code, setCode] = useState<string>("")
 
-    const fetchSettings = async (): Promise<boolean> => {
+    const fetchSettings = useCallback(async () => {
         setSettings(undefined)
 
         try{
@@ -1381,11 +1381,9 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 
             showToast("error", e.toString(), "bottom", 5000)
         }
+    }, [])
 
-        return true
-    }
-
-    const enable = async (): Promise<void> => {
+    const enable = useCallback(async () => {
         if(typeof settings == "undefined"){
             return
         }
@@ -1409,13 +1407,13 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 
         setCode("")
         setLoading(false)
-    }
+    }, [settings, code])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if(e.which == 13 && code.length >= 6){
             enable()
         }
-    }
+    }, [code])
 
     useEffect(() => {
         const openListener = eventListener.on("open2FAModal", () => {
@@ -1692,7 +1690,7 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
     const [loading, setLoading] = useState<boolean>(false)
     const [code, setCode] = useState<string>("")
 
-    const disable = async (): Promise<void> => {
+    const disable = useCallback(async () => {
         if(!window.confirm(i18n(lang, "areYouSure"))){
             return
         }
@@ -1716,13 +1714,13 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 
         setCode("")
         setLoading(false)
-    }
+    }, [code])
 
-    const inputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if(e.which == 13 && code.length >= 6){
             disable()
         }
-    }
+    }, [code])
 
     useEffect(() => {
         const openListener = eventListener.on("openDisable2FAModal", () => setOpen(true))
@@ -1824,7 +1822,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
     const [open, setOpen] = useState<boolean>(false)
     const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
 
-    const copy = (text: string) => {
+    const copy = useCallback((text: string) => {
         try{
             navigator.clipboard.writeText(text)
 
@@ -1833,7 +1831,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
         catch(e){
             console.error(e)
         }
-    }
+    }, [])
 
     useEffect(() => {
         const openExportMasterKeysModalListener = eventListener.on("openExportMasterKeysModal", () => {
@@ -1981,7 +1979,7 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
     const [loading, setLoading] = useState<boolean>(false)
     const [address, setAddress] = useState<string>("")
 
-    const request = async () => {
+    const request = useCallback(async () => {
         if(loading){
             return
         }
@@ -2014,7 +2012,7 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
 
         setAddress("")
         setLoading(false)
-    }
+    }, [address, loading])
 
     useEffect(() => {
         const openAffiliatePayoutModalListener = eventListener.on("openAffiliatePayoutModal", () => {

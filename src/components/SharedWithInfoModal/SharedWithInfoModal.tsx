@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react"
+import { memo, useState, useEffect, useCallback } from "react"
 import type { ItemProps, ItemReceiver } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Flex, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
@@ -13,7 +13,7 @@ const SharedWithInfoModal = memo(({ darkMode, isMobile, lang }: { darkMode: bool
     const [item, setItem] = useState<ItemProps | undefined>(undefined)
     const [loading, setLoading] = useState<number>(0)
 
-    const stopSharing = async (stopItem: ItemProps, user: ItemReceiver) => {
+    const stopSharing = useCallback(async (stopItem: ItemProps, user: ItemReceiver) => {
         const sItem: ItemProps = {
             ...stopItem,
             receiverId: user.id,
@@ -57,7 +57,7 @@ const SharedWithInfoModal = memo(({ darkMode, isMobile, lang }: { darkMode: bool
         }
 
         setLoading(0)
-    }
+    }, [])
 
     useEffect(() => {
         const openSharedWithInfoModalListener = eventListener.on("openSharedWithInfoModal", (passed: ItemProps) => {

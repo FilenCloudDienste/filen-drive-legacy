@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useMemo } from "react"
+import { memo, useState, useEffect, useMemo, useCallback } from "react"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -32,7 +32,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
         }
     }, [lang])
 
-    const buy = async () => {
+    const buy = useCallback(async () => {
         if(typeof plan == "undefined"){
             return
         }
@@ -57,7 +57,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, isMobi
         }
 
         setLoadingPayURL(false)
-    }
+    }, [plan, loadingPayURL, activePaymentMethod])
 
     useEffect(() => {
         const openBuyModalListener = eventListener.on("openBuyModal", (plan: PlanProps) => {

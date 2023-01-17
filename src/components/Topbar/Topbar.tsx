@@ -1,5 +1,5 @@
-import { memo, useEffect, useState, useMemo } from "react"
-import { Flex, Image, Button, Avatar, Spinner } from "@chakra-ui/react"
+import { memo, useEffect, useState, useMemo, useCallback } from "react"
+import { Flex, Image, Avatar, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import type { TopbarProps, UserInfoV1 } from "../../types"
 import DarkLogo from "../../assets/images/dark_logo.svg"
@@ -25,9 +25,9 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
             && location.hash.indexOf("account") == -1
     }, [location.hash])
 
-    const fetchData = (): void => {
+    const fetchData = useCallback(() => {
         fetchUserInfo().then((info) => setUserInfo(info)).catch(console.error)
-    }
+    }, [])
 
     useEffect(() => {
         fetchData()

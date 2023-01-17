@@ -1,3 +1,5 @@
+import { memoize, values } from "lodash"
+
 import en from "./lang/en"
 import de from "./lang/de"
 import ja from "./lang/ja"
@@ -8,7 +10,9 @@ import ru from "./lang/ru"
 import fr from "./lang/fr"
 
 const translations: {
-    [key: string]: any
+    [key: string]: {
+        [key: string]: string
+    }
 } = {
     en,
     de,
@@ -20,12 +24,12 @@ const translations: {
     fr
 }
 
-export const i18n = (lang: string = "en", text: string, firstUpperCase: boolean = true, replaceFrom: string[] = [], replaceTo: string[] = []) => {
+export const i18n = memoize((lang: string = "en", text: string, firstUpperCase: boolean = true, replaceFrom: string[] = [], replaceTo: string[] = []) => {
     if(typeof lang !== "string"){
         lang = "en"
     }
     
-    let gotText = translations[lang][text]
+    let gotText = translations[lang][text].trim()
 
     if(!gotText){
         if(translations['en'][text]){
@@ -52,8 +56,8 @@ export const i18n = (lang: string = "en", text: string, firstUpperCase: boolean 
     }
 
     return gotText
-}
+}, (...args) => values(args))
 
-export const isLanguageAvailable = (lang = "en") => {
+export const isLanguageAvailable = memoize((lang: string = "en") => {
     return typeof translations[lang] == "undefined" ? false : true
-}
+})

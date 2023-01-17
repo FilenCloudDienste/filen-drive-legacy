@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react"
+import { memo, useState, useEffect, useCallback } from "react"
 import type { VersionsModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader, Flex, Menu, MenuButton, MenuList, MenuItem, forwardRef } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
@@ -30,7 +30,7 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
     const [currentItem, setCurrentItem] = useState<ItemProps | undefined>(undefined)
     const [versions, setVersions] = useState<Versions | undefined>(undefined)
 
-    const loadVersions = async (item: ItemProps): Promise<void> => {
+    const loadVersions = useCallback(async (item: ItemProps) => {
         setVersions(undefined)
 
         try{
@@ -59,9 +59,9 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
         catch(e){
             console.error(e)
         }
-    }
+    }, [])
 
-    const restoreVersion = async (version: Version): Promise<void> => {
+    const restoreVersion = useCallback(async (version: Version) => {
         if(typeof currentItem == "undefined"){
             return
         }
@@ -114,9 +114,9 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
         }
 
         loadVersions(currentItem)
-    }
+    }, [currentItem])
 
-    const deleteVersion = async (version: Version): Promise<void> => {
+    const deleteVersion = useCallback(async (version: Version) => {
         if(typeof currentItem == "undefined"){
             return
         }
@@ -158,9 +158,9 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
         }
 
         loadVersions(currentItem)
-    }
+    }, [currentItem])
 
-    const downloadVersion = async (version: Version): Promise<void> => {
+    const downloadVersion = useCallback((version: Version) => {
         const item: ItemProps = {
             root: "",
             type: "file",
@@ -189,7 +189,7 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
         }
 
         queueFileDownload(item).catch(console.error)
-    }
+    }, [])
 
     useEffect(() => {
         const openVersionsModalListener = eventListener.on("openVersionsModal", ({ item }: { item: ItemProps }) => {

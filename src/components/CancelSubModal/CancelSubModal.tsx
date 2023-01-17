@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from "react"
+import { memo, useState, useEffect, useRef, useCallback } from "react"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -12,7 +12,7 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, 
     const planId = useRef<string>("")
     const isCancelling = useRef<boolean>(false)
 
-    const cancel = async () => {
+    const cancel = useCallback(async () => {
         if(isCancelling.current){
             return
         }
@@ -35,7 +35,7 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean, 
         dismissToast(loading)
 
         isCancelling.current = false
-    }
+    }, [isCancelling.current])
 
     useEffect(() => {
         const openCancelSubModalListener = eventListener.on("openCancelSubModal", (id: string) => {

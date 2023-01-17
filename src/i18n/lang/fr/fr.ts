@@ -17,7 +17,7 @@ const fr: {
     download: "Télécharger",
     cannotDownloadEmptyFolder: "Impossible de télécharger un dossier vide",
     thisFolderIsEmpty: "Ce dossier est vide",
-    linkFolderEmptyInfo: "Une fois les fichiers ou dossiers ajouté, ils apparaîtront ici ",
+    linkFolderEmptyInfo: "Une fois les fichiers ou dossiers ajouté, ils apparaîtront ici",
     confirmPassword: "Confirmer le mot de passe",
     createAccount: "Créer un compte",
     alreadyHaveAnAccount: "Vous avez déjà un compte?",

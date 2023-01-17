@@ -23,10 +23,6 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
         return [markerWidth, nameWidth, sizeWidth, lastModifiedWidth, actionsWidth]
     }, [listWidth, isMobile])
 
-    const selectedCount: number = useMemo(() => {
-        return items.filter(item => item.selected).length
-    }, [items])
-
     useEffect(() => {
         if(items.length > 0){
             if(items.filter(filterItem => filterItem.selected).length == items.length){

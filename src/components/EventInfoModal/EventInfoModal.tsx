@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react"
+import { memo, useState, useEffect, useCallback } from "react"
 import type { EventInfoModalProps, UserEvent } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
@@ -20,7 +20,11 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
     const [loading, setLoading] = useState<boolean>(false)
     const [eventInfo, setEventInfo] = useState<EventInfo | undefined>(undefined)
 
-    const fetchInfo = (uuid: string) => {
+    const fetchInfo = useCallback((uuid: string) => {
+        if(loading){
+            return
+        }
+        
         setLoading(true)
 
         fetchEventInfo(uuid).then((info) => {
@@ -47,7 +51,7 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
 
             setLoading(false)
         })
-    }
+    }, [loading])
 
     useEffect(() => {
         const openEventInfoModalListener = eventListener.on("openEventInfoModal", (uuid: string) => {

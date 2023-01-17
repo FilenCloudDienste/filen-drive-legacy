@@ -473,7 +473,7 @@ export const getAvailableFolderColors = () => {
     }
 }
 
-export const getFolderColor = (color: string) => {
+export const getFolderColor = memoize((color: string) => {
     const colors: any = getAvailableFolderColors()
 
     if(typeof colors[color] !== "undefined"){
@@ -481,7 +481,7 @@ export const getFolderColor = (color: string) => {
     }
 
     return colors['default']
-}
+})
 
 export const simpleDate = memoize((timestamp: number) => {
     try{
@@ -613,7 +613,7 @@ export const getFilePreviewType = memoize((ext: string) => {
     }
 })
 
-export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedAsc" | "lastModifiedDesc", href?: string) => {
+export const orderItemsByType = memoize((items: ItemProps[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedAsc" | "lastModifiedDesc", href?: string) => {
     const files = []
     const folders = []
 
@@ -791,7 +791,14 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
 
         return sortedFolders.concat(sortedFiles)
     }
-}
+}, (items: ItemProps[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedAsc" | "lastModifiedDesc", href?: string) => {
+    if(typeof href == "string"){
+        return JSON.stringify(items) + ":" + type + ":" + href
+    }
+    else{
+        return JSON.stringify(items) + ":" + type
+    }
+})
 
 export const utf8ToHex = (str: string) => {
     return Array.from(str).map(c => 

@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useMemo } from "react"
+import { memo, useState, useEffect, useMemo, useCallback } from "react"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Select, Textarea, Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -29,7 +29,11 @@ const AbuseReportModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean
         }
     }, [lang])
 
-    const submit = async () => {
+    const submit = useCallback(async () => {
+        if(loading){
+            return
+        }
+        
         setLoading(true)
 
         const sEmail = email.trim()
@@ -95,7 +99,7 @@ const AbuseReportModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean
         }
 
         setLoading(false)
-    }
+    }, [loading, email, comment, reason, password])
 
     useEffect(() => {
         const openAbuseReportModalListener = eventListener.on("openAbuseReportModal", ({ password }: { password: string }) => {

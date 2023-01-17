@@ -23,7 +23,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
     const newNameRef = useRef<string>("")
     const oldNameRef = useRef<string>("")
 
-    const rename = async (): Promise<void> => {
+    const rename = useCallback(async () => {
         if(loading){
             return
         }
@@ -89,7 +89,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         }
 
         setLoading(false)
-    }
+    }, [loading, currentItem, newNameRef.current, currentItems.current, newNameRef.current, oldNameRef.current])
 
     const setSelectionRange = useCallback(async (): Promise<void> => {
         await new Promise((resolve) => {
@@ -121,7 +121,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
         const extLength = getFileExt(oldNameRef.current).length + 1
 
         input.setSelectionRange(0, (oldNameRef.current.length - extLength), "forward")
-    }, [])
+    }, [inputRef.current])
 
     useEffect(() => {
         currentItems.current = items

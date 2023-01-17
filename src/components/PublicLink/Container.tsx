@@ -1,9 +1,7 @@
-import { memo, useCallback, useMemo } from "react"
+import { memo, useMemo } from "react"
 import type { AppBaseProps } from "../../types"
 import { Flex, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import Cookies from "../../lib/cookies"
-import eventListener from "../../lib/eventListener"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
 import AppText from "../../components/AppText"
@@ -13,6 +11,7 @@ import { FaLock } from "react-icons/fa"
 import { MdVisibilityOff } from "react-icons/md"
 import Button from "../Button"
 import useCookie from "../../lib/hooks/useCookie"
+import { toggleColorMode } from "../../lib/helpers"
 
 export interface PublicLinkContainerProps extends AppBaseProps {
     children?: React.ReactNode
@@ -24,12 +23,6 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
     const sidebarWidth: number = useMemo(() => {
         return isMobile ? 0 : 400
     }, [isMobile])
-
-    const toggleColorMode = useCallback((): void => {
-        Cookies.set("colorMode", darkMode ? "light" : "dark")
-
-        eventListener.emit("colorModeChanged", !darkMode)
-    }, [darkMode])
 
     return (
         <Flex
@@ -53,7 +46,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
                             src={darkMode ? LightLogo : DarkLogo}
                             width="70px"
                             height="70px"
-                            onClick={toggleColorMode}
+                            onClick={() => toggleColorMode(darkMode)}
                             cursor="pointer"
                             position="absolute"
                             top="50px"

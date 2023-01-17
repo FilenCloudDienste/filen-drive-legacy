@@ -17,7 +17,7 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
     const [email, setEmail] = useState<string>("")
     const inputRef = useRef()
 
-    const share = async () => {
+    const share = useCallback(async () => {
         if(loading){
             return
         }
@@ -69,7 +69,7 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
         setLoading(false)
         setOpen(false)
         setEmail("")
-    }
+    }, [loading, toShare.current, email])
 
     useEffect(() => {
         const openShareModalListener = eventListener.on("openShareModal", ({ items }: { items: ItemProps[] }) => {

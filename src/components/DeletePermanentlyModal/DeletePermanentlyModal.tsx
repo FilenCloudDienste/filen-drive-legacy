@@ -18,7 +18,7 @@ const DeletePermanentlyModal = memo(({ darkMode, isMobile, setItems, lang }: Del
     const [selected, setSelected] = useState<ItemProps[]>([])
     const isOpen = useRef<boolean>(false)
 
-    const deletePermanently = async (): Promise<void> => {
+    const deletePermanently = useCallback(async () => {
         if(loading){
             return
         }
@@ -77,7 +77,7 @@ const DeletePermanentlyModal = memo(({ darkMode, isMobile, setItems, lang }: Del
         setLoading(false)
         setOpen(false)
         setSelected([])
-    }
+    }, [loading, toDelete.current])
 
     const windowKeyDown = useCallback((e: KeyboardEvent): void => {
         if(e.which == 13 && isOpen.current){
@@ -144,7 +144,6 @@ const DeletePermanentlyModal = memo(({ darkMode, isMobile, setItems, lang }: Del
                     justifyContent="center"
                 >
                     {i18n(lang, "deletePermModalSure", true, ["__COUNT__"], [selected.length.toString()])}
-                    
                 </ModalBody>
                 <ModalFooter>
                     {
