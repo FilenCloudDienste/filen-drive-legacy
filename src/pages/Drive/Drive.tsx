@@ -472,6 +472,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
         })
     }, [sortBy])
 
+    const windowOnFocus = useCallback(() => {
+        populateList(true)
+    }, [])
+
     useEffect(() => {
         if(initDone){
             if(location.hash.split("/").length < 2){
@@ -577,6 +581,8 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
         const transfersToastId = showToast("transfers")
 
         window.addEventListener("keydown", windowOnKeyDown)
+        window.addEventListener("focus", windowOnFocus)
+
         document.body.addEventListener("mousedown", mouseDownListener)
         document.body.addEventListener("mouseup", resetDragSelect)
         document.body.addEventListener("click", bodyOnClickListener)
@@ -903,8 +909,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 
         const socketEventReloadSizesListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
-            await new Promise(resolve => setTimeout(resolve, 250))
-
             if(
                 event.type == "fileArchived"
                 || event.type == "fileTrash"
@@ -923,6 +927,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
         return () => {
             window.removeEventListener("keydown", windowOnKeyDown)
+            window.removeEventListener("focus", windowOnFocus)
 
             document.body.removeEventListener("mousedown", mouseDownListener)
             document.body.removeEventListener("mouseup", resetDragSelect)

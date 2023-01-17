@@ -181,11 +181,12 @@ export const connect = () => {
 
     SOCKET_HANDLE = io(SOCKET, {
         path: "",
-        reconnect: false,
-        reconnection: false,
+        reconnect: true,
+        reconnection: true,
         transports: [
             "websocket"
-        ]
+        ],
+        upgrade: false
     })
     
     SOCKET_HANDLE.on("connect", async () => {
@@ -212,8 +213,6 @@ export const connect = () => {
         CONNECTED = false
     
         console.log("Disconnected from socket server")
-
-        setTimeout(connect, 5000)
     })
     
     SOCKET_HANDLE.on("new-event", (data: SocketNewEvent) => {
@@ -272,7 +271,7 @@ export const connect = () => {
         } as SocketEvent)
     })
     
-    SOCKET_HANDLE.on("folder-rename", async (data: SocketFolderRename) => {
+    SOCKET_HANDLE.on("folder-rename", (data: SocketFolderRename) => {
         eventListener.emit("socketEvent", {
             type: "folderRename",
             data
@@ -286,21 +285,21 @@ export const connect = () => {
         } as SocketEvent)
     })
     
-    SOCKET_HANDLE.on("folder-move", async (data: SocketFolderMove) => {
+    SOCKET_HANDLE.on("folder-move", (data: SocketFolderMove) => {
         eventListener.emit("socketEvent", {
             type: "folderMove",
             data
         } as SocketEvent)
     })
     
-    SOCKET_HANDLE.on("folder-sub-created", async (data: SocketFolderSubCreated) => {
+    SOCKET_HANDLE.on("folder-sub-created", (data: SocketFolderSubCreated) => {
         eventListener.emit("socketEvent", {
             type: "folderSubCreated",
             data
         } as SocketEvent)
     })
     
-    SOCKET_HANDLE.on("folder-restore", async (data: SocketFolderRestore) => {
+    SOCKET_HANDLE.on("folder-restore", (data: SocketFolderRestore) => {
         eventListener.emit("socketEvent", {
             type: "folderRestore",
             data

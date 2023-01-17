@@ -1296,22 +1296,26 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
                                 >
                                     {i18n(lang, "areYouSureDeleteAccount")}
                                 </AppText>
-                                <Input
-                                    darkMode={darkMode}
-                                    isMobile={isMobile}
-                                    value={twoFactorKey}
-                                    onChange={(e) => setTwoFactorKey(e.target.value)}
-                                    type="text"
-                                    isDisabled={loading}
-                                    placeholder={i18n(lang, "enter2FA")}
-                                    onKeyDown={inputKeyDown}
-                                    maxLength={64}
-                                    marginTop="15px"
-                                    color={getColor(darkMode, "textSecondary")}
-                                    _placeholder={{
-                                        color: getColor(darkMode, "textSecondary")
-                                    }}
-                                />
+                                {
+                                    needs2FA && (
+                                        <Input
+                                            darkMode={darkMode}
+                                            isMobile={isMobile}
+                                            value={twoFactorKey}
+                                            onChange={(e) => setTwoFactorKey(e.target.value)}
+                                            type="text"
+                                            isDisabled={loading}
+                                            placeholder={i18n(lang, "enter2FA")}
+                                            onKeyDown={inputKeyDown}
+                                            maxLength={64}
+                                            marginTop="15px"
+                                            color={getColor(darkMode, "textSecondary")}
+                                            _placeholder={{
+                                                color: getColor(darkMode, "textSecondary")
+                                            }}
+                                        />
+                                    )
+                                }
                             </Flex>
                         )
                     }
