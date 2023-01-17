@@ -100,7 +100,11 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
                                 {
                                     code: "ru",
                                     name: "Русский"
-                                }
+                                },
+                                {
+                                    code: "fr",
+                                    name: "Français"
+                                },
                             ].map((language) => {
                                 return (
                                     <AppText
