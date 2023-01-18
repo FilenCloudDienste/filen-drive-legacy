@@ -15,6 +15,7 @@ import ErrorContainer from "./Error"
 import VideoViewer from "./VideoViewer"
 import AudioViewer from "./AudioViewer"
 import { useMountedState } from "react-use"
+import DocViewer from "./DocViewer"
 
 const previewCache = new Map()
 let blobURLs: string[] = []
@@ -35,6 +36,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
     const [audio, setAudio] = useState<string>("")
     const mounted = useMountedState()
     const isMounted = useRef<boolean>(false)
+    const [doc, setDoc] = useState<string>("")
 
     const reset = useCallback((): void => {
         setImage("")
@@ -302,6 +304,35 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
                 setError(err.toString())
             })
         }
+        else if(previewType == "doc"){
+            getFileBuffer(item).then((buffer) => {
+                if(previewCache.has("url:" + item.uuid)){
+                    setDoc(previewCache.get("url:" + item.uuid))
+                }
+
+                try{
+                    const blob = new Blob([buffer], {
+                        type: item.mime
+                    })
+                    const url = window.URL.createObjectURL(blob)
+
+                    blobURLs.push(url)
+
+                    previewCache.set("url:" + item.uuid, url)
+
+                    setDoc(url)
+                }
+                catch(e: any){
+                    console.error(e)
+
+                    setError(e.toString())
+                }
+            }).catch((err) => {
+                console.error(err)
+
+                setError(err.toString())
+            })
+        }
         else{
             setError("No preview available for this file type")
         }
@@ -523,6 +554,18 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
                                                 windowHeight={windowHeight}
                                                 currentItem={currentItem}
                                                 audio={audio}
+                                            />
+                                        )
+                                    }
+                                    {
+                                        (type == "doc" && typeof currentItem !== "undefined") && (
+                                            <DocViewer
+                                                darkMode={darkMode}
+                                                isMobile={isMobile}
+                                                windowWidth={windowWidth}
+                                                windowHeight={windowHeight}
+                                                currentItem={currentItem}
+                                                doc={doc}
                                             />
                                         )
                                     }

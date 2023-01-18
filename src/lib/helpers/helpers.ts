@@ -607,6 +607,18 @@ export const getFilePreviewType = memoize((ext: string) => {
         case "pdf":
             return "pdf"
         break
+        case "docx":
+        case "doc":
+        case "csv":
+        case "ppt":
+        case "pptx":
+        case "xls":
+        case "xlsx":
+        case "bmp":
+        case "tiff":
+            //return "doc"
+            return "none"
+        break
         default:
             return "none"
         break
