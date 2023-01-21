@@ -29,7 +29,7 @@ export const i18n = memoize((lang: string = "en", text: string, firstUpperCase: 
         lang = "en"
     }
     
-    let gotText = translations[lang][text].trim()
+    let gotText = translations[lang][text]
 
     if(!gotText){
         if(translations['en'][text]){
@@ -41,6 +41,8 @@ export const i18n = memoize((lang: string = "en", text: string, firstUpperCase: 
             return "NO_TRANSLATION_FOUND_" + lang.toString() + "_" + text.toString()
         }
     }
+
+    gotText = gotText.trim()
 
     if(firstUpperCase){
         gotText = gotText.charAt(0).toUpperCase() + gotText.slice(1)
