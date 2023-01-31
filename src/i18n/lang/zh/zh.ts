@@ -44,7 +44,7 @@ const zh: {
     avatar: "头像",
     edit: "编辑",
     personalInformation: "个人资料",
-    darkMode: "神色外观",
+    darkMode: "深色外观",
     language: "语言",
     change: "更改",
     requestAccountData: "申请账户数据",
