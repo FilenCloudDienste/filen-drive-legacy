@@ -6,12 +6,23 @@ import type { ItemProps, UserInfoV1, FolderColors, UserGetSettingsV1, UserGetAcc
 import eventListener from "../eventListener"
 import { getDirectoryTree } from "../services/items"
 import { v4 as uuidv4 } from "uuid"
-import { FileVersionsV1 } from "../../types"
+import { FileVersionsV1, ICFG } from "../../types"
+import axios from "axios"
 
 const createFolderSemaphore = new Semaphore(1)
 const fetchFolderSizeSemaphore = new Semaphore(8192)
 const shareItemsSemaphore = new Semaphore(10)
 const linkItemsSemaphore = new Semaphore(10)
+
+export const getCfg = async (): Promise<ICFG> => {
+    const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
+
+    if(response.status !== 200){
+        throw new Error("Could not load CFG from CDN")
+    }
+
+    return response.data
+}
 
 export const authInfo = ({ email }: { email: string }): Promise<any> => {
     return new Promise((resolve, reject) => {

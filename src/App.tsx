@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useState, useRef } from "react"
 import useWindowWidth from "./lib/hooks/useWindowWidth"
 import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsMobile from "./lib/hooks/useIsMobile"
@@ -13,13 +13,21 @@ import useWindowHeight from "./lib/hooks/useWindowHeight"
 import useCookie from "./lib/hooks/useCookie"
 import { getColor } from "./styles/colors"
 import { Helmet } from "react-helmet-async"
-import type { ItemProps } from "./types"
+import type { ItemProps, ICFG } from "./types"
 import type { ToastId } from "@chakra-ui/react"
 import PublicLinkFile from "./pages/PublicLinkFile"
 import PublicLinkFolder from "./pages/PublicLinkFolder"
 import CookieConsent from "./components/CookieConsent"
 import eventListener from "./lib/eventListener"
 import cookies from "./lib/cookies"
+import { getCfg } from "./lib/api"
+import { Flex, Image } from "@chakra-ui/react"
+import LogoAnimated from "./assets/images/logo_animated.gif"
+import LogoLight from "./assets/images/light_logo.svg"
+import LogoDark from "./assets/images/dark_logo.svg"
+import AppText from "./components/AppText"
+import { AiOutlineTwitter } from "react-icons/ai"
+import Announcements from "./components/Announcements"
 
 declare global {
     interface Window {
@@ -42,7 +50,9 @@ const App = memo(() => {
     const lang: string = useLang()
     const [loggedIn, setLoggedIn] = useCookie("loggedIn")
     const [analytics, setAnalytics] = useState<boolean>(typeof cookies.get("cookieConsent") == "string" && (cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all") ? true : false)
-    
+    const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
+    const didMount = useRef<boolean>(false)
+
     const paramsEx: string[] = window.location.href.split("?")
     const includesPlanRedirect: boolean = paramsEx.length >= 2 && paramsEx[1].indexOf("pro=") !== -1
 
@@ -55,12 +65,91 @@ const App = memo(() => {
     }, [darkMode])
 
     useEffect(() => {
-        const includeAnalyticsListener = eventListener.on("includeAnalytics", () => setAnalytics(true))
+        if(!didMount.current){
+            didMount.current = true
 
-        return () => {
-            includeAnalyticsListener.remove()
+            const includeAnalyticsListener = eventListener.on("includeAnalytics", () => setAnalytics(true))
+
+            getCfg().then(setCFG).catch(console.error)
+
+            const cfgInterval = setInterval(() => getCfg().then(setCFG).catch(console.error), 60000)
+
+            return () => {
+                includeAnalyticsListener.remove()
+
+                clearInterval(cfgInterval)
+            }
         }
     }, [])
+
+    if(typeof cfg == "undefined"){
+        return (
+            <Flex
+                width="100vw"
+                height="100vh"
+                flexDirection="column"
+                backgroundColor={getColor(darkMode, "backgroundPrimary")}
+                overflow="hidden"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <Image
+                    src={LogoAnimated}
+                    width="128px"
+                    height="128px"
+                />
+            </Flex>
+        )
+    }
+    
+    if(cfg.maintenance){
+        return (
+            <Flex
+                width="100vw"
+                height="100vh"
+                flexDirection="column"
+                backgroundColor={getColor(darkMode, "backgroundPrimary")}
+                overflow="hidden"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <Image
+                    src={darkMode ? LogoLight : LogoDark}
+                    width="100px"
+                    height="100px"
+                />
+                <AppText
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    marginTop="20px"
+                >
+                    Filen is currently unavailable due to maintenance. We will be back as soon as possible.
+                </AppText>
+                <Flex
+                    marginTop="10px"
+                    alignItems="center"
+                    gap="5px"
+                >
+                    <AiOutlineTwitter
+                        color={getColor(darkMode, "linkPrimary")}
+                        size="20"
+                    />
+                    <AppText
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        color={getColor(darkMode, "linkPrimary")}
+                        onClick={() => window.open("https://twitter.com/filen_io", "_blank")}
+                        cursor="pointer"
+                        _hover={{
+                            textDecoration: "underline"
+                        }}
+                    >
+                        Updates on Twitter
+                    </AppText>
+                </Flex>
+            </Flex>
+        )
+    }
 
     return (
         <>
@@ -217,6 +306,11 @@ const App = memo(() => {
             <CookieConsent
                 darkMode={darkMode}
                 isMobile={isMobile}
+            />
+            <Announcements
+                darkMode={darkMode}
+                isMobile={isMobile}
+                cfg={cfg}
             />
         </>
     )

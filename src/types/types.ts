@@ -680,3 +680,17 @@ export interface FolderColorChangedEvent {
 }
 
 export type PaymentMethods = "paypal" | "stripe" | "crypto"
+
+export interface CFGAnnouncement {
+    uuid: string,
+    title: string,
+    message: string,
+    active: boolean,
+    timestamp: number
+}
+
+export interface ICFG {
+    maintenance: boolean,
+    readOnly: boolean,
+    announcements: CFGAnnouncement[]
+}
