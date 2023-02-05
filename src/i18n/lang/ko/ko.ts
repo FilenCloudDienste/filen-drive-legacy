@@ -113,7 +113,7 @@ const ko: {
     enable2FA: "2단계 인증 켜기",
     copy: "복사",
     enter2FA: "2단계 인증 코드 입력",
-    enable: ""켜기",
+    enable: "켜기",
     recoveryKeys: "복구 키",
     recoveryKeysInfo: "복구 키를 안전하게 보관하세요. 2단계 인증 기기를 분실했을 때 계정을 복구할 수 있는 유일한 방법입니다.",
     close: "닫기",

@@ -9,6 +9,7 @@ import uk from "./lang/uk"
 import ru from "./lang/ru"
 import fr from "./lang/fr"
 import zh from "./lang/zh"
+import ko from "./lang/ko"
 
 const translations: {
     [key: string]: {
@@ -23,7 +24,8 @@ const translations: {
     uk,
     ru,
     fr,
-    zh
+    zh,
+    ko
 }
 
 export const i18n = memoize((lang: string = "en", text: string, firstUpperCase: boolean = true, replaceFrom: string[] = [], replaceTo: string[] = []) => {
