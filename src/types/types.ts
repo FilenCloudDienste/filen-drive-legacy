@@ -689,8 +689,24 @@ export interface CFGAnnouncement {
     timestamp: number
 }
 
+export interface IPlans {
+    termType: 1 | 2 | 3 | 4,
+    id: number,
+    name: string,
+    cost: number,
+    sale: number,
+    storage: number,
+    popular: boolean,
+    term: "monthly" | "annually" | "lifetime"
+}
+
 export interface ICFG {
     maintenance: boolean,
     readOnly: boolean,
-    announcements: CFGAnnouncement[]
+    announcements: CFGAnnouncement[],
+    pricing: {
+        lifetimeEnabled: boolean,
+        saleEnabled: boolean,
+        plans: IPlans[]
+    }
 }

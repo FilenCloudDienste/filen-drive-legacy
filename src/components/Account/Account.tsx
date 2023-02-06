@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, useCallback } from "react"
-import type { AccountProps, UserInfoV1, UserGetSettingsV1, UserGetAccountV1, UserEvent } from "../../types"
+import type { AccountProps, UserInfoV1, UserGetSettingsV1, UserGetAccountV1, UserEvent, ICFG } from "../../types"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, Spinner, Switch, Skeleton, Progress, Badge } from "@chakra-ui/react"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
@@ -24,10 +24,9 @@ import { RiPaypalLine } from "react-icons/ri"
 import { logout } from "../../lib/services/user/logout"
 import { i18n } from "../../i18n"
 import Input from "../Input"
-import { useSearchParams } from "react-router-dom"
+import axios from "axios"
 
 const SHOW_PLANS: boolean = true
-const SALE_ACTIVE: boolean = false
 
 const getTabIndex = (tab: string): number => {
     switch(tab){
@@ -1623,144 +1622,11 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 })
 
 const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-    const [params] = useSearchParams()
-
     const DEFAULT_FEATURES: string[] = useMemo(() => {
         return [
             i18n(lang, "planFeatures_1"),
             i18n(lang, "planFeatures_2"),
             i18n(lang, "planFeatures_3")
-        ]
-    }, [lang])
-
-    const PRICES = useMemo(() => {
-        return [
-            //Starter
-            {
-                termType: 1,
-                id: 87,
-                name: "Starter annually",
-                cost: 11.99,
-                sale: 7.99,
-                storage: 107374182400,
-                popular: false,
-                term: "annually",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 1,
-                id: 45,
-                name: "Starter lifetime",
-                cost: 29.99,
-                sale: 19.99,
-                storage: 107374182400,
-                popular: false,
-                term: "lifetime",
-                features: DEFAULT_FEATURES
-            },
-            // Monthly
-            {
-                termType: 2,
-                id: 27,
-                name: "Pro I",
-                cost: 1.99,
-                sale: 1.39,
-                storage: 214748364800,
-                popular: false,
-                term: "monthly",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 2,
-                id: 30,
-                name: "Pro II",
-                cost: 3.99,
-                sale: 2.69,
-                storage: 536870912000,
-                popular: false,
-                term: "monthly",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 2,
-                id: 33,
-                name: "Pro III",
-                cost: 8.99,
-                sale: 6.99,
-                storage: 2199023255552,
-                popular: false,
-                term: "monthly",
-                features: DEFAULT_FEATURES
-            },
-            // Annually
-            {
-                termType: 3,
-                id: 36,
-                name: "Pro I",
-                cost: 19.99,
-                sale: 13.99,
-                storage: 214748364800,
-                popular: false,
-                term: "annually",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 3,
-                id: 39,
-                name: "Pro II",
-                cost: 39.99,
-                sale: 27.99,
-                storage: 536870912000,
-                popular: false,
-                term: "annually",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 3,
-                id: 42,
-                name: "Pro III",
-                cost: 89.99,
-                sale: 74.99,
-                storage: 2199023255552,
-                popular: false,
-                term: "annually",
-                features: DEFAULT_FEATURES
-            },
-            // Lifetime
-            /*{
-                termType: 4,
-                id: 48,
-                name: "Pro I",
-                cost: 54.99,
-                sale: 36.99,
-                storage: 214748364800,
-                popular: false,
-                term: "lifetime",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 4,
-                id: 51,
-                name: "Pro II",
-                cost: 129.99,
-                sale: 87.99,
-                storage: 536870912000,
-                info: "To get you started",
-                popular: false,
-                term: "lifetime",
-                features: DEFAULT_FEATURES
-            },
-            {
-                termType: 4,
-                id: 54,
-                name: "Pro III",
-                cost: 299.99,
-                sale: 219.99,
-                storage: 2199023255552,
-                popular: false,
-                term: "lifetime",
-                features: DEFAULT_FEATURES
-            }*/
         ]
     }, [lang])
 
@@ -1781,35 +1647,54 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
                 name: i18n(lang, "planTerms_annually"),
                 termType: 3
             },
-            /*{
+            {
                 type: "lifetime",
                 name: i18n(lang, "planTerms_lifetime"),
                 termType: 4
-            }*/
+            }
         ]
     }, [lang])
 
     const [activeTerm, setActiveTerm] = useState<number>(2)
+    const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 
     useEffect(() => {
-        const selectedPlan: number = window.location.href.indexOf("?pro=") !== -1 ? parseInt(window.location.href.split("?pro=")[1]) : -1
+        if(typeof cfg !== "undefined"){
+            const selectedPlan: number = window.location.href.indexOf("?pro=") !== -1 ? parseInt(window.location.href.split("?pro=")[1]) : -1
 
-        if(selectedPlan !== -1){
-            const selected = PRICES.filter(price => price.id == selectedPlan)
+            if(selectedPlan !== -1){
+                const selected = cfg.pricing.plans.filter(price => price.id == selectedPlan)
 
-            if(selected.length == 1){
-                const price = selected[0]
+                if(selected.length == 1){
+                    const price = selected[0]
 
-                eventListener.emit("openBuyModal", {
-                    id: price.id,
-                    name: price.name,
-                    cost: SALE_ACTIVE ? price.sale : price.cost,
-                    term: price.term,
-                    lifetime: price.term == "lifetime"
-                })
+                    setActiveTerm(price.termType)
+
+                    eventListener.emit("openBuyModal", {
+                        id: price.id,
+                        name: price.name,
+                        cost: cfg.pricing.saleEnabled ? price.sale : price.cost,
+                        term: price.term,
+                        lifetime: price.term == "lifetime"
+                    })
+                }
             }
         }
-    }, [PRICES])
+    }, [cfg])
+
+    useEffect(() => {
+        (async () => {
+            const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
+
+            if(response.status !== 200){
+                console.error("Could not fetch cfg:", response.status)
+            
+                return
+            }
+
+            setCFG(response.data)
+        })()
+    }, [])
 
     return (
         <Flex
@@ -1818,196 +1703,210 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
             justifyContent="center"
             alignItems="center"
         >
-            <Flex
-                maxWidth="1200px"
-                flexDirection="column"
-            >
-                <Flex
-                    maxWidth="100%"
-                    justifyContent="center"
-                    alignItems="center"
-                >
+            {
+                typeof cfg == "undefined" ? (
+                    <Spinner
+                        width="32px"
+                        height="32px"
+                        color={getColor(darkMode, "textPrimary")}
+                    />
+                ) : (
                     <Flex
-                        minWidth="200px"
-                        height="auto"
-                        backgroundColor={getColor(darkMode, "backgroundSecondary")}
-                        flexDirection="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        padding="3px"
-                        gap="5px"
-                        borderRadius="10px"
+                        maxWidth="1200px"
+                        flexDirection="column"
                     >
-                        {
-                            TERMS.map(term => {
-                                return (
-                                    <Flex
-                                        key={term.type}
-                                        width="100%"
-                                        height="100%"
-                                        backgroundColor={activeTerm == term.termType ? getColor(darkMode, "backgroundPrimary") : "transparent"}
-                                        padding="10px"
-                                        paddingTop="5px"
-                                        paddingBottom="5px"
-                                        borderRadius="10px"
-                                        transition="200ms"
-                                        cursor="pointer"
-                                        onClick={() => setActiveTerm(term.termType)}
-                                    >
-                                        <AppText
-                                            darkMode={darkMode}
-                                            fontWeight={activeTerm == term.termType ? "bold" : "normal"}
-                                            fontSize={15}
-                                            color={activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-                                            isMobile={isMobile}
-                                            bgGradient={term.type == "lifetime" ? "linear(to-r, #7928CA, #FF0080)" : "linear(to-r, " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ", " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ")"}
-                                            bgClip="text"
-                                        >
-                                            {term.name}
-                                        </AppText>
-                                    </Flex>
-                                )
-                            })
-                        }
-                    </Flex>
-                </Flex>
-                <Flex
-                    marginTop="50px"
-                    flexDirection={isMobile ? "column" : "row"}
-                    justifyContent="space-between"
-                    gap="20px"
-                >
-                    {
-                        PRICES.map((price, index) => {
-                            if(activeTerm !== price.termType){
-                                return null
-                            }
+                        <Flex
+                            maxWidth="100%"
+                            justifyContent="center"
+                            alignItems="center"
+                        >
+                            <Flex
+                                minWidth="200px"
+                                height="auto"
+                                backgroundColor={getColor(darkMode, "backgroundSecondary")}
+                                flexDirection="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                padding="3px"
+                                gap="5px"
+                                borderRadius="10px"
+                            >
+                                {
+                                    TERMS.map(term => {
+                                        if(!cfg.pricing.lifetimeEnabled && term.termType == 4){
+                                            return null
+                                        }
 
-                            return (
-                                <Flex
-                                    key={index}
-                                    border={price.popular ? ("2px solid " + "none") : "none"}
-                                    borderRadius="25px"
-                                    flexDirection="column"
-                                    flex={1}
-                                    minWidth={price.termType == 1 ? "400px" : "300px"}
-                                    backgroundImage={"linear-gradient(1deg, " + getColor(darkMode, "backgroundSecondary") + " 0%, " + getColor(darkMode, "backgroundSecondary") + " 100%)"}
-                                >
-                                    <Flex
-                                        padding="25px"
-                                        flexDirection="column"
-                                    >
-                                        <AppText
-                                            darkMode={darkMode}
-                                            fontWeight="bold"
-                                            fontSize={40}
-                                            color={getColor(darkMode, "textPrimary")}
-                                            isMobile={isMobile}
+                                        return (
+                                            <Flex
+                                                key={term.type}
+                                                width="100%"
+                                                height="100%"
+                                                backgroundColor={activeTerm == term.termType ? getColor(darkMode, "backgroundPrimary") : "transparent"}
+                                                padding="10px"
+                                                paddingTop="5px"
+                                                paddingBottom="5px"
+                                                borderRadius="10px"
+                                                transition="200ms"
+                                                cursor="pointer"
+                                                onClick={() => setActiveTerm(term.termType)}
+                                            >
+                                                <AppText
+                                                    darkMode={darkMode}
+                                                    fontWeight={activeTerm == term.termType || term.termType == 4 ? "bold" : "normal"}
+                                                    fontSize={15}
+                                                    color={activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+                                                    isMobile={isMobile}
+                                                    bgGradient={term.type == "lifetime" ? "linear(to-r, #7928CA, #FF0080)" : "linear(to-r, " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ", " + (activeTerm == term.termType ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")) + ")"}
+                                                    bgClip="text"
+                                                >
+                                                    {term.name}
+                                                </AppText>
+                                            </Flex>
+                                        )
+                                    })
+                                }
+                            </Flex>
+                        </Flex>
+                        <Flex
+                            marginTop="50px"
+                            flexDirection={isMobile ? "column" : "row"}
+                            justifyContent="space-between"
+                            gap="20px"
+                        >
+                            {
+                                cfg.pricing.plans.map((price, index) => {
+                                    if(activeTerm !== price.termType){
+                                        return null
+                                    }
+
+                                    return (
+                                        <Flex
+                                            key={index}
+                                            border={price.popular ? ("2px solid " + "none") : "none"}
+                                            borderRadius="25px"
+                                            flexDirection="column"
+                                            flex={1}
+                                            minWidth={price.termType == 1 ? "400px" : "300px"}
+                                            backgroundImage={"linear-gradient(1deg, " + getColor(darkMode, "backgroundSecondary") + " 0%, " + getColor(darkMode, "backgroundSecondary") + " 100%)"}
                                         >
-                                            {price.name}
-                                        </AppText>
-                                        <AppText
-                                            darkMode={darkMode}
-                                            fontWeight="bold"
-                                            fontSize={22}
-                                            color={getColor(darkMode, "textPrimary")}
-                                            bgGradient={"linear(to-r, #7928CA, #FF0080)"}
-                                            bgClip="text"
-                                            isMobile={isMobile}
-                                        >
-                                            {formatBytes(price.storage)}
-                                        </AppText>
-                                        {
-                                            SALE_ACTIVE && price.cost > price.sale ? (
-                                                <>
-                                                    <AppText
-                                                        darkMode={darkMode}
-                                                        fontWeight="normal"
-                                                        fontSize={17}
-                                                        color={getColor(darkMode, "textSecondary")}
-                                                        marginTop="5px"
-                                                        textDecoration="line-through"
-                                                        isMobile={isMobile}
-                                                    >
-                                                        {price.cost}€ {price.term}
-                                                    </AppText>
-                                                    <Flex
-                                                        flexDirection="row"
-                                                        alignItems="center"
-                                                        marginTop="5px"
-                                                    >
-                                                        <Badge
-                                                            color={getColor(darkMode, "textPrimary")}
-                                                            backgroundColor={getColor(darkMode, "backgroundTertiary")}
-                                                            borderRadius="10px"
-                                                            padding="5px"
-                                                        >
-                                                            🎉 - {Math.round(100 - ((price.sale / price.cost) * 100))}%
-                                                        </Badge>
+                                            <Flex
+                                                padding="25px"
+                                                flexDirection="column"
+                                            >
+                                                <AppText
+                                                    darkMode={darkMode}
+                                                    fontWeight="bold"
+                                                    fontSize={40}
+                                                    color={getColor(darkMode, "textPrimary")}
+                                                    isMobile={isMobile}
+                                                >
+                                                    {price.name}
+                                                </AppText>
+                                                <AppText
+                                                    darkMode={darkMode}
+                                                    fontWeight="bold"
+                                                    fontSize={22}
+                                                    color={getColor(darkMode, "textPrimary")}
+                                                    bgGradient={"linear(to-r, #7928CA, #FF0080)"}
+                                                    bgClip="text"
+                                                    isMobile={isMobile}
+                                                >
+                                                    {formatBytes(price.storage)}
+                                                </AppText>
+                                                {
+                                                    cfg.pricing.saleEnabled && price.cost > price.sale ? (
+                                                        <>
+                                                            <AppText
+                                                                darkMode={darkMode}
+                                                                fontWeight="normal"
+                                                                fontSize={17}
+                                                                color={getColor(darkMode, "textSecondary")}
+                                                                marginTop="5px"
+                                                                textDecoration="line-through"
+                                                                isMobile={isMobile}
+                                                            >
+                                                                {price.cost}€ {price.term}
+                                                            </AppText>
+                                                            <Flex
+                                                                flexDirection="row"
+                                                                alignItems="center"
+                                                                marginTop="5px"
+                                                            >
+                                                                <Badge
+                                                                    color={getColor(darkMode, "textPrimary")}
+                                                                    backgroundColor={getColor(darkMode, "backgroundTertiary")}
+                                                                    borderRadius="10px"
+                                                                    padding="5px"
+                                                                >
+                                                                    🎉 - {Math.round(100 - ((price.sale / price.cost) * 100))}%
+                                                                </Badge>
+                                                                <AppText
+                                                                    darkMode={darkMode}
+                                                                    fontWeight="bold"
+                                                                    fontSize={17}
+                                                                    color="red.500"
+                                                                    marginLeft="8px"
+                                                                    isMobile={isMobile}
+                                                                >
+                                                                    {price.sale}€ {firstToLowerCase(price.term)}
+                                                                </AppText>
+                                                            </Flex>
+                                                        </>
+                                                    ) : (
                                                         <AppText
                                                             darkMode={darkMode}
                                                             fontWeight="bold"
                                                             fontSize={17}
-                                                            color="red.500"
-                                                            marginLeft="8px"
+                                                            color={getColor(darkMode, "textPrimary")}
+                                                            marginTop="5px"
                                                             isMobile={isMobile}
                                                         >
-                                                            {price.sale}€ {firstToLowerCase(price.term)}
+                                                            {price.cost}€ {firstToLowerCase(price.term)}
                                                         </AppText>
-                                                    </Flex>
-                                                </>
-                                            ) : (
-                                                <AppText
+                                                    )
+                                                }
+                                            </Flex>
+                                            <Flex
+                                                padding="25px"
+                                                flexDirection="column"
+                                                justifyContent="center"
+                                                width="100%"
+                                            >
+                                                <Button
+                                                    marginTop="50px"
                                                     darkMode={darkMode}
-                                                    fontWeight="bold"
-                                                    fontSize={17}
-                                                    color={getColor(darkMode, "textPrimary")}
-                                                    marginTop="5px"
                                                     isMobile={isMobile}
+                                                    backgroundColor={darkMode ? "white" : "gray"}
+                                                    color={darkMode ? "black" : "white"}
+                                                    border={"1px solid " + (darkMode ? "white" : "gray")}
+                                                    height="45px"
+                                                    width="100%"
+                                                    autoFocus={false}
+                                                    _hover={{
+                                                        backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                                                        border: "1px solid " + (darkMode ? "white" : "gray"),
+                                                        color: darkMode ? "white" : "gray"
+                                                    }}
+                                                    onClick={() => eventListener.emit("openBuyModal", {
+                                                        id: price.id,
+                                                        name: price.name,
+                                                        cost: cfg.pricing.saleEnabled ? price.sale : price.cost,
+                                                        term: price.term,
+                                                        lifetime: price.term == "lifetime"
+                                                    })}
                                                 >
-                                                    {price.cost}€ {firstToLowerCase(price.term)}
-                                                </AppText>
-                                            )
-                                        }
-                                    </Flex>
-                                    <Flex
-                                        padding="25px"
-                                        flexDirection="column"
-                                        justifyContent="center"
-                                        width="100%"
-                                    >
-                                        <Button
-                                            marginTop="50px"
-                                            darkMode={darkMode}
-                                            isMobile={isMobile}
-                                            backgroundColor={darkMode ? "white" : "gray"}
-                                            color={darkMode ? "black" : "white"}
-                                            border={"1px solid " + (darkMode ? "white" : "gray")}
-                                            height="45px"
-                                            width="100%"
-                                            autoFocus={false}
-                                            _hover={{
-                                                backgroundColor: getColor(darkMode, "backgroundSecondary"),
-                                                border: "1px solid " + (darkMode ? "white" : "gray"),
-                                                color: darkMode ? "white" : "gray"
-                                            }}
-                                            onClick={() => eventListener.emit("openBuyModal", {
-                                                id: price.id,
-                                                name: price.name,
-                                                cost: SALE_ACTIVE ? price.sale : price.cost,
-                                                term: price.term,
-                                                lifetime: price.term == "lifetime"
-                                            })}
-                                        >
-                                            {i18n(lang, "buyNow")}
-                                        </Button>
-                                    </Flex>
-                                </Flex>
-                            )
-                        })
-                    }
-                </Flex>
-            </Flex>
+                                                    {i18n(lang, "buyNow")}
+                                                </Button>
+                                            </Flex>
+                                        </Flex>
+                                    )
+                                })
+                            }
+                        </Flex>
+                    </Flex>
+                )
+            }
             <BuyModal
                 darkMode={darkMode}
                 isMobile={isMobile}
