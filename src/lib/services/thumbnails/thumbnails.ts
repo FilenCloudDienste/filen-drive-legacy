@@ -223,7 +223,7 @@ export const generateThumbnail = (item: ItemProps, skipVisibleCheck: boolean = f
                     memoryCache.set("hideTransferProgress:" + item.uuid, true)
 
                     if(getFilePreviewType(getFileExt(item.name)) == "video"){
-                        downloadFile(item, false, 16).then((data) => {
+                        downloadFile(item, false, item.chunks < 16 ? item.chunks : 16).then((data) => {
                             if(!skipVisibleCheck){
                                 if(!isItemVisible(item)){
                                     thumbnailSemaphore.release()
