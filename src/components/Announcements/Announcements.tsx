@@ -3,7 +3,6 @@ import { Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import Button from "../Button"
-import eventListener from "../../lib/eventListener"
 import type { ICFG, CFGAnnouncement } from "../../types"
 import db from "../../lib/db"
 
