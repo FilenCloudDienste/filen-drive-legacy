@@ -368,7 +368,8 @@ const en: {
     emptyTrashSuccess: "Trash emptied",
     itemRenamed: "Item renamed",
     subCancelled: "Cancelled",
-    support: "Support"
+    support: "Support",
+    finishing: "Finishing"
 }
 
 export default en

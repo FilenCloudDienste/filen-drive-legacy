@@ -230,7 +230,11 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
                                                 fontWeight="bold"
                                             >
                                                 {
-                                                    item.done ? (
+                                                    progress <= 1 || progress >= 99 ? (
+                                                        <>
+                                                            {i18n(lang, "finishing")}
+                                                        </>
+                                                    ) : item.done ? (
                                                         <>
                                                             {i18n(lang, "done")}
                                                         </>
@@ -245,7 +249,7 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
                                     )
                                 }
                                 {
-                                    (progress >= 1 || progress <= 99) && !item.done && (
+                                    progress >= 1 && progress <= 99 && !item.done && (
                                         <UploadModalListItemActionButtons
                                             darkMode={darkMode}
                                             isMobile={isMobile}
@@ -268,7 +272,7 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
             >
                 <Progress
                     value={(item.done || item.errored) ? 100 : progress}
-                    isIndeterminate={paused ? true : (item.done || item.errored) ? false : progress <= 0}
+                    isIndeterminate={paused || ((progress <= 1 || progress >= 99) && !item.done) ? true : (item.done || item.errored) ? false : progress <= 0}
                     colorScheme={item.done ? "green" : item.errored ? "red" : CHAKRA_COLOR_SCHEME}
                     width="100%"
                     height="3px"

@@ -9,7 +9,7 @@ import { convertHeic } from "../../worker/worker.com"
 import eventListener from "../../eventListener"
 
 const thumbnailSemaphore = new Semaphore(MAX_CONCURRENT_THUMBNAIL_GENERATIONS)
-const isGeneratingThumbnailForUUID: { [key: string]: boolean } = {}
+const isGeneratingThumbnailForUUID: Record<string, boolean> = {}
 
 const increaseErrorCount = (key: string, by: number = 1): void => {
     if(memoryCache.has(key)){
@@ -21,8 +21,6 @@ const increaseErrorCount = (key: string, by: number = 1): void => {
 }
 
 export const generateVideoThumbnail = (file: Blob, seekTo: number = 0.0): Promise<Blob | null> => {
-    console.log("getting video cover for file: ", file);
-
     return new Promise((resolve, reject) => {
         const videoPlayer = document.createElement("video")
 
@@ -74,6 +72,58 @@ export const generateVideoThumbnail = (file: Blob, seekTo: number = 0.0): Promis
 
 export const isItemVisible = (item: ItemProps): boolean => {
     return window.visibleItems.filter(filterItem => filterItem.uuid == item.uuid).length > 0
+}
+
+export const generateThumbnailAfterUpload = async (file: File, uuid: string, name: string) => {
+    isGeneratingThumbnailForUUID[uuid] = true
+
+    try{
+        const type = getFilePreviewType(getFileExt(name))
+
+        if(!["video", "image"].includes(type)){
+            throw new Error("Could not generate thumbnail for " + name + ": Invalid type " + type)
+        }
+
+        const cacheKey = "generateThumbnail:" + uuid
+        const dbKey = uuid + ":" + THUMBNAIL_DIMENSIONS.width + "x" + THUMBNAIL_DIMENSIONS.height + "@" + THUMBNAIL_DIMENSIONS.quality + ":" + THUMBNAIL_VERSION
+
+        if(type == "video"){
+            const cover = await generateVideoThumbnail(file)
+
+            if(!cover){
+                throw new Error("Could not generate video cover for " + name)
+            }
+
+            file = new File([cover], name, {
+                type: "image/jpeg"
+            })
+        }
+        
+        const compressed = await imageCompression(file, {
+            maxWidthOrHeight: THUMBNAIL_DIMENSIONS.width,
+            maxSizeMB: 0.1,
+            useWebWorker: true,
+            fileType: "image/jpeg"
+        })
+
+        await db.set(dbKey, compressed, "thumbnails")
+
+        const url = window.URL.createObjectURL(compressed)
+                
+        memoryCache.set(cacheKey, url)
+
+        thumbnailSemaphore.release()
+
+        eventListener.emit("thumbnailGenerated", {
+            uuid: uuid,
+            url
+        })
+    }
+    catch(e){
+        console.error(e)
+    }
+
+    isGeneratingThumbnailForUUID[uuid] = false
 }
 
 export const generateThumbnail = (item: ItemProps, skipVisibleCheck: boolean = false): Promise<string> => {

@@ -354,7 +354,8 @@ const de: {
     invite: "Einladen",
     yourReferralLink: "Dein Link",
     subCancelled: "Gekündigt",
-    support: "Support"
+    support: "Support",
+    finishing: "Beende"
 }
 
 export default de

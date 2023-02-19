@@ -421,6 +421,12 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
             return
         }
 
+        if(item.type == "folder"){
+            moveToParent(droppedItems, item.uuid).catch(console.error)
+        
+            return
+        }
+
         moveToParent(droppedItems, getCurrentParent()).catch(console.error)
     }, [item])
 

@@ -1,6 +1,6 @@
 import type { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
-import { generateRandomString, Semaphore, getUploadServer } from "../../helpers"
+import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt } from "../../helpers"
 import { encryptMetadata, hashFn, encryptAndUploadFileChunk } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
@@ -8,6 +8,7 @@ import { MAX_CONCURRENT_UPLOADS, MAX_UPLOAD_THREADS, UPLOAD_VERSION } from "../.
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { addItemsToStore } from "../metadata"
 import { fetchUserInfoCached } from "../user"
+import { generateThumbnailAfterUpload } from "../thumbnails"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
@@ -278,6 +279,11 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 
         try{
             await markUploadAsDone({ uuid, uploadKey })
+
+            if(canCompressThumbnail(getFileExt(name))){
+                await generateThumbnailAfterUpload(item.file, uuid, name)
+            }
+
             await checkIfItemParentIsShared({
                 type: "file",
                 parent,
