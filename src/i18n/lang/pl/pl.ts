@@ -360,7 +360,14 @@ const pl: {
     receivedBonusStorage: "Łącznie otrzymane dodatkowe miejsce na dane",
     referInfo: "Otrzymaj do __STORAGE__ przestrzeni dyskowej, zapraszając innych",
     referInfo2: "Za każdego znajomego, którego zaprosisz do Filen, otrzymasz __STORAGE__, a twój znajomy również otrzyma __OTHER_STORAGE__. Twój znajomy może zarejestrować się na wybraną przez siebie subskrypcję, a Ty zarabiasz prowizję. Próg wypłaty prowizji wynosi __THRESHOLD__€.",
-    yourBtcAddress: "Twój adres Bitcoina"
+    yourBtcAddress: "Twój adres Bitcoina",
+    openUploads: "Otwórz przesłane pliki",
+    payNow: "Zapłać fakturę teraz",
+    emptyTrashModalSure: "Czy na pewno chcesz opróżnić kosz? Tej czynności nie można cofnąć!",
+    emptyTrashSuccess: "Kosz opróżniony",
+    itemRenamed: "Zmieniono nazwę elementu",
+    subCancelled: "Anulowano",
+    support: "Wsparcie"
 }
 
 export default pl
