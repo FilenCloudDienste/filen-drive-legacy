@@ -918,6 +918,17 @@ export const getImageForFileByExt = memoize((ext: string) => {
     }
 })
 
+export const safeAwait = async <T>(promise: Promise<T>): Promise<[Error | null, T]> => {
+    try{
+        const result = await promise
+
+        return [null, result]
+    }
+    catch(e){
+        return [e as Error, null as any as T]
+    }
+}
+
 export const getCurrentParent = (href?: string): string => {
     let ex: string[] = []
 

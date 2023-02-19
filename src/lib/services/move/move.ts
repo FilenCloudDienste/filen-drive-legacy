@@ -3,9 +3,11 @@ import { moveFile, moveFolder, folderExists } from "../../api"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
-import { getLang } from "../../helpers"
+import { getLang, Semaphore, safeAwait } from "../../helpers"
 import { i18n } from "../../../i18n"
 import { addItemsToStore, removeItemsFromStore } from "../metadata"
+
+const mutex = new Semaphore(1)
 
 export const moveToParent = async (items: ItemProps[], parent: string): Promise<void> => {
     const lang: string = getLang()
@@ -16,13 +18,23 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
         return
     }
 
+    await mutex.acquire()
+
     const toastId = showToast("loading", i18n(lang, "movingItems", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 
     const toMove: ItemProps[] = []
 
     for(let i = 0; i < items.length; i++){
         if(items[i].type == "folder"){
-            const exists = await folderExists({ name: items[i].name, parent })
+            const [existsErr, exists] = await safeAwait(folderExists({ name: items[i].name, parent }))
+
+            if(existsErr){
+                console.error(existsErr)
+
+                mutex.release()
+
+                throw existsErr
+            }
 
             if(exists.exists){
                 showToast("error", i18n(lang, "folderExistsAtDest", true, ["__NAME__"], [items[i].name]), "bottom", 5000)
@@ -85,4 +97,6 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
     }
 
     dismissToast(toastId)
+
+    mutex.release()
 }

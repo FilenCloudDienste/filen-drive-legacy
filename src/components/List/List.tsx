@@ -193,7 +193,7 @@ const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWi
         ){
             const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
-            moveToParent(droppedItems, getCurrentURLParentFolder())
+            moveToParent(droppedItems, getCurrentParent()).catch(console.error)
         }
     }, [setItemDragState])
 

@@ -420,10 +420,8 @@ export const Item = memo(({ darkMode, isMobile, style, item, items, setItems, se
         if(item.root.indexOf("trash") !== -1){
             return
         }
-        
-        const parent = item.type == "folder" ? item.uuid : item.parent
 
-        moveToParent(droppedItems, parent)
+        moveToParent(droppedItems, getCurrentParent()).catch(console.error)
     }, [item])
 
     const handleItemOnDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>): void => {

@@ -678,7 +678,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
         })
 
         const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
-            await new Promise(resolve => setTimeout(resolve, 250))
+            await new Promise(resolve => setTimeout(resolve, 100))
 
             if(event.type == "fileArchived" || event.type == "fileTrash" || event.type == "folderTrash"){
                 setItems(prev => prev.filter(item => item.uuid !== event.data.uuid))
