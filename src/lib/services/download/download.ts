@@ -242,6 +242,7 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
     return new Promise(async (resolve, reject) => {
         const totalSize: number = items.reduce((prev, current) => prev + current.size, 0)
         let streamDestroyed: boolean = false
+        let cleanedUp: boolean = false
 
         if(totalSize <= 0 || items.length == 0){
             return reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
@@ -251,6 +252,26 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
             size: totalSize
         })
 
+        const cleanup = () => {
+            if(cleanedUp) return
+
+            cleanedUp = true
+
+            for(let i = 0; i < items.length; i++){
+                downloadSemaphore.release()
+                
+                for(let x = 0; x < (items[i].chunks + 1); x++){
+                    writersSemaphore.release()
+                }
+
+                eventListener.emit("download", {
+                    type: "err",
+                    data: items[i],
+                    err: "Stream stopped"
+                } as Download)
+            }
+        }
+
         downloadZip(items.map(item => {
             return {
                 name: paths[item.uuid],
@@ -258,6 +279,8 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
                 input: new ReadableStream({
                     async start(controller){
                         if(streamDestroyed){
+                            cleanup()
+
                             return controller.close()
                         }
 
@@ -287,6 +310,8 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
                         const download = (index: number): Promise<{ index: number, chunk: Uint8Array }> => {
                             return new Promise(async (resolve, reject) => {
                                 if(streamDestroyed){
+                                    cleanup()
+
                                     return reject("stopped")
                                 }
 
@@ -317,6 +342,8 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
                                     ]).then(() => {
                                         download(i).then(({ index, chunk }) => {
                                             if(streamDestroyed){
+                                                cleanup()
+                                                
                                                 downloadThreadsSemaphore.release()
 
                                                 return reject("stopped")
@@ -387,20 +414,8 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
         }).catch((err) => {
             streamDestroyed = true
 
-            for(let i = 0; i < items.length; i++){
-                downloadSemaphore.release()
-                
-                for(let x = 0; x < (items[i].chunks + 1); x++){
-                    writersSemaphore.release()
-                }
-
-                eventListener.emit("download", {
-                    type: "err",
-                    data: items[i],
-                    err: "Stream stopped"
-                } as Download)
-            }
-
+            cleanup()
+            
             return reject(err)
         })
     })
