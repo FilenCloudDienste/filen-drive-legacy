@@ -18,11 +18,10 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
         return
     }
 
-    await mutex.acquire()
-
     const toastId = showToast("loading", i18n(lang, "movingItems", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
-
     const toMove: ItemProps[] = []
+
+    await mutex.acquire()
 
     for(let i = 0; i < items.length; i++){
         if(items[i].type == "folder"){
