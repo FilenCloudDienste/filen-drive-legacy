@@ -65,7 +65,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
         blobURLs = []
     }, [])
 
-    const getFileBuffer = useCallback((item: ItemProps, hideProgress: boolean = true): Promise<Uint8Array> => {
+    const getFileBuffer = useCallback((item: ItemProps): Promise<Uint8Array> => {
         return new Promise((resolve, reject) => {
             if(previewCache.has("buffer:" + item.uuid)){
                 if(!isMounted.current){
@@ -74,6 +74,8 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
                 
                 return resolve(previewCache.get("buffer:" + item.uuid))
             }
+
+            const hideProgress = item.size < ((1024 * 1024) * 16)
 
             if(hideProgress){
                 memoryCache.set("hideTransferProgress:" + item.uuid, true)

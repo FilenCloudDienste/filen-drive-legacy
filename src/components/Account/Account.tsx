@@ -1532,12 +1532,12 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
         })
     }
 
-    const getEvents = (lastId: number = 0, filter: string = "all") => {
-        if(lastId == 0){
+    const getEvents = (lastTimestamp: number = (Math.floor(new Date().getTime() / 1000) + 60), filter: string = "all") => {
+        if(events.length == 0){
             setLoading(true)
         }
 
-        fetchEvents(lastId, filter).then((data) => {
+        fetchEvents(lastTimestamp, filter).then((data) => {
             setEvents(prev => [...prev, ...data.events])
             setLoading(false)
         }).catch((err) => {
@@ -1602,7 +1602,7 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
                                 }
 
                                 if((e.scrollTop + e.clientHeight) >= e.scrollHeight && events.length > 0){
-                                    getEvents(events[events.length - 1].id)
+                                    getEvents(events[events.length - 1].timestamp)
                                 }
                             }}
                             style={{

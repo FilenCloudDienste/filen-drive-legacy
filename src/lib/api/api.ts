@@ -2705,15 +2705,15 @@ export const disable2FA = async (code: string): Promise<boolean> => {
     return true
 }
 
-export const fetchEvents = async (lastId: number = 0, filter: string = "all"): Promise<{ events: UserEvent[], limit: number }> => {
+export const fetchEvents = async (lastTimestamp: number = (Math.floor(new Date().getTime() / 1000) + 60), filter: string = "all"): Promise<{ events: UserEvent[], limit: number }> => {
     const apiKey: string = await db.get("apiKey")
     const response = await apiRequest({
         method: "POST",
-        endpoint: "/v1/user/events",
+        endpoint: "/v2/user/events",
         data: {
             apiKey,
             filter,
-            id: lastId
+            timestamp: lastTimestamp
         }
     })
 
