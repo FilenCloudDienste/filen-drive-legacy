@@ -368,7 +368,8 @@ const ru: {
     emptyTrashSuccess: "Корзина очищена",
     itemRenamed: "Объект переименован",
     subCancelled: "Подписка отменена",
-    support: "Поддержка"
+    support: "Поддержка",
+    finishing: "Завершение"
 }
 
 export default ru
