@@ -369,6 +369,7 @@ const zh: {
     itemRenamed: "项目已重命名",
     subCancelled: "已取消",
     support: "支持"
+    finishing: "整理中"
 }
 
 export default zh
