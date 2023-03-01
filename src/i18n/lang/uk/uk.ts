@@ -368,7 +368,8 @@ const uk: {
     emptyTrashSuccess: "Кошик очищено",
     itemRenamed: "Об'єкт перейменовано",
     subCancelled: "Підписку скасовано",
-    support: "Підтримка"
+    support: "Підтримка",
+    finishing: "Завершення"
 }
 
 export default uk
