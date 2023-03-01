@@ -473,10 +473,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
     }, [sortBy])
 
     const windowOnFocus = useCallback(() => {
-        if(searchTerm.length > 0){
+        if(currentSearchTerm.current.length > 0){
             return
         }
-        
+
         populateList(true)
     }, [searchTerm])
 
