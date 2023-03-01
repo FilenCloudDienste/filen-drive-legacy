@@ -48,13 +48,12 @@ const App = memo(() => {
     const darkMode: boolean = useDarkMode()
     const isMobile: boolean = useIsMobile()
     const lang: string = useLang()
-    const [loggedIn, setLoggedIn] = useCookie("loggedIn")
+    const [loggedIn] = useCookie("loggedIn")
     const [analytics, setAnalytics] = useState<boolean>(typeof cookies.get("cookieConsent") == "string" && (cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all") ? true : false)
     const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
     const didMount = useRef<boolean>(false)
-
-    const paramsEx: string[] = window.location.href.split("?")
-    const includesPlanRedirect: boolean = paramsEx.length >= 2 && paramsEx[1].indexOf("pro=") !== -1
+    const paramsEx = useRef<string[]>(window.location.href.split("?")).current
+    const includesPlanRedirect = useRef<boolean>(paramsEx.length >= 2 && paramsEx[1].indexOf("pro=") !== -1).current
 
     useEffect(() => {
         const body = document.querySelector("body") as HTMLElement
