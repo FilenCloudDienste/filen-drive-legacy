@@ -1,7 +1,7 @@
 import { expose, transfer } from "comlink"
 import axios from "axios"
 import memoryCache from "../memoryCache"
-import { arrayBufferToHex, base64ToArrayBuffer, arrayBufferToBase64, generateRandomString, convertTimestampToMs, readChunk, mergeUInt8Arrays, getAPIServer, convertWordArrayToArrayBuffer, convertArrayBufferToBinaryString } from "../helpers"
+import { arrayBufferToHex, base64ToArrayBuffer, arrayBufferToBase64, generateRandomString, convertTimestampToMs, readChunk, mergeUInt8Arrays, getAPIServer, getAPIV3Server, convertWordArrayToArrayBuffer, convertArrayBufferToBinaryString } from "../helpers"
 // @ts-ignore
 import CryptoApi from "crypto-api-v1"
 import CryptoJS from "crypto-js"
@@ -24,7 +24,13 @@ axiosRetry(axios, {
 })
 
 const apiRequest = async (method: string = "POST", endpoint: string, data: any): Promise<{ status: boolean, message: string, [key: string]: any }> => {
-	const response = method.toUpperCase() == "POST" ? await axios.post(getAPIServer() + endpoint, data) : await axios.get(getAPIServer() + endpoint)
+	const response = endpoint.startsWith("/v1/")
+		? method.toUpperCase() == "POST"
+			? await axios.post(getAPIServer() + endpoint, data)
+			: await axios.get(getAPIServer() + endpoint)
+		: method.toUpperCase() == "POST"
+			? await axios.post(getAPIV3Server() + endpoint, data)
+			: await axios.get(getAPIV3Server() + endpoint)
 
 	if(response.status !== 200){
 		throw new Error("Response status " + response.status)

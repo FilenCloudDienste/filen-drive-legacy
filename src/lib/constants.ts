@@ -37,6 +37,16 @@ export const API_DOMAINS = [
     "https://api.filen-5.net",
     "https://api.filen-6.net"
 ]
+export const API_V3_DOMAINS = [
+    "https://api.gateway.filen.io",
+    "https://api.gateway.filen.net",
+    "https://api.gateway.filen-1.net",
+    "https://api.gateway.filen-2.net",
+    "https://api.gateway.filen-3.net",
+    "https://api.gateway.filen-4.net",
+    "https://api.gateway.filen-5.net",
+    "https://api.gateway.filen-6.net"
+]
 export const DOWNLOAD_DOMAINS = [
     "https://down.filen.io",
     "https://down.filen.net",
@@ -56,6 +66,16 @@ export const UPLOAD_DOMAINS = [
     "https://up.filen-4.net",
     "https://up.filen-5.net",
     "https://up.filen-6.net"
+]
+export const UPLOAD_V3_DOMAINS = [
+    "https://upload.gateway.filen.io",
+    "https://upload.gateway.filen.net",
+    "https://upload.gateway.filen-1.net",
+    "https://upload.gateway.filen-2.net",
+    "https://upload.gateway.filen-3.net",
+    "https://upload.gateway.filen-4.net",
+    "https://upload.gateway.filen-5.net",
+    "https://upload.gateway.filen-6.net"
 ]
 export const SOCKET = "https://socket.filen.io"
 export const REPORT_API_URL = process.env.NODE_ENV == "development" ? "http://localhost:3000/api/v1/ticket/submit" : "https://filen.io/api/v1/ticket/submit"
