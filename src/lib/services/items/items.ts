@@ -32,7 +32,7 @@ export const addFolderNameToDb = async (uuid: string, name: string): Promise<voi
     addFolderNameToDbSemaphore.release()
 }
 
-export const loadItems = (href: string, skipCache: boolean = false, dontSave: boolean = false): Promise<{ cache: boolean, items: ItemProps[] }> => {
+export const loadItems = (href: string, skipCache: boolean = false): Promise<{ cache: boolean, items: ItemProps[] }> => {
     return new Promise((resolve, reject) => {
         const uuid: string = getCurrentParent(href)
 
@@ -114,7 +114,7 @@ export const loadItems = (href: string, skipCache: boolean = false, dontSave: bo
                                         size: parseInt(striptags(fileMetadata.size.toString())),
                                         mime: striptags(fileMetadata.mime),
                                         lastModified: convertTimestampToMs(lastModified),
-                                        lastModifiedSort: lastModified,
+                                        lastModifiedSort: convertTimestampToMs(lastModified),
                                         timestamp: convertTimestampToMs(file.timestamp),
                                         selected: false,
                                         color: "default",
@@ -349,7 +349,7 @@ export const loadItems = (href: string, skipCache: boolean = false, dontSave: bo
     
                             fileMetadata.name = striptags(fileMetadata.name)
 
-                            const lastModified = typeof fileMetadata.lastModified == "number" && !isNaN(fileMetadata.lastModified) && fileMetadata.lastModified > 13000000 ? fileMetadata.lastModified : file.timestamp
+                            const lastModified = convertTimestampToMs(fileMetadata.lastModified || file.timestamp)
     
                             if(typeof fileMetadata.name == "string"){
                                 if(fileMetadata.name.length > 0){
@@ -360,8 +360,8 @@ export const loadItems = (href: string, skipCache: boolean = false, dontSave: bo
                                         name: fileMetadata.name,
                                         size: parseInt(striptags(fileMetadata.size.toString())),
                                         mime: striptags(fileMetadata.mime),
-                                        lastModified: convertTimestampToMs(lastModified),
-                                        lastModifiedSort: convertTimestampToMs(lastModified),
+                                        lastModified,
+                                        lastModifiedSort: lastModified,
                                         timestamp: convertTimestampToMs(file.timestamp),
                                         selected: false,
                                         color: "default",
@@ -391,13 +391,6 @@ export const loadItems = (href: string, skipCache: boolean = false, dontSave: bo
                     const sorted: ItemProps[] = orderItemsByType(items, sortBy[href], href)
 
                     addToSearchItems(sorted)
-
-                    if(dontSave){
-                        return resolve({
-                            cache: false,
-                            items: sorted
-                        })
-                    }
     
                     db.set("loadItems:" + uuid, sorted, "metadata").then(() => {
                         return resolve({
@@ -617,7 +610,7 @@ export const getDirectoryTree = (uuid: string, type: "normal" | "shared" | "link
             }
 
             for(let i = 0; i < content.files.length; i++){
-                const { uuid, bucket, region, chunks, parent, metadata, version } = content.files[i]
+                const { uuid, bucket, region, chunks, parent, metadata, version, timestamp } = content.files[i]
                 const decrypted = type == "normal" ? await decryptFileMetadata(metadata, masterKeys) : (type == "shared" ? await decryptFileMetadataPrivateKey(metadata, privateKey) : await decryptFileMetadataLink(metadata, linkKey as string))
 
                 if(typeof decrypted.lastModified == "number"){
@@ -629,7 +622,7 @@ export const getDirectoryTree = (uuid: string, type: "normal" | "shared" | "link
                     decrypted.lastModified = new Date().getTime()
                 }
 
-                decrypted.lastModified = convertTimestampToMs(decrypted.lastModified)
+                decrypted.lastModified = convertTimestampToMs(decrypted.lastModified || timestamp || new Date().getTime())
 
                 if(decrypted.name.length > 0 && !addedFiles[parent + ":" + decrypted.name]){
                     addedFiles[parent + ":" + decrypted.name] = true
@@ -695,7 +688,7 @@ export const getDirectoryTree = (uuid: string, type: "normal" | "shared" | "link
                             type: "folder",
                             parent: folders[prop].parent,
                             uuid: folders[prop].uuid,
-                            name: folders[prop].name,
+                            name: striptags(folders[prop].name),
                             size: 0,
                             mime: "Folder",
                             lastModified: 0,
