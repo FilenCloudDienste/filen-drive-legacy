@@ -368,7 +368,7 @@ const zh: {
     emptyTrashSuccess: "回收站已清空",
     itemRenamed: "项目已重命名",
     subCancelled: "已取消",
-    support: "支持"
+    support: "支持",
     finishing: "整理中"
 }
 
