@@ -24,7 +24,7 @@ axiosRetry(axios, {
 })
 
 const apiRequest = async (method: string = "POST", endpoint: string, data: any): Promise<{ status: boolean, message: string, [key: string]: any }> => {
-	const response = endpoint.startsWith("/v1/")
+	const response = endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
 		? method.toUpperCase() == "POST"
 			? await axios.post(getAPIServer() + endpoint, data)
 			: await axios.get(getAPIServer() + endpoint)
