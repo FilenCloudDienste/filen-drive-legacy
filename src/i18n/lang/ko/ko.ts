@@ -368,7 +368,8 @@ const ko: {
     emptyTrashSuccess: "휴지통 비워짐",
     itemRenamed: "항목 이름 변경됨",
     subCancelled: "취소됨",
-    support: "지원"
+    support: "지원",
+    finishing: "완료"
 }
 
 export default ko
