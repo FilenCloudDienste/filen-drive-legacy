@@ -545,13 +545,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
     useEffect(() => {
         if(searchTerm.length > 0){
-            if(currentItems.current.length > 0){
-                if(itemsBeforeSearch.current.length == 0){
-                    itemsBeforeSearch.current = currentItems.current
-                }
-    
-                setItems(currentItems.current.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1))
+            if(itemsBeforeSearch.current.length == 0){
+                itemsBeforeSearch.current = currentItems.current
             }
+
+            setItems(itemsBeforeSearch.current.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1))
         }
         else{
             if(itemsBeforeSearch.current.length > 0){
