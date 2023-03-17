@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, useRef, useCallback } from "react"
+import { memo, useEffect, useState, useRef, useCallback, useMemo } from "react"
 import type { AppBaseProps } from "../../types"
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { Flex, Image } from "@chakra-ui/react"
@@ -71,7 +71,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
     const currentItems = useRef<ItemProps[]>([])
     const [searchTerm, setSearchTerm] = useState<string>("")
     const currentSearchTerm = useRef<string>("")
-    const itemsBeforeSearch = useRef<ItemProps[]>([])
     const [showDragAndDropModal, setShowDragAndDropModal] = useState<boolean>(false)
 
     const debounceReloadSizesEvent = useCallback(debounce(() => {
@@ -480,6 +479,14 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
         populateList(true)
     }, [searchTerm])
 
+    const filteredSearchItems = useMemo(() => {
+        if(searchTerm.length <= 0){
+            return items
+        }
+
+        return items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
+    }, [items, searchTerm])
+
     useEffect(() => {
         if(initDone){
             if(location.hash.split("/").length < 2){
@@ -541,23 +548,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
     useEffect(() => {
         currentSearchTerm.current = searchTerm
-    }, [searchTerm])
-
-    useEffect(() => {
-        if(searchTerm.length > 0){
-            if(itemsBeforeSearch.current.length == 0){
-                itemsBeforeSearch.current = currentItems.current
-            }
-
-            setItems(itemsBeforeSearch.current.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1))
-        }
-        else{
-            if(itemsBeforeSearch.current.length > 0){
-                setItems(itemsBeforeSearch.current)
-    
-                itemsBeforeSearch.current = []
-            }
-        }
     }, [searchTerm])
 
     useEffect(() => {
@@ -1144,7 +1134,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                                     windowWidth={windowWidth}
                                     windowHeight={windowHeight}
                                     sidebarWidth={sidebarWidth}
-                                    items={items}
+                                    items={filteredSearchItems}
                                     setItems={setItems}
                                     setActiveItem={setActiveItem}
                                     setItemDragState={setItemDragState}
@@ -1152,6 +1142,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
                                     loadingItems={loadingItems}
                                     gridFolders={gridFolders}
                                     lang={lang}
+                                    searchTerm={searchTerm}
                                 />
                             </>
                         )

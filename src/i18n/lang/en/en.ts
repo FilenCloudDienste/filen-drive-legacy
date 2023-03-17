@@ -369,7 +369,8 @@ const en: {
     itemRenamed: "Item renamed",
     subCancelled: "Cancelled",
     support: "Support",
-    finishing: "Finishing"
+    finishing: "Finishing",
+    searchNothingFound: "\"__TERM__\" not found" 
 }
 
 export default en

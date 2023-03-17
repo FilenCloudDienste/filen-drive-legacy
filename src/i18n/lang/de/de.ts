@@ -355,7 +355,8 @@ const de: {
     yourReferralLink: "Dein Link",
     subCancelled: "Gekündigt",
     support: "Support",
-    finishing: "Beende"
+    finishing: "Beende",
+    searchNothingFound: "\"__TERM__\" nicht gefunden"
 }
 
 export default de

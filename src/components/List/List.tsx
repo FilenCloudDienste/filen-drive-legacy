@@ -176,7 +176,7 @@ const ListBody = memo(({ darkMode, isMobile, gridFolders, windowHeight, windowWi
     )
 })
 
-const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWidth, sidebarWidth, setActiveItem, setDragSelectState, setItemDragState, loadingItems, gridFolders, lang }: ListProps) => {
+const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWidth, sidebarWidth, setActiveItem, setDragSelectState, setItemDragState, loadingItems, gridFolders, lang, searchTerm }: ListProps) => {
     const [listScrollState, setListScrollState] = useState<ListScrollState>({ clientHeight: windowHeight, scrollHeight: LIST_ITEM_HEIGHT * items.length, scrollTop: 0 })
     const [sortBy, setSortBy] = useDb("sortBy", {})
     const location = useLocation()
@@ -253,6 +253,7 @@ const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWi
                         isMobile={isMobile}
                         lang={lang}
                         handleContextMenu={handleContextMenu}
+                        searchTerm={searchTerm}
                     />
                 ) : (
                     <>

@@ -1,4 +1,4 @@
-import { memo } from "react"
+import { memo, useMemo } from "react"
 import { useLocation } from "react-router-dom"
 import SelectFromComputer from "../SelectFromComputer"
 import { Flex } from "@chakra-ui/react"
@@ -9,9 +9,48 @@ import { MdOutlineFavorite } from "react-icons/md"
 import { HiClock } from "react-icons/hi"
 import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri"
 import { i18n } from "../../i18n"
+import { AiOutlineSearch } from "react-icons/ai"
 
-const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkMode: boolean, isMobile: boolean, lang: string, handleContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => any }) => {
+const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu, searchTerm }: { darkMode: boolean, isMobile: boolean, lang: string, handleContextMenu: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => any, searchTerm: string }) => {
     const location = useLocation()
+
+    const sizes = useMemo(() => {
+        return {
+            icon: isMobile ? 90 : 128,
+            primary: isMobile ? 20 : 22,
+            secondary: isMobile ? 12 : 14
+        }
+    }, [isMobile])
+
+    if(searchTerm.length > 0){
+        return (
+            <Flex
+                width="100%"
+                height="100%"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="center"
+                className="no-items-uploaded"
+                paddingLeft="15px"
+                paddingRight="15px"
+            >
+                <AiOutlineSearch
+                    size={sizes.icon}
+                    color={getColor(darkMode, "textSecondary")}
+                />
+                <AppText
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    noOfLines={1}
+                    fontSize={isMobile ? 15: 17}
+                    color={getColor(darkMode, "textSecondary")}
+                    marginTop="10px"
+                >
+                    {i18n(lang, "searchNothingFound", true, ["__TERM__"], [searchTerm])}
+                </AppText>
+            </Flex>
+        )
+    }
 
     if(location.hash.indexOf("shared-in") !== -1){
         return (
@@ -26,14 +65,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <RiFolderReceivedFill
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -43,7 +82,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_2")}
@@ -65,14 +104,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <RiFolderSharedFill
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -82,7 +121,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_4")}
@@ -104,14 +143,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <RiLink
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -121,7 +160,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_6")}
@@ -143,14 +182,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <MdOutlineFavorite
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -160,7 +199,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_8")}
@@ -182,14 +221,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <HiClock
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -199,7 +238,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_10")}
@@ -221,14 +260,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 paddingRight="15px"
             >
                 <IoTrash
-                    size={128}
+                    size={sizes.icon}
                     color={getColor(darkMode, "textSecondary")}
                 />
                 <AppText
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={22}
+                    fontSize={sizes.primary}
                     color={getColor(darkMode, "textPrimary")}
                     marginTop="10px"
                 >
@@ -238,7 +277,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                     darkMode={darkMode}
                     isMobile={isMobile}
                     noOfLines={1}
-                    fontSize={14}
+                    fontSize={sizes.secondary}
                     color={getColor(darkMode, "textSecondary")}
                 >
                     {i18n(lang, "listEmpty_12")}
@@ -260,14 +299,14 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
             paddingRight="15px"
         >
             <IoFolder
-                size={128}
+                size={sizes.icon}
                 color={getColor(darkMode, "textSecondary")}
             />
             <AppText
                 darkMode={darkMode}
                 isMobile={isMobile}
                 noOfLines={1}
-                fontSize={22}
+                fontSize={sizes.primary}
                 color={getColor(darkMode, "textPrimary")}
                 marginTop="10px"
             >
@@ -277,7 +316,7 @@ const ListEmpty = memo(({ darkMode, isMobile, lang, handleContextMenu }: { darkM
                 darkMode={darkMode}
                 isMobile={isMobile}
                 noOfLines={1}
-                fontSize={14}
+                fontSize={sizes.secondary}
                 color={getColor(darkMode, "textSecondary")}
             >
                 {i18n(lang, "listEmpty_14")}

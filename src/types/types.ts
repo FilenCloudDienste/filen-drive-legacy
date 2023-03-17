@@ -185,7 +185,8 @@ export interface ListProps {
     setDragSelectState: React.Dispatch<React.SetStateAction<DragSelectState>>,
     loadingItems: boolean,
     gridFolders: any,
-    lang: string
+    lang: string,
+    searchTerm: string
 }
 
 export interface ListScrollState {
