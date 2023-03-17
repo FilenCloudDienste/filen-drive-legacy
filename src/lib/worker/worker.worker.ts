@@ -448,75 +448,73 @@ const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array |
 	return transfer(result, [result.buffer])
 }
 
-const encryptAndUploadFileChunk = (file: File, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
+const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
 	return new Promise((resolve, reject) => {
-		let current = -1
-		let lastBytes = 0
-		let lastErr: Error
+		encryptData(chunk, key).then((encryptedChunk) => {
+			let current = -1
+			let lastBytes = 0
+			let lastErr: Error
 
-		const req = () => {
-			current += 1
+			const req = () => {
+				current += 1
 
-			if(current >= MAX_UPLOAD_RETRIES){
-				return reject(lastErr)
-			}
+				if(current >= MAX_UPLOAD_RETRIES){
+					return reject(lastErr)
+				}
 
-			lastBytes = 0
+				lastBytes = 0
 
-			readChunk(file, chunkIndex, chunkSize).then((chunk) => {
-				encryptData(chunk, key).then((encryptedChunk) => {
-					axios({
-						method: "post",
-						url,
-						data: new Blob([encryptedChunk]),
-						timeout: 3600000,
-						onUploadProgress: (event) => {
-							if(typeof event !== "object" || typeof event.loaded !== "number"){
-								return
-							}
-			
-							let bytes = event.loaded
-			
-							if(lastBytes == 0){
-								lastBytes = event.loaded
-							}
-							else{
-								bytes = Math.floor(event.loaded - lastBytes)
-								lastBytes = event.loaded
-							}
-			
-							globalThis.postMessage({
-								type: "uploadProgress",
-								data: {
-									uuid,
-									bytes: bytes
-								}
-							})
-						}
-					}).then((response) => {
-						if(response.status !== 200){
-							lastErr = new Error("Request status: " + response.status)
-
-							setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-
+				axios({
+					method: "post",
+					url,
+					data: new Blob([encryptedChunk]),
+					timeout: 3600000,
+					onUploadProgress: (event) => {
+						if(typeof event !== "object" || typeof event.loaded !== "number"){
 							return
 						}
-				
-						if(!response.data.status){
-							return reject(response.data.message)
+		
+						let bytes = event.loaded
+		
+						if(lastBytes == 0){
+							lastBytes = event.loaded
 						}
-				
-						return resolve(response.data)
-					}).catch((err) => {
-						lastErr = err
+						else{
+							bytes = Math.floor(event.loaded - lastBytes)
+							lastBytes = event.loaded
+						}
+		
+						globalThis.postMessage({
+							type: "uploadProgress",
+							data: {
+								uuid,
+								bytes: bytes
+							}
+						})
+					}
+				}).then((response) => {
+					if(response.status !== 200){
+						lastErr = new Error("Request status: " + response.status)
 
 						setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-					})
-				}).catch(reject)
-			}).catch(reject)
-		}
 
-		req()
+						return
+					}
+			
+					if(!response.data.status){
+						return reject(response.data.message)
+					}
+			
+					return resolve(response.data)
+				}).catch((err) => {
+					lastErr = err
+
+					setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+				})
+			}
+
+			req()
+		}).catch(reject)
 	})
 }
 
@@ -773,6 +771,14 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 	return transfer(result, [result.buffer])
 }
 
+export const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
+	const digest = await globalThis.crypto.subtle.digest(algorithm, buffer)
+	const hashArray = Array.from(new Uint8Array(digest))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
+
+	return hashHex
+}
+
 export const api = {
     apiRequest,
 	deriveKeyFromPassword,
@@ -796,7 +802,8 @@ export const api = {
 	downloadAndDecryptChunk,
 	decryptFolderNameLink,
 	decryptFileMetadataLink,
-	convertHeic
+	convertHeic,
+	bufferToHash
 }
 
 expose(api)

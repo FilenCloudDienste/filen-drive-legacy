@@ -109,8 +109,8 @@ export const encryptData = async (data: Uint8Array, key: string): Promise<string
 	return await getWorkerAPI().encryptData(transfer(data, [data.buffer]), key)
 }
 
-export const encryptAndUploadFileChunk = async (file: File, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
-	return await getWorkerAPI().encryptAndUploadFileChunk(file, key, url, uuid, chunkIndex, chunkSize)
+export const encryptAndUploadFileChunk = async (chunk: Uint8Array, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
+	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, chunkIndex, chunkSize)
 }
 
 export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
@@ -143,4 +143,8 @@ export const decryptFileMetadataLink = async (metadata: string, linkKey: string)
 
 export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): Promise<Uint8Array> => {
 	return await getWorkerAPI().convertHeic(transfer(buffer, [buffer.buffer]), format)
+}
+
+export const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
+    return await getWorkerAPI().bufferToHash(buffer, algorithm)
 }

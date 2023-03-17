@@ -272,7 +272,7 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
             >
                 <Progress
                     value={(item.done || item.errored) ? 100 : progress}
-                    isIndeterminate={paused || ((progress <= 1 || progress >= 99) && !item.done) ? true : (item.done || item.errored) ? false : progress <= 0}
+                    isIndeterminate={item.errored || item.done ? false : progress >= 99 || progress <= 1 || paused ? true : false}
                     colorScheme={item.done ? "green" : item.errored ? "red" : CHAKRA_COLOR_SCHEME}
                     width="100%"
                     height="3px"

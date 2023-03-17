@@ -1,7 +1,7 @@
 import type { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
-import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt } from "../../helpers"
-import { encryptMetadata, hashFn, encryptAndUploadFileChunk } from "../../worker/worker.com"
+import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
+import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
 import { MAX_CONCURRENT_UPLOADS, MAX_UPLOAD_THREADS, UPLOAD_VERSION } from "../../constants"
@@ -12,6 +12,24 @@ import { generateThumbnailAfterUpload } from "../thumbnails"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
+
+export const chunkToHash = async (file: File, index: number, size: number) => {
+    const chunk = await readChunk(file, index, size)
+
+    return await bufferToHash(new Uint8Array(chunk), "SHA-1")
+}
+
+export const generateClientSideFileHashes = async (file: File, fileChunks: number, chunkSizeToUse: number): Promise<string[]> => {
+    const promises: Promise<string>[] = []
+
+    for(let i = 0; i < (fileChunks + 1); i++){
+        promises.push(chunkToHash(file, i, chunkSizeToUse))
+    }
+
+    const hashes = await Promise.all(promises)
+
+    return hashes
+}
 
 export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<ItemProps> => {
     return new Promise(async (resolve, reject) => {
@@ -165,7 +183,9 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 
                 const url = getUploadServer() + "/v2/upload?" + params
 
-                encryptAndUploadFileChunk(item.file, key, url, uuid, index, chunkSizeToUse).then(resolve).catch(reject)
+                readChunk(item.file, index, chunkSizeToUse).then((chunk) => {
+                    encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse).then(resolve).catch(reject)
+                }).catch(reject)
             })
         }
 
