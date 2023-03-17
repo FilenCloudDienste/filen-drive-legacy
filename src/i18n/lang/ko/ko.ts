@@ -64,7 +64,7 @@ const ko: {
     update: "업데이트",
     cancel: "취소",
     noSubs: "현재 활성화된 구독이 없습니다.",
-    noInvoices: "아직 명세서(인보이스)가 없습니다.",
+    noInvoices: "아직 명세서가 없습니다.",
     planFeatures_1: "무제한 대역폭",
     planFeatures_2: "클라이언트측 암호화",
     planFeatures_3: "영지식 기술",
@@ -79,7 +79,7 @@ const ko: {
     plans: "이용권",
     subs: "구독",
     events: "사용 기록",
-    invoices: "명세서(인보이스)",
+    invoices: "명세서",
     invalidEmail: "잘못된 이메일 주소",
     invalidPassword: "잘못된 비밀번호",
     emailsDoNotMatch: "이메일 주소가 일치하지 않습니다.",
@@ -281,8 +281,8 @@ const ko: {
     eventCodeRedeem: "코드 사용됨",
     eventEmailChanged: "이메일 변경됨",
     eventPasswordChanged: "비밀번호 변경됨",
-    eventRemovedSharedInItems: "받은 공유 제거",
-    eventRemovedSharedOutItems: "보낸 공유 제거",
+    eventRemovedSharedInItems: "받은 공유 제거됨",
+    eventRemovedSharedOutItems: "보낸 공유 제거됨",
     eventFileUploadedInfo: "__NAME__가 업로드됨",
     eventFileVersionedInfo: "__NAME__가 버전 관리됨",
     eventVersionedFileRestoredInfo: "__NAME__의 파일 버전이 복원됨",
@@ -363,12 +363,13 @@ const ko: {
     referInfo2: "친구를 Filen에 초대할 때마다 사용자님께는 __STORAGE__가 제공되며, 친구도 __OTHER_STORAGE__를 받게 됩니다. 친구는 원하는 요금제에 등록할 수 있으며, 사용자님은 수수료를 받을 수 있습니다. 수수료 지급 한도는 __THRESHOLD__€입니다. 귀하의 수수료율은 __RATE__%입니다.",
     yourBtcAddress: "사용자님의 비트코인 주소",
     openUploads: "업로드 열기",
-    payNow: "지금 명세서(인보이스) 결제하기",
+    payNow: "지금 명세서 결제하기",
     emptyTrashModalSure: "정말 휴지통을 비우시겠습니까? 이 작업은 취소할 수 없습니다!",
     emptyTrashSuccess: "휴지통 비워짐",
     itemRenamed: "항목 이름 변경됨",
     subCancelled: "취소됨",
-    support: "지원"
+    support: "지원",
+    finishing: "완료"
 }
 
 export default ko
