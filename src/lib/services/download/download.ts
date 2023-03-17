@@ -45,14 +45,19 @@ export const downloadFile = (item: ItemProps, streamToDisk: boolean = true, maxC
             }
         })
 
-        const cleanup = (): void => {
+        const cleanup = (abort = false): void => {
             try{
                 stopListener.remove()
                 pauseListener.remove()
                 resumeListener.remove()
                 
                 if(streamToDisk){
-                    writer.close().catch(console.error)
+                    if(abort){
+                        writer.abort().catch(console.error)
+                    }
+                    else{
+                        writer.close().catch(console.error)
+                    }
                 }
             }
             catch(e){
@@ -187,7 +192,7 @@ export const downloadFile = (item: ItemProps, streamToDisk: boolean = true, maxC
             })
         }
         catch(e: any){
-            cleanup()
+            cleanup(true)
 
             eventListener.emit("download", {
                 type: "err",

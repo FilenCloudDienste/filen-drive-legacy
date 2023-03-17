@@ -6,37 +6,51 @@ import { arrayBufferToHex, base64ToArrayBuffer, arrayBufferToBase64, generateRan
 import CryptoApi from "crypto-api-v1"
 import CryptoJS from "crypto-js"
 import type { ItemProps } from "../../types"
-import { MAX_DOWNLOAD_RETRIES, DOWNLOAD_RETRY_TIMEOUT } from "../constants"
-import axiosRetry from "axios-retry"
+import { MAX_DOWNLOAD_RETRIES, DOWNLOAD_RETRY_TIMEOUT, MAX_API_RETRIES, MAX_UPLOAD_RETRIES, UPLOAD_RETRY_TIMEOUT, API_RETRY_TIMEOUT } from "../constants"
 import heicConvert from "heic-convert"
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 
-axiosRetry(axios, {
-    retries: MAX_DOWNLOAD_RETRIES,
-    retryDelay: (retryCount) => {
-      	return retryCount * DOWNLOAD_RETRY_TIMEOUT
-    },
-    retryCondition: (error) => {
-      	return error?.response?.status !== 200
-    }
-})
+const apiRequest = (method: string = "POST", endpoint: string, data: any): Promise<{ status: boolean, message: string, [key: string]: any }> => {
+	return new Promise((resolve, reject) => {
+		let current = -1
+		let lastErr: Error
 
-const apiRequest = async (method: string = "POST", endpoint: string, data: any): Promise<{ status: boolean, message: string, [key: string]: any }> => {
-	const response = endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
-		? method.toUpperCase() == "POST"
-			? await axios.post(getAPIServer() + endpoint, data)
-			: await axios.get(getAPIServer() + endpoint)
-		: method.toUpperCase() == "POST"
-			? await axios.post(getAPIV3Server() + endpoint, data)
-			: await axios.get(getAPIV3Server() + endpoint)
+		const req = () => {
+			current += 1
 
-	if(response.status !== 200){
-		throw new Error("Response status " + response.status)
-	}
+			if(current >= MAX_API_RETRIES){
+				return reject(lastErr)
+			}
 
-	return response.data
+			const promise = endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
+				? method.toUpperCase() == "POST"
+					? axios.post(getAPIServer() + endpoint, data)
+					: axios.get(getAPIServer() + endpoint)
+				: method.toUpperCase() == "POST"
+					? axios.post(getAPIV3Server() + endpoint, data)
+					: axios.get(getAPIV3Server() + endpoint)
+			
+			promise.then((response) => {
+				if(response.status !== 200){
+					lastErr = new Error("Response status " + response.status)
+
+					setTimeout(req, API_RETRY_TIMEOUT)
+
+					return
+				}
+	
+				return resolve(response.data)
+			}).catch((err) => {
+				lastErr = err
+
+				setTimeout(req, API_RETRY_TIMEOUT)
+			})
+		}
+
+		req()
+	})
 }
 
 const generateKeypair = async (): Promise<{ publicKey: string, privateKey: string }> => {
@@ -434,56 +448,80 @@ const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array |
 	return transfer(result, [result.buffer])
 }
 
-const encryptAndUploadFileChunk = async (file: File, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
-	let lastBytes = 0
+const encryptAndUploadFileChunk = (file: File, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
+	return new Promise((resolve, reject) => {
+		let current = -1
+		let lastBytes = 0
+		let lastErr: Error
 
-	try{
-		const chunk = await readChunk(file, chunkIndex, chunkSize)
-		const encryptedChunk = await encryptData(chunk, key)
+		const req = () => {
+			current += 1
 
-		const result = await axios({
-			method: "post",
-			url,
-			data: new Blob([encryptedChunk]),
-			timeout: 3600000,
-			onUploadProgress: (event) => {
-				if(typeof event.loaded !== "number"){
-					return
-				}
-
-				let bytes = event.loaded
-
-                if(lastBytes == 0){
-                    lastBytes = event.loaded
-                }
-                else{
-                    bytes = Math.floor(event.loaded - lastBytes)
-                    lastBytes = event.loaded
-                }
-
-				globalThis.postMessage({
-					type: "uploadProgress",
-                    data: {
-                        uuid,
-                        bytes: bytes
-                    }
-				})
+			if(current >= MAX_UPLOAD_RETRIES){
+				return reject(lastErr)
 			}
-		})
 
-		if(result.status !== 200){
-			throw new Error("Request status: " + result.status)
+			lastBytes = 0
+
+			readChunk(file, chunkIndex, chunkSize).then((chunk) => {
+				encryptData(chunk, key).then((encryptedChunk) => {
+					axios({
+						method: "post",
+						url,
+						data: new Blob([encryptedChunk]),
+						timeout: 3600000,
+						onUploadProgress: (event) => {
+							if(typeof event.loaded !== "number"){
+								return
+							}
+			
+							let bytes = event.loaded
+			
+							if(lastBytes == 0){
+								lastBytes = event.loaded
+							}
+							else{
+								bytes = Math.floor(event.loaded - lastBytes)
+								lastBytes = event.loaded
+							}
+			
+							globalThis.postMessage({
+								type: "uploadProgress",
+								data: {
+									uuid,
+									bytes: bytes
+								}
+							})
+						}
+					}).then((response) => {
+						if(response.status !== 200){
+							lastErr = new Error("Request status: " + response.status)
+
+							setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+
+							return
+						}
+				
+						if(!response.data.status){
+							lastErr = new Error(response.data.message)
+
+							setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+
+							return
+						}
+				
+						return resolve(response.data)
+					}).catch((err) => {
+						lastErr = err
+
+						setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+					})
+				}).catch(reject)
+			}).catch(reject)
 		}
 
-		if(!result.data.status){
-			throw new Error(result.data.message)
-		}
-
-		return result.data
-	}
-	catch(e: any){
-		throw e
-	}
+		req()
+	})
 }
 
 const decryptFolderLinkKey = async (metadata: string, masterKeys: string[]): Promise<string> => {
@@ -562,54 +600,76 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 	}
 }
 
-export const downloadAndDecryptChunk = async (item: ItemProps, url: string): Promise<Uint8Array> => {
-	let lastBytes: number = 0
-	const uuid: string = item.uuid
+export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<Uint8Array> => {
+	return new Promise((resolve, reject) => {
+		let lastBytes: number = 0
+		const uuid: string = item.uuid
+		let lastErr: Error
+		let current = -1
 
-	try{
-		const response = await axios.get(url, {
-			responseType: "arraybuffer",
-			timeout: 3600000,
-			onDownloadProgress: (event) => {
-				if(typeof event.loaded !== "number"){
+		const req = () => {
+			current += 1
+
+			if(current >= MAX_DOWNLOAD_RETRIES){
+				return reject(lastErr)
+			}
+
+			lastBytes = 0
+
+			const promise = axios({
+				method: "GET",
+				url,
+				timeout: 3600000,
+				responseType: "arraybuffer",
+				onDownloadProgress: (event) => {
+					if(typeof event !== "object" || typeof event.loaded !== "number"){
+						return
+					}
+	
+					let bytes = event.loaded
+	
+					if(lastBytes == 0){
+						lastBytes = event.loaded
+					}
+					else{
+						bytes = Math.floor(event.loaded - lastBytes)
+						lastBytes = event.loaded
+					}
+	
+					globalThis.postMessage({
+						type: "downloadProgress",
+						data: {
+							uuid,
+							bytes: bytes
+						}
+					})
+				}
+			})
+	
+			promise.then((response) => {
+				if(typeof response == "undefined" || typeof response.data == "undefined" || typeof response.data !== "object" || !(response.data instanceof ArrayBuffer)){
+					lastErr = new Error("Invalid download data received for UUID: " + uuid + ", URL: " + url)
+
+					console.error(lastErr)
+
+					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+
 					return
 				}
+		
+				decryptData(response.data, item.key, item.version).then((result) => resolve(transfer(result, [result.buffer]))).catch(reject)
+			}).catch((err) => {
+				lastErr = err
 
-				let bytes = event.loaded
+				console.error(lastErr)
+				console.log("Axios error")
 
-                if(lastBytes == 0){
-                    lastBytes = event.loaded
-                }
-                else{
-                    bytes = Math.floor(event.loaded - lastBytes)
-                    lastBytes = event.loaded
-                }
-
-				globalThis.postMessage({
-					type: "downloadProgress",
-                    data: {
-                        uuid,
-                        bytes: bytes
-                    }
-				})
-			}
-		})
-
-		if(response.status !== 200){
-			throw new Error("Response status: " + response.status + ", URL: " + url)
+				setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+			})
 		}
 
-		if(typeof response.data !== "object"){
-			throw new Error("Invalid download data received for UUID: " + uuid + ", URL: " + url)
-		}
-
-		const result = await decryptData(response.data, item.key, item.version)
-
-		return transfer(result, [result.buffer])
-	}
-	catch(e: any){
-		throw e
-	}
+		req()
+	})
 }
 
 export const decryptFolderNameLink = async (metadata: string, linkKey: string): Promise<string> => {
