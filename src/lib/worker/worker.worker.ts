@@ -471,7 +471,7 @@ const encryptAndUploadFileChunk = (file: File, key: string, url: string, uuid: s
 						data: new Blob([encryptedChunk]),
 						timeout: 3600000,
 						onUploadProgress: (event) => {
-							if(typeof event.loaded !== "number"){
+							if(typeof event !== "object" || typeof event.loaded !== "number"){
 								return
 							}
 			
@@ -503,11 +503,7 @@ const encryptAndUploadFileChunk = (file: File, key: string, url: string, uuid: s
 						}
 				
 						if(!response.data.status){
-							lastErr = new Error(response.data.message)
-
-							setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-
-							return
+							return reject(response.data.message)
 						}
 				
 						return resolve(response.data)
@@ -647,6 +643,14 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 			})
 	
 			promise.then((response) => {
+				if(response.status !== 200){
+					lastErr = new Error("Request status: " + response.status)
+
+					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+
+					return
+				}
+
 				if(typeof response == "undefined" || typeof response.data == "undefined" || typeof response.data !== "object" || !(response.data instanceof ArrayBuffer)){
 					lastErr = new Error("Invalid download data received for UUID: " + uuid + ", URL: " + url)
 
