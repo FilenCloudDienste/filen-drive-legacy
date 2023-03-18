@@ -7,6 +7,7 @@ import Button from "../Button"
 import { formatBytes } from "../../lib/helpers"
 import { MdReportGmailerrorred } from "react-icons/md"
 import eventListener from "../../lib/eventListener"
+import { IoGridOutline, IoList } from "react-icons/io5"
 
 export interface FolderContainerProps extends AppBaseProps {
     children?: React.ReactNode,
@@ -18,10 +19,12 @@ export interface FolderContainerProps extends AppBaseProps {
     breadcrumbs: React.ReactNode,
     items: ItemProps[],
     downloadFolder: (loadCallback: Function) => Promise<any>,
-    password: string
+    password: string,
+    viewMode: "list" | "grid",
+    setViewMode: React.Dispatch<React.SetStateAction<"list" | "grid">>
 }
 
-const FolderContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, children, info, toggleColorMode, previewContainerHeight, previewContainerWidth, name, breadcrumbs, items, downloadFolder, password }: FolderContainerProps) => {
+const FolderContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, children, info, toggleColorMode, previewContainerHeight, previewContainerWidth, name, breadcrumbs, items, downloadFolder, password, viewMode, setViewMode }: FolderContainerProps) => {
     const [loadingDownload, setLoadingDownload] = useState<boolean>(false)
     
     const [selectedItems, selectedItemsSize] = useMemo(() => {
@@ -165,6 +168,34 @@ const FolderContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, l
                                 <>
                                     Download folder
                                 </>
+                            )
+                        }
+                    </Button>
+                    <Button
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        backgroundColor={darkMode ? "white" : "gray"}
+                        color={darkMode ? "black" : "white"}
+                        border={"1px solid " + (darkMode ? "white" : "gray")}
+                        height="35px"
+                        marginLeft="10px"
+                        disabled={loadingDownload || items.length == 0}
+                        _hover={{
+                            backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                            border: "1px solid " + (darkMode ? "white" : "gray"),
+                            color: darkMode ? "white" : "gray"
+                        }}
+                        onClick={() => setViewMode(viewMode == "list" ? "grid" : "list")}
+                    >
+                        {
+                            viewMode == "list" ? (
+                                <IoGridOutline
+                                    fontSize={24}
+                                />
+                            ) : (
+                                <IoList
+                                    fontSize={24}
+                                />
                             )
                         }
                     </Button>

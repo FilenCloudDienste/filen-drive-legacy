@@ -25,6 +25,7 @@ import { logout } from "../../lib/services/user/logout"
 import { i18n } from "../../i18n"
 import Input from "../Input"
 import axios from "axios"
+import packageJSON from "../../../package.json"
 
 const SHOW_PLANS: boolean = true
 
@@ -602,6 +603,16 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
                         </AppText>
                     </Flex>
                 </Flex>
+                <AppText
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                    color={getColor(darkMode, "textSecondary")}
+                    fontSize={11}
+                    marginTop="15px"
+                    alignSelf="flex-end"
+                >
+                    v{packageJSON.version}
+                </AppText>
             </Flex>
             <Modals.LanguageModal
                 darkMode={darkMode}

@@ -17,8 +17,7 @@ export interface DocViewerProps {
 const DocViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, doc }: DocViewerProps) => {
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundSecondary")}
         >

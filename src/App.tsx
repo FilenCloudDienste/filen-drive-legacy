@@ -84,8 +84,7 @@ const App = memo(() => {
     if(typeof cfg == "undefined"){
         return (
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundPrimary")}
                 overflow="hidden"
@@ -104,8 +103,7 @@ const App = memo(() => {
     if(cfg.maintenance){
         return (
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundPrimary")}
                 overflow="hidden"
@@ -154,6 +152,7 @@ const App = memo(() => {
         <>
             <Helmet>
                 <link rel="stylesheet" href={darkMode ? "/dark.css" : "/light.css"} />
+                <meta name="theme-color" content={getColor(darkMode, "backgroundPrimary")} />
                 {
                     typeof analytics == "boolean" && analytics && (
                         <script defer data-domain="drive.filen.io" src="https://analytics.filen.io/js/plausible.js"></script>

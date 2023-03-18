@@ -7,8 +7,7 @@ import LoginImage from "../../assets/images/login.jpg"
 const AuthContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, children }: AuthContainerProps) => {
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="row"
         >
             {

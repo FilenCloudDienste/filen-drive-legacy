@@ -276,8 +276,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
     if(typeof info == "undefined" && !needsPassword){
         return (
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundPrimary")}
                 overflow="hidden"

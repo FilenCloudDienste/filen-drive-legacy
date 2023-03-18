@@ -505,8 +505,7 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
     return (
         <>
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundSecondary")}
             >

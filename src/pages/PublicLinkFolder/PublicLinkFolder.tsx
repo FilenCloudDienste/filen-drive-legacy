@@ -15,9 +15,8 @@ import LogoAnimated from "../../assets/images/logo_animated.gif"
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
 import FolderContainer from "../../components/PublicLink/FolderContainer"
-import { getCurrentParent, orderItemsByType, isBetween, getDragSelectCoords, getDragSelectCollisions } from "../../lib/helpers"
-import { List as RVList, AutoSizer } from "react-virtualized"
-import { Item, SkeletonItem } from "../../components/Item"
+import { getCurrentParent, orderItemsByType, getDragSelectCoords, getDragSelectCollisions } from "../../lib/helpers"
+import { AutoSizer } from "react-virtualized"
 import striptags from "striptags"
 import { hashFn, deriveKeyFromPassword } from "../../lib/worker/worker.com"
 import ContextMenus from "../../components/ContextMenus"
@@ -28,11 +27,11 @@ import DragSelect from "../../components/DragSelect"
 import PreviewModal from "../../components/PreviewModal"
 import { IoChevronForward } from "react-icons/io5"
 import AppText from "../../components/AppText"
-import { RiLink } from "react-icons/ri"
 import { getDirectoryTree } from "../../lib/services/items"
 import { downloadMultipleFilesAsZipStream } from "../../lib/services/download"
 import AbuseReportModal from "../../components/AbuseReportModal"
 import { i18n } from "../../i18n"
+import PublicLinkFolderList from "./PublicLinkFolderList"
 
 const cache = new Map()
 
@@ -57,6 +56,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
     const hideContextMenusWhileDragSelecting = useRef<boolean>(false)
     const lastDragSelectCollisions = useRef<(string | null)[]>([])
     const [folderNames, setFolderNames] = useState<{ [key: string]: string }>({})
+    const [viewMode, setViewMode] = useState<"list" | "grid">("list")
 
     const [previewContainerWidth, previewContainerHeight] = useMemo(() => {
         if(isMobile){
@@ -158,41 +158,6 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 
         loadCallback(true)
     }, [info, downloadTimeout.current, params, password, key])
-
-    const onRowsRendered = useCallback(({ startIndex, stopIndex }: { startIndex: number, stopIndex: number }) => {
-        window.visibleItems = items.filter((_, index) => isBetween(startIndex, stopIndex, index))
-    }, [items])
-
-    const rowRenderer = useCallback(({ style, key, index, width }: { style: React.CSSProperties, key: string, index: number, width: number }) => {
-        const item = items[index]
-
-        return loadingItems || items.length == 0 ? (
-            <SkeletonItem
-                key={key}
-                darkMode={darkMode}
-                isMobile={isMobile}
-                style={style}
-                listWidth={width}
-                mode="list"
-            />
-        ) : (
-            <Item
-                key={key + ":" + JSON.stringify(item)}
-                darkMode={darkMode}
-                isMobile={isMobile}
-                style={style}
-                item={item}
-                items={items}
-                setItems={setItems}
-                setActiveItem={() => {}}
-                setItemDragState={() => {}}
-                setDragSelectState={() => {}}
-                listWidth={width}
-                mode="list"
-                lang={lang}
-            />
-        )
-    }, [darkMode, isMobile, items, loadingItems, lang])
 
     const fetchContents = useCallback(async () => {
         if(url.length > 0){
@@ -529,8 +494,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
     if((typeof info == "undefined") && !needsPassword){
         return (
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundPrimary")}
                 overflow="hidden"
@@ -628,6 +592,8 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
                                 items={items}
                                 downloadFolder={downloadFolder}
                                 password={password}
+                                viewMode={viewMode}
+                                setViewMode={setViewMode}
                                 breadcrumbs={
                                     <Flex
                                         flexDirection="row"
@@ -705,63 +671,16 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
                                     >
                                         {({ height, width }) => (
                                             <>
-                                                {
-                                                    !loadingItems && items.length == 0 ? (
-                                                        <Flex
-                                                            width={width + "px"}
-                                                            height={height + "px"}
-                                                            flexDirection="column"
-                                                            justifyContent="center"
-                                                            alignItems="center"
-                                                            className="no-items-uploaded"
-                                                            paddingLeft="25px"
-                                                            paddingRight="25px"
-                                                        >
-                                                            <RiLink
-                                                                size={64}
-                                                                color={getColor(darkMode, "textSecondary")}
-                                                            />
-                                                            <AppText
-                                                                darkMode={darkMode}
-                                                                isMobile={isMobile}
-                                                                fontSize={22}
-                                                                color={getColor(darkMode, "textPrimary")}
-                                                                marginTop="10px"
-                                                            >
-                                                                {i18n(lang, "thisFolderIsEmpty")}
-                                                            </AppText>
-                                                            <AppText
-                                                                darkMode={darkMode}
-                                                                isMobile={isMobile}
-                                                                fontSize={14}
-                                                                color={getColor(darkMode, "textSecondary")}
-                                                            >
-                                                                {i18n(lang, "linkFolderEmptyInfo")}
-                                                            </AppText>
-                                                        </Flex>
-                                                    ) : (
-                                                        <>
-                                                            {/* @ts-ignore */}
-                                                            <RVList
-                                                                key="list"
-                                                                height={height}
-                                                                rowHeight={35}
-                                                                rowCount={loadingItems ? 32 : items.length}
-                                                                width={width}
-                                                                onRowsRendered={onRowsRendered}
-                                                                overscanRowCount={1}
-                                                                style={{
-                                                                    overflowX: "hidden",
-                                                                    overflowY: loadingItems || items.length == 0 ? "hidden" : "auto",
-                                                                    zIndex: 1000,
-                                                                    outline: "none",
-                                                                    paddingTop: loadingItems || items.length == 0 ? "8px" : "0px"
-                                                                }}
-                                                                rowRenderer={({ style, key, index }) => rowRenderer({ style, key, index, width })}
-                                                            />
-                                                        </>
-                                                    )
-                                                }
+                                                <PublicLinkFolderList
+                                                    items={items}
+                                                    width={width}
+                                                    height={height}
+                                                    darkMode={darkMode}
+                                                    lang={lang}
+                                                    isMobile={isMobile}
+                                                    loadingItems={loadingItems}
+                                                    viewMode={viewMode}
+                                                />
                                             </>
                                         )}
                                     </AutoSizer>

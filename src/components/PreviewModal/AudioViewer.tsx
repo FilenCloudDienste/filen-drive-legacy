@@ -40,8 +40,7 @@ const AudioViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundPrimary")}
         >

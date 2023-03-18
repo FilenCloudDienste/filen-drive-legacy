@@ -26,8 +26,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
 
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="row"
             backgroundColor={getColor(darkMode, "backgroundPrimary")}
             overflow="hidden"
@@ -35,8 +34,8 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
             {
                 !isMobile && (
                     <Flex
+                        className="full-viewport-height"
                         width={sidebarWidth + "px"}
-                        height="100vh"
                         flexDirection="column"
                         backgroundColor={getColor(darkMode, "backgroundSecondary")}
                         justifyContent="center"
@@ -186,7 +185,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
             }
             <Flex
                 width={isMobile ? "100vw" : (sidebarWidth - windowWidth) + "px"}
-                height="100vh"
+                className="full-viewport-height"
                 flexDirection="column"
             >
                 {children}

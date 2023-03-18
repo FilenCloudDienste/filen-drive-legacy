@@ -8,7 +8,7 @@ import ListFooter from "../ListFooter"
 import useDb from "../../lib/hooks/useDb"
 import { GRID_CELL_WIDTH, GRID_CELL_HEIGHT, LIST_ITEM_HEIGHT } from "../../lib/constants"
 import { useLocation } from "react-router-dom"
-import { orderItemsByType, getCurrentURLParentFolder, isBetween, getCurrentParent } from "../../lib/helpers"
+import { orderItemsByType, isBetween, getCurrentParent } from "../../lib/helpers"
 import { moveToParent } from "../../lib/services/move"
 import ListEmpty from "../ListEmpty"
 import { DEFAULT_PARENTS } from "../../lib/services/metadata"
@@ -178,7 +178,7 @@ const ListBody = memo(({ darkMode, isMobile, gridFolders, windowHeight, windowWi
 
 const List = memo(({ darkMode, isMobile, items, setItems, windowHeight, windowWidth, sidebarWidth, setActiveItem, setDragSelectState, setItemDragState, loadingItems, gridFolders, lang, searchTerm }: ListProps) => {
     const [listScrollState, setListScrollState] = useState<ListScrollState>({ clientHeight: windowHeight, scrollHeight: LIST_ITEM_HEIGHT * items.length, scrollTop: 0 })
-    const [sortBy, setSortBy] = useDb("sortBy", {})
+    const [sortBy] = useDb("sortBy", {})
     const location = useLocation()
 
     const handleOnDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {

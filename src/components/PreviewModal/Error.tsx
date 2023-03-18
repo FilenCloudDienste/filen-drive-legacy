@@ -19,8 +19,7 @@ export interface ErrorProps {
 const Error = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, error, lang }: ErrorProps) => {
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundPrimary")}
         >

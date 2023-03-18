@@ -670,7 +670,7 @@ const ItemBody = memo(({ style, mode, item, darkMode, dragHover, hovering, inter
                             width="100%"
                             height="100%"
                             border={bgHover ? ("2px solid " + THEME_COLOR) : ("1px solid " + getColor(darkMode, "borderSecondary"))}
-                            borderRadius="5px"
+                            borderRadius="15px"
                             flexDirection="column"
                             alignItems="center"
                             justifyContent="center"
@@ -710,7 +710,7 @@ const ItemBody = memo(({ style, mode, item, darkMode, dragHover, hovering, inter
                                         width={"100%"}
                                         height={"100%"}
                                         flexShrink={0}
-                                        borderRadius="5px"
+                                        borderRadius="15px"
                                         objectFit="cover"
                                     />
                                 ) : (

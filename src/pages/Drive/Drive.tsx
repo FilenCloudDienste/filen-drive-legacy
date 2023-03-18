@@ -947,8 +947,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
     if(!initDone){
         return (
             <Flex
-                width="100vw"
-                height="100vh"
+                className="full-viewport"
                 flexDirection="column"
                 backgroundColor={getColor(darkMode, "backgroundPrimary")}
                 overflow="hidden"
@@ -966,8 +965,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundPrimary")}
             overflow="hidden"

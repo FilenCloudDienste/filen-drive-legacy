@@ -17,8 +17,7 @@ export interface ImageViewerProps {
 const ImageViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, image }: ImageViewerProps) => {
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundPrimary")}
         >

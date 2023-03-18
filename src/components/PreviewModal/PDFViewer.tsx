@@ -16,8 +16,7 @@ export interface PDFViewerProps {
 const PDFViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, pdf }: PDFViewerProps) => {
     return (
         <Flex
-            width="100vw"
-            height="100vh"
+            className="full-viewport"
             flexDirection="column"
             backgroundColor={getColor(darkMode, "backgroundSecondary")}
         >

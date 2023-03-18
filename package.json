@@ -1,6 +1,6 @@
 {
 	"name": "filen-drive",
-	"version": "1.0.1",
+	"version": "2.0.1",
 	"private": true,
 	"dependencies": {
 		"@chakra-ui/react": "2.3.6",
