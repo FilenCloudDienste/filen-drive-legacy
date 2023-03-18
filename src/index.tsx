@@ -6,17 +6,7 @@ import reportWebVitals from "./reportWebVitals"
 import { ChakraProvider, extendTheme, theme } from "@chakra-ui/react"
 import { HelmetProvider } from "react-helmet-async"
 import { toastActiveCount } from "./components/Toast/Toast"
-import * as Sentry from "@sentry/react"
-import { BrowserTracing } from "@sentry/tracing"
 import "./lib/services/socket"
-
-if(process.env.NODE_ENV == "production"){
-	Sentry.init({
-		dsn: "https://fba6f622039a4334aebb70a6b34f68db@o4504039703314432.ingest.sentry.io/4504039705739265",
-		integrations: [new BrowserTracing()],
-		tracesSampleRate: 1.0
-	})
-}
 
 const extendedTheme = extendTheme({
 	...theme,
