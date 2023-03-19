@@ -370,6 +370,7 @@ const zh: {
     subCancelled: "已取消",
     support: "支持",
     finishing: "整理中"
+    searchNothingFound: "\"__TERM__\" 未找到"
 }
 
 export default zh
