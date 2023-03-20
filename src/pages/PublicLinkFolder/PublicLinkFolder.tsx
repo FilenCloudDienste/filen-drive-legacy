@@ -673,6 +673,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
                                             <>
                                                 <PublicLinkFolderList
                                                     items={items}
+                                                    setItems={setItems}
                                                     width={width}
                                                     height={height}
                                                     darkMode={darkMode}

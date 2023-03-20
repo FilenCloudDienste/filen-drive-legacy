@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect, useMemo, useCallback } from "react"
 import type { ItemComponentProps, ItemProps, SkeletonItemProps } from "../../types"
-import { Flex, Checkbox, Skeleton, Image as ChakraImage, Spinner, Badge } from "@chakra-ui/react"
+import { Flex, Skeleton, Image as ChakraImage, Spinner, Badge } from "@chakra-ui/react"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
 import { contextMenu } from "react-contexify"

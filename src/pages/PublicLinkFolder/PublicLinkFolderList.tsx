@@ -12,6 +12,7 @@ import { SkeletonItem, Item } from "../../components/Item"
 
 export interface PublicLinkFolderListProps {
     items: ItemProps[],
+    setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>,
     darkMode: boolean,
     isMobile: boolean,
     lang: string,
@@ -21,7 +22,7 @@ export interface PublicLinkFolderListProps {
     viewMode: "list" | "grid"
 }
 
-const PublicLinkFolderList = memo(({ items, darkMode, isMobile, lang, width, height, loadingItems, viewMode }: PublicLinkFolderListProps) => {
+const PublicLinkFolderList = memo(({ items, darkMode, isMobile, lang, width, height, loadingItems, viewMode, setItems }: PublicLinkFolderListProps) => {
     const [columnCount, rowCount] = useMemo(() => {
         const containerWidth: number = width
         const columnCount: number = Math.floor(containerWidth / GRID_CELL_WIDTH)
@@ -66,7 +67,7 @@ const PublicLinkFolderList = memo(({ items, darkMode, isMobile, lang, width, hei
                 style={style}
                 item={item}
                 items={items}
-                setItems={() => {}}
+                setItems={setItems}
                 setActiveItem={() => {}}
                 setItemDragState={() => {}}
                 setDragSelectState={() => {}}

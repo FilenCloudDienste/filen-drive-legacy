@@ -1,6 +1,6 @@
 {
 	"name": "filen-drive",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"private": true,
 	"dependencies": {
 		"@chakra-ui/react": "2.3.6",
@@ -88,9 +88,7 @@
 		"web-vitals": "2.1.4"
 	},
 	"scripts": {
-		"start": "PORT=3003 react-app-rewired --max_old_space_size=8192 start",
-		"dev": "PORT=3003 react-app-rewired --max_old_space_size=8192 start",
-		"win-dev": "set PORT=3003 && react-app-rewired --max_old_space_size=8192 start",
+		"dev": "cross-env PORT=3003 react-app-rewired --max_old_space_size=8192 start",
 		"build": "react-app-rewired --max_old_space_size=8192 build",
 		"test": "react-app-rewired --max_old_space_size=8192 test",
 		"eject": "react-app-rewired eject"
@@ -132,6 +130,7 @@
 		"browserify-zlib": "0.2.0",
 		"buffer": "6.0.3",
 		"comlink-loader": "2.0.0",
+		"cross-env": "^7.0.3",
 		"crypto-browserify": "3.12.0",
 		"https-browserify": "1.0.0",
 		"os-browserify": "0.3.0",
