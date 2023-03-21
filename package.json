@@ -79,7 +79,7 @@
 		"retry": "^0.13.1",
 		"socket.io": "2.5.0",
 		"socket.io-client": "2.5.0",
-		"streamsaver": "2.0.6",
+		"streamsaver": "git+https://github.com/jimmywarting/StreamSaver.js.git",
 		"striptags": "3.2.0",
 		"typescript": "4.7.4",
 		"use-double-tap": "1.3.4",
