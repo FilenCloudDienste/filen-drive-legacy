@@ -369,7 +369,8 @@ const ru: {
     itemRenamed: "Объект переименован",
     subCancelled: "Подписка отменена",
     support: "Поддержка",
-    finishing: "Завершение"
+    finishing: "Завершение",
+    searchNothingFound: "\"__TERM__\" не найдено"
 }
 
 export default ru

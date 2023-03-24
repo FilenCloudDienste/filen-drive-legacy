@@ -369,7 +369,8 @@ const uk: {
     itemRenamed: "Об'єкт перейменовано",
     subCancelled: "Підписку скасовано",
     support: "Підтримка",
-    finishing: "Завершення"
+    finishing: "Завершення",
+    searchNothingFound: "\"__TERM__\" не знайдено"
 }
 
 export default uk
