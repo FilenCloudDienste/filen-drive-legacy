@@ -120,7 +120,7 @@ const tr: {
     disable2FA: "İki faktörlü kimlik doğrulamayı devre dışı bırak",
     disable: "Devre dışı bırak",
     sharedWithMe: Benimle paylaşılanlar",
-    sharedWithOthers: "Diğerleriyle paylaşılan",
+    sharedWithOthers: "Başkalarıyla paylaşılanlar",
     links: "Bağlantılar",
     favorites: "Favoriler",
     recents: "Son yüklenenler",
