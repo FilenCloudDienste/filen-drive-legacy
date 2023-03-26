@@ -769,6 +769,7 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
         }
 
         setLoading(false)
+        setOpen(false)
     }, [])
 
     useEffect(() => {
@@ -878,6 +879,7 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
         }
 
         setLoading(false)
+        setOpen(false)
     }, [])
 
     useEffect(() => {
