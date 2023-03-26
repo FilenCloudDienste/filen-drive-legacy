@@ -169,7 +169,7 @@ const zh: {
     onlyNeeded: "仅需的",
     pleaseChooseDiffName: "请选择一个不同的名字",
     newFolderName: "名字",
-    itemsMovedToTrash: "__COUNT__ 个移入回收站的项目",
+    itemsMovedToTrash: "__COUNT__ 个项目移入回收站",
     couldNotMoveToTrash: "无法移动 __NAME__ 到回收站: __ERR__",
     deleteModalSure: "你确定你要删除 __COUNT__ 个项目?",
     deletePermModalSure: "你确定你要永久删除 __COUNT__ 项目? 此行为不能被撤销!",
