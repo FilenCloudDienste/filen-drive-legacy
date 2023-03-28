@@ -46,7 +46,7 @@ export const mergeUInt8Arrays = (a1: Uint8Array, a2: Uint8Array): Uint8Array => 
 }
 
 export const calcSpeed = (now: number, started: number, bytes: number): number => {
-    now = new Date().getTime() - 1000
+    now = Date.now() - 1000
 
     const secondsDiff: number = ((now - started) / 1000)
     const bps: number = Math.floor((bytes / secondsDiff) * 1)
@@ -55,7 +55,7 @@ export const calcSpeed = (now: number, started: number, bytes: number): number =
 }
 
 export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: number): number => {
-    const elapsed: number = (new Date().getTime() - started)
+    const elapsed: number = (Date.now() - started)
     const speed: number = (loadedBytes / (elapsed / 1000))
     const remaining: number = ((totalBytes - loadedBytes) / speed)
 
@@ -247,15 +247,12 @@ export const Semaphore = function(this: SemaphoreProps, max: number){
     }
 } as any as { new (max: number): SemaphoreProps }
 
-export const convertTimestampToMs = (timestamp: number) => {
-    const date = new Date(timestamp * 1000)
+export const convertTimestampToMs = (timestamp: number): number => {
+    if(timestamp.toString().length >= 13){
+        return timestamp
+    }
 
-    if(date.getFullYear() > 2100){
-        return Math.floor(timestamp)
-    }
-    else{
-        return Math.floor(timestamp * 1000)
-    }
+    return Math.floor(timestamp * 1000)
 }
 
 export const fileNameToLowerCaseExt = (name: string) => {
@@ -320,9 +317,8 @@ export const getTimeRemaining = (endtime: number) => {
 }
 
 export function timeSince(timestamp: number, lang: string = "en") {
-    const date = new Date(timestamp)
-    // @ts-ignore
-    const seconds = Math.floor((new Date() - date) / 1000)
+    const date = new Date(timestamp).getTime()
+    const seconds = Math.floor((Date.now() - date) / 1000)
     let interval = seconds / 31536000
   
     if(interval > 1){
@@ -491,18 +487,8 @@ export const getFolderColor = (color: string) => {
     return colors['default']
 }
 
-export const simpleDate = (timestamp: number) => {
-    try{
-        // @ts-ignore
-        const date = new Date(convertTimestampToMs(parseInt(timestamp)))
-
-        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
-    }
-    catch(e){
-        const date = new Date()
-
-        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
-    }
+export const simpleDate = (timestamp: number): string => {
+    return new Date(convertTimestampToMs(timestamp)).toString().split(" ").slice(0, 5).join(" ")
 }
 
 export const randomIdUnsafe = () => {
