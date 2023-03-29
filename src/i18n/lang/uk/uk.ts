@@ -370,7 +370,8 @@ const uk: {
     subCancelled: "Підписку скасовано",
     support: "Підтримка",
     finishing: "Завершення",
-    searchNothingFound: "\"__TERM__\" не знайдено"
+    searchNothingFound: "\"__TERM__\" не знайдено",
+    queued: "В черзі"
 }
 
 export default uk
