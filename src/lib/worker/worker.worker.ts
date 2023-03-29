@@ -568,6 +568,12 @@ const decryptFolderLinkKey = async (metadata: string, masterKeys: string[]): Pro
 }
 
 export const decryptData = async (data: ArrayBuffer, key: string, version: number): Promise<Uint8Array> => {
+	if(data.byteLength <= 0){
+		const result = new Uint8Array([])
+		
+		return transfer(result, [result.buffer])
+	}
+
 	if(version == 1){
 		const sliced = convertArrayBufferToBinaryString(new Uint8Array(data.slice(0, 16)))
 
