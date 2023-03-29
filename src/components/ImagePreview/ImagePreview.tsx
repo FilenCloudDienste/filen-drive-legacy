@@ -16,10 +16,24 @@ const ImagePreview = memo(({ image, maxWidth, maxHeight }: { image: string, maxW
             justifyContent="center"
             onWheel={(e) => {
                 if(e.deltaY > 0){    
-                    setImageZoom(prev => prev + ZOOM_SPEED)
+                    setImageZoom(prev => {
+                        const newZoom = prev + ZOOM_SPEED
+
+                        console.log(newZoom)
+                        
+                        return newZoom
+                    })
                 }
-                else{    
-                    setImageZoom(prev => prev - ZOOM_SPEED)
+                else{
+                    setImageZoom(prev => {
+                        let newZoom = prev - ZOOM_SPEED
+
+                        if(newZoom <= 0.1){
+                            newZoom = 0.1
+                        }
+                        
+                        return newZoom
+                    })
                 }
             }}
         >
@@ -31,7 +45,7 @@ const ImagePreview = memo(({ image, maxWidth, maxHeight }: { image: string, maxW
                 position="relative"
                 transform={"scale(" + imageZoom + ") translate(" + imagePosition.x + "px, " + imagePosition.y + "px)"}
                 draggable={false}
-                cursor="move"
+                cursor="zoom-in"
                 onDoubleClick={() => {
                     if(imageZoom <= 1){
                         setImagePosition({
