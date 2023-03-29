@@ -204,7 +204,7 @@ export const recentContent = ({ apiKey }: { apiKey: string }): Promise<any> => {
     })
 }
 
-export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<boolean> => {
+export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         const max = 32
         let current = 0
@@ -242,7 +242,7 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
                     uuid
                 })
     
-                return resolve(true)
+                return resolve(response.data)
             }).catch(reject)
         }
 

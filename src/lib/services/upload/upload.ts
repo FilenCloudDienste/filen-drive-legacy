@@ -298,7 +298,11 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
         }
 
         try{
-            await markUploadAsDone({ uuid, uploadKey })
+            const doneRes = await markUploadAsDone({ uuid, uploadKey })
+
+            if(doneRes.data && doneRes.data.chunks){
+                fileChunks = doneRes.data.chunks
+            }
 
             if(canCompressThumbnail(getFileExt(name))){
                 await generateThumbnailAfterUpload(item.file, uuid, name)
