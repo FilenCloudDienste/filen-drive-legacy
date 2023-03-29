@@ -656,11 +656,11 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
 
     if(type == "nameAsc" || typeof type == "undefined" || type == null){
         const sortedFiles = files.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -705,7 +705,7 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
                 b.mime = "_"
             }
 
-            return a.mime.localeCompare(b.mime)
+            return a.mime.localeCompare(b.mime, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
@@ -716,11 +716,11 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
     }
     else if(type == "nameDesc"){
         const sortedFiles = files.sort((a, b) => {
-            return b.name.localeCompare(a.name)
+            return b.name.localeCompare(a.name, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
-            return b.name.localeCompare(a.name)
+            return b.name.localeCompare(a.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -754,7 +754,7 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
                 b.mime = "_"
             }
 
-            return b.mime.localeCompare(a.mime)
+            return b.mime.localeCompare(a.mime, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
@@ -798,11 +798,11 @@ export const orderItemsByType = (items: ItemProps[], type: "nameAsc" | "sizeAsc"
     }
     else{
         const sortedFiles = files.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)
