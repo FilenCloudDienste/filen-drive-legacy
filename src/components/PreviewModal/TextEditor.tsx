@@ -26,25 +26,7 @@ import memoryCache from "../../lib/memoryCache"
 import { EditorView } from "@codemirror/view"
 import MarkdownPreview from "@uiw/react-markdown-preview"
 import { useLocation } from "react-router-dom"
-import rehypeRewrite, { RehypeRewriteOptions } from "rehype-rewrite"
-import { PluggableList } from "unified"
 import { memoize } from "lodash"
-
-const rehypePlugins: PluggableList = [
-    [rehypeRewrite, {
-        rewrite: (node, index, parent) => {
-            if(
-                node.type === "element"
-                && node.tagName === "a"
-                && parent 
-                && parent.type === "element"
-                && /^h(1|2|3|4|5|6)/.test(parent.tagName)
-            ){
-                parent.children = [parent.children[1]]
-            }
-        }
-    } as RehypeRewriteOptions]
-]
 
 export const getCodeMirrorLanguageExtensionForFile = memoize((name: string) => {
     const ext: string = getFileExt(name)
@@ -600,8 +582,18 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                                         color: getColor(darkMode, "textPrimary"),
                                         userSelect: "all"
                                     }}
+                                    rehypeRewrite={(node, index, parent) => {
+                                        try{
+                                            // @ts-ignore
+                                            if(node.tagName === "a" && parent && /^h(1|2|3|4|5|6)/.test(parent.tagName)) {
+                                                parent.children = parent.children.slice(1)
+                                            }
+                                        }
+                                        catch(e){
+                                            console.error(e)
+                                        }
+                                    }}
                                     skipHtml={true}
-                                    rehypePlugins={rehypePlugins}
                                     linkTarget="_blank"
                                     warpperElement={{
                                         "data-color-mode": darkMode ? "dark" : "light"
