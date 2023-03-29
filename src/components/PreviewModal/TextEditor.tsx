@@ -533,6 +533,7 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
                         height={(windowHeight - 50) + "px"}
                         theme={createCodeMirrorTheme(darkMode)}
                         indentWithTab={true}
+                        autoFocus={true}
                         basicSetup={{
                             crosshairCursor: false,
                             searchKeymap: false,
