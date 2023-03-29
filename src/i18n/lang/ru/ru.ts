@@ -370,7 +370,8 @@ const ru: {
     subCancelled: "Подписка отменена",
     support: "Поддержка",
     finishing: "Завершение",
-    searchNothingFound: "\"__TERM__\" не найдено"
+    searchNothingFound: "\"__TERM__\" не найдено",
+    queued: "Добавлено в очередь"
 }
 
 export default ru
