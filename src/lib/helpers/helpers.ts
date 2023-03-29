@@ -248,11 +248,16 @@ export const Semaphore = function(this: SemaphoreProps, max: number){
 } as any as { new (max: number): SemaphoreProps }
 
 export const convertTimestampToMs = (timestamp: number): number => {
-    if(timestamp.toString().length >= 13){
+    try{
+        if(timestamp.toString().length >= 13){
+            return timestamp
+        }
+    
+        return Math.floor(timestamp * 1000)
+    }
+    catch(e){
         return timestamp
     }
-
-    return Math.floor(timestamp * 1000)
 }
 
 export const fileNameToLowerCaseExt = (name: string) => {
@@ -488,11 +493,16 @@ export const getFolderColor = (color: string) => {
 }
 
 export const simpleDate = (timestamp: number): string => {
-    return new Date(convertTimestampToMs(timestamp)).toString().split(" ").slice(0, 5).join(" ")
+    try{
+        return new Date(convertTimestampToMs(timestamp)).toString().split(" ").slice(0, 5).join(" ")
+    }
+    catch(e){
+        return new Date().toString().split(" ").slice(0, 5).join(" ")
+    }
 }
 
 export const randomIdUnsafe = () => {
-    return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
+    return Math.random().toString().slice(3)
 }
 
 export const canCompressThumbnail = (ext: string) => {
