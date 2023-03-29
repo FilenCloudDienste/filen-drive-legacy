@@ -371,7 +371,7 @@ const ru: {
     support: "Поддержка",
     finishing: "Завершение",
     searchNothingFound: "\"__TERM__\" не найдено",
-    queued: "Добавлено в очередь"
+    queued: "В очереди"
 }
 
 export default ru
