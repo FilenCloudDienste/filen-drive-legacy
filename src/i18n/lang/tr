@@ -155,7 +155,7 @@ const tr: {
     color_red: "Kırmızı",
     color_gray: "Gri",
     unfavorite: "Favorilerden kaldır",
-    favorite: "Favori",
+    favorite: "Favoriye ekle",
     rename: "Yeniden adlandır",
     move: "Taşı",
     selectDestination: "Hedef seçin",
