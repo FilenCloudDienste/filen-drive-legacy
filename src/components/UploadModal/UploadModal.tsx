@@ -230,7 +230,11 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
                                                 fontWeight="bold"
                                             >
                                                 {
-                                                    progress <= 1 || progress >= 99 ? (
+                                                    progress <= 1 ? (
+                                                        <>
+                                                            {i18n(lang, "queued")}
+                                                        </>
+                                                    ) : progress >= 99 ? (
                                                         <>
                                                             {i18n(lang, "finishing")}
                                                         </>

@@ -370,7 +370,8 @@ const en: {
     subCancelled: "Cancelled",
     support: "Support",
     finishing: "Finishing",
-    searchNothingFound: "\"__TERM__\" not found" 
+    searchNothingFound: "\"__TERM__\" not found",
+    queued: "Queued" 
 }
 
 export default en

@@ -356,7 +356,8 @@ const de: {
     subCancelled: "Gekündigt",
     support: "Support",
     finishing: "Beende",
-    searchNothingFound: "\"__TERM__\" nicht gefunden"
+    searchNothingFound: "\"__TERM__\" nicht gefunden",
+    queued: "Warteschlange"
 }
 
 export default de
