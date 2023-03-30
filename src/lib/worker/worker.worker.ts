@@ -459,13 +459,13 @@ const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" |
 const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key).then((encryptedChunk) => {
-			bufferToHash((encryptedChunk as Uint8Array).byteLength > 0 ? encryptedChunk as Uint8Array : new Uint8Array([1]), "SHA-1").then((chunkHash) => {
+			bufferToHash((encryptedChunk as Uint8Array).byteLength > 0 ? encryptedChunk as Uint8Array : new Uint8Array([1]), "SHA-512").then((chunkHash) => {
 				let current = -1
 				let lastBytes = 0
 				let lastErr: Error
 
 				if((encryptedChunk as Uint8Array).byteLength > 0){
-					url = url + "&chunkHash=" + encodeURIComponent(chunkHash)
+					url = url + "&hash=" + encodeURIComponent(chunkHash)
 				}
 
 				const req = () => {
