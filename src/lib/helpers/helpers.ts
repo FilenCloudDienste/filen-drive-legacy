@@ -249,11 +249,13 @@ export const Semaphore = function(this: SemaphoreProps, max: number){
 
 export const convertTimestampToMs = (timestamp: number): number => {
     try{
-        if(timestamp.toString().length >= 13){
-            return timestamp
+        const floored = Math.floor(timestamp)
+
+        if(floored.toString().length >= 13){
+            return floored
         }
     
-        return Math.floor(timestamp * 1000)
+        return Math.floor(floored * 1000)
     }
     catch(e){
         return timestamp
