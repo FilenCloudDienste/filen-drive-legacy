@@ -43,7 +43,7 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
         const userInfo = fetchUserInfoCached()
 
         if(typeof userInfo !== "undefined"){
-            if((userInfo.storageUsed + (item.bytes + 1024)) >= userInfo.maxStorage){
+            if((userInfo.storageUsed + (item.file.size + 1024)) >= userInfo.maxStorage){
                 eventListener.emit("openMaxStorageModal")
 
                 return reject(new Error("notEnoughRemoteStorage"))
