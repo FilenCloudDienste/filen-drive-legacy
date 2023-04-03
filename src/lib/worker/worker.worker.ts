@@ -1,18 +1,40 @@
 import { expose, transfer } from "comlink"
 import axios from "axios"
 import memoryCache from "../memoryCache"
-import { arrayBufferToHex, base64ToArrayBuffer, arrayBufferToBase64, generateRandomString, convertTimestampToMs, readChunk, mergeUInt8Arrays, getAPIServer, getAPIV3Server, convertWordArrayToArrayBuffer, convertArrayBufferToBinaryString } from "../helpers"
+import {
+	arrayBufferToHex,
+	base64ToArrayBuffer,
+	arrayBufferToBase64,
+	generateRandomString,
+	convertTimestampToMs,
+	mergeUInt8Arrays,
+	getAPIServer,
+	getAPIV3Server,
+	convertWordArrayToArrayBuffer,
+	convertArrayBufferToBinaryString
+} from "../helpers"
 // @ts-ignore
 import CryptoApi from "crypto-api-v1"
 import CryptoJS from "crypto-js"
 import type { ItemProps } from "../../types"
-import { MAX_DOWNLOAD_RETRIES, DOWNLOAD_RETRY_TIMEOUT, MAX_API_RETRIES, MAX_UPLOAD_RETRIES, UPLOAD_RETRY_TIMEOUT, API_RETRY_TIMEOUT } from "../constants"
+import {
+	MAX_DOWNLOAD_RETRIES,
+	DOWNLOAD_RETRY_TIMEOUT,
+	MAX_API_RETRIES,
+	MAX_UPLOAD_RETRIES,
+	UPLOAD_RETRY_TIMEOUT,
+	API_RETRY_TIMEOUT
+} from "../constants"
 import heicConvert from "heic-convert"
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 
-const apiRequest = (method: string = "POST", endpoint: string, data: any): Promise<{ status: boolean, message: string, [key: string]: any }> => {
+const apiRequest = (
+	method: string = "POST",
+	endpoint: string,
+	data: any
+): Promise<{ status: boolean; message: string; [key: string]: any }> => {
 	return new Promise((resolve, reject) => {
 		let current = -1
 		let lastErr: Error
@@ -20,76 +42,112 @@ const apiRequest = (method: string = "POST", endpoint: string, data: any): Promi
 		const req = () => {
 			current += 1
 
-			if(current >= MAX_API_RETRIES){
+			if (current >= MAX_API_RETRIES) {
 				return reject(lastErr)
 			}
 
-			const promise = endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
-				? method.toUpperCase() == "POST"
-					? axios.post(getAPIServer() + endpoint, data)
-					: axios.get(getAPIServer() + endpoint)
-				: method.toUpperCase() == "POST"
+			const promise =
+				endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
+					? method.toUpperCase() == "POST"
+						? axios.post(getAPIServer() + endpoint, data)
+						: axios.get(getAPIServer() + endpoint)
+					: method.toUpperCase() == "POST"
 					? axios.post(getAPIV3Server() + endpoint, data)
 					: axios.get(getAPIV3Server() + endpoint)
-			
-			promise.then((response) => {
-				if(response.status !== 200){
-					lastErr = new Error("Response status " + response.status)
+
+			promise
+				.then(response => {
+					if (response.status !== 200) {
+						lastErr = new Error("Response status " + response.status)
+
+						setTimeout(req, API_RETRY_TIMEOUT)
+
+						return
+					}
+
+					return resolve(response.data)
+				})
+				.catch(err => {
+					lastErr = err
 
 					setTimeout(req, API_RETRY_TIMEOUT)
-
-					return
-				}
-	
-				return resolve(response.data)
-			}).catch((err) => {
-				lastErr = err
-
-				setTimeout(req, API_RETRY_TIMEOUT)
-			})
+				})
 		}
 
 		req()
 	})
 }
 
-const generateKeypair = async (): Promise<{ publicKey: string, privateKey: string }> => {
-	const keyPair = await globalThis.crypto.subtle.generateKey({
-		name: "RSA-OAEP",
-		modulusLength: 4096,
-		publicExponent: new Uint8Array([1, 0, 1]),
-		hash: "SHA-512"
-	}, true, ["encrypt", "decrypt"])
+const generateKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+	const keyPair = await globalThis.crypto.subtle.generateKey(
+		{
+			name: "RSA-OAEP",
+			modulusLength: 4096,
+			publicExponent: new Uint8Array([1, 0, 1]),
+			hash: "SHA-512"
+		},
+		true,
+		["encrypt", "decrypt"]
+	)
 
 	const pubKey = await globalThis.crypto.subtle.exportKey("spki", keyPair.publicKey)
 	const b64PubKey = arrayBufferToBase64(pubKey)
 	const privKey = await globalThis.crypto.subtle.exportKey("pkcs8", keyPair.privateKey)
 	const b64PrivKey = arrayBufferToBase64(privKey)
 
-	if(b64PubKey.length > 16 && b64PrivKey.length > 16){
+	if (b64PubKey.length > 16 && b64PrivKey.length > 16) {
 		return { publicKey: b64PubKey, privateKey: b64PrivKey }
 	}
-	
+
 	throw new Error("Key lengths invalid")
 }
 
-const deriveKeyFromPassword = async (password: string, salt: string, iterations: number, hash: string, bitLength: number, returnHex: boolean): Promise<string | ArrayBuffer> => {
-	const cacheKey = "deriveKeyFromPassword:" + password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
+const deriveKeyFromPassword = async (
+	password: string,
+	salt: string,
+	iterations: number,
+	hash: string,
+	bitLength: number,
+	returnHex: boolean
+): Promise<string | ArrayBuffer> => {
+	const cacheKey =
+		"deriveKeyFromPassword:" +
+		password +
+		":" +
+		salt +
+		":" +
+		iterations +
+		":" +
+		hash +
+		":" +
+		bitLength +
+		":" +
+		returnHex.toString()
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
-	const bits = await globalThis.crypto.subtle.deriveBits({
-		name: "PBKDF2",
-		salt: textEncoder.encode(salt),
-		iterations: iterations,
-		hash: {
-			name: hash
-		}
-	}, await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(password), {
-		name: "PBKDF2"
-	}, false, ["deriveBits"]), bitLength)
+	const bits = await globalThis.crypto.subtle.deriveBits(
+		{
+			name: "PBKDF2",
+			salt: textEncoder.encode(salt),
+			iterations: iterations,
+			hash: {
+				name: hash
+			}
+		},
+		await globalThis.crypto.subtle.importKey(
+			"raw",
+			textEncoder.encode(password),
+			{
+				name: "PBKDF2"
+			},
+			false,
+			["deriveBits"]
+		),
+		bitLength
+	)
 
 	const key = returnHex ? arrayBufferToHex(bits) : bits
 
@@ -98,8 +156,11 @@ const deriveKeyFromPassword = async (password: string, salt: string, iterations:
 	return key
 }
 
-const hashPassword = async (password: string): Promise<string> => { //old and deprecated, no longer in use
-    const hash = CryptoApi.hash("sha512", CryptoApi.hash("sha384", CryptoApi.hash("sha256", CryptoApi.hash("sha1", password)))) + CryptoApi.hash("sha512", CryptoApi.hash("md5", CryptoApi.hash("md4", CryptoApi.hash("md2", (password)))))
+const hashPassword = async (password: string): Promise<string> => {
+	//old and deprecated, no longer in use
+	const hash =
+		CryptoApi.hash("sha512", CryptoApi.hash("sha384", CryptoApi.hash("sha256", CryptoApi.hash("sha1", password)))) +
+		CryptoApi.hash("sha512", CryptoApi.hash("md5", CryptoApi.hash("md4", CryptoApi.hash("md2", password))))
 
 	return hash
 }
@@ -110,22 +171,24 @@ const hashFn = async (str: string): Promise<string> => {
 	return hash
 }
 
-const generatePasswordAndMasterKeysBasedOnAuthVersion = async (rawPassword: string, authVersion: number, salt: string): Promise<{ derivedMasterKeys: string, derivedPassword: string }> => {
+const generatePasswordAndMasterKeysBasedOnAuthVersion = async (
+	rawPassword: string,
+	authVersion: number,
+	salt: string
+): Promise<{ derivedMasterKeys: string; derivedPassword: string }> => {
 	let derivedPassword: any = ""
 	let derivedMasterKeys: any = undefined
 
-	if(authVersion == 1){
+	if (authVersion == 1) {
 		derivedPassword = await hashPassword(rawPassword)
 		derivedMasterKeys = await hashFn(rawPassword)
-	}
-	else if(authVersion == 2){
-		const derivedKey = await deriveKeyFromPassword(rawPassword, salt, 200000, "SHA-512", 512, true) as string
+	} else if (authVersion == 2) {
+		const derivedKey = (await deriveKeyFromPassword(rawPassword, salt, 200000, "SHA-512", 512, true)) as string
 
-		derivedMasterKeys = derivedKey.substring(0, (derivedKey.length / 2))
-		derivedPassword = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
+		derivedMasterKeys = derivedKey.substring(0, derivedKey.length / 2)
+		derivedPassword = derivedKey.substring(derivedKey.length / 2, derivedKey.length)
 		derivedPassword = CryptoJS.SHA512(derivedPassword).toString()
-	}
-	else{
+	} else {
 		throw new Error("Invalid auth version: " + authVersion)
 	}
 
@@ -135,89 +198,89 @@ const generatePasswordAndMasterKeysBasedOnAuthVersion = async (rawPassword: stri
 const decryptMetadata = async (data: string, key: string): Promise<any> => {
 	const cacheKey: string = "decryptMetadata:" + data.toString() + ":" + key
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
 	const sliced: string = data.slice(0, 8)
 
-	if(sliced == "U2FsdGVk"){ //old deprecated
-		try{
+	if (sliced == "U2FsdGVk") {
+		//old deprecated
+		try {
 			const decrypted = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
 
 			memoryCache.set(cacheKey, decrypted)
 
 			return decrypted
-		}
-		catch(e){
+		} catch (e) {
 			return ""
 		}
-	}
-	else{
+	} else {
 		const version: string = data.slice(0, 3)
 
-		if(version == "002"){
-			try{
-				key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) as string //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
+		if (version == "002") {
+			try {
+				key = (await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false)) as string //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
 
 				const iv = textEncoder.encode(data.slice(3, 15))
 				const encrypted = base64ToArrayBuffer(data.slice(15))
 
-				const decrypted = await globalThis.crypto.subtle.decrypt({
-					name: "AES-GCM",
-					iv
-				}, await globalThis.crypto.subtle.importKey("raw", key as any, "AES-GCM", false, ["decrypt"]), encrypted)
+				const decrypted = await globalThis.crypto.subtle.decrypt(
+					{
+						name: "AES-GCM",
+						iv
+					},
+					await globalThis.crypto.subtle.importKey("raw", key as any, "AES-GCM", false, ["decrypt"]),
+					encrypted
+				)
 
 				const result = textDecoder.decode(new Uint8Array(decrypted))
 
 				memoryCache.set(cacheKey, result)
 
 				return result
-			}
-			catch(e){
+			} catch (e) {
 				return ""
 			}
-		}
-		else{
+		} else {
 			return ""
 		}
 	}
 }
 
 const decryptFolderName = async (metadata: string, masterKeys: string[]): Promise<string> => {
-	if(metadata.toLowerCase() == "default"){
+	if (metadata.toLowerCase() == "default") {
 		return "Default"
 	}
 
 	const cacheKey: string = "decryptFolderName:" + metadata.toString()
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
 	let folderName: string = ""
 
-	for(let i = 0; i < masterKeys.length; i++){
-		try{
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
 			const obj = JSON.parse(await decryptMetadata(metadata, masterKeys[i]))
 
-			if(obj && typeof obj == "object"){
-				if(typeof obj.name == "string"){
-					if(obj.name.length > 0){
+			if (obj && typeof obj == "object") {
+				if (typeof obj.name == "string") {
+					if (obj.name.length > 0) {
 						folderName = obj.name
 
 						break
 					}
 				}
 			}
-		}
-		catch(e){
+		} catch (e) {
 			continue
 		}
 	}
 
-	if(typeof folderName == "string"){
-		if(folderName.length > 0){
+	if (typeof folderName == "string") {
+		if (folderName.length > 0) {
 			memoryCache.set(cacheKey, folderName)
 		}
 	}
@@ -225,10 +288,13 @@ const decryptFolderName = async (metadata: string, masterKeys: string[]): Promis
 	return folderName
 }
 
-const decryptFileMetadata = async (metadata: string, masterKeys: string[]): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number }> => {
+const decryptFileMetadata = async (
+	metadata: string,
+	masterKeys: string[]
+): Promise<{ name: string; size: number; mime: string; key: string; lastModified: number }> => {
 	const cacheKey: string = "decryptFileMetadata:" + metadata
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
@@ -238,13 +304,13 @@ const decryptFileMetadata = async (metadata: string, masterKeys: string[]): Prom
 	let fileKey: string = ""
 	let fileLastModified: number = 0
 
-	for(let i = 0; i < masterKeys.length; i++){
-		try{
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
 			const obj = JSON.parse(await decryptMetadata(metadata, masterKeys[i]))
 
-			if(obj && typeof obj == "object"){
-				if(typeof obj.name == "string"){
-					if(obj.name.length > 0){
+			if (obj && typeof obj == "object") {
+				if (typeof obj.name == "string") {
+					if (obj.name.length > 0) {
 						fileName = obj.name
 						fileSize = parseInt(obj.size)
 						fileMime = obj.mime
@@ -255,8 +321,7 @@ const decryptFileMetadata = async (metadata: string, masterKeys: string[]): Prom
 					}
 				}
 			}
-		}
-		catch(e){
+		} catch (e) {
 			continue
 		}
 	}
@@ -269,8 +334,8 @@ const decryptFileMetadata = async (metadata: string, masterKeys: string[]): Prom
 		lastModified: convertTimestampToMs(fileLastModified)
 	}
 
-	if(typeof obj.name == "string"){
-		if(obj.name.length > 0){
+	if (typeof obj.name == "string") {
+		if (obj.name.length > 0) {
 			memoryCache.set(cacheKey, obj)
 		}
 	}
@@ -279,24 +344,32 @@ const decryptFileMetadata = async (metadata: string, masterKeys: string[]): Prom
 }
 
 const encryptMetadata = async (data: string, key: any): Promise<string> => {
-	key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) as string //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
+	key = (await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false)) as string //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
 
 	const iv: string = generateRandomString(12)
 	const string: Uint8Array = textEncoder.encode(data)
 
-	const encrypted: ArrayBuffer = await globalThis.crypto.subtle.encrypt({
-		name: "AES-GCM",
-		iv: textEncoder.encode(iv)
-	}, await globalThis.crypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt"]), string)
+	const encrypted: ArrayBuffer = await globalThis.crypto.subtle.encrypt(
+		{
+			name: "AES-GCM",
+			iv: textEncoder.encode(iv)
+		},
+		await globalThis.crypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt"]),
+		string
+	)
 
 	return "002" + iv + arrayBufferToBase64(new Uint8Array(encrypted))
 }
 
 const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
 	const pubKey = await importPublicKey(publicKey, ["encrypt"])
-	const encrypted = await globalThis.crypto.subtle.encrypt({
-		name: "RSA-OAEP"
-	}, pubKey, textEncoder.encode(data))
+	const encrypted = await globalThis.crypto.subtle.encrypt(
+		{
+			name: "RSA-OAEP"
+		},
+		pubKey,
+		textEncoder.encode(data)
+	)
 
 	return arrayBufferToBase64(encrypted)
 }
@@ -304,14 +377,20 @@ const encryptMetadataPublicKey = async (data: string, publicKey: string): Promis
 const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]): Promise<CryptoKey> => {
 	const cacheKey = "importPrivateKey:" + mode.join(":") + ":" + publicKey
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
-	const imported = await globalThis.crypto.subtle.importKey("spki", base64ToArrayBuffer(publicKey), {
-		name: "RSA-OAEP",
-		hash: "SHA-512"
-	}, true, mode)
+	const imported = await globalThis.crypto.subtle.importKey(
+		"spki",
+		base64ToArrayBuffer(publicKey),
+		{
+			name: "RSA-OAEP",
+			hash: "SHA-512"
+		},
+		true,
+		mode
+	)
 
 	memoryCache.set(cacheKey, imported)
 
@@ -321,14 +400,20 @@ const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]
 const importPrivateKey = async (privateKey: string, mode: KeyUsage[] = ["decrypt"]): Promise<CryptoKey> => {
 	const cacheKey = "importPrivateKey:" + mode.join(":") + ":" + privateKey
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
-	const imported = await globalThis.crypto.subtle.importKey("pkcs8", base64ToArrayBuffer(privateKey), {
-		name: "RSA-OAEP",
-		hash: "SHA-512"
-	}, true, mode)
+	const imported = await globalThis.crypto.subtle.importKey(
+		"pkcs8",
+		base64ToArrayBuffer(privateKey),
+		{
+			name: "RSA-OAEP",
+			hash: "SHA-512"
+		},
+		true,
+		mode
+	)
 
 	memoryCache.set(cacheKey, imported)
 
@@ -336,50 +421,60 @@ const importPrivateKey = async (privateKey: string, mode: KeyUsage[] = ["decrypt
 }
 
 const decryptFolderNamePrivateKey = async (data: string, privateKey: string): Promise<string> => {
-	try{
+	try {
 		const cacheKey: string = "decryptFolderNamePrivateKey:" + data
 
-		if(memoryCache.has(cacheKey)){
+		if (memoryCache.has(cacheKey)) {
 			return memoryCache.get(cacheKey)
 		}
 
 		const importedKey = await importPrivateKey(privateKey, ["decrypt"])
-		const decrypted = await globalThis.crypto.subtle.decrypt({
-			name: "RSA-OAEP"
-	  	}, importedKey, base64ToArrayBuffer(data))
+		const decrypted = await globalThis.crypto.subtle.decrypt(
+			{
+				name: "RSA-OAEP"
+			},
+			importedKey,
+			base64ToArrayBuffer(data)
+		)
 		const metadata = JSON.parse(textDecoder.decode(decrypted))
 
 		let folderName: string = ""
 
-		if(typeof metadata.name == "string"){
-			if(metadata.name.length > 0){
+		if (typeof metadata.name == "string") {
+			if (metadata.name.length > 0) {
 				folderName = metadata.name
 			}
 		}
 
-		if(folderName.length > 0){
+		if (folderName.length > 0) {
 			memoryCache.set(cacheKey, folderName)
 		}
-		
+
 		return folderName
-	}
-	catch(e){
+	} catch (e) {
 		return ""
 	}
 }
 
-const decryptFileMetadataPrivateKey = async (data: string, privateKey: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number }> => {
-	try{
+const decryptFileMetadataPrivateKey = async (
+	data: string,
+	privateKey: string
+): Promise<{ name: string; size: number; mime: string; key: string; lastModified: number }> => {
+	try {
 		const cacheKey: string = "decryptFileMetadataPrivateKey:" + data
 
-		if(memoryCache.has(cacheKey)){
+		if (memoryCache.has(cacheKey)) {
 			return memoryCache.get(cacheKey)
 		}
 
 		const importedKey = await importPrivateKey(privateKey, ["decrypt"])
-		const decrypted = await globalThis.crypto.subtle.decrypt({
-			name: "RSA-OAEP"
-	  	}, importedKey, base64ToArrayBuffer(data))
+		const decrypted = await globalThis.crypto.subtle.decrypt(
+			{
+				name: "RSA-OAEP"
+			},
+			importedKey,
+			base64ToArrayBuffer(data)
+		)
 		const metadata = JSON.parse(textDecoder.decode(decrypted))
 
 		let fileName: string = ""
@@ -388,8 +483,8 @@ const decryptFileMetadataPrivateKey = async (data: string, privateKey: string): 
 		let fileKey: string = ""
 		let fileLastModified: number = 0
 
-		if(typeof metadata.name == "string"){
-			if(metadata.name.length > 0){
+		if (typeof metadata.name == "string") {
+			if (metadata.name.length > 0) {
 				fileName = metadata.name
 				fileSize = metadata.size
 				fileMime = metadata.mime
@@ -406,15 +501,14 @@ const decryptFileMetadataPrivateKey = async (data: string, privateKey: string): 
 			lastModified: convertTimestampToMs(fileLastModified)
 		}
 
-		if(typeof obj.name == "string"){
-			if(obj.name.length > 0){
+		if (typeof obj.name == "string") {
+			if (obj.name.length > 0) {
 				memoryCache.set(cacheKey, obj)
 			}
 		}
 
 		return obj
-	}
-	catch(e){
+	} catch (e) {
 		return {
 			name: "",
 			size: 0,
@@ -426,140 +520,163 @@ const decryptFileMetadataPrivateKey = async (data: string, privateKey: string): 
 }
 
 const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array | string> => {
-	if(typeof data == "undefined"){
+	if (typeof data == "undefined") {
 		return ""
 	}
 
-	if(typeof data.byteLength == "undefined"){
+	if (typeof data.byteLength == "undefined") {
 		return ""
 	}
 
-	if(data.byteLength == 0){
+	if (data.byteLength == 0) {
 		return ""
 	}
 
 	const iv = generateRandomString(12)
-	const encrypted = await globalThis.crypto.subtle.encrypt({
-		name: "AES-GCM",
-		iv: textEncoder.encode(iv)
-	}, await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-GCM", false, ["encrypt"]), data)
+	const encrypted = await globalThis.crypto.subtle.encrypt(
+		{
+			name: "AES-GCM",
+			iv: textEncoder.encode(iv)
+		},
+		await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-GCM", false, ["encrypt"]),
+		data
+	)
 	const result = mergeUInt8Arrays(textEncoder.encode(iv), new Uint8Array(encrypted))
 
 	return transfer(result, [result.buffer])
 }
 
-const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
+const bufferToHash = async (
+	buffer: Uint8Array,
+	algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"
+): Promise<string> => {
 	const digest = await globalThis.crypto.subtle.digest(algorithm, buffer)
 	const hashArray = Array.from(new Uint8Array(digest))
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
+	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
 
 	return hashHex
 }
 
-const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, chunkIndex: number, chunkSize: number): Promise<any> => {
+const encryptAndUploadFileChunk = (
+	chunk: Uint8Array,
+	key: string,
+	url: string,
+	uuid: string,
+	chunkIndex: number,
+	chunkSize: number
+): Promise<any> => {
 	return new Promise((resolve, reject) => {
-		encryptData(chunk, key).then((encryptedChunk) => {
-			bufferToHash((encryptedChunk as Uint8Array).byteLength > 0 ? encryptedChunk as Uint8Array : new Uint8Array([1]), "SHA-512").then((chunkHash) => {
-				let current = -1
-				let lastBytes = 0
-				let lastErr: Error
+		encryptData(chunk, key)
+			.then(encryptedChunk => {
+				bufferToHash(
+					(encryptedChunk as Uint8Array).byteLength > 0
+						? (encryptedChunk as Uint8Array)
+						: new Uint8Array([1]),
+					"SHA-512"
+				)
+					.then(chunkHash => {
+						let current = -1
+						let lastBytes = 0
+						let lastErr: Error
 
-				if((encryptedChunk as Uint8Array).byteLength > 0){
-					url = url + "&hash=" + encodeURIComponent(chunkHash)
-				}
+						if ((encryptedChunk as Uint8Array).byteLength > 0) {
+							url = url + "&hash=" + encodeURIComponent(chunkHash)
+						}
 
-				const req = () => {
-					current += 1
+						const req = () => {
+							current += 1
 
-					if(current >= MAX_UPLOAD_RETRIES){
-						return reject(lastErr)
-					}
-
-					lastBytes = 0
-
-					axios({
-						method: "post",
-						url,
-						data: new Blob([encryptedChunk]),
-						timeout: 3600000,
-						onUploadProgress: (event) => {
-							if(typeof event !== "object" || typeof event.loaded !== "number"){
-								return
+							if (current >= MAX_UPLOAD_RETRIES) {
+								return reject(lastErr)
 							}
-			
-							let bytes = event.loaded
-			
-							if(lastBytes == 0){
-								lastBytes = event.loaded
-							}
-							else{
-								bytes = Math.floor(event.loaded - lastBytes)
-								lastBytes = event.loaded
-							}
-			
-							globalThis.postMessage({
-								type: "uploadProgress",
-								data: {
-									uuid,
-									bytes: bytes
+
+							lastBytes = 0
+
+							axios({
+								method: "post",
+								url,
+								data: new Blob([encryptedChunk]),
+								timeout: 3600000,
+								onUploadProgress: event => {
+									if (typeof event !== "object" || typeof event.loaded !== "number") {
+										return
+									}
+
+									let bytes = event.loaded
+
+									if (lastBytes == 0) {
+										lastBytes = event.loaded
+									} else {
+										bytes = Math.floor(event.loaded - lastBytes)
+										lastBytes = event.loaded
+									}
+
+									globalThis.postMessage({
+										type: "uploadProgress",
+										data: {
+											uuid,
+											bytes: bytes
+										}
+									})
 								}
 							})
-						}
-					}).then((response) => {
-						if(response.status !== 200){
-							lastErr = new Error("Request status: " + response.status)
+								.then(response => {
+									if (response.status !== 200) {
+										lastErr = new Error("Request status: " + response.status)
 
-							setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+										setTimeout(req, UPLOAD_RETRY_TIMEOUT)
 
-							return
-						}
-				
-						if(!response.data.status){
-							return reject(response.data.message)
-						}
-				
-						return resolve(response.data)
-					}).catch((err) => {
-						lastErr = err
+										return
+									}
 
-						setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+									if (!response.data.status) {
+										return reject(response.data.message)
+									}
+
+									return resolve(response.data)
+								})
+								.catch(err => {
+									lastErr = err
+
+									setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+								})
+						}
+
+						req()
 					})
-				}
-
-				req()
-			}).catch(reject)
-		}).catch(reject)
+					.catch(reject)
+			})
+			.catch(reject)
 	})
 }
 
 const decryptFolderLinkKey = async (metadata: string, masterKeys: string[]): Promise<string> => {
-    const cacheKey = "decryptFolderLinkKey:" + metadata
+	const cacheKey = "decryptFolderLinkKey:" + metadata
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
 	let link = ""
 
-	for(let i = 0; i < masterKeys.length; i++){
-		try{
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
 			const obj = await decryptMetadata(metadata, masterKeys[i])
 
-			if(obj && typeof obj == "string"){
-				if(obj.length >= 16){
+			if (obj && typeof obj == "string") {
+				if (obj.length >= 16) {
 					link = obj
 
 					break
 				}
 			}
-		}
-		catch(e){
+		} catch (e) {
 			continue
 		}
 	}
 
-	if(typeof link == "string"){
-		if(link.length > 0){
+	if (typeof link == "string") {
+		if (link.length > 0) {
 			memoryCache.set(cacheKey, link)
 		}
 	}
@@ -568,48 +685,54 @@ const decryptFolderLinkKey = async (metadata: string, masterKeys: string[]): Pro
 }
 
 export const decryptData = async (data: ArrayBuffer, key: string, version: number): Promise<Uint8Array> => {
-	if(data.byteLength <= 0){
+	if (data.byteLength <= 0) {
 		const result = new Uint8Array([])
-		
+
 		return transfer(result, [result.buffer])
 	}
 
-	if(version == 1){
+	if (version == 1) {
 		const sliced = convertArrayBufferToBinaryString(new Uint8Array(data.slice(0, 16)))
 
-		if(sliced.indexOf("Salted") !== -1){
+		if (sliced.indexOf("Salted") !== -1) {
 			const result = convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(arrayBufferToBase64(data), key))
 
 			return transfer(result, [result.buffer])
-		}
-		else if(sliced.indexOf("U2FsdGVk") !== -1){
-			const result = convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key))
+		} else if (sliced.indexOf("U2FsdGVk") !== -1) {
+			const result = convertWordArrayToArrayBuffer(
+				CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key)
+			)
 
 			return transfer(result, [result.buffer])
-		}
-		else{
+		} else {
 			const iv = textEncoder.encode(key).slice(0, 16)
-			const decrypted = await globalThis.crypto.subtle.decrypt({
-				name: "AES-CBC",
-				iv
-			}, await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-CBC", false, ["decrypt"]), data)
+			const decrypted = await globalThis.crypto.subtle.decrypt(
+				{
+					name: "AES-CBC",
+					iv
+				},
+				await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-CBC", false, ["decrypt"]),
+				data
+			)
 			const result = new Uint8Array(decrypted)
 
 			return transfer(result, [result.buffer])
 		}
-	}
-	else if(version == 2){
+	} else if (version == 2) {
 		const iv = data.slice(0, 12)
 		const encData = data.slice(12)
-		const decrypted = await globalThis.crypto.subtle.decrypt({
-			name: "AES-GCM",
-			iv,
-		}, await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-GCM", false, ["decrypt"]), encData)
+		const decrypted = await globalThis.crypto.subtle.decrypt(
+			{
+				name: "AES-GCM",
+				iv
+			},
+			await globalThis.crypto.subtle.importKey("raw", textEncoder.encode(key), "AES-GCM", false, ["decrypt"]),
+			encData
+		)
 		const result = new Uint8Array(decrypted)
 
 		return transfer(result, [result.buffer])
-	}
-	else{
+	} else {
 		throw new Error("Invalid decrypt version: " + version)
 	}
 }
@@ -624,7 +747,7 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 		const req = () => {
 			current += 1
 
-			if(current >= MAX_DOWNLOAD_RETRIES){
+			if (current >= MAX_DOWNLOAD_RETRIES) {
 				return reject(lastErr)
 			}
 
@@ -635,21 +758,20 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 				url,
 				timeout: 3600000,
 				responseType: "arraybuffer",
-				onDownloadProgress: (event) => {
-					if(typeof event !== "object" || typeof event.loaded !== "number"){
+				onDownloadProgress: event => {
+					if (typeof event !== "object" || typeof event.loaded !== "number") {
 						return
 					}
-	
+
 					let bytes = event.loaded
-	
-					if(lastBytes == 0){
+
+					if (lastBytes == 0) {
 						lastBytes = event.loaded
-					}
-					else{
+					} else {
 						bytes = Math.floor(event.loaded - lastBytes)
 						lastBytes = event.loaded
 					}
-	
+
 					globalThis.postMessage({
 						type: "downloadProgress",
 						data: {
@@ -659,35 +781,44 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 					})
 				}
 			})
-	
-			promise.then((response) => {
-				if(response.status !== 200){
-					lastErr = new Error("Request status: " + response.status)
 
-					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+			promise
+				.then(response => {
+					if (response.status !== 200) {
+						lastErr = new Error("Request status: " + response.status)
 
-					return
-				}
+						setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
 
-				if(typeof response == "undefined" || typeof response.data == "undefined" || typeof response.data !== "object" || !(response.data instanceof ArrayBuffer)){
-					lastErr = new Error("Invalid download data received for UUID: " + uuid + ", URL: " + url)
+						return
+					}
+
+					if (
+						typeof response == "undefined" ||
+						typeof response.data == "undefined" ||
+						typeof response.data !== "object" ||
+						!(response.data instanceof ArrayBuffer)
+					) {
+						lastErr = new Error("Invalid download data received for UUID: " + uuid + ", URL: " + url)
+
+						console.error(lastErr)
+
+						setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+
+						return
+					}
+
+					decryptData(response.data, item.key, item.version)
+						.then(result => resolve(transfer(result, [result.buffer])))
+						.catch(reject)
+				})
+				.catch(err => {
+					lastErr = err
 
 					console.error(lastErr)
+					console.log("Axios error")
 
 					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
-
-					return
-				}
-		
-				decryptData(response.data, item.key, item.version).then((result) => resolve(transfer(result, [result.buffer]))).catch(reject)
-			}).catch((err) => {
-				lastErr = err
-
-				console.error(lastErr)
-				console.log("Axios error")
-
-				setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
-			})
+				})
 		}
 
 		req()
@@ -695,35 +826,34 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 }
 
 export const decryptFolderNameLink = async (metadata: string, linkKey: string): Promise<string> => {
-	if(metadata.toLowerCase() == "default"){
+	if (metadata.toLowerCase() == "default") {
 		return "Default"
 	}
 
 	const cacheKey = "decryptFolderNameLink:" + metadata
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
 	let folderName = ""
 
-	try{
+	try {
 		const obj = JSON.parse(await decryptMetadata(metadata, linkKey))
 
-		if(obj && typeof obj == "object"){
-			if(typeof obj.name == "string"){
-				if(obj.name.length > 0){
+		if (obj && typeof obj == "object") {
+			if (typeof obj.name == "string") {
+				if (obj.name.length > 0) {
 					folderName = obj.name
 				}
 			}
 		}
-	}
-	catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 
-	if(typeof folderName == "string"){
-		if(folderName.length > 0){
+	if (typeof folderName == "string") {
+		if (folderName.length > 0) {
 			memoryCache.set(cacheKey, folderName)
 		}
 	}
@@ -734,7 +864,7 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 export const decryptFileMetadataLink = async (metadata: string, linkKey: string): Promise<any> => {
 	const cacheKey = "decryptFileMetadataLink:" + metadata
 
-	if(memoryCache.has(cacheKey)){
+	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
 	}
 
@@ -744,12 +874,12 @@ export const decryptFileMetadataLink = async (metadata: string, linkKey: string)
 	let fileKey = ""
 	let fileLastModified = 0
 
-	try{
+	try {
 		const obj = JSON.parse(await decryptMetadata(metadata, linkKey))
 
-		if(obj && typeof obj == "object"){
-			if(typeof obj.name == "string"){
-				if(obj.name.length > 0){
+		if (obj && typeof obj == "object") {
+			if (typeof obj.name == "string") {
+				if (obj.name.length > 0) {
 					fileName = obj.name
 					fileSize = parseInt(obj.size)
 					fileMime = obj.mime
@@ -758,8 +888,7 @@ export const decryptFileMetadataLink = async (metadata: string, linkKey: string)
 				}
 			}
 		}
-	}
-	catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 
@@ -771,8 +900,8 @@ export const decryptFileMetadataLink = async (metadata: string, linkKey: string)
 		lastModified: convertTimestampToMs(fileLastModified)
 	}
 
-	if(typeof obj.name == "string"){
-		if(obj.name.length >= 1){
+	if (typeof obj.name == "string") {
+		if (obj.name.length >= 1) {
 			memoryCache.set(cacheKey, obj)
 		}
 	}
@@ -792,7 +921,7 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 }
 
 export const api = {
-    apiRequest,
+	apiRequest,
 	deriveKeyFromPassword,
 	generatePasswordAndMasterKeysBasedOnAuthVersion,
 	hashPassword,
@@ -820,4 +949,4 @@ export const api = {
 
 expose(api)
 
-export default { } as typeof Worker & { new (): Worker }
+export default {} as typeof Worker & { new (): Worker }
