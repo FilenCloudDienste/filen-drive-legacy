@@ -815,10 +815,10 @@ export const orderItemsByType = (
 export const utf8ToHex = (str: string) => {
 	return Array.from(str)
 		.map(c =>
-			// eslint-disable-next-line
 			c.charCodeAt(0) < 128
 				? c.charCodeAt(0).toString(16)
-				: encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
+				: // eslint-disable-next-line
+				  encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
 		)
 		.join("")
 }

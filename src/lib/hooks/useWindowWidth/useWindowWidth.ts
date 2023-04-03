@@ -2,25 +2,27 @@ import { useEffect, useState } from "react"
 import Cookies from "../../cookies"
 
 const useWindowWidth = (): number => {
-    const [width, setWidth] = useState<number>(typeof Cookies.get("windowWidth") == "string" ? parseInt(Cookies.get("windowWidth") as string) : 1920)
+	const [width, setWidth] = useState<number>(
+		typeof Cookies.get("windowWidth") == "string" ? parseInt(Cookies.get("windowWidth") as string) : 1920
+	)
 
-    useEffect(() => {
-        setWidth((document.documentElement.clientWidth || window.innerWidth))
+	useEffect(() => {
+		setWidth(document.documentElement.clientWidth || window.innerWidth)
 
-        const listener = (): void => {
-            setWidth((document.documentElement.clientWidth || window.innerWidth))
-            
-            Cookies.set("windowWidth", (document.documentElement.clientWidth || window.innerWidth).toString())
-        }
+		const listener = (): void => {
+			setWidth(document.documentElement.clientWidth || window.innerWidth)
 
-        window.addEventListener("resize", listener)
+			Cookies.set("windowWidth", (document.documentElement.clientWidth || window.innerWidth).toString())
+		}
 
-        return () => {
-            window.removeEventListener("resize", listener)
-        }
-    }, [])
+		window.addEventListener("resize", listener)
 
-    return width
+		return () => {
+			window.removeEventListener("resize", listener)
+		}
+	}, [])
+
+	return width
 }
 
 export default useWindowWidth
