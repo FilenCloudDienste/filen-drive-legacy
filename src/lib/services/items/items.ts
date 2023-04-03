@@ -24,7 +24,7 @@ export const addFolderNameToDb = async (uuid: string, name: string): Promise<voi
 
 		let folderNames = await db.get("folderNames", "metadata")
 
-		if (folderNames == null) {
+		if (folderNames === null) {
 			folderNames = {}
 		}
 
@@ -800,17 +800,17 @@ export const getDirectoryTree = (
 					link: string = "parent"
 				): any => {
 					return items
-						.filter((item: any) => item[link] == uuid)
+						.filter((item: any) => item[link] === uuid)
 						.map((item: any) => ({
 							...item,
 							path:
-								item.type == "folder"
+								item.type === "folder"
 									? currentPath + "/" + item.name
 									: currentPath + "/" + item.metadata.name,
 							children: nest(
 								items,
 								item.uuid,
-								item.type == "folder"
+								item.type === "folder"
 									? currentPath + "/" + item.name
 									: currentPath + "/" + item.metadata.name,
 								link
@@ -840,7 +840,7 @@ export const getDirectoryTree = (
 
 					reading -= 1
 
-					if (reading == 0) {
+					if (reading === 0) {
 						return callback()
 					}
 				}
