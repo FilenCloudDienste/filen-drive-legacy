@@ -128,7 +128,15 @@ export const baseFolders = async (apiKey: string | undefined = undefined): Promi
 	return response.data
 }
 
-export const folderContent = async ({ apiKey, uuid, foldersOnly = false }: { apiKey: string; uuid: string; foldersOnly?: boolean }): Promise<any> => {
+export const folderContent = async ({
+	apiKey,
+	uuid,
+	foldersOnly = false
+}: {
+	apiKey: string
+	uuid: string
+	foldersOnly?: boolean
+}): Promise<any> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v1/dir/content",
@@ -195,6 +203,7 @@ export const recentContent = async ({ apiKey }: { apiKey: string }): Promise<any
 	if (!response.status) {
 		throw new Error(response.message)
 	}
+	return response.data
 }
 
 export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string; uploadKey: string }): Promise<any> => {
@@ -263,7 +272,12 @@ export const getFolderContents = async ({
 	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: type === "shared" ? "/v1/download/dir/shared" : type === "linked" ? "/v1/download/dir/link" : "/v1/download/dir",
+		endpoint:
+			type === "shared"
+				? "/v1/download/dir/shared"
+				: type === "linked"
+				? "/v1/download/dir/link"
+				: "/v1/download/dir",
 		data:
 			type === "shared"
 				? {
@@ -277,7 +291,14 @@ export const getFolderContents = async ({
 						password:
 							linkHasPassword && linkSalt && linkPassword
 								? linkSalt.length === 32
-									? ((await deriveKeyFromPassword(linkPassword, linkSalt, 200000, "SHA-512", 512, true)) as string)
+									? ((await deriveKeyFromPassword(
+											linkPassword,
+											linkSalt,
+											200000,
+											"SHA-512",
+											512,
+											true
+									  )) as string)
 									: await hashFn(linkPassword.length === 0 ? "empty" : linkPassword)
 								: await hashFn("empty")
 				  }
@@ -288,7 +309,7 @@ export const getFolderContents = async ({
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return response.data
@@ -353,7 +374,7 @@ export const shareItem = async ({ data }: { data: any }): Promise<boolean> => {
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-	return response.data
+	return true
 }
 
 export const isSharingItem = async ({ uuid }: { uuid: string }): Promise<any> => {
@@ -400,7 +421,7 @@ export const renameItemInPublicLink = async ({ data }: { data: any }): Promise<b
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-	return response.data
+	return true
 }
 
 export const renameSharedItem = async ({ data }: { data: any }): Promise<boolean> => {
@@ -412,10 +433,18 @@ export const renameSharedItem = async ({ data }: { data: any }): Promise<boolean
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-	return response.data
+	return true
 }
 
-export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: string; parent: string; metaData: any }): Promise<any> => {
+export const checkIfItemParentIsShared = ({
+	type,
+	parent,
+	metaData
+}: {
+	type: string
+	parent: string
+	metaData: any
+}): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		db.get("apiKey")
 			.then(apiKey => {
@@ -522,7 +551,10 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 											const folders = contents.folders
 
 											for (let i = 0; i < files.length; i++) {
-												const decrypted = await decryptFileMetadata(files[i].metadata, masterKeys)
+												const decrypted = await decryptFileMetadata(
+													files[i].metadata,
+													masterKeys
+												)
 
 												if (typeof decrypted == "object") {
 													if (typeof decrypted.name == "string") {
@@ -547,11 +579,16 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 											}
 
 											for (let i = 0; i < folders.length; i++) {
-												const decrypted = striptags(await decryptFolderName(folders[i].name, masterKeys))
+												const decrypted = striptags(
+													await decryptFolderName(folders[i].name, masterKeys)
+												)
 
 												if (typeof decrypted == "string") {
 													if (decrypted.length > 0) {
-														if (folders[i].uuid !== metaData.uuid && folders[i].parent !== "base") {
+														if (
+															folders[i].uuid !== metaData.uuid &&
+															folders[i].parent !== "base"
+														) {
 															itemsToShare.push({
 																uuid: folders[i].uuid,
 																parent: i === 0 ? "none" : folders[i].parent,
@@ -708,7 +745,8 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 																key: link.linkKey,
 																expiration: "never",
 																password: "empty",
-																passwordHashed: "8f83dfba6522ce8c34c5afefa64878e3a4ac554d", //hashFn("empty")
+																passwordHashed:
+																	"8f83dfba6522ce8c34c5afefa64878e3a4ac554d", //hashFn("empty")
 																downloadBtn: "enable"
 															}
 														})
@@ -749,7 +787,10 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 											const folders = contents.folders
 
 											for (let i = 0; i < files.length; i++) {
-												const decrypted = await decryptFileMetadata(files[i].metadata, masterKeys)
+												const decrypted = await decryptFileMetadata(
+													files[i].metadata,
+													masterKeys
+												)
 
 												if (typeof decrypted == "object") {
 													if (typeof decrypted.name == "string") {
@@ -775,14 +816,19 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 
 											for (let i = 0; i < folders.length; i++) {
 												try {
-													var decrypted: any = striptags(await decryptFolderName(folders[i].name, masterKeys))
+													var decrypted: any = striptags(
+														await decryptFolderName(folders[i].name, masterKeys)
+													)
 												} catch (e) {
 													//console.log(e)
 												}
 
 												if (typeof decrypted == "string") {
 													if (decrypted.length > 0) {
-														if (folders[i].uuid !== metaData.uuid && folders[i].parent !== "base") {
+														if (
+															folders[i].uuid !== metaData.uuid &&
+															folders[i].parent !== "base"
+														) {
 															itemsToLink.push({
 																uuid: folders[i].uuid,
 																parent: i === 0 ? "none" : folders[i].parent,
@@ -815,7 +861,10 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 													const link = data.links[x]
 
 													try {
-														var key: any = await decryptFolderLinkKey(link.linkKey, masterKeys)
+														var key: any = await decryptFolderLinkKey(
+															link.linkKey,
+															masterKeys
+														)
 													} catch (e) {
 														//console.log(e)
 													}
@@ -839,7 +888,10 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 															}
 
 															try {
-																var encrypted: any = await encryptMetadata(itemMetadata, key)
+																var encrypted: any = await encryptMetadata(
+																	itemMetadata,
+																	key
+																)
 															} catch (e) {
 																//console.log(e)
 															}
@@ -857,7 +909,8 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 																			key: link.linkKey,
 																			expiration: "never",
 																			password: "empty",
-																			passwordHashed: "8f83dfba6522ce8c34c5afefa64878e3a4ac554d", //hashFn("empty")
+																			passwordHashed:
+																				"8f83dfba6522ce8c34c5afefa64878e3a4ac554d", //hashFn("empty")
 																			downloadBtn: "enable"
 																		}
 																	})
@@ -907,7 +960,15 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 	})
 }
 
-export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: string; uuid: string; metaData: any }): Promise<any> => {
+export const checkIfItemIsSharedForRename = ({
+	type,
+	uuid,
+	metaData
+}: {
+	type: string
+	uuid: string
+	metaData: any
+}): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		db.get("apiKey")
 			.then(apiKey => {
@@ -1101,36 +1162,41 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 	})
 }
 
-export const folderExists = ({ name, parent }: { name: string; parent: string }): Promise<{ exists: boolean; existsUUID: string }> => {
-	return new Promise((resolve, reject) => {
-		Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
-			.then(([apiKey, nameHashed]) => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/dir/exists",
-					data: {
-						apiKey,
-						parent,
-						nameHashed
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							exists: response.data.exists ? true : false,
-							existsUUID: response.data.uuid
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const folderExists = async ({
+	name,
+	parent
+}: {
+	name: string
+	parent: string
+}): Promise<{ exists: boolean; existsUUID: string }> => {
+	const [apiKey, nameHashed] = await Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v1/dir/exists",
+		data: {
+			apiKey,
+			parent,
+			nameHashed
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		exists: response.data.exists ? true : false,
+		existsUUID: response.data.uuid
+	}
 }
 
-export const fileExists = async ({ name, parent }: { name: string; parent: string }): Promise<{ exists: boolean; existsUUID: string }> => {
+export const fileExists = async ({
+	name,
+	parent
+}: {
+	name: string
+	parent: string
+}): Promise<{ exists: boolean; existsUUID: string }> => {
 	return new Promise((resolve, reject) => {
 		Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
 			.then(([apiKey, nameHashed]) => {
@@ -1159,7 +1225,17 @@ export const fileExists = async ({ name, parent }: { name: string; parent: strin
 	})
 }
 
-export const createFolder = ({ uuid, name, parent, emitEvents = true }: { uuid: string; name: string; parent: string; emitEvents?: boolean }): Promise<any> => {
+export const createFolder = ({
+	uuid,
+	name,
+	parent,
+	emitEvents = true
+}: {
+	uuid: string
+	name: string
+	parent: string
+	emitEvents?: boolean
+}): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		if (emitEvents) {
 			eventListener.emit("createFolder", {
@@ -1382,7 +1458,8 @@ export const trashItem = async (item: ItemProps): Promise<boolean> => {
 		if (
 			response.message.toString().toLowerCase().indexOf("already") !== -1 ||
 			response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
-			(response.message.toString().toLowerCase().indexOf("not found") !== -1 && response.message.toString().toLowerCase().indexOf("api") === -1)
+			(response.message.toString().toLowerCase().indexOf("not found") !== -1 &&
+				response.message.toString().toLowerCase().indexOf("api") === -1)
 		) {
 			eventListener.emit("itemTrashed", {
 				item
@@ -1391,7 +1468,7 @@ export const trashItem = async (item: ItemProps): Promise<boolean> => {
 			return true
 		}
 
-		return response.message
+		throw new Error(response.message)
 	}
 
 	eventListener.emit("itemTrashed", {
@@ -1401,7 +1478,15 @@ export const trashItem = async (item: ItemProps): Promise<boolean> => {
 	return true
 }
 
-export const moveFile = async ({ file, parent, emitEvents = true }: { file: ItemProps; parent: string; emitEvents?: boolean }): Promise<boolean> => {
+export const moveFile = async ({
+	file,
+	parent,
+	emitEvents = true
+}: {
+	file: ItemProps
+	parent: string
+	emitEvents?: boolean
+}): Promise<boolean> => {
 	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
@@ -1417,7 +1502,8 @@ export const moveFile = async ({ file, parent, emitEvents = true }: { file: Item
 		if (
 			response.message.toString().toLowerCase().indexOf("already") !== -1 ||
 			response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
-			(response.message.toString().toLowerCase().indexOf("not found") !== -1 && response.message.toString().toLowerCase().indexOf("api") === -1)
+			(response.message.toString().toLowerCase().indexOf("not found") !== -1 &&
+				response.message.toString().toLowerCase().indexOf("api") === -1)
 		) {
 			if (emitEvents) {
 				eventListener.emit("itemMoved", {
@@ -1430,7 +1516,7 @@ export const moveFile = async ({ file, parent, emitEvents = true }: { file: Item
 			return true
 		}
 
-		return response.message
+		throw new Error(response.message)
 	}
 
 	checkIfItemParentIsShared({
@@ -1457,65 +1543,64 @@ export const moveFile = async ({ file, parent, emitEvents = true }: { file: Item
 	return true
 }
 
-export const moveFolder = async ({ folder, parent, emitEvents = true }: { folder: ItemProps; parent: string; emitEvents?: boolean }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/dir/move",
-					data: {
-						apiKey,
-						uuid: folder.uuid,
-						folderUUID: parent
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							if (
-								response.message.toString().toLowerCase().indexOf("already") !== -1 ||
-								response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
-								response.message.toString().toLowerCase().indexOf("not found") !== -1
-							) {
-								if (emitEvents) {
-									eventListener.emit("itemMoved", {
-										item: folder,
-										from: folder.parent,
-										to: parent
-									})
-								}
-
-								return resolve(true)
-							}
-
-							return reject(response.message)
-						}
-
-						checkIfItemParentIsShared({
-							type: "folder",
-							parent,
-							metaData: {
-								name: folder.name,
-								uuid: folder.uuid
-							}
-						})
-							.then(() => {
-								if (emitEvents) {
-									eventListener.emit("itemMoved", {
-										item: folder,
-										from: folder.parent,
-										to: parent
-									})
-								}
-
-								return resolve(true)
-							})
-							.catch(reject)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const moveFolder = async ({
+	folder,
+	parent,
+	emitEvents = true
+}: {
+	folder: ItemProps
+	parent: string
+	emitEvents?: boolean
+}): Promise<boolean> => {
+	const apiKey: string = await db.get("apiKey")
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v1/dir/move",
+		data: {
+			apiKey,
+			uuid: folder.uuid,
+			folderUUID: parent
+		}
 	})
+
+	if (!response.status) {
+		if (
+			response.message.toString().toLowerCase().indexOf("already") !== -1 ||
+			response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
+			response.message.toString().toLowerCase().indexOf("not found") !== -1
+		) {
+			if (emitEvents) {
+				eventListener.emit("itemMoved", {
+					item: folder,
+					from: folder.parent,
+					to: parent
+				})
+			}
+
+			return true
+		}
+
+		return response.message
+	}
+
+	checkIfItemParentIsShared({
+		type: "folder",
+		parent,
+		metaData: {
+			name: folder.name,
+			uuid: folder.uuid
+		}
+	})
+
+	if (emitEvents) {
+		eventListener.emit("itemMoved", {
+			item: folder,
+			from: folder.parent,
+			to: parent
+		})
+	}
+
+	return true
 }
 
 export const renameFile = ({ file, name }: { file: ItemProps; name: string }): Promise<boolean> => {
@@ -1595,64 +1680,56 @@ export const renameFile = ({ file, name }: { file: ItemProps; name: string }): P
 	})
 }
 
-export const renameFolder = ({ folder, name }: { folder: ItemProps; name: string }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		Promise.all([db.get("apiKey"), db.get("masterKeys"), hashFn(name.toLowerCase())])
-			.then(([apiKey, masterKeys, nameHashed]) => {
-				encryptMetadata(JSON.stringify({ name }), masterKeys[masterKeys.length - 1])
-					.then(encrypted => {
-						apiRequest({
-							method: "POST",
-							endpoint: "/v1/dir/rename",
-							data: {
-								apiKey,
-								uuid: folder.uuid,
-								name: encrypted,
-								nameHashed
-							}
-						})
-							.then(response => {
-								if (!response.status) {
-									if (
-										response.message.toString().toLowerCase().indexOf("already") !== -1 ||
-										response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
-										(response.message.toString().toLowerCase().indexOf("not found") !== -1 &&
-											response.message.toString().toLowerCase().indexOf("api") === -1)
-									) {
-										eventListener.emit("folderRenamed", {
-											item: folder,
-											to: name
-										})
-
-										return resolve(true)
-									}
-
-									return reject(response.message)
-								}
-
-								checkIfItemIsSharedForRename({
-									type: "folder",
-									uuid: folder.uuid,
-									metaData: {
-										name
-									}
-								})
-									.then(() => {
-										eventListener.emit("folderRenamed", {
-											item: folder,
-											to: name
-										})
-
-										return resolve(true)
-									})
-									.catch(reject)
-							})
-							.catch(reject)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const renameFolder = async ({ folder, name }: { folder: ItemProps; name: string }): Promise<boolean> => {
+	const [apiKey, masterKeys, nameHashed] = await Promise.all([
+		db.get("apiKey"),
+		db.get("masterKeys"),
+		hashFn(name.toLowerCase())
+	])
+	const encrypted = encryptMetadata(JSON.stringify({ name }), masterKeys[masterKeys.length - 1])
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v1/dir/rename",
+		data: {
+			apiKey,
+			uuid: folder.uuid,
+			name: encrypted,
+			nameHashed
+		}
 	})
+
+	if (!response.status) {
+		if (
+			response.message.toString().toLowerCase().indexOf("already") !== -1 ||
+			response.message.toString().toLowerCase().indexOf("does not exist") !== -1 ||
+			(response.message.toString().toLowerCase().indexOf("not found") !== -1 &&
+				response.message.toString().toLowerCase().indexOf("api") === -1)
+		) {
+			eventListener.emit("folderRenamed", {
+				item: folder,
+				to: name
+			})
+
+			return true
+		}
+
+		throw new Error(response.message)
+	}
+
+	checkIfItemIsSharedForRename({
+		type: "folder",
+		uuid: folder.uuid,
+		metaData: {
+			name
+		}
+	})
+
+	eventListener.emit("folderRenamed", {
+		item: folder,
+		to: name
+	})
+
+	return true
 }
 
 export const fetchFolderSize = (item: ItemProps, href: string): Promise<number> => {
@@ -1739,7 +1816,15 @@ export const fetchFolderSize = (item: ItemProps, href: string): Promise<number> 
 	})
 }
 
-export const favoriteItem = async ({ item, favorite, emitEvents = true }: { item: ItemProps; favorite: number; emitEvents?: boolean }): Promise<boolean> => {
+export const favoriteItem = async ({
+	item,
+	favorite,
+	emitEvents = true
+}: {
+	item: ItemProps
+	favorite: number
+	emitEvents?: boolean
+}): Promise<boolean> => {
 	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
@@ -1752,7 +1837,7 @@ export const favoriteItem = async ({ item, favorite, emitEvents = true }: { item
 		}
 	})
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	if (emitEvents) {
@@ -1776,7 +1861,7 @@ export const emptyTrash = async (): Promise<boolean> => {
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	eventListener.emit("trashEmptied")
@@ -1796,7 +1881,7 @@ export const deleteItemPermanently = async (item: ItemProps): Promise<boolean> =
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	eventListener.emit("itemDeletedPermanently", {
@@ -1818,7 +1903,7 @@ export const restoreItem = async (item: ItemProps): Promise<boolean> => {
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	eventListener.emit("itemRestored", {
@@ -1828,7 +1913,13 @@ export const restoreItem = async (item: ItemProps): Promise<boolean> => {
 	return true
 }
 
-export const restoreArchivedFile = async ({ uuid, currentUUID }: { uuid: string; currentUUID: string }): Promise<boolean> => {
+export const restoreArchivedFile = async ({
+	uuid,
+	currentUUID
+}: {
+	uuid: string
+	currentUUID: string
+}): Promise<boolean> => {
 	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
@@ -1841,7 +1932,7 @@ export const restoreArchivedFile = async ({ uuid, currentUUID }: { uuid: string;
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return true
@@ -2064,7 +2155,7 @@ export const stopSharingItem = async (item: ItemProps): Promise<boolean> => {
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return true
@@ -2083,7 +2174,7 @@ export const removeSharedInItem = async (item: ItemProps): Promise<boolean> => {
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return true
@@ -2107,7 +2198,7 @@ export const itemPublicLinkInfo = async (item: ItemProps): Promise<any> => {
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return response.data
@@ -2137,7 +2228,10 @@ export const addItemToFolderPublicLink = async (data: {
 	return response.data
 }
 
-export const createFolderPublicLink = (item: ItemProps, progressCallback?: (current: number, total: number) => any): Promise<any> => {
+export const createFolderPublicLink = (
+	item: ItemProps,
+	progressCallback?: (current: number, total: number) => any
+): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		if (item.type !== "folder") {
 			return reject(new Error("Invalid item type"))
@@ -2227,7 +2321,10 @@ export const createFolderPublicLink = (item: ItemProps, progressCallback?: (curr
 	})
 }
 
-export const enableItemPublicLink = async (item: ItemProps, progressCallback?: (current: number, total: number) => any): Promise<boolean> => {
+export const enableItemPublicLink = async (
+	item: ItemProps,
+	progressCallback?: (current: number, total: number) => any
+): Promise<boolean> => {
 	const apiKey: string = await db.get("apiKey")
 
 	if (item.type === "file") {
@@ -2253,7 +2350,7 @@ export const enableItemPublicLink = async (item: ItemProps, progressCallback?: (
 		}
 
 		if (!response.status) {
-			return response.message
+			throw new Error(response.message)
 		}
 
 		return true
@@ -2322,7 +2419,7 @@ export const disableItemPublicLink = async (item: ItemProps, linkUUID: string): 
 	})
 }
 
-export const editItemPublicLink = (
+export const editItemPublicLink = async (
 	item: ItemProps,
 	linkUUID: string,
 	expiration: string = "30d",
@@ -2418,7 +2515,7 @@ export const fetchFileVersions = async (item: ItemProps): Promise<FileVersionsV1
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	return response.data.versions
@@ -2437,7 +2534,7 @@ export const changeFolderColor = async (folder: ItemProps, color: FolderColors):
 	})
 
 	if (!response.status) {
-		return response.message
+		throw new Error(response.message)
 	}
 
 	eventListener.emit("folderColorChanged", {
@@ -2515,7 +2612,12 @@ export const uploadAvatar = async (buffer: Uint8Array): Promise<boolean> => {
 	return true
 }
 
-export const changeEmail = async (email: string, emailRepeat: string, password: string, authVersion: number): Promise<boolean> => {
+export const changeEmail = async (
+	email: string,
+	emailRepeat: string,
+	password: string,
+	authVersion: number
+): Promise<boolean> => {
 	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
