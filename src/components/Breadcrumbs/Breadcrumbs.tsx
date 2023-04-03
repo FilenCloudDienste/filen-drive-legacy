@@ -25,70 +25,61 @@ const Breadcrumb = memo(({ darkMode, isMobile, crumb, length, index, lang }: Bre
 		eventListener.emit("openSidebarFolder", uuid)
 	}, [])
 
-	const goToFolder = useCallback(
-		(uuid: string): void => {
-			if (getCurrentParent() === uuid) {
-				return
-			}
+	const goToFolder = useCallback((uuid: string): void => {
+		if (getCurrentParent() == uuid) {
+			return
+		}
 
-			if (uuid === "shared/in") {
-				navigate("/#/shared/in")
-			} else if (uuid === "shared/out") {
-				navigate("/#/shared/out")
-			} else if (uuid === "links") {
-				navigate("/#/links")
-			} else if (uuid === "favorites") {
-				navigate("/#/favorites")
-			} else if (uuid === "recents") {
-				navigate("/#/recents")
-			} else if (uuid === "trash") {
-				navigate("/#/trash")
-			} else {
-				openSidebarFolder(uuid)
+		if (uuid == "shared/in") {
+			navigate("/#/shared/in")
+		} else if (uuid == "shared/out") {
+			navigate("/#/shared/out")
+		} else if (uuid == "links") {
+			navigate("/#/links")
+		} else if (uuid == "favorites") {
+			navigate("/#/favorites")
+		} else if (uuid == "recents") {
+			navigate("/#/recents")
+		} else if (uuid == "trash") {
+			navigate("/#/trash")
+		} else {
+			openSidebarFolder(uuid)
 
-				navigate(buildBreadcrumbHashLink(uuid))
-			}
-		},
-		[navigate, openSidebarFolder]
-	)
+			navigate(buildBreadcrumbHashLink(uuid))
+		}
+	}, [])
 
-	const handleOnDrop = useCallback(
-		(e: React.DragEvent<HTMLDivElement>): void => {
-			e.preventDefault()
+	const handleOnDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
+		e.preventDefault()
 
-			const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
+		const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
 
+		clearTimeout(dropNavigationTimer.current)
+
+		dropNavigationTimer.current = undefined
+
+		moveToParent(droppedItems, crumb.uuid)
+	}, [])
+
+	const handleOnDragOver = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
+		e.preventDefault()
+
+		setDragHover(true)
+
+		if (typeof dropNavigationTimer.current !== "number") {
 			clearTimeout(dropNavigationTimer.current)
 
-			dropNavigationTimer.current = undefined
+			dropNavigationTimer.current = setTimeout(() => {
+				openSidebarFolder(crumb.uuid)
 
-			moveToParent(droppedItems, crumb.uuid)
-		},
-		[crumb.uuid]
-	)
+				navigate(buildBreadcrumbHashLink(crumb.uuid))
 
-	const handleOnDragOver = useCallback(
-		(e: React.DragEvent<HTMLDivElement>): void => {
-			e.preventDefault()
-
-			setDragHover(true)
-
-			if (typeof dropNavigationTimer.current !== "number") {
 				clearTimeout(dropNavigationTimer.current)
 
-				dropNavigationTimer.current = setTimeout(() => {
-					openSidebarFolder(crumb.uuid)
-
-					navigate(buildBreadcrumbHashLink(crumb.uuid))
-
-					clearTimeout(dropNavigationTimer.current)
-
-					dropNavigationTimer.current = undefined
-				}, DROP_NAVIGATION_TIMEOUT)
-			}
-		},
-		[crumb.uuid, navigate, openSidebarFolder]
-	)
+				dropNavigationTimer.current = undefined
+			}, DROP_NAVIGATION_TIMEOUT)
+		}
+	}, [])
 
 	const handleOnDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
 		e.preventDefault()
@@ -102,7 +93,7 @@ const Breadcrumb = memo(({ darkMode, isMobile, crumb, length, index, lang }: Bre
 
 	useEffect(() => {
 		const folderRenamedListener = eventListener.on("folderRenamed", (data: FolderRenamedEvent) => {
-			if (data.item.uuid === crumb.uuid) {
+			if (data.item.uuid == crumb.uuid) {
 				setName(data.to)
 			}
 		})
@@ -114,7 +105,7 @@ const Breadcrumb = memo(({ darkMode, isMobile, crumb, length, index, lang }: Bre
 
 			dropNavigationTimer.current = undefined
 		}
-	}, [crumb.uuid])
+	}, [])
 
 	return (
 		<Flex
@@ -163,10 +154,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 
 	const update = useCallback(async () => {
 		try {
-			const [defaultDriveUUID, folderNames] = await Promise.all([
-				db.get("defaultDriveUUID"),
-				db.get("folderNames", "metadata")
-			])
+			const [defaultDriveUUID, folderNames] = await Promise.all([db.get("defaultDriveUUID"), db.get("folderNames", "metadata")])
 
 			const ex = location.hash.split("/")
 			const validFolders = []
@@ -211,7 +199,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 			}
 
 			for (let i = 0; i < validFolders.length; i++) {
-				if (validFolders[i] === defaultDriveUUID) {
+				if (validFolders[i] == defaultDriveUUID) {
 					crumbs.push({
 						uuid: validFolders[i],
 						name: i18n(lang, "cloudDrive")
@@ -233,11 +221,11 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 		} catch (e) {
 			console.error(e)
 		}
-	}, [location, lang])
+	}, [location])
 
 	useEffect(() => {
 		update()
-	}, [location, update])
+	}, [location])
 
 	return (
 		<Flex
@@ -305,11 +293,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 						{!gridFolders[window.location.href] ? (
 							<IoGrid
 								size={18}
-								color={
-									hoveringListLayoutToggle
-										? getColor(darkMode, "textPrimary")
-										: getColor(darkMode, "textSecondary")
-								}
+								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: true })}
 								cursor="pointer"
 								className="do-not-unselect-items"
@@ -322,11 +306,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 						) : (
 							<IoList
 								size={18}
-								color={
-									hoveringListLayoutToggle
-										? getColor(darkMode, "textPrimary")
-										: getColor(darkMode, "textSecondary")
-								}
+								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: false })}
 								cursor="pointer"
 								className="do-not-unselect-items"
