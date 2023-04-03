@@ -1,6 +1,13 @@
 import type { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
-import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
+import {
+	generateRandomString,
+	Semaphore,
+	getUploadServer,
+	canCompressThumbnail,
+	getFileExt,
+	readChunk
+} from "../../helpers"
 import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
@@ -14,365 +21,366 @@ const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
 
 export const chunkToHash = async (file: File, index: number, size: number) => {
-    const chunk = await readChunk(file, index, size)
+	const chunk = await readChunk(file, index, size)
 
-    return await bufferToHash(new Uint8Array(chunk), "SHA-1")
+	return await bufferToHash(new Uint8Array(chunk), "SHA-1")
 }
 
-export const generateClientSideFileHashes = async (file: File, fileChunks: number, chunkSizeToUse: number): Promise<string[]> => {
-    const promises: Promise<string>[] = []
+export const generateClientSideFileHashes = async (
+	file: File,
+	fileChunks: number,
+	chunkSizeToUse: number
+): Promise<string[]> => {
+	const promises: Promise<string>[] = []
 
-    for(let i = 0; i < (fileChunks + 1); i++){
-        promises.push(chunkToHash(file, i, chunkSizeToUse))
-    }
+	for (let i = 0; i < fileChunks + 1; i++) {
+		promises.push(chunkToHash(file, i, chunkSizeToUse))
+	}
 
-    const hashes = await Promise.all(promises)
+	const hashes = await Promise.all(promises)
 
-    return hashes
+	return hashes
 }
 
 export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<ItemProps> => {
-    return new Promise(async (resolve, reject) => {
-        eventListener.emit("upload", {
-            type: "start",
-            data: item
-        })
+	return new Promise(async (resolve, reject) => {
+		eventListener.emit("upload", {
+			type: "start",
+			data: item
+		})
 
-        await uploadSemaphore.acquire()
+		await uploadSemaphore.acquire()
 
-        const userInfo = fetchUserInfoCached()
+		const userInfo = fetchUserInfoCached()
 
-        if(typeof userInfo !== "undefined"){
-            if((userInfo.storageUsed + (item.file.size + 1024)) >= userInfo.maxStorage){
-                eventListener.emit("openMaxStorageModal")
+		if (typeof userInfo !== "undefined") {
+			if (userInfo.storageUsed + (item.file.size + 1024) >= userInfo.maxStorage) {
+				eventListener.emit("openMaxStorageModal")
 
-                return reject(new Error("notEnoughRemoteStorage"))
-            }
-        }
-        
-        try{
-            var [apiKey, masterKeys] = await Promise.all([
-                db.get("apiKey"),
-                db.get("masterKeys")
-            ])
+				return reject(new Error("notEnoughRemoteStorage"))
+			}
+		}
 
-            if(!Array.isArray(masterKeys)){
-                return reject("Master keys empty")
-            }
+		try {
+			var [apiKey, masterKeys] = await Promise.all([db.get("apiKey"), db.get("masterKeys")])
 
-            if(masterKeys.length == 0){
-                return reject("Master keys empty")
-            }
-        }
-        catch(e){
-            return reject(e)
-        }
+			if (!Array.isArray(masterKeys)) {
+				return reject("Master keys empty")
+			}
 
-        const name = item.file.name
-        const size = item.file.size
-        const mime = item.file.type || mimeTypes.lookup(name) || ""
-        const chunkSizeToUse = ((1024 * 1024) * 1)
-        let dummyOffset = 0
-        let fileChunks = 0
-        const expire = "never"
-        const lastModified = item.file.lastModified || new Date().getTime()
-        let paused = false
-        let stopped = false
-        let err = undefined
-        let bucket = "filen-1"
-        let region = "de-1"
+			if (masterKeys.length == 0) {
+				return reject("Master keys empty")
+			}
+		} catch (e) {
+			return reject(e)
+		}
 
-        while(dummyOffset < size){
-            fileChunks += 1
-            dummyOffset += chunkSizeToUse
-        }
+		const name = item.file.name
+		const size = item.file.size
+		const mime = item.file.type || mimeTypes.lookup(name) || ""
+		const chunkSizeToUse = 1024 * 1024 * 1
+		let dummyOffset = 0
+		let fileChunks = 0
+		const expire = "never"
+		const lastModified = item.file.lastModified || new Date().getTime()
+		let paused = false
+		let stopped = false
+		let err = undefined
+		let bucket = "filen-1"
+		let region = "de-1"
 
-        const key = generateRandomString(32)
-        const uuid = item.uuid
-        const rm = generateRandomString(32)
-        const uploadKey = generateRandomString(32)
-        
-        try{
-            var [nameEncrypted, mimeEncrypted, sizeEncrypted, metadata, nameHashed] = await Promise.all([
-                encryptMetadata(name, key),
-                encryptMetadata(mime, key),
-                encryptMetadata(size.toString(), key),
-                encryptMetadata(JSON.stringify({
-                    name,
-                    size,
-                    mime,
-                    key,
-                    lastModified
-                }), masterKeys[masterKeys.length - 1]),
-                hashFn(name.toLowerCase())
-            ])
-        }
-        catch(e){
-            return reject(e)
-        }
+		while (dummyOffset < size) {
+			fileChunks += 1
+			dummyOffset += chunkSizeToUse
+		}
 
-        const pauseListener = eventListener.on("pauseTransfer", (passedUUID: string) => {
-            if(passedUUID == uuid){
-                paused = true
-            }
-        })
+		const key = generateRandomString(32)
+		const uuid = item.uuid
+		const rm = generateRandomString(32)
+		const uploadKey = generateRandomString(32)
 
-        const resumeListener = eventListener.on("resumeTransfer", (passedUUID: string) => {
-            if(passedUUID == uuid){
-                paused = false
-            }
-        })
+		try {
+			var [nameEncrypted, mimeEncrypted, sizeEncrypted, metadata, nameHashed] = await Promise.all([
+				encryptMetadata(name, key),
+				encryptMetadata(mime, key),
+				encryptMetadata(size.toString(), key),
+				encryptMetadata(
+					JSON.stringify({
+						name,
+						size,
+						mime,
+						key,
+						lastModified
+					}),
+					masterKeys[masterKeys.length - 1]
+				),
+				hashFn(name.toLowerCase())
+			])
+		} catch (e) {
+			return reject(e)
+		}
 
-        const stopListener = eventListener.on("stopTransfer", (passedUUID: string) => {
-            if(passedUUID == uuid){
-                stopped = true
-            }
-        })
+		const pauseListener = eventListener.on("pauseTransfer", (passedUUID: string) => {
+			if (passedUUID == uuid) {
+				paused = true
+			}
+		})
 
-        const cleanup = (): void => {
-            try{
-                uploadSemaphore.release()
-                pauseListener.remove()
-                resumeListener.remove()
-                stopListener.remove()
-            }
-            catch(e){
-                console.error(e)
-            }
-        }
+		const resumeListener = eventListener.on("resumeTransfer", (passedUUID: string) => {
+			if (passedUUID == uuid) {
+				paused = false
+			}
+		})
 
-        eventListener.emit("upload", {
-            type: "started",
-            data: item
-        })
+		const stopListener = eventListener.on("stopTransfer", (passedUUID: string) => {
+			if (passedUUID == uuid) {
+				stopped = true
+			}
+		})
 
-        const upload = (index: number): Promise<any> => {
-            return new Promise(async (resolve, reject) => {
-                if(paused){
-                    await new Promise((resolve) => {
-                        const wait = setInterval(() => {
-                            if(!paused || stopped){
-                                clearInterval(wait)
+		const cleanup = (): void => {
+			try {
+				uploadSemaphore.release()
+				pauseListener.remove()
+				resumeListener.remove()
+				stopListener.remove()
+			} catch (e) {
+				console.error(e)
+			}
+		}
 
-                                return resolve(true)
-                            }
-                        }, 10)
-                    })
-                }
+		eventListener.emit("upload", {
+			type: "started",
+			data: item
+		})
 
-                if(stopped){
-                    return reject("stopped")
-                }
+		const upload = (index: number): Promise<any> => {
+			return new Promise(async (resolve, reject) => {
+				if (paused) {
+					await new Promise(resolve => {
+						const wait = setInterval(() => {
+							if (!paused || stopped) {
+								clearInterval(wait)
 
-                const params = new URLSearchParams({
-                    apiKey,
-                    uuid,
-                    name: nameEncrypted,
-                    nameHashed: nameHashed,
-                    size: sizeEncrypted,
-                    chunks: fileChunks,
-                    mime: mimeEncrypted,
-                    index,
-                    rm,
-                    expire,
-                    uploadKey,
-                    metaData: metadata,
-                    parent,
-                    version: UPLOAD_VERSION
-                } as any).toString()
+								return resolve(true)
+							}
+						}, 10)
+					})
+				}
 
-                const url = getUploadServer() + "/v2/upload?" + params
+				if (stopped) {
+					return reject("stopped")
+				}
 
-                readChunk(item.file, index, chunkSizeToUse).then((chunk) => {
-                    encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse).then(resolve).catch(reject)
-                }).catch(reject)
-            })
-        }
+				const params = new URLSearchParams({
+					apiKey,
+					uuid,
+					name: nameEncrypted,
+					nameHashed: nameHashed,
+					size: sizeEncrypted,
+					chunks: fileChunks,
+					mime: mimeEncrypted,
+					index,
+					rm,
+					expire,
+					uploadKey,
+					metaData: metadata,
+					parent,
+					version: UPLOAD_VERSION
+				} as any).toString()
 
-        try{
-            const res = await upload(0)
+				const url = getUploadServer() + "/v2/upload?" + params
 
-            bucket = res.data.bucket
-            region = res.data.region
-        }
-        catch(e: any){
-            eventListener.emit("upload", {
-                type: "err",
-                err: e.toString(),
-                data: item
-            })
+				readChunk(item.file, index, chunkSizeToUse)
+					.then(chunk => {
+						encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse)
+							.then(resolve)
+							.catch(reject)
+					})
+					.catch(reject)
+			})
+		}
 
-            cleanup()
+		try {
+			const res = await upload(0)
 
-            return reject(e)
-        }
+			bucket = res.data.bucket
+			region = res.data.region
+		} catch (e: any) {
+			eventListener.emit("upload", {
+				type: "err",
+				err: e.toString(),
+				data: item
+			})
 
-        if(typeof err == "undefined"){
-            try{
-                await new Promise((resolve, reject) => {
-                    let done = 1
-        
-                    for(let i = 1; i < (fileChunks + 1); i++){
-                        uploadThreadsSemaphore.acquire().then(() => {
-                            if(stopped){
-                                uploadThreadsSemaphore.release()
+			cleanup()
 
-                                return reject("stopped")
-                            }
+			return reject(e)
+		}
 
-                            upload(i).then(() => {
-                                if(stopped){
-                                    uploadThreadsSemaphore.release()
-                                    
-                                    return reject("stopped")
-                                }
+		if (typeof err == "undefined") {
+			try {
+				await new Promise((resolve, reject) => {
+					let done = 1
 
-                                done += 1
-        
-                                uploadThreadsSemaphore.release()
-        
-                                if(done >= (fileChunks + 1)){
-                                    return resolve(true)
-                                }
-                            }).catch((err) => {
-                                uploadThreadsSemaphore.release()
-        
-                                return reject(err)
-                            })
-                        })
-                    }
-                })
-            }
-            catch(e: any){
-                if(e.toString().toLowerCase().indexOf("already exists") !== -1){
-                    cleanup()
+					for (let i = 1; i < fileChunks + 1; i++) {
+						uploadThreadsSemaphore.acquire().then(() => {
+							if (stopped) {
+								uploadThreadsSemaphore.release()
 
-                    eventListener.emit("upload", {
-                        type: "err",
-                        err: e.toString(),
-                        data: item
-                    })
+								return reject("stopped")
+							}
 
-                    return
-                }
-                else if(e == "stopped"){
-                    cleanup()
+							upload(i)
+								.then(() => {
+									if (stopped) {
+										uploadThreadsSemaphore.release()
 
-                    eventListener.emit("upload", {
-                        type: "err",
-                        err: e.toString(),
-                        data: item
-                    })
+										return reject("stopped")
+									}
 
-                    return
-                }
+									done += 1
 
-                cleanup()
-        
-                err = e
-            }
-        }
+									uploadThreadsSemaphore.release()
 
-        if(typeof err !== "undefined"){
-            eventListener.emit("upload", {
-                type: "err",
-                err: err.toString(),
-                data: item
-            })
+									if (done >= fileChunks + 1) {
+										return resolve(true)
+									}
+								})
+								.catch(err => {
+									uploadThreadsSemaphore.release()
 
-            cleanup()
+									return reject(err)
+								})
+						})
+					}
+				})
+			} catch (e: any) {
+				if (e.toString().toLowerCase().indexOf("already exists") !== -1) {
+					cleanup()
 
-            if(err == "stopped"){
-                return reject("stopped")
-            }
-            else if(err.toString().toLowerCase().indexOf("blacklist") !== -1){
-                //showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
+					eventListener.emit("upload", {
+						type: "err",
+						err: e.toString(),
+						data: item
+					})
 
-                return reject("notEnoughRemoteStorage")
-            }
-            else{
-                //showToast({ message: err.toString() })
+					return
+				} else if (e == "stopped") {
+					cleanup()
 
-                return reject(err)
-            }
-        }
+					eventListener.emit("upload", {
+						type: "err",
+						err: e.toString(),
+						data: item
+					})
 
-        try{
-            const doneRes = await markUploadAsDone({ uuid, uploadKey })
+					return
+				}
 
-            if(doneRes.data && doneRes.data.chunks){
-                fileChunks = doneRes.data.chunks
-            }
+				cleanup()
 
-            if(canCompressThumbnail(getFileExt(name))){
-                await generateThumbnailAfterUpload(item.file, uuid, name)
-            }
+				err = e
+			}
+		}
 
-            await checkIfItemParentIsShared({
-                type: "file",
-                parent,
-                metaData: {
-                    uuid,
-                    name,
-                    size,
-                    mime,
-                    key,
-                    lastModified
-                }
-            })
-        }
-        catch(e: any){
-            eventListener.emit("upload", {
-                type: "err",
-                err: e.toString(),
-                data: item
-            })
+		if (typeof err !== "undefined") {
+			eventListener.emit("upload", {
+				type: "err",
+				err: err.toString(),
+				data: item
+			})
 
-            cleanup()
+			cleanup()
 
-            return reject(e)
-        }
+			if (err == "stopped") {
+				return reject("stopped")
+			} else if (err.toString().toLowerCase().indexOf("blacklist") !== -1) {
+				//showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
 
-        eventListener.emit("upload", {
-            type: "done",
-            data: item
-        })
+				return reject("notEnoughRemoteStorage")
+			} else {
+				//showToast({ message: err.toString() })
 
-        cleanup()
+				return reject(err)
+			}
+		}
 
-        const newItem: ItemProps = {
-            root: "",
-            type: "file",
-            uuid,
-            name,
-            size,
-            mime,
-            lastModified,
-            lastModifiedSort: lastModified,
-            timestamp: Math.floor(new Date().getTime() / 1000),
-            selected: false,
-            color: "default",
-            parent,
-            rm,
-            version: UPLOAD_VERSION,
-            sharerEmail: "",
-            sharerId: 0,
-            receiverEmail: "",
-            receiverId: 0,
-            writeAccess: false,
-            chunks: fileChunks,
-            favorited: 0,
-            key,
-            bucket,
-            region,
-        }
+		try {
+			const doneRes = await markUploadAsDone({ uuid, uploadKey })
 
-        eventListener.emit("fileUploaded", {
-            item: newItem
-        })
+			if (doneRes.data && doneRes.data.chunks) {
+				fileChunks = doneRes.data.chunks
+			}
 
-        addItemsToStore([newItem], newItem.parent).catch(console.error)
+			if (canCompressThumbnail(getFileExt(name))) {
+				await generateThumbnailAfterUpload(item.file, uuid, name)
+			}
 
-        return resolve(newItem)
-    })
+			await checkIfItemParentIsShared({
+				type: "file",
+				parent,
+				metaData: {
+					uuid,
+					name,
+					size,
+					mime,
+					key,
+					lastModified
+				}
+			})
+		} catch (e: any) {
+			eventListener.emit("upload", {
+				type: "err",
+				err: e.toString(),
+				data: item
+			})
+
+			cleanup()
+
+			return reject(e)
+		}
+
+		eventListener.emit("upload", {
+			type: "done",
+			data: item
+		})
+
+		cleanup()
+
+		const newItem: ItemProps = {
+			root: "",
+			type: "file",
+			uuid,
+			name,
+			size,
+			mime,
+			lastModified,
+			lastModifiedSort: lastModified,
+			timestamp: Math.floor(new Date().getTime() / 1000),
+			selected: false,
+			color: "default",
+			parent,
+			rm,
+			version: UPLOAD_VERSION,
+			sharerEmail: "",
+			sharerId: 0,
+			receiverEmail: "",
+			receiverId: 0,
+			writeAccess: false,
+			chunks: fileChunks,
+			favorited: 0,
+			key,
+			bucket,
+			region
+		}
+
+		eventListener.emit("fileUploaded", {
+			item: newItem
+		})
+
+		addItemsToStore([newItem], newItem.parent).catch(console.error)
+
+		return resolve(newItem)
+	})
 }

@@ -3,16 +3,18 @@ import useCookie from "../useCookie"
 import Cookies from "../../cookies"
 
 const useLang = (): string => {
-    const [lang, setLang] = useState<string>(typeof Cookies.get("lang") == "string" ? Cookies.get("lang") as string : "en")
-    const [cookie, _] = useCookie("lang")
+	const [lang, setLang] = useState<string>(
+		typeof Cookies.get("lang") == "string" ? (Cookies.get("lang") as string) : "en"
+	)
+	const [cookie, _] = useCookie("lang")
 
-    useEffect(() => {
-        if(typeof cookie == "string"){
-            setLang(cookie)
-        }
-    }, [cookie])
+	useEffect(() => {
+		if (typeof cookie == "string") {
+			setLang(cookie)
+		}
+	}, [cookie])
 
-    return lang
+	return lang
 }
 
 export default useLang

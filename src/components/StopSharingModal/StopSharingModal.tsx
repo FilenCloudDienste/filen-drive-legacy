@@ -1,6 +1,15 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { StopSharingModalProps, ItemProps } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
+import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalBody,
+	ModalCloseButton,
+	Spinner,
+	ModalFooter,
+	ModalHeader
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -10,178 +19,199 @@ import { i18n } from "../../i18n"
 import { removeItemsFromStore } from "../../lib/services/metadata"
 
 const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopSharingModalProps) => {
-    const [open, setOpen] = useState<boolean>(false)
-    const [loading, setLoading] = useState<boolean>(false)
-    const stopSharingItems = useRef<ItemProps[]>([])
-    const [selected, setSelected] = useState<ItemProps[]>([])
-    const isOpen = useRef<boolean>(false)
+	const [open, setOpen] = useState<boolean>(false)
+	const [loading, setLoading] = useState<boolean>(false)
+	const stopSharingItems = useRef<ItemProps[]>([])
+	const [selected, setSelected] = useState<ItemProps[]>([])
+	const isOpen = useRef<boolean>(false)
 
-    const stopSharing = useCallback(async () => {
-        if(loading){
-            return
-        }
+	const stopSharing = useCallback(async () => {
+		if (loading) {
+			return
+		}
 
-        if(stopSharingItems.current.length == 0){
-            return
-        }
+		if (stopSharingItems.current.length == 0) {
+			return
+		}
 
-        setLoading(true)
+		setLoading(true)
 
-        const promises = []
-        const stopped: ItemProps[] = []
+		const promises = []
+		const stopped: ItemProps[] = []
 
-        for(let i = 0; i < stopSharingItems.current.length; i++){
-            const currentItem: ItemProps = stopSharingItems.current[i]
-            const receivers = stopSharingItems.current[i].receivers
+		for (let i = 0; i < stopSharingItems.current.length; i++) {
+			const currentItem: ItemProps = stopSharingItems.current[i]
+			const receivers = stopSharingItems.current[i].receivers
 
-            if(typeof receivers !== "undefined" && Array.isArray(receivers)){
-                for(let x = 0; x < receivers.length; x++){
-                    const item: ItemProps = {
-                        ...currentItem,
-                        receiverId: receivers[x].id,
-                        receiverEmail: receivers[x].email,
-                    }
+			if (typeof receivers !== "undefined" && Array.isArray(receivers)) {
+				for (let x = 0; x < receivers.length; x++) {
+					const item: ItemProps = {
+						...currentItem,
+						receiverId: receivers[x].id,
+						receiverEmail: receivers[x].email
+					}
 
-                    promises.push(new Promise((resolve, reject) => {
-                        stopSharingItem(item).then(() => {
-                            stopped.push(item)
-    
-                            return resolve(true)
-                        }).catch((err) => {
-                            return reject({
-                                err: new Error(err),
-                                item
-                            })
-                        })
-                    }))
-                }
-            }
-        }
+					promises.push(
+						new Promise((resolve, reject) => {
+							stopSharingItem(item)
+								.then(() => {
+									stopped.push(item)
 
-        const results = await Promise.allSettled(promises)
-        const error = results.filter(result => result.status == "rejected") as { status: string, reason: { err: Error, item: ItemProps } }[]
+									return resolve(true)
+								})
+								.catch(err => {
+									return reject({
+										err: new Error(err),
+										item
+									})
+								})
+						})
+					)
+				}
+			}
+		}
 
-        if(error.length > 0){
-            for(let i = 0; i < error.length; i++){
-                showToast("error", i18n(lang, "couldNotStopSharingItem", true, ["__NAME__", "__ERR__"], [error[i].reason.item.name, error[i].reason.err.toString()]), "bottom", 5000)
-            }
-        }
+		const results = await Promise.allSettled(promises)
+		const error = results.filter(result => result.status == "rejected") as {
+			status: string
+			reason: { err: Error; item: ItemProps }
+		}[]
 
-        if(stopped.length > 0){
-            const stoppedUUIDs = stopped.map(item => item.uuid)
+		if (error.length > 0) {
+			for (let i = 0; i < error.length; i++) {
+				showToast(
+					"error",
+					i18n(
+						lang,
+						"couldNotStopSharingItem",
+						true,
+						["__NAME__", "__ERR__"],
+						[error[i].reason.item.name, error[i].reason.err.toString()]
+					),
+					"bottom",
+					5000
+				)
+			}
+		}
 
-            setItems(prev => prev.filter(item => !stoppedUUIDs.includes(item.uuid)))
+		if (stopped.length > 0) {
+			const stoppedUUIDs = stopped.map(item => item.uuid)
 
-            showToast("success", i18n(lang, "stoppedSharingItems", true, ["__COUNT__"], [stopSharingItems.current.length.toString()]), "bottom", 5000)
+			setItems(prev => prev.filter(item => !stoppedUUIDs.includes(item.uuid)))
 
-            removeItemsFromStore(stopSharingItems.current, "shared-out").catch(console.error)
-        }
+			showToast(
+				"success",
+				i18n(lang, "stoppedSharingItems", true, ["__COUNT__"], [stopSharingItems.current.length.toString()]),
+				"bottom",
+				5000
+			)
 
-        stopSharingItems.current = []
+			removeItemsFromStore(stopSharingItems.current, "shared-out").catch(console.error)
+		}
 
-        setSelected([])
-        setLoading(false)
-        setOpen(false)
-    }, [loading, stopSharingItems.current])
+		stopSharingItems.current = []
 
-    const windowKeyDown = useCallback((e: KeyboardEvent): void => {
-        if(e.which == 13 && isOpen.current){
-            stopSharing()
-        }
-    }, [isOpen.current])
+		setSelected([])
+		setLoading(false)
+		setOpen(false)
+	}, [loading, stopSharingItems.current])
 
-    useEffect(() => {
-        isOpen.current = open
-    }, [open])
+	const windowKeyDown = useCallback(
+		(e: KeyboardEvent): void => {
+			if (e.which == 13 && isOpen.current) {
+				stopSharing()
+			}
+		},
+		[isOpen.current]
+	)
 
-    useEffect(() => {
-        const openStopSharingModalListener = eventListener.on("openStopSharingModal", ({ items }: { items: ItemProps[] }) => {
-            stopSharingItems.current = items
+	useEffect(() => {
+		isOpen.current = open
+	}, [open])
 
-            setSelected(items)
-            setOpen(true)
-        })
+	useEffect(() => {
+		const openStopSharingModalListener = eventListener.on(
+			"openStopSharingModal",
+			({ items }: { items: ItemProps[] }) => {
+				stopSharingItems.current = items
 
-        window.addEventListener("keydown", windowKeyDown)
-        
-        return () => {
-            openStopSharingModalListener.remove()
+				setSelected(items)
+				setOpen(true)
+			}
+		)
 
-            window.removeEventListener("keydown", windowKeyDown)
-        }
-    }, [])
+		window.addEventListener("keydown", windowKeyDown)
 
-    return (
-        <Modal
-            onClose={() => setOpen(false)}
-            isOpen={open}
-            isCentered={true}
-            size={isMobile ? "xl" : "md"}
-        >
-            <ModalOverlay 
-                backgroundColor="rgba(0, 0, 0, 0.4)"
-            />
-            <ModalContent
-                backgroundColor={getColor(darkMode, "backgroundSecondary")}
-                color={getColor(darkMode, "textSecondary")}
-                borderRadius={isMobile ? "0px" : "5px"}
-            >
-                <ModalHeader
-                    color={getColor(darkMode, "textPrimary")}
-                >
-                    {i18n(lang, "stopSharing")}
-                </ModalHeader>
-                <ModalCloseButton
-                    color={getColor(darkMode, "textSecondary")}
-                    backgroundColor={getColor(darkMode, "backgroundTertiary")}
-                    _hover={{
-                        color: getColor(darkMode, "textPrimary"),
-                        backgroundColor: getColor(darkMode, "backgroundPrimary")
-                    }}
-                    autoFocus={false}
-                    tabIndex={-1}
-                    borderRadius="full"
-                />
-                <ModalBody
-                    height="100%"
-                    width="100%"
-                    alignItems="center"
-                    justifyContent="center"
-                >
-                    <AppText
-                        darkMode={darkMode}
-                        isMobile={isMobile}
-                        color={getColor(darkMode, "textPrimary")}
-                    >
-                        {i18n(lang, "stopSharingModalSure", true, ["__COUNT__"], [selected.length.toString()])}
-                    </AppText>
-                </ModalBody>
-                <ModalFooter>
-                    {
-                        loading ? (
-                            <Spinner
-                                width="16px"
-                                height="16px"
-                                color={getColor(darkMode, "textPrimary")}
-                            />
-                        ) : (
-                            <AppText
-                                darkMode={darkMode}
-                                isMobile={isMobile}
-                                noOfLines={1}
-                                wordBreak="break-all"
-                                color={getColor(darkMode, "linkPrimary")}
-                                cursor="pointer"
-                                onClick={() => stopSharing()}
-                            >
-                                {i18n(lang, "stopSharing")}
-                            </AppText>
-                        )
-                    }
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
-    )
+		return () => {
+			openStopSharingModalListener.remove()
+
+			window.removeEventListener("keydown", windowKeyDown)
+		}
+	}, [])
+
+	return (
+		<Modal
+			onClose={() => setOpen(false)}
+			isOpen={open}
+			isCentered={true}
+			size={isMobile ? "xl" : "md"}
+		>
+			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
+			<ModalContent
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+				color={getColor(darkMode, "textSecondary")}
+				borderRadius={isMobile ? "0px" : "5px"}
+			>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "stopSharing")}</ModalHeader>
+				<ModalCloseButton
+					color={getColor(darkMode, "textSecondary")}
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					_hover={{
+						color: getColor(darkMode, "textPrimary"),
+						backgroundColor: getColor(darkMode, "backgroundPrimary")
+					}}
+					autoFocus={false}
+					tabIndex={-1}
+					borderRadius="full"
+				/>
+				<ModalBody
+					height="100%"
+					width="100%"
+					alignItems="center"
+					justifyContent="center"
+				>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						color={getColor(darkMode, "textPrimary")}
+					>
+						{i18n(lang, "stopSharingModalSure", true, ["__COUNT__"], [selected.length.toString()])}
+					</AppText>
+				</ModalBody>
+				<ModalFooter>
+					{loading ? (
+						<Spinner
+							width="16px"
+							height="16px"
+							color={getColor(darkMode, "textPrimary")}
+						/>
+					) : (
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "linkPrimary")}
+							cursor="pointer"
+							onClick={() => stopSharing()}
+						>
+							{i18n(lang, "stopSharing")}
+						</AppText>
+					)}
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+	)
 })
 
 export default StopSharingModal

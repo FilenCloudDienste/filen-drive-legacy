@@ -17,7 +17,7 @@ const extendedTheme = extendTheme({
 })
 
 window.onpopstate = () => {
-	if(document.querySelectorAll(".chakra-modal__overlay").length > 0){
+	if (document.querySelectorAll(".chakra-modal__overlay").length > 0) {
 		window.history.go(1)
 
 		return
@@ -25,7 +25,7 @@ window.onpopstate = () => {
 }
 
 window.onbeforeunload = () => {
-	if(toastActiveCount() > 2 || document.querySelectorAll(".chakra-modal__overlay").length > 0){
+	if (toastActiveCount() > 2 || document.querySelectorAll(".chakra-modal__overlay").length > 0) {
 		return "Are you sure you want to leave?"
 	}
 
@@ -33,13 +33,13 @@ window.onbeforeunload = () => {
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  	<React.StrictMode>
+	<React.StrictMode>
 		<ChakraProvider theme={extendedTheme}>
 			<HelmetProvider>
 				<App />
 			</HelmetProvider>
 		</ChakraProvider>
-  	</React.StrictMode>
+	</React.StrictMode>
 )
 
 reportWebVitals()

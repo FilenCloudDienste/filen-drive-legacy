@@ -7,70 +7,68 @@ const addedToDb: { [key: string]: boolean } = {}
 let inDb: ItemProps[] = []
 
 export const addToSearchItems = async (items: ItemProps[]): Promise<boolean> => {
-    await addSemaphore.acquire()
+	await addSemaphore.acquire()
 
-    const toAdd: ItemProps[] = []
+	const toAdd: ItemProps[] = []
 
-    for(let i = 0; i < items.length; i++){
-        if(!addedToDb[items[i].uuid]){
-            toAdd.push(items[i])
-        }
-    }
+	for (let i = 0; i < items.length; i++) {
+		if (!addedToDb[items[i].uuid]) {
+			toAdd.push(items[i])
+		}
+	}
 
-    if(toAdd.length == 0){
-        addSemaphore.release()
+	if (toAdd.length == 0) {
+		addSemaphore.release()
 
-        return true
-    }
+		return true
+	}
 
-    try{
-        let searchItems: ItemProps[] = inDb
+	try {
+		let searchItems: ItemProps[] = inDb
 
-        if(searchItems.length == 0){
-            searchItems = await db.get("searchItems", "metadata")
+		if (searchItems.length == 0) {
+			searchItems = await db.get("searchItems", "metadata")
 
-            if(!searchItems){
-                searchItems = []
-            }
+			if (!searchItems) {
+				searchItems = []
+			}
 
-            inDb = searchItems
-        }
+			inDb = searchItems
+		}
 
-        const includes: string[] = searchItems.map(item => item.uuid)
-        const add: ItemProps[] = toAdd.filter(item => !includes.includes(item.uuid))
+		const includes: string[] = searchItems.map(item => item.uuid)
+		const add: ItemProps[] = toAdd.filter(item => !includes.includes(item.uuid))
 
-        if(add.length > 0){
-            inDb = [...searchItems, ...add]
+		if (add.length > 0) {
+			inDb = [...searchItems, ...add]
 
-            for(let i = 0; i < add.length; i++){
-                addedToDb[add[i].uuid] = true
-            }
+			for (let i = 0; i < add.length; i++) {
+				addedToDb[add[i].uuid] = true
+			}
 
-            await db.set("searchItems", inDb, "metadata")
-        }
-    }
-    catch(e){
-        console.error(e)
-    }
+			await db.set("searchItems", inDb, "metadata")
+		}
+	} catch (e) {
+		console.error(e)
+	}
 
-    addSemaphore.release()
+	addSemaphore.release()
 
-    return true
+	return true
 }
 
 export const searchByName = async (name: string): Promise<ItemProps[]> => {
-    try{
-        let searchItems: ItemProps[] = await db.get("searchItems", "metadata")
+	try {
+		let searchItems: ItemProps[] = await db.get("searchItems", "metadata")
 
-        if(!searchItems){
-            searchItems = []
-        }
+		if (!searchItems) {
+			searchItems = []
+		}
 
-        return searchItems.filter(item => item.name.toLowerCase().trim().indexOf(name.toLowerCase().trim()) !== -1)
-    }
-    catch(e){
-        console.error(e)
-    }
+		return searchItems.filter(item => item.name.toLowerCase().trim().indexOf(name.toLowerCase().trim()) !== -1)
+	} catch (e) {
+		console.error(e)
+	}
 
-    return []
+	return []
 }

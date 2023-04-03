@@ -3,5 +3,5 @@ import { okaidia } from "@uiw/codemirror-theme-okaidia"
 import { memoize } from "lodash"
 
 export const createCodeMirrorTheme = memoize((darkMode: boolean) => {
-    return darkMode ? okaidia : githubLight
+	return darkMode ? okaidia : githubLight
 })
