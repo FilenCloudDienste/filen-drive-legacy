@@ -9,9 +9,9 @@ const USE_INTERNAL_INDEX = false
 export type StoreTypes = "normal" | "thumbnails" | "metadata"
 
 const getStore = (type: StoreTypes): LocalForage => {
-	if (type === "thumbnails") {
+	if (type == "thumbnails") {
 		return thumbnailStore
-	} else if (type === "metadata") {
+	} else if (type == "metadata") {
 		return metadataStore
 	}
 
@@ -143,7 +143,7 @@ export const keys = async (storeType: StoreTypes = "normal"): Promise<string[]> 
 	return await getStore(storeType).keys()
 }
 
-const db = {
+export default {
 	get,
 	set,
 	remove,
@@ -151,5 +151,3 @@ const db = {
 	keys,
 	warmUpDb
 }
-
-export default db

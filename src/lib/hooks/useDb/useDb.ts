@@ -39,7 +39,7 @@ const useDb = (key: string, defaultValue: any): [any, (value: any) => Promise<vo
 			removeListener.remove()
 			clearListener.remove()
 		}
-	}, [key])
+	}, [])
 
 	return [value, (value: any): Promise<void> => db.set(key, value)]
 }
