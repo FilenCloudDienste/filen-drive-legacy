@@ -1197,32 +1197,25 @@ export const fileExists = async ({
 	name: string
 	parent: string
 }): Promise<{ exists: boolean; existsUUID: string }> => {
-	return new Promise((resolve, reject) => {
-		Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
-			.then(([apiKey, nameHashed]) => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/file/exists",
-					data: {
-						apiKey,
-						parent,
-						nameHashed
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							exists: response.data.exists ? true : false,
-							existsUUID: response.data.uuid
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+	const [apiKey, nameHashed] = await Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v1/file/exists",
+		data: {
+			apiKey,
+			parent,
+			nameHashed
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		exists: response.data.exists ? true : false,
+		existsUUID: response.data.uuid
+	}
 }
 
 export const createFolder = ({
@@ -1519,7 +1512,7 @@ export const moveFile = async ({
 		throw new Error(response.message)
 	}
 
-	checkIfItemParentIsShared({
+	await checkIfItemParentIsShared({
 		type: "file",
 		parent,
 		metaData: {
@@ -1580,10 +1573,10 @@ export const moveFolder = async ({
 			return true
 		}
 
-		return response.message
+		throw new Error(response.message)
 	}
 
-	checkIfItemParentIsShared({
+	await checkIfItemParentIsShared({
 		type: "folder",
 		parent,
 		metaData: {
@@ -1716,7 +1709,7 @@ export const renameFolder = async ({ folder, name }: { folder: ItemProps; name: 
 		throw new Error(response.message)
 	}
 
-	checkIfItemIsSharedForRename({
+	await checkIfItemIsSharedForRename({
 		type: "folder",
 		uuid: folder.uuid,
 		metaData: {
@@ -2330,7 +2323,7 @@ export const enableItemPublicLink = async (
 	if (item.type === "file") {
 		const linkUUID: string = uuidv4()
 
-		var response = await apiRequest({
+		const response = await apiRequest({
 			method: "POST",
 			endpoint: "/v1/link/edit",
 			data: {
@@ -2355,68 +2348,56 @@ export const enableItemPublicLink = async (
 
 		return true
 	} else {
-		createFolderPublicLink(item, progressCallback)
+		await createFolderPublicLink(item, progressCallback)
 		return true
 	}
 }
 
 export const disableItemPublicLink = async (item: ItemProps, linkUUID: string): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(async apiKey => {
-				if (item.type === "file") {
-					if (typeof linkUUID !== "string") {
-						return reject(new Error("Invalid linkUUID"))
-					}
+	const apiKey: string = await db.get("apiKey")
+	if (item.type === "file") {
+		if (typeof linkUUID !== "string") {
+			throw new Error("Invalid linkUUID")
+		}
 
-					if (linkUUID.length < 32) {
-						return reject(new Error("Invalid linkUUID"))
-					}
+		if (linkUUID.length < 32) {
+			throw new Error("Invalid linkUUID")
+		}
+		const response = await apiRequest({
+			method: "POST",
+			endpoint: "/v1/link/edit",
+			data: {
+				apiKey,
+				uuid: linkUUID,
+				fileUUID: item.uuid,
+				expiration: "never",
+				password: "empty",
+				passwordHashed: await hashFn("empty"),
+				salt: generateRandomString(32),
+				downloadBtn: "enable",
+				type: "disable"
+			}
+		})
+		if (!response.status) {
+			throw new Error(response.message)
+		}
 
-					apiRequest({
-						method: "POST",
-						endpoint: "/v1/link/edit",
-						data: {
-							apiKey,
-							uuid: linkUUID,
-							fileUUID: item.uuid,
-							expiration: "never",
-							password: "empty",
-							passwordHashed: await hashFn("empty"),
-							salt: generateRandomString(32),
-							downloadBtn: "enable",
-							type: "disable"
-						}
-					})
-						.then(response => {
-							if (!response.status) {
-								return reject(response.message)
-							}
+		return true
+	} else {
+		const response = await apiRequest({
+			method: "POST",
+			endpoint: "/v1/dir/link/remove",
+			data: {
+				apiKey,
+				uuid: item.uuid
+			}
+		})
+		if (!response.status) {
+			throw new Error(response.message)
+		}
 
-							return resolve(true)
-						})
-						.catch(reject)
-				} else {
-					apiRequest({
-						method: "POST",
-						endpoint: "/v1/dir/link/remove",
-						data: {
-							apiKey,
-							uuid: item.uuid
-						}
-					})
-						.then(response => {
-							if (!response.status) {
-								return reject(response.message)
-							}
-
-							return resolve(true)
-						})
-						.catch(reject)
-				}
-			})
-			.catch(reject)
-	})
+		return true
+	}
 }
 
 export const editItemPublicLink = async (
@@ -2426,81 +2407,70 @@ export const editItemPublicLink = async (
 	password: string = "",
 	downloadBtn: "enable" | "disable" = "enable"
 ): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		if (password == null) {
-			password = ""
+	if (password == null) {
+		password = ""
+	}
+
+	if (typeof downloadBtn !== "string") {
+		downloadBtn = "enable"
+	}
+
+	const pass: string = password.length > 0 ? "notempty" : "empty"
+	const passH: string = password.length > 0 ? password : "empty"
+	const salt: string = generateRandomString(32)
+
+	const apiKey: string = await db.get("apiKey")
+
+	if (item.type === "file") {
+		if (typeof linkUUID !== "string") {
+			throw new Error("Invalid linkUUID")
 		}
 
-		if (typeof downloadBtn !== "string") {
-			downloadBtn = "enable"
+		if (linkUUID.length < 32) {
+			throw new Error("Invalid linkUUID")
+		}
+		const response = await apiRequest({
+			method: "POST",
+			endpoint: "/v1/link/edit",
+			data: {
+				apiKey,
+				uuid: linkUUID,
+				fileUUID: item.uuid,
+				expiration,
+				password: pass,
+				passwordHashed: await deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512, true),
+				salt,
+				downloadBtn,
+				type: "enable"
+			}
+		})
+
+		if (!response.status) {
+			throw new response.message()
 		}
 
-		const pass: string = password.length > 0 ? "notempty" : "empty"
-		const passH: string = password.length > 0 ? password : "empty"
-		const salt: string = generateRandomString(32)
+		return true
+	} else {
+		const response = await apiRequest({
+			method: "POST",
+			endpoint: "/v1/dir/link/edit",
+			data: {
+				apiKey,
+				uuid: item.uuid,
+				expiration,
+				password: pass,
+				passwordHashed: await deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512, true),
+				salt,
+				downloadBtn
+			}
+		})
 
-		console.log(linkUUID, expiration, password, downloadBtn)
+		if (!response.status) {
+			throw new Error(response.message)
+		}
 
-		db.get("apiKey")
-			.then(async apiKey => {
-				if (item.type === "file") {
-					if (typeof linkUUID !== "string") {
-						return reject(new Error("Invalid linkUUID"))
-					}
-
-					if (linkUUID.length < 32) {
-						return reject(new Error("Invalid linkUUID"))
-					}
-
-					apiRequest({
-						method: "POST",
-						endpoint: "/v1/link/edit",
-						data: {
-							apiKey,
-							uuid: linkUUID,
-							fileUUID: item.uuid,
-							expiration,
-							password: pass,
-							passwordHashed: await deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512, true),
-							salt,
-							downloadBtn,
-							type: "enable"
-						}
-					})
-						.then(response => {
-							if (!response.status) {
-								return reject(response.message)
-							}
-
-							return resolve(true)
-						})
-						.catch(reject)
-				} else {
-					apiRequest({
-						method: "POST",
-						endpoint: "/v1/dir/link/edit",
-						data: {
-							apiKey,
-							uuid: item.uuid,
-							expiration,
-							password: pass,
-							passwordHashed: await deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512, true),
-							salt,
-							downloadBtn
-						}
-					})
-						.then(response => {
-							if (!response.status) {
-								return reject(response.message)
-							}
-
-							return resolve(true)
-						})
-						.catch(reject)
-				}
-			})
-			.catch(reject)
-	})
+		return true
+	}
 }
 
 export const fetchFileVersions = async (item: ItemProps): Promise<FileVersionsV1[]> => {
