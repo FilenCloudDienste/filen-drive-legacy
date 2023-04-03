@@ -815,10 +815,10 @@ export const utf8ToHex = (str: string) => {
 <<<<<<< HEAD
 	return Array.from(str)
 		.map(c =>
+			// eslint-disable-next-line
 			c.charCodeAt(0) < 128
 				? c.charCodeAt(0).toString(16)
-				: // eslint-disable-next-line
-				  encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
+				: encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
 		)
 		.join("")
 =======
