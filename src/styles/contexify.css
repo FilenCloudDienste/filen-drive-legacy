@@ -1,31 +1,28 @@
 .react-contexify {
-    padding: 0px;
-    padding-top: 4px;
-    padding-bottom: 4px;
-    z-index: 10000001;
-    border-radius: 5px;
+	padding: 0px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	z-index: 10000001;
+	border-radius: 5px;
 }
 
 .react-contexify__item__content {
-    padding: 0px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    text-overflow: ellipsis;
-    font-size: 11pt;
+	padding: 0px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	text-overflow: ellipsis;
+	font-size: 11pt;
 }
-
 
 .react-contexify .react-contexify__submenu {
-    margin-left: -6px;
+	margin-left: -6px;
 }
-
-
 
 .react-contexify__theme--filendark {
 	background-color: #050505;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .react-contexify__theme--filendark .react-contexify__submenu {
@@ -37,38 +34,39 @@
 }
 
 .react-contexify__theme--filendark .react-contexify__item:not(.react-contexify__item--disabled):focus {
-    background-color: #050505;
-    color: white;
+	background-color: #050505;
+	color: white;
 }
 
-.react-contexify__theme--filendark .react-contexify__item:not(.react-contexify__item--disabled):hover > .react-contexify__item__content,
-.react-contexify__theme--filendark .react-contexify__item:not(.react-contexify__item--disabled):focus > .react-contexify__item__content {
-    background-color: #141414;
-    color: white;
+.react-contexify__theme--filendark
+	.react-contexify__item:not(.react-contexify__item--disabled):hover
+	> .react-contexify__item__content,
+.react-contexify__theme--filendark
+	.react-contexify__item:not(.react-contexify__item--disabled):focus
+	> .react-contexify__item__content {
+	background-color: #141414;
+	color: white;
 }
 
-.react-contexify__theme--filendark .react-contexify__item:not(.react-contexify__item--disabled):hover > .react-contexify__submenu {
-    background-color: #050505;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+.react-contexify__theme--filendark
+	.react-contexify__item:not(.react-contexify__item--disabled):hover
+	> .react-contexify__submenu {
+	background-color: #050505;
+	color: white;
+	border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .react-contexify__theme--filendark .react-contexify__item__content {
 	color: #959595;
 }
 
-
-
-
-
-
 .react-contexify__theme--filenlight {
-	background-color: #FFFFFF;
-    border: 1px solid 1px solid rgba(0, 0, 0, 0.1);
+	background-color: #ffffff;
+	border: 1px solid 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .react-contexify__theme--filenlight .react-contexify__submenu {
-	background-color: #FFFFFF;
+	background-color: #ffffff;
 }
 
 .react-contexify__theme--filenlight .react-contexify__separator {
@@ -76,20 +74,26 @@
 }
 
 .react-contexify__theme--filenlight .react-contexify__item:not(.react-contexify__item--disabled):focus {
-    background-color: #FFFFFF;
-    color: black;
+	background-color: #ffffff;
+	color: black;
 }
 
-.react-contexify__theme--filenlight .react-contexify__item:not(.react-contexify__item--disabled):hover > .react-contexify__item__content,
-.react-contexify__theme--filenlight .react-contexify__item:not(.react-contexify__item--disabled):focus > .react-contexify__item__content {
-    background-color: #f0f0f0;
-    color: black;
+.react-contexify__theme--filenlight
+	.react-contexify__item:not(.react-contexify__item--disabled):hover
+	> .react-contexify__item__content,
+.react-contexify__theme--filenlight
+	.react-contexify__item:not(.react-contexify__item--disabled):focus
+	> .react-contexify__item__content {
+	background-color: #f0f0f0;
+	color: black;
 }
 
-.react-contexify__theme--filenlight .react-contexify__item:not(.react-contexify__item--disabled):hover > .react-contexify__submenu {
-    background-color: #FFFFFF;
-    color: black;
-    border: 1px solid 1px solid rgba(0, 0, 0, 0.1);
+.react-contexify__theme--filenlight
+	.react-contexify__item:not(.react-contexify__item--disabled):hover
+	> .react-contexify__submenu {
+	background-color: #ffffff;
+	color: black;
+	border: 1px solid 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .react-contexify__theme--filenlight .react-contexify__item__content {

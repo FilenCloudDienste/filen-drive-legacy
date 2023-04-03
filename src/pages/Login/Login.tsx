@@ -68,7 +68,11 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 			const salt: string = authInfoResponse.salt
 			let masterKeys: string = ""
 
-			const { derivedPassword, derivedMasterKeys } = await generatePasswordAndMasterKeysBasedOnAuthVersion(sPassword, authVersion, salt)
+			const { derivedPassword, derivedMasterKeys } = await generatePasswordAndMasterKeysBasedOnAuthVersion(
+				sPassword,
+				authVersion,
+				salt
+			)
 
 			sPassword = derivedPassword
 			masterKeys = derivedMasterKeys

@@ -154,7 +154,10 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 
 	const update = useCallback(async () => {
 		try {
-			const [defaultDriveUUID, folderNames] = await Promise.all([db.get("defaultDriveUUID"), db.get("folderNames", "metadata")])
+			const [defaultDriveUUID, folderNames] = await Promise.all([
+				db.get("defaultDriveUUID"),
+				db.get("folderNames", "metadata")
+			])
 
 			const ex = location.hash.split("/")
 			const validFolders = []
@@ -293,7 +296,11 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 						{!gridFolders[window.location.href] ? (
 							<IoGrid
 								size={18}
-								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+								color={
+									hoveringListLayoutToggle
+										? getColor(darkMode, "textPrimary")
+										: getColor(darkMode, "textSecondary")
+								}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: true })}
 								cursor="pointer"
 								className="do-not-unselect-items"
@@ -306,7 +313,11 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 						) : (
 							<IoList
 								size={18}
-								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+								color={
+									hoveringListLayoutToggle
+										? getColor(darkMode, "textPrimary")
+										: getColor(darkMode, "textSecondary")
+								}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: false })}
 								cursor="pointer"
 								className="do-not-unselect-items"

@@ -1,6 +1,15 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { RenameModalProps, ItemProps } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
+import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalBody,
+	ModalCloseButton,
+	Spinner,
+	ModalFooter,
+	ModalHeader
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -14,225 +23,236 @@ import { i18n } from "../../i18n"
 import { changeItemsInStore } from "../../lib/services/metadata"
 
 const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameModalProps) => {
-    const [open, setOpen] = useState<boolean>(false)
-    const [currentItem, setCurrentItem] = useState<ItemProps | undefined>(undefined)
-    const [newName, setNewName] = useState<string>("")
-    const [loading, setLoading] = useState<boolean>(false)
-    const inputRef = useRef()
-    const currentItems = useRef<ItemProps[]>([])
-    const newNameRef = useRef<string>("")
-    const oldNameRef = useRef<string>("")
+	const [open, setOpen] = useState<boolean>(false)
+	const [currentItem, setCurrentItem] = useState<ItemProps | undefined>(undefined)
+	const [newName, setNewName] = useState<string>("")
+	const [loading, setLoading] = useState<boolean>(false)
+	const inputRef = useRef()
+	const currentItems = useRef<ItemProps[]>([])
+	const newNameRef = useRef<string>("")
+	const oldNameRef = useRef<string>("")
 
-    const rename = useCallback(async () => {
-        if(loading){
-            return
-        }
+	const rename = useCallback(async () => {
+		if (loading) {
+			return
+		}
 
-        if(typeof currentItem == "undefined"){
-            return
-        }
+		if (typeof currentItem == "undefined") {
+			return
+		}
 
-        const value = newNameRef.current.trim()
+		const value = newNameRef.current.trim()
 
-        if(value.length == 0 || value == currentItem.name || (newNameRef.current == oldNameRef.current)){
-            showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
+		if (value.length == 0 || value == currentItem.name || newNameRef.current == oldNameRef.current) {
+			showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
 
-            return
-        }
+			return
+		}
 
-        const sameName = currentItems.current.filter(item => item.name.toLowerCase() == value.toLowerCase() && item.type == currentItem.type)
+		const sameName = currentItems.current.filter(
+			item => item.name.toLowerCase() == value.toLowerCase() && item.type == currentItem.type
+		)
 
-        if(sameName.length > 0){
-            if(sameName[0].uuid !== currentItem.uuid){
-                showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
+		if (sameName.length > 0) {
+			if (sameName[0].uuid !== currentItem.uuid) {
+				showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
 
-                return
-            }
-        }
+				return
+			}
+		}
 
-        if(!fileAndFolderNameValidation(value)){
-            showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
+		if (!fileAndFolderNameValidation(value)) {
+			showToast("error", i18n(lang, "pleaseChooseDiffName"), "bottom", 5000)
 
-            return
-        }
+			return
+		}
 
-        setLoading(true)
+		setLoading(true)
 
-        try{
-            const promise = currentItem.type == "file" ? renameFile({ file: currentItem, name: value }) : renameFolder({ folder: currentItem, name: value })
-            const result = await promise
+		try {
+			const promise =
+				currentItem.type == "file"
+					? renameFile({ file: currentItem, name: value })
+					: renameFolder({ folder: currentItem, name: value })
+			const result = await promise
 
-            if(result){
-                if(currentItem.type == "folder"){
-                    await addFolderNameToDb(currentItem.uuid, value)
-                }
+			if (result) {
+				if (currentItem.type == "folder") {
+					await addFolderNameToDb(currentItem.uuid, value)
+				}
 
-                const sortBy = (await db.get("sortBy")) || {}
+				const sortBy = (await db.get("sortBy")) || {}
 
-                setItems(prev => orderItemsByType(prev.map(item => item.uuid == currentItem.uuid ? { ...item, name: value, selected: true } : { ...item, selected: false }), sortBy[window.location.href], window.location.href))
-            }
+				setItems(prev =>
+					orderItemsByType(
+						prev.map(item =>
+							item.uuid == currentItem.uuid
+								? { ...item, name: value, selected: true }
+								: { ...item, selected: false }
+						),
+						sortBy[window.location.href],
+						window.location.href
+					)
+				)
+			}
 
-            changeItemsInStore([{
-                ...currentItem,
-                name: value,
-                selected: false
-            }], currentItem.parent).catch(console.error)
+			changeItemsInStore(
+				[
+					{
+						...currentItem,
+						name: value,
+						selected: false
+					}
+				],
+				currentItem.parent
+			).catch(console.error)
 
-            showToast("success", i18n(lang, "itemRenamed"))
+			showToast("success", i18n(lang, "itemRenamed"))
 
-            setOpen(false)
-        }
-        catch(e: any){
-            console.error(e)
+			setOpen(false)
+		} catch (e: any) {
+			console.error(e)
 
-            showToast("error", e.toString(), "bottom", 5000)
-        }
+			showToast("error", e.toString(), "bottom", 5000)
+		}
 
-        setLoading(false)
-    }, [loading, currentItem, newNameRef.current, currentItems.current, newNameRef.current, oldNameRef.current])
+		setLoading(false)
+	}, [loading, currentItem, newNameRef.current, currentItems.current, newNameRef.current, oldNameRef.current])
 
-    const setSelectionRange = useCallback(async (): Promise<void> => {
-        await new Promise((resolve) => {
-            const wait = setInterval(() => {
-                if(inputRef.current){
-                    clearInterval(wait)
+	const setSelectionRange = useCallback(async (): Promise<void> => {
+		await new Promise(resolve => {
+			const wait = setInterval(() => {
+				if (inputRef.current) {
+					clearInterval(wait)
 
-                    return resolve(true)
-                }
-            })
-        })
+					return resolve(true)
+				}
+			})
+		})
 
-        if(!inputRef.current){
-            return
-        }
+		if (!inputRef.current) {
+			return
+		}
 
-        const input = (inputRef.current as HTMLInputElement)
+		const input = inputRef.current as HTMLInputElement
 
-        if(!input){
-            return
-        }
-        
-        if(oldNameRef.current.indexOf(".") == -1){
-            input.setSelectionRange(0, oldNameRef.current.length, "forward")
+		if (!input) {
+			return
+		}
 
-            return
-        }
+		if (oldNameRef.current.indexOf(".") == -1) {
+			input.setSelectionRange(0, oldNameRef.current.length, "forward")
 
-        const extLength = getFileExt(oldNameRef.current).length + 1
+			return
+		}
 
-        input.setSelectionRange(0, (oldNameRef.current.length - extLength), "forward")
-    }, [inputRef.current])
+		const extLength = getFileExt(oldNameRef.current).length + 1
 
-    useEffect(() => {
-        currentItems.current = items
-    }, [items])
+		input.setSelectionRange(0, oldNameRef.current.length - extLength, "forward")
+	}, [inputRef.current])
 
-    useEffect(() => {
-        newNameRef.current = newName
-    }, [newName])
+	useEffect(() => {
+		currentItems.current = items
+	}, [items])
 
-    useEffect(() => {
-        const openRenameModalListener = eventListener.on("openRenameModal", ({ item }: { item: ItemProps }) => {
-            setCurrentItem(item)
-            setNewName(item.name)
-            setOpen(true)
-            setSelectionRange()
+	useEffect(() => {
+		newNameRef.current = newName
+	}, [newName])
 
-            oldNameRef.current = item.name
-            newNameRef.current = item.name
-        })
-        
-        return () => {
-            openRenameModalListener.remove()
-        }
-    }, [])
+	useEffect(() => {
+		const openRenameModalListener = eventListener.on("openRenameModal", ({ item }: { item: ItemProps }) => {
+			setCurrentItem(item)
+			setNewName(item.name)
+			setOpen(true)
+			setSelectionRange()
 
-    if(typeof currentItem == "undefined"){
-        return null
-    }
+			oldNameRef.current = item.name
+			newNameRef.current = item.name
+		})
 
-    return (
-        <Modal
-            onClose={() => setOpen(false)}
-            isOpen={open}
-            isCentered={true}
-            size={isMobile ? "xl" : "md"}
-        >
-            <ModalOverlay 
-                backgroundColor="rgba(0, 0, 0, 0.4)"
-            />
-            <ModalContent
-                backgroundColor={getColor(darkMode, "backgroundSecondary")}
-                color={getColor(darkMode, "textSecondary")}
-                borderRadius={isMobile ? "0px" : "5px"}
-            >
-                <ModalHeader
-                    color={getColor(darkMode, "textPrimary")}
-                >
-                    {i18n(lang, "rename")}
-                </ModalHeader>
-                <ModalCloseButton
-                    color={getColor(darkMode, "textSecondary")}
-                    backgroundColor={getColor(darkMode, "backgroundTertiary")}
-                    _hover={{
-                        color: getColor(darkMode, "textPrimary"),
-                        backgroundColor: getColor(darkMode, "backgroundPrimary")
-                    }}
-                    autoFocus={false}
-                    tabIndex={-1}
-                    borderRadius="full"
-                />
-                <ModalBody
-                    height="100%"
-                    width="100%"
-                    alignItems="center"
-                    justifyContent="center"
-                >
-                    <Input
-                        darkMode={darkMode}
-                        isMobile={isMobile}
-                        value={newName}
-                        placeholder={i18n(lang, "renameNewName")}
-                        autoFocus={true}
-                        onChange={(e) => setNewName(e.target.value)}
-                        ref={inputRef}
-                        color={getColor(darkMode, "textSecondary")}
-                        _placeholder={{
-                            color: getColor(darkMode, "textSecondary")
-                        }}
-                        onKeyDown={(e) => {
-                            if(e.which == 13){
-                                rename()
-                            }
-                        }}
-                    />
-                </ModalBody>
-                <ModalFooter>
-                    {
-                        loading ? (
-                            <Spinner
-                                width="16px"
-                                height="16px"
-                                color={getColor(darkMode, "textPrimary")}
-                            />
-                        ) : (
-                            <AppText
-                                darkMode={darkMode}
-                                isMobile={isMobile}
-                                noOfLines={1}
-                                wordBreak="break-all"
-                                color={getColor(darkMode, "linkPrimary")}
-                                cursor="pointer"
-                                onClick={() => rename()}
-                            >
-                                {i18n(lang, "save")}
-                            </AppText>
-                        )
-                    }
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
-    )
+		return () => {
+			openRenameModalListener.remove()
+		}
+	}, [])
+
+	if (typeof currentItem == "undefined") {
+		return null
+	}
+
+	return (
+		<Modal
+			onClose={() => setOpen(false)}
+			isOpen={open}
+			isCentered={true}
+			size={isMobile ? "xl" : "md"}
+		>
+			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
+			<ModalContent
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+				color={getColor(darkMode, "textSecondary")}
+				borderRadius={isMobile ? "0px" : "5px"}
+			>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "rename")}</ModalHeader>
+				<ModalCloseButton
+					color={getColor(darkMode, "textSecondary")}
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					_hover={{
+						color: getColor(darkMode, "textPrimary"),
+						backgroundColor: getColor(darkMode, "backgroundPrimary")
+					}}
+					autoFocus={false}
+					tabIndex={-1}
+					borderRadius="full"
+				/>
+				<ModalBody
+					height="100%"
+					width="100%"
+					alignItems="center"
+					justifyContent="center"
+				>
+					<Input
+						darkMode={darkMode}
+						isMobile={isMobile}
+						value={newName}
+						placeholder={i18n(lang, "renameNewName")}
+						autoFocus={true}
+						onChange={e => setNewName(e.target.value)}
+						ref={inputRef}
+						color={getColor(darkMode, "textSecondary")}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						onKeyDown={e => {
+							if (e.which == 13) {
+								rename()
+							}
+						}}
+					/>
+				</ModalBody>
+				<ModalFooter>
+					{loading ? (
+						<Spinner
+							width="16px"
+							height="16px"
+							color={getColor(darkMode, "textPrimary")}
+						/>
+					) : (
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "linkPrimary")}
+							cursor="pointer"
+							onClick={() => rename()}
+						>
+							{i18n(lang, "save")}
+						</AppText>
+					)}
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+	)
 })
 
 export default RenameModal

@@ -3,24 +3,17 @@ import cookies from "../../cookies"
 import type { NavigateFunction } from "react-router-dom"
 
 export const logout = async (navigate?: NavigateFunction) => {
-    try{
-        await Promise.all([
-            db.clear("metadata"),
-            db.clear("normal")
-        ])
+	try {
+		await Promise.all([db.clear("metadata"), db.clear("normal")])
 
-        cookies.remove("loggedIn")
+		cookies.remove("loggedIn")
 
-        if(typeof navigate == "function"){
-            navigate("/login", { replace: true })
-        }
-        else{
-            window.location.href = "/login"
-        }
-    }
-    catch(e){
-        console.error(e)
-    }
-
-    return true
+		if (typeof navigate == "function") {
+			navigate("/login", { replace: true })
+		} else {
+			window.location.href = "/login"
+		}
+	} catch (e) {
+		console.error(e)
+	}
 }

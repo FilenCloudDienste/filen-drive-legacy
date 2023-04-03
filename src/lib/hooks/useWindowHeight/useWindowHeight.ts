@@ -2,25 +2,27 @@ import { useEffect, useState } from "react"
 import Cookies from "../../cookies"
 
 const useWindowHeight = (): number => {
-    const [height, setHeight] = useState<number>(typeof Cookies.get("windowHeight") == "string" ? parseInt(Cookies.get("windowHeight") as string) : 1080)
+	const [height, setHeight] = useState<number>(
+		typeof Cookies.get("windowHeight") == "string" ? parseInt(Cookies.get("windowHeight") as string) : 1080
+	)
 
-    useEffect(() => {
-        setHeight((document.documentElement.clientHeight || window.innerHeight))
+	useEffect(() => {
+		setHeight(document.documentElement.clientHeight || window.innerHeight)
 
-        const listener = (): void => {
-            setHeight((document.documentElement.clientHeight || window.innerHeight))
-            
-            Cookies.set("windowHeight", (document.documentElement.clientHeight || window.innerHeight).toString())
-        }
+		const listener = (): void => {
+			setHeight(document.documentElement.clientHeight || window.innerHeight)
 
-        window.addEventListener("resize", listener)
+			Cookies.set("windowHeight", (document.documentElement.clientHeight || window.innerHeight).toString())
+		}
 
-        return () => {
-            window.removeEventListener("resize", listener)
-        }
-    }, [])
+		window.addEventListener("resize", listener)
 
-    return height
+		return () => {
+			window.removeEventListener("resize", listener)
+		}
+	}, [])
+
+	return height
 }
 
 export default useWindowHeight
