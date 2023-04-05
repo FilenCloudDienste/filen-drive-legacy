@@ -375,6 +375,7 @@ const zh: {
 	support: "支持",
 	finishing: "整理中",
 	searchNothingFound: '"__TERM__" 未找到'
+	queued: "已入列"
 }
 
 export default zh
