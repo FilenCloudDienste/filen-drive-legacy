@@ -62,10 +62,7 @@ export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: n
 	return remaining > 0 ? remaining : 0
 }
 
-export const getDragSelectCoords = (
-	start: { clientX: number; clientY: number },
-	current: { clientX: number; clientY: number }
-) => {
+export const getDragSelectCoords = (start: { clientX: number; clientY: number }, current: { clientX: number; clientY: number }) => {
 	let tmp = 0
 	let x1 = start.clientX
 	let y1 = start.clientY
@@ -267,17 +264,13 @@ export const Semaphore = function (this: SemaphoreProps, max: number) {
 } as any as { new (max: number): SemaphoreProps }
 
 export const convertTimestampToMs = (timestamp: number): number => {
-	try {
-		const floored = Math.floor(timestamp)
+	const now = Date.now()
 
-		if (floored.toString().length >= 13) {
-			return floored
-		}
-
-		return Math.floor(floored * 1000)
-	} catch (e) {
+	if (Math.abs(now - timestamp) < Math.abs(now - timestamp * 1000)) {
 		return timestamp
 	}
+
+	return Math.floor(timestamp * 1000)
 }
 
 export const fileNameToLowerCaseExt = (name: string) => {
@@ -826,11 +819,7 @@ export const orderItemsByType = (
 
 export const utf8ToHex = (str: string) => {
 	return Array.from(str)
-		.map(c =>
-			c.charCodeAt(0) < 128
-				? c.charCodeAt(0).toString(16)
-				: encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
-		)
+		.map(c => (c.charCodeAt(0) < 128 ? c.charCodeAt(0).toString(16) : encodeURIComponent(c).replace(/\%/g, "").toLowerCase()))
 		.join("")
 }
 
