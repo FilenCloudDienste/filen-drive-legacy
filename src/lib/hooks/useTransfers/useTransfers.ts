@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react"
 import eventListener from "../../eventListener"
-import type {
-	CurrentDownload,
-	ProgressData,
-	CurrentUpload,
-	Upload,
-	Download,
-	UseTransfersParams,
-	UseTransfers
-} from "../../../types"
+import type { CurrentDownload, ProgressData, CurrentUpload, Upload, Download, UseTransfersParams, UseTransfers } from "../../../types"
 import { calcSpeed, calcTimeLeft } from "../../helpers"
 import memoryCache from "../../memoryCache"
 import { useWhyDidYouUpdate } from "@chakra-ui/react"
@@ -35,7 +27,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (data.type == "start") {
 				if (typeof onUploadStart == "function") {
@@ -101,7 +93,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (data.type == "start") {
 				if (typeof onDownloadStart == "function") {
@@ -169,7 +161,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (typeof onUploadProgress == "function") {
 				onUploadProgress(data)
@@ -185,11 +177,7 @@ const useTransfers = ({
 									((prev[data.data.uuid].bytes + data.data.bytes) /
 										Math.floor((prev[data.data.uuid].file.size || 0) * 1)) *
 									100,
-								lastBps: calcSpeed(
-									now,
-									prev[data.data.uuid].started,
-									prev[data.data.uuid].bytes + data.data.bytes
-								),
+								lastBps: calcSpeed(now, prev[data.data.uuid].started, prev[data.data.uuid].bytes + data.data.bytes),
 								lastTime: now,
 								bytes: prev[data.data.uuid].bytes + data.data.bytes,
 								timeLeft: calcTimeLeft(
@@ -208,7 +196,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (typeof onDownloadProgress == "function") {
 				onDownloadProgress(data)
@@ -224,11 +212,7 @@ const useTransfers = ({
 									((prev[data.data.uuid].bytes + data.data.bytes) /
 										Math.floor((prev[data.data.uuid].file.size || 0) * 1)) *
 									100,
-								lastBps: calcSpeed(
-									now,
-									prev[data.data.uuid].started,
-									prev[data.data.uuid].bytes + data.data.bytes
-								),
+								lastBps: calcSpeed(now, prev[data.data.uuid].started, prev[data.data.uuid].bytes + data.data.bytes),
 								lastTime: now,
 								bytes: prev[data.data.uuid].bytes + data.data.bytes,
 								timeLeft: calcTimeLeft(

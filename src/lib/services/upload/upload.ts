@@ -1,13 +1,6 @@
 import type { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
-import {
-	generateRandomString,
-	Semaphore,
-	getUploadServer,
-	canCompressThumbnail,
-	getFileExt,
-	readChunk
-} from "../../helpers"
+import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
 import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
@@ -26,11 +19,7 @@ export const chunkToHash = async (file: File, index: number, size: number) => {
 	return await bufferToHash(new Uint8Array(chunk), "SHA-1")
 }
 
-export const generateClientSideFileHashes = async (
-	file: File,
-	fileChunks: number,
-	chunkSizeToUse: number
-): Promise<string[]> => {
+export const generateClientSideFileHashes = async (file: File, fileChunks: number, chunkSizeToUse: number): Promise<string[]> => {
 	const promises: Promise<string>[] = []
 
 	for (let i = 0; i < fileChunks + 1; i++) {
@@ -82,7 +71,7 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 		let dummyOffset = 0
 		let fileChunks = 0
 		const expire = "never"
-		const lastModified = item.file.lastModified || new Date().getTime()
+		const lastModified = item.file.lastModified || Date.now()
 		let paused = false
 		let stopped = false
 		let err = undefined
@@ -193,9 +182,7 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 
 				readChunk(item.file, index, chunkSizeToUse)
 					.then(chunk => {
-						encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse)
-							.then(resolve)
-							.catch(reject)
+						encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse).then(resolve).catch(reject)
 					})
 					.catch(reject)
 			})
@@ -357,7 +344,7 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			mime,
 			lastModified,
 			lastModifiedSort: lastModified,
-			timestamp: Math.floor(new Date().getTime() / 1000),
+			timestamp: Math.floor(Date.now() / 1000),
 			selected: false,
 			color: "default",
 			parent,

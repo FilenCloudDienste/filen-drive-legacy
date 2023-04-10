@@ -38,10 +38,7 @@ export const addFolderNameToDb = async (uuid: string, name: string): Promise<voi
 	addFolderNameToDbSemaphore.release()
 }
 
-export const loadItems = async (
-	href: string,
-	skipCache: boolean = false
-): Promise<{ cache: boolean; items: ItemProps[] }> => {
+export const loadItems = async (href: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
 	const uuid = getCurrentParent(href)
 
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
@@ -84,9 +81,7 @@ export const loadItems = async (
 									parent: folder.parent,
 									uuid: folder.uuid,
 									name: folderName,
-									size: memoryCache.has("folderSize:" + folder.uuid)
-										? memoryCache.get("folderSize:" + folder.uuid)
-										: 0,
+									size: memoryCache.has("folderSize:" + folder.uuid) ? memoryCache.get("folderSize:" + folder.uuid) : 0,
 									mime: "Folder",
 									lastModified: 0,
 									lastModifiedSort: convertTimestampToMs(folder.timestamp),
@@ -203,9 +198,7 @@ export const loadItems = async (
 									parent: folder.parent,
 									uuid: folder.uuid,
 									name: folderName,
-									size: memoryCache.has("folderSize:" + folder.uuid)
-										? memoryCache.get("folderSize:" + folder.uuid)
-										: 0,
+									size: memoryCache.has("folderSize:" + folder.uuid) ? memoryCache.get("folderSize:" + folder.uuid) : 0,
 									mime: "Folder",
 									lastModified: 0,
 									lastModifiedSort: convertTimestampToMs(folder.timestamp),
@@ -372,9 +365,7 @@ export const loadItems = async (
 									parent: folder.parent,
 									uuid: folder.uuid,
 									name: folderName,
-									size: memoryCache.has("folderSize:" + folder.uuid)
-										? memoryCache.get("folderSize:" + folder.uuid)
-										: 0,
+									size: memoryCache.has("folderSize:" + folder.uuid) ? memoryCache.get("folderSize:" + folder.uuid) : 0,
 									mime: "Folder",
 									lastModified: 0,
 									lastModifiedSort: convertTimestampToMs(folder.timestamp),
@@ -519,10 +510,7 @@ export const loadItems = async (
 	return await refresh()
 }
 
-export const loadSidebarItems = async (
-	uuid: string,
-	skipCache: boolean = false
-): Promise<{ cache: boolean; items: ItemProps[] }> => {
+export const loadSidebarItems = async (uuid: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
 		const [apiKey, masterKeys, defaultDriveUUID] = await Promise.all([
 			db.get("apiKey"),
@@ -767,15 +755,13 @@ export const getDirectoryTree = (
 
 					if (typeof decrypted.lastModified == "number") {
 						if (decrypted.lastModified <= 0) {
-							decrypted.lastModified = new Date().getTime()
+							decrypted.lastModified = Date.now()
 						}
 					} else {
-						decrypted.lastModified = new Date().getTime()
+						decrypted.lastModified = Date.now()
 					}
 
-					decrypted.lastModified = convertTimestampToMs(
-						decrypted.lastModified || timestamp || new Date().getTime()
-					)
+					decrypted.lastModified = convertTimestampToMs(decrypted.lastModified || timestamp || Date.now())
 
 					if (decrypted.name.length > 0 && !addedFiles[parent + ":" + decrypted.name]) {
 						addedFiles[parent + ":" + decrypted.name] = true
@@ -793,26 +779,16 @@ export const getDirectoryTree = (
 					}
 				}
 
-				const nest = (
-					items: any,
-					uuid: string = "base",
-					currentPath: string = "",
-					link: string = "parent"
-				): any => {
+				const nest = (items: any, uuid: string = "base", currentPath: string = "", link: string = "parent"): any => {
 					return items
 						.filter((item: any) => item[link] === uuid)
 						.map((item: any) => ({
 							...item,
-							path:
-								item.type === "folder"
-									? currentPath + "/" + item.name
-									: currentPath + "/" + item.metadata.name,
+							path: item.type === "folder" ? currentPath + "/" + item.name : currentPath + "/" + item.metadata.name,
 							children: nest(
 								items,
 								item.uuid,
-								item.type === "folder"
-									? currentPath + "/" + item.name
-									: currentPath + "/" + item.metadata.name,
+								item.type === "folder" ? currentPath + "/" + item.name : currentPath + "/" + item.metadata.name,
 								link
 							)
 						}))

@@ -110,7 +110,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 
 	const downloadFolder = useCallback(
 		async (loadCallback: any) => {
-			if (downloadTimeout.current > new Date().getTime()) {
+			if (downloadTimeout.current > Date.now()) {
 				loadCallback(true)
 
 				return
@@ -128,21 +128,13 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 				return
 			}
 
-			downloadTimeout.current = new Date().getTime() + 2500
+			downloadTimeout.current = Date.now() + 2500
 
 			const zipItems: ItemProps[] = []
 			const paths: { [key: string]: string } = {}
 			const pathExists: { [key: string]: boolean } = {}
 
-			const folderItems = await getDirectoryTree(
-				info.parent,
-				"linked",
-				params.uuid,
-				info.hasPassword,
-				password,
-				info.salt,
-				key
-			)
+			const folderItems = await getDirectoryTree(info.parent, "linked", params.uuid, info.hasPassword, password, info.salt, key)
 
 			for (let i = 0; i < folderItems.length; i++) {
 				if (folderItems[i].item.type == "file" && typeof pathExists[folderItems[i].path] == "undefined") {
@@ -176,12 +168,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 
 			const parent: string = getCurrentParent(url)
 
-			if (
-				validateUUID(parent) &&
-				typeof params.uuid == "string" &&
-				validateUUID(params.uuid) &&
-				typeof info !== "undefined"
-			) {
+			if (validateUUID(parent) && typeof params.uuid == "string" && validateUUID(params.uuid) && typeof info !== "undefined") {
 				const getContents = async () => {
 					if (!cache.has(url)) {
 						setLoadingItems(true)
@@ -192,14 +179,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 						parent,
 						info.hasPassword
 							? info.salt.length == 32
-								? ((await deriveKeyFromPassword(
-										password,
-										info.salt,
-										200000,
-										"SHA-512",
-										512,
-										true
-								  )) as string)
+								? ((await deriveKeyFromPassword(password, info.salt, 200000, "SHA-512", 512, true)) as string)
 								: await hashFn(password.length == 0 ? "empty" : password)
 							: await hashFn("empty")
 					)
@@ -366,10 +346,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 
 		if (
 			path.filter(
-				el =>
-					typeof el !== "undefined" &&
-					typeof el.className == "string" &&
-					el.className.indexOf("do-not-unselect-items") !== -1
+				el => typeof el !== "undefined" && typeof el.className == "string" && el.className.indexOf("do-not-unselect-items") !== -1
 			).length == 0 &&
 			!isDragSelecting.current
 		) {
@@ -528,13 +505,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 		}
 	}, [])
 
-	if (
-		typeof params.uuid !== "string" ||
-		!validateUUID(params.uuid) ||
-		typeof key !== "string" ||
-		key.length !== 32 ||
-		notFound
-	) {
+	if (typeof params.uuid !== "string" || !validateUUID(params.uuid) || typeof key !== "string" || key.length !== 32 || notFound) {
 		return (
 			<InvalidLink
 				windowWidth={windowWidth}
@@ -677,9 +648,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 																	const ex = url.split("/")
 
 																	if (ex.indexOf(uuid) !== -1) {
-																		return ex
-																			.slice(0, ex.indexOf(uuid) + 1)
-																			.join("/")
+																		return ex.slice(0, ex.indexOf(uuid) + 1).join("/")
 																	} else {
 																		return url + "/" + uuid
 																	}

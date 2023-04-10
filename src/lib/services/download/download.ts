@@ -138,8 +138,7 @@ export const downloadFile = (
 			data: item
 		})
 
-		const chunksToDownload =
-			maxChunks === Infinity ? item.chunks : maxChunks > item.chunks ? item.chunks : maxChunks
+		const chunksToDownload = maxChunks === Infinity ? item.chunks : maxChunks > item.chunks ? item.chunks : maxChunks
 
 		try {
 			await new Promise((resolve, reject) => {
@@ -250,10 +249,7 @@ export const queueFileDownload = (item: ItemProps, streamToDisk: boolean = true)
 	})
 }
 
-export const downloadMultipleFilesAsZipStream = (
-	items: ItemProps[],
-	paths: { [key: string]: string }
-): Promise<boolean> => {
+export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [key: string]: string }): Promise<boolean> => {
 	return new Promise(async (resolve, reject) => {
 		const totalSize: number = items.reduce((prev, current) => prev + current.size, 0)
 		let streamDestroyed: boolean = false
@@ -263,7 +259,7 @@ export const downloadMultipleFilesAsZipStream = (
 			return reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
 		}
 
-		const stream = streamSaver.createWriteStream("Download_" + new Date().getTime() + ".zip", {
+		const stream = streamSaver.createWriteStream("Download_" + Date.now() + ".zip", {
 			size: totalSize
 		})
 
@@ -331,16 +327,7 @@ export const downloadMultipleFilesAsZipStream = (
 										return reject("stopped")
 									}
 
-									const url =
-										getDownloadServer() +
-										"/" +
-										item.region +
-										"/" +
-										item.bucket +
-										"/" +
-										item.uuid +
-										"/" +
-										index
+									const url = getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
 
 									downloadAndDecryptChunk(item, url)
 										.then(chunk => {
@@ -363,10 +350,7 @@ export const downloadMultipleFilesAsZipStream = (
 									let done: number = 0
 
 									for (let i = 0; i < item.chunks; i++) {
-										Promise.all([
-											downloadThreadsSemaphore.acquire(),
-											writersSemaphore.acquire()
-										]).then(() => {
+										Promise.all([downloadThreadsSemaphore.acquire(), writersSemaphore.acquire()]).then(() => {
 											download(i)
 												.then(({ index, chunk }) => {
 													if (streamDestroyed) {
@@ -484,10 +468,7 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 								selected[i].linkSalt,
 								selected[i].linkKey
 						  )
-						: await getDirectoryTree(
-								selected[i].uuid,
-								selected[i].receiverId == userId ? "shared" : "normal"
-						  )
+						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId == userId ? "shared" : "normal")
 
 				for (let x = 0; x < folderItems.length; x++) {
 					if (folderItems[x].item.type == "file" && typeof pathExists[folderItems[x].path] == "undefined") {
@@ -551,10 +532,7 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
 								selected[i].linkSalt,
 								selected[i].linkKey
 						  )
-						: await getDirectoryTree(
-								selected[i].uuid,
-								selected[i].receiverId == userId ? "shared" : "normal"
-						  )
+						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId == userId ? "shared" : "normal")
 
 				for (let x = 0; x < folderItems.length; x++) {
 					if (folderItems[x].item.type == "file" && typeof pathExists[folderItems[x].path] == "undefined") {

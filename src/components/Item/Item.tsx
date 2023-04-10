@@ -42,8 +42,7 @@ import { useLongPress } from "use-long-press"
 
 const dragImg = new Image()
 
-dragImg.src =
-	"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
+dragImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
 
 export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }: SkeletonItemProps) => {
 	const [markerWidth, nameWidth, sizeWidth, lastModifiedWidth, actionsWidth] = useMemo(() => {
@@ -165,7 +164,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 								wordBreak="break-all"
 								paddingRight="15px"
 							>
-								{simpleDate(new Date().getTime())}
+								{simpleDate(Date.now())}
 							</AppText>
 						</Skeleton>
 					</Flex>
@@ -206,19 +205,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 })
 
 export const Item = memo(
-	({
-		darkMode,
-		isMobile,
-		style,
-		item,
-		items,
-		setItems,
-		setActiveItem,
-		setItemDragState,
-		listWidth,
-		mode,
-		lang
-	}: ItemComponentProps) => {
+	({ darkMode, isMobile, style, item, items, setItems, setActiveItem, setItemDragState, listWidth, mode, lang }: ItemComponentProps) => {
 		const [dragHover, setDragHover] = useState<boolean>(false)
 		const [hovering, setHovering] = useState<boolean>(false)
 		const [hoveringActions, setHoveringActions] = useState<boolean>(false)
@@ -295,9 +282,7 @@ export const Item = memo(
 
 								openSidebarFolder()
 
-								navigate(
-									"/" + (location.hash.split("/").length >= 2 ? location.hash : "#") + "/" + item.uuid
-								)
+								navigate("/" + (location.hash.split("/").length >= 2 ? location.hash : "#") + "/" + item.uuid)
 							}
 						}
 					} else if (getFilePreviewType(getFileExt(item.name)) !== "none" && item.size < PREVIEW_MAX_SIZE) {
@@ -312,9 +297,7 @@ export const Item = memo(
 
 				if (e.ctrlKey && !(mobileDevice || tabletDevice)) {
 					setItems(prev =>
-						prev.map(mapItem =>
-							mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : mapItem
-						)
+						prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : mapItem))
 					)
 				} else if (e.shiftKey && !(mobileDevice || tabletDevice)) {
 					setItems(prev => {
@@ -368,17 +351,13 @@ export const Item = memo(
 					if (currentItems.current.filter(filterItem => filterItem.selected).length > 1) {
 						setItems(prev =>
 							prev.map(mapItem =>
-								mapItem.uuid == item.uuid
-									? { ...mapItem, selected: true }
-									: { ...mapItem, selected: false }
+								mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }
 							)
 						)
 					} else {
 						setItems(prev =>
 							prev.map(mapItem =>
-								mapItem.uuid == item.uuid
-									? { ...mapItem, selected: !mapItem.selected }
-									: { ...mapItem, selected: false }
+								mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : { ...mapItem, selected: false }
 							)
 						)
 					}
@@ -394,14 +373,10 @@ export const Item = memo(
 				const selectedCount: number = currentItems.current.filter(filterItem => filterItem.selected).length
 
 				if (selectedCount > 1) {
-					setItems(prev =>
-						prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem))
-					)
+					setItems(prev => prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem)))
 				} else {
 					setItems(prev =>
-						prev.map(mapItem =>
-							mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }
-						)
+						prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
 					)
 				}
 
@@ -530,9 +505,7 @@ export const Item = memo(
 									}
 								}
 
-								navigate(
-									"/" + (location.hash.split("/").length >= 2 ? location.hash : "#") + "/" + item.uuid
-								)
+								navigate("/" + (location.hash.split("/").length >= 2 ? location.hash : "#") + "/" + item.uuid)
 							}
 						}
 
@@ -609,10 +582,9 @@ export const Item = memo(
 		const loadFolderSize = useCallback(() => {
 			if (item.type == "folder") {
 				if (window.location.href.indexOf("/f/") == -1) {
-					Promise.all([
-						db.get("loadItems:" + item.uuid, "metadata"),
-						db.get("loadSidebarItems:" + item.uuid, "metadata")
-					]).catch(console.error)
+					Promise.all([db.get("loadItems:" + item.uuid, "metadata"), db.get("loadSidebarItems:" + item.uuid, "metadata")]).catch(
+						console.error
+					)
 				}
 
 				db.get("folderSize:" + item.uuid, "metadata")
@@ -620,9 +592,7 @@ export const Item = memo(
 						if (Number.isInteger(size)) {
 							memoryCache.set("folderSize:" + item.uuid, size)
 
-							setItems(prev =>
-								prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, size } : mapItem))
-							)
+							setItems(prev => prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, size } : mapItem)))
 						}
 
 						fetchFolderSize(item, startURL)
@@ -631,11 +601,7 @@ export const Item = memo(
 									.then(() => {
 										memoryCache.set("folderSize:" + item.uuid, size)
 
-										setItems(prev =>
-											prev.map(mapItem =>
-												mapItem.uuid == item.uuid ? { ...mapItem, size } : mapItem
-											)
-										)
+										setItems(prev => prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, size } : mapItem)))
 									})
 									.catch(console.error)
 							})
@@ -657,14 +623,11 @@ export const Item = memo(
 			queueThumbnailGeneration()
 			loadFolderSize()
 
-			const thumbnailGeneratedListener = eventListener.on(
-				"thumbnailGenerated",
-				({ uuid, url }: { uuid: string; url: string }) => {
-					if (uuid == item.uuid) {
-						setThumbnail(url)
-					}
+			const thumbnailGeneratedListener = eventListener.on("thumbnailGenerated", ({ uuid, url }: { uuid: string; url: string }) => {
+				if (uuid == item.uuid) {
+					setThumbnail(url)
 				}
-			)
+			})
 
 			const reloadFolderSizesListener = eventListener.on("reloadFolderSizes", () => {
 				loadFolderSize()
@@ -772,11 +735,7 @@ const ItemBody = memo(
 						<Flex
 							width="100%"
 							height="100%"
-							border={
-								bgHover
-									? "2px solid " + THEME_COLOR
-									: "1px solid " + getColor(darkMode, "borderSecondary")
-							}
+							border={bgHover ? "2px solid " + THEME_COLOR : "1px solid " + getColor(darkMode, "borderSecondary")}
 							borderRadius="15px"
 							flexDirection="column"
 							alignItems="center"
@@ -830,9 +789,7 @@ const ItemBody = memo(
 								borderBottomLeftRadius="5px"
 								borderBottomRightRadius="5px"
 								backgroundColor={
-									bgHover
-										? getColor(darkMode, "backgroundSecondary")
-										: getColor(darkMode, "backgroundPrimary")
+									bgHover ? getColor(darkMode, "backgroundSecondary") : getColor(darkMode, "backgroundPrimary")
 								}
 								position="absolute"
 								bottom="5px"
@@ -1030,11 +987,7 @@ const ItemBody = memo(
 										paddingLeft="5px"
 										paddingRight="5px"
 										backgroundColor={
-											hoveringActions
-												? darkMode
-													? "white"
-													: "black"
-												: getColor(darkMode, "backgroundPrimary")
+											hoveringActions ? (darkMode ? "white" : "black") : getColor(darkMode, "backgroundPrimary")
 										}
 										borderRadius="20px"
 										marginLeft="15px"
@@ -1046,13 +999,7 @@ const ItemBody = memo(
 									>
 										<BsThreeDots
 											size={14}
-											color={
-												hoveringActions
-													? darkMode
-														? "black"
-														: "white"
-													: getColor(darkMode, "textPrimary")
-											}
+											color={hoveringActions ? (darkMode ? "black" : "white") : getColor(darkMode, "textPrimary")}
 											className="item-actions-trigger"
 											style={{
 												flexShrink: 0

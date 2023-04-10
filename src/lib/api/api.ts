@@ -36,7 +36,7 @@ const shareItemsSemaphore = new Semaphore(10)
 const linkItemsSemaphore = new Semaphore(10)
 
 export const getCfg = async (): Promise<ICFG> => {
-	const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
+	const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + Date.now())
 
 	if (response.status !== 200) {
 		throw new Error("Could not load CFG from CDN")
@@ -147,7 +147,15 @@ export const baseFolders = (apiKey: string | undefined = undefined): Promise<any
 	})
 }
 
-export const folderContent = ({ apiKey, uuid, foldersOnly = false }: { apiKey: string; uuid: string; foldersOnly?: boolean }): Promise<any> => {
+export const folderContent = ({
+	apiKey,
+	uuid,
+	foldersOnly = false
+}: {
+	apiKey: string
+	uuid: string
+	foldersOnly?: boolean
+}): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		apiRequest({
 			method: "POST",
@@ -309,7 +317,8 @@ export const getFolderContents = ({
 			.then(async apiKey => {
 				apiRequest({
 					method: "POST",
-					endpoint: type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v1/download/dir/link" : "/v1/download/dir",
+					endpoint:
+						type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v1/download/dir/link" : "/v1/download/dir",
 					data:
 						type == "shared"
 							? {
@@ -323,7 +332,14 @@ export const getFolderContents = ({
 									password:
 										linkHasPassword && linkSalt && linkPassword
 											? linkSalt.length == 32
-												? ((await deriveKeyFromPassword(linkPassword, linkSalt, 200000, "SHA-512", 512, true)) as string)
+												? ((await deriveKeyFromPassword(
+														linkPassword,
+														linkSalt,
+														200000,
+														"SHA-512",
+														512,
+														true
+												  )) as string)
 												: await hashFn(linkPassword.length == 0 ? "empty" : linkPassword)
 											: await hashFn("empty")
 							  }
@@ -1273,7 +1289,17 @@ export const fileExists = ({ name, parent }: { name: string; parent: string }): 
 	})
 }
 
-export const createFolder = ({ uuid, name, parent, emitEvents = true }: { uuid: string; name: string; parent: string; emitEvents?: boolean }): Promise<any> => {
+export const createFolder = ({
+	uuid,
+	name,
+	parent,
+	emitEvents = true
+}: {
+	uuid: string
+	name: string
+	parent: string
+	emitEvents?: boolean
+}): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		if (emitEvents) {
 			eventListener.emit("createFolder", {
@@ -1529,7 +1555,15 @@ export const trashItem = (item: ItemProps): Promise<boolean> => {
 	})
 }
 
-export const moveFile = ({ file, parent, emitEvents = true }: { file: ItemProps; parent: string; emitEvents?: boolean }): Promise<boolean> => {
+export const moveFile = ({
+	file,
+	parent,
+	emitEvents = true
+}: {
+	file: ItemProps
+	parent: string
+	emitEvents?: boolean
+}): Promise<boolean> => {
 	return new Promise((resolve, reject) => {
 		db.get("apiKey")
 			.then(apiKey => {
@@ -1595,7 +1629,15 @@ export const moveFile = ({ file, parent, emitEvents = true }: { file: ItemProps;
 	})
 }
 
-export const moveFolder = ({ folder, parent, emitEvents = true }: { folder: ItemProps; parent: string; emitEvents?: boolean }): Promise<boolean> => {
+export const moveFolder = ({
+	folder,
+	parent,
+	emitEvents = true
+}: {
+	folder: ItemProps
+	parent: string
+	emitEvents?: boolean
+}): Promise<boolean> => {
 	return new Promise((resolve, reject) => {
 		db.get("apiKey")
 			.then(apiKey => {
@@ -1877,7 +1919,15 @@ export const fetchFolderSize = (item: ItemProps, href: string): Promise<number> 
 	})
 }
 
-export const favoriteItem = ({ item, favorite, emitEvents = true }: { item: ItemProps; favorite: number; emitEvents?: boolean }): Promise<boolean> => {
+export const favoriteItem = ({
+	item,
+	favorite,
+	emitEvents = true
+}: {
+	item: ItemProps
+	favorite: number
+	emitEvents?: boolean
+}): Promise<boolean> => {
 	return new Promise((resolve, reject) => {
 		db.get("apiKey")
 			.then(apiKey => {
@@ -2993,7 +3043,7 @@ export const disable2FA = async (code: string): Promise<boolean> => {
 }
 
 export const fetchEvents = async (
-	lastTimestamp: number = Math.floor(new Date().getTime() / 1000) + 60,
+	lastTimestamp: number = Math.floor(Date.now() / 1000) + 60,
 	filter: string = "all"
 ): Promise<{ events: UserEvent[]; limit: number }> => {
 	const apiKey: string = await db.get("apiKey")

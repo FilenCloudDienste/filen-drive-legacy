@@ -76,7 +76,7 @@ const TransfersToast = memo(({}) => {
 
 	const { currentUploads, currentDownloads } = useTransfers({
 		onUploadStart: upload => {
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (progressStarted.current == -1) {
 				progressStarted.current = now
@@ -89,7 +89,7 @@ const TransfersToast = memo(({}) => {
 			allBytes.current += upload.data.file.size
 		},
 		onDownloadStart: download => {
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (progressStarted.current == -1) {
 				progressStarted.current = now
@@ -140,14 +140,10 @@ const TransfersToast = memo(({}) => {
 
 	const updateStats = useCallback(
 		throttle(() => {
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (progressStarted.current > 0 && allBytes.current > 0 && bytesSent.current > 0) {
-				const transferRemaining: number = calcTimeLeft(
-					bytesSent.current,
-					allBytes.current,
-					progressStarted.current
-				)
+				const transferRemaining: number = calcTimeLeft(bytesSent.current, allBytes.current, progressStarted.current)
 				const transferPercent: number = (bytesSent.current / allBytes.current) * 100
 				const transferSpeed: number = calcSpeed(now, progressStarted.current, bytesSent.current)
 
@@ -234,11 +230,7 @@ const TransfersToast = memo(({}) => {
 									"transferringItems",
 									true,
 									["__COUNT__"],
-									[
-										(
-											Object.keys(currentUploads).length + Object.keys(currentDownloads).length
-										).toString()
-									]
+									[(Object.keys(currentUploads).length + Object.keys(currentDownloads).length).toString()]
 								)}
 							</>
 						) : Object.keys(currentUploads).length > 0 ? (
@@ -248,11 +240,7 @@ const TransfersToast = memo(({}) => {
 									"uploadingItems",
 									true,
 									["__COUNT__"],
-									[
-										(
-											Object.keys(currentUploads).length + Object.keys(currentDownloads).length
-										).toString()
-									]
+									[(Object.keys(currentUploads).length + Object.keys(currentDownloads).length).toString()]
 								)}
 							</>
 						) : (
@@ -262,11 +250,7 @@ const TransfersToast = memo(({}) => {
 									"downloadingItems",
 									true,
 									["__COUNT__"],
-									[
-										(
-											Object.keys(currentUploads).length + Object.keys(currentDownloads).length
-										).toString()
-									]
+									[(Object.keys(currentUploads).length + Object.keys(currentDownloads).length).toString()]
 								)}
 							</>
 						)}
@@ -282,7 +266,7 @@ const TransfersToast = memo(({}) => {
 					>
 						{Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 &&
 							(() => {
-								const remainingReadable = getTimeRemaining(new Date().getTime() + remaining * 1000)
+								const remainingReadable = getTimeRemaining(Date.now() + remaining * 1000)
 
 								if (remainingReadable.total <= 1 || remainingReadable.seconds <= 1) {
 									remainingReadable.total = 1
@@ -301,9 +285,7 @@ const TransfersToast = memo(({}) => {
 										[
 											(remainingReadable.days > 0 ? remainingReadable.days + "d " : "") +
 												(remainingReadable.hours > 0 ? remainingReadable.hours + "h " : "") +
-												(remainingReadable.minutes > 0
-													? remainingReadable.minutes + "m "
-													: "") +
+												(remainingReadable.minutes > 0 ? remainingReadable.minutes + "m " : "") +
 												(remainingReadable.seconds > 0 ? remainingReadable.seconds + "s " : "")
 										]
 									) +

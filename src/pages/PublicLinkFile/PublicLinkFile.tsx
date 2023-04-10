@@ -31,11 +31,7 @@ import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewM
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video"]
 const MAX_SIZE: number = 1024 * 1024 * 16
 
-const getItemFromFile = (
-	info: LinkGetInfoV1,
-	file: { name: string; size: number; mime: string },
-	key: string
-): ItemProps => {
+const getItemFromFile = (info: LinkGetInfoV1, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
 	const item: ItemProps = {
 		root: "",
 		type: "file",
@@ -43,8 +39,8 @@ const getItemFromFile = (
 		name: file.name,
 		size: file.size,
 		mime: file.mime,
-		lastModified: new Date().getTime(),
-		lastModifiedSort: new Date().getTime(),
+		lastModified: Date.now(),
+		lastModifiedSort: Date.now(),
 		timestamp: info.timestamp,
 		selected: false,
 		color: "default",
@@ -97,15 +93,13 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 	}, [darkMode])
 
 	const download = useCallback(() => {
-		if (downloadTimeout.current > new Date().getTime()) {
+		if (downloadTimeout.current > Date.now()) {
 			return
 		}
 
-		downloadTimeout.current = new Date().getTime() + 2500
+		downloadTimeout.current = Date.now() + 2500
 
-		queueFileDownload(
-			getItemFromFile(info as LinkGetInfoV1, file as { name: string; size: number; mime: string }, key)
-		)
+		queueFileDownload(getItemFromFile(info as LinkGetInfoV1, file as { name: string; size: number; mime: string }, key))
 			.then(console.log)
 			.catch(console.error)
 	}, [info, file, key, downloadTimeout.current])
@@ -121,14 +115,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 						params.uuid as string,
 						passwordInfo.hasPassword
 							? passwordInfo.salt.length == 32
-								? ((await deriveKeyFromPassword(
-										password,
-										passwordInfo.salt,
-										200000,
-										"SHA-512",
-										512,
-										true
-								  )) as string)
+								? ((await deriveKeyFromPassword(password, passwordInfo.salt, 200000, "SHA-512", 512, true)) as string)
 								: await hashFn(password.length == 0 ? "empty" : password)
 							: await hashFn("empty")
 					)
@@ -151,16 +138,10 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 
 								setInfo(linkInfo)
 
-								if (
-									SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name))) &&
-									MAX_SIZE > parseInt(size)
-								) {
+								if (SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(name))) && MAX_SIZE > parseInt(size)) {
 									memoryCache.set("hideTransferProgress:" + linkInfo.uuid, true)
 
-									downloadFile(
-										getItemFromFile(linkInfo, { name, size: parseInt(size), mime }, key),
-										false
-									)
+									downloadFile(getItemFromFile(linkInfo, { name, size: parseInt(size), mime }, key), false)
 										.then(buffer => {
 											if (buffer instanceof Uint8Array) {
 												memoryCache.remove("hideTransferProgress:" + linkInfo.uuid)
@@ -270,13 +251,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 		}
 	}, [])
 
-	if (
-		typeof params.uuid !== "string" ||
-		!validateUUID(params.uuid) ||
-		typeof key !== "string" ||
-		key.length !== 32 ||
-		notFound
-	) {
+	if (typeof params.uuid !== "string" || !validateUUID(params.uuid) || typeof key !== "string" || key.length !== 32 || notFound) {
 		return (
 			<InvalidLink
 				windowWidth={windowWidth}
@@ -389,8 +364,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 							</Flex>
 						) : (
 							<>
-								{SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) &&
-								MAX_SIZE > file.size ? (
+								{SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) && MAX_SIZE > file.size ? (
 									<>
 										{getFilePreviewType(getFileExt(file.name)) == "image" && (
 											<>
@@ -477,9 +451,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 																paddingLeft: "5px",
 																paddingRight: "5px"
 															}}
-															extensions={[
-																getCodeMirrorLanguageExtensionForFile(file.name)
-															]}
+															extensions={[getCodeMirrorLanguageExtensionForFile(file.name)]}
 														/>
 													</PreviewContainer>
 												)}

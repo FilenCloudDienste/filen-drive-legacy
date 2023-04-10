@@ -1,34 +1,14 @@
 import { memo, useMemo, useEffect, useState, useCallback } from "react"
 import type { AccountProps, UserInfoV1, UserGetSettingsV1, UserGetAccountV1, UserEvent, ICFG } from "../../types"
 import { useLocation, useNavigate } from "react-router-dom"
-import {
-	Flex,
-	Tabs,
-	TabList,
-	TabPanels,
-	Tab,
-	TabPanel,
-	Avatar,
-	Spinner,
-	Switch,
-	Skeleton,
-	Progress,
-	Badge
-} from "@chakra-ui/react"
+import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, Spinner, Switch, Skeleton, Progress, Badge } from "@chakra-ui/react"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { fetchUserInfo, fetchUserSettings, fetchUserAccount } from "../../lib/services/user"
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
-import {
-	formatBytes,
-	downloadObjectAsJson,
-	simpleDate,
-	convertTimestampToMs,
-	downloadPDF,
-	firstToLowerCase
-} from "../../lib/helpers"
+import { formatBytes, downloadObjectAsJson, simpleDate, convertTimestampToMs, downloadPDF, firstToLowerCase } from "../../lib/helpers"
 import { userGDPR, uploadAvatar, fetchEvents, generateInvoice } from "../../lib/api"
 import * as Modals from "./Modals"
 import { show as showToast } from "../Toast/Toast"
@@ -251,9 +231,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 					</Flex>
 					<Flex marginTop="15px">
 						{(() => {
-							const percentage: number = parseFloat(
-								((userInfo.storageUsed / userInfo.maxStorage) * 100).toFixed(2)
-							)
+							const percentage: number = parseFloat(((userInfo.storageUsed / userInfo.maxStorage) * 100).toFixed(2))
 
 							return (
 								<Progress
@@ -290,13 +268,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 									fontSize={13}
 									marginLeft="10px"
 								>
-									{i18n(
-										lang,
-										"storageUsedFilesAndFolders",
-										true,
-										["__USED__"],
-										[formatBytes(filesAndFoldersStorage)]
-									)}
+									{i18n(lang, "storageUsedFilesAndFolders", true, ["__USED__"], [formatBytes(filesAndFoldersStorage)])}
 								</AppText>
 							</Flex>
 							<Flex
@@ -377,9 +349,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 							<>
 								<Avatar
 									name={
-										typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0
-											? undefined
-											: userInfo.email
+										typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email
 									}
 									width="32px"
 									height="32px"
@@ -578,10 +548,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 									try {
 										const data = await userGDPR()
 
-										downloadObjectAsJson(
-											data,
-											"GDPR_Data_" + new Date().toDateString().split(" ").join("_")
-										)
+										downloadObjectAsJson(data, "GDPR_Data_" + new Date().toDateString().split(" ").join("_"))
 									} catch (e: any) {
 										console.error(e)
 
@@ -1089,8 +1056,8 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
 											fontSize={14}
 											marginTop="10px"
 										>
-											{formatBytes(sub.storage)} storage with unlimited uploads and downloads.
-											Unlocking Filen's full potential.
+											{formatBytes(sub.storage)} storage with unlimited uploads and downloads. Unlocking Filen's full
+											potential.
 										</AppText>
 										<AppText
 											darkMode={darkMode}
@@ -1149,10 +1116,8 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
 												fontSize={16}
 												marginLeft="8px"
 											>
-												{(sub.gateway == "stripe" || sub.gateway == "stripe_sale") &&
-													i18n(lang, "stripe")}
-												{(sub.gateway == "paypal" || sub.gateway == "paypal_sale") &&
-													i18n(lang, "paypal")}
+												{(sub.gateway == "stripe" || sub.gateway == "stripe_sale") && i18n(lang, "stripe")}
+												{(sub.gateway == "paypal" || sub.gateway == "paypal_sale") && i18n(lang, "paypal")}
 												{sub.gateway == "coinbase" && i18n(lang, "crypto")}
 											</AppText>
 										</Flex>
@@ -1170,10 +1135,7 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
 														fontSize={14}
 														marginTop="10px"
 														onClick={() =>
-															window.open(
-																"https://billing.stripe.com/p/login/6oE9Bl8Lxey0ayI9AA",
-																"_blank"
-															)
+															window.open("https://billing.stripe.com/p/login/6oE9Bl8Lxey0ayI9AA", "_blank")
 														}
 														_hover={{
 															color: getColor(darkMode, "textPrimary")
@@ -1337,15 +1299,13 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 											<>
 												{!isMobile && (
 													<>
-														{(invoice.gateway == "paypal" ||
-															invoice.gateway == "paypal_sale") && (
+														{(invoice.gateway == "paypal" || invoice.gateway == "paypal_sale") && (
 															<RiPaypalLine
 																fontSize={16}
 																color={getColor(darkMode, "textSecondary")}
 															/>
 														)}
-														{(invoice.gateway == "stripe" ||
-															invoice.gateway == "stripe_sale") && (
+														{(invoice.gateway == "stripe" || invoice.gateway == "stripe_sale") && (
 															<BsCreditCard2Back
 																fontSize={16}
 																color={getColor(darkMode, "textSecondary")}
@@ -1519,17 +1479,11 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 					<Flex alignItems="center">
 						{typeof userInfo !== "undefined" && (
 							<Avatar
-								name={
-									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0
-										? undefined
-										: userInfo.email
-								}
+								name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 								width="26px"
 								height="26px"
 								src={
-									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0
-										? userInfo.avatarURL
-										: undefined
+									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}
 							/>
 						)}
@@ -1580,10 +1534,7 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 			})
 	}
 
-	const getEvents = (
-		lastTimestamp: number = Math.floor(new Date().getTime() / 1000) + 60,
-		filter: string = "all"
-	) => {
+	const getEvents = (lastTimestamp: number = Math.floor(Date.now() / 1000) + 60, filter: string = "all") => {
 		if (events.length == 0) {
 			setLoading(true)
 		}
@@ -1737,7 +1688,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 
 	useEffect(() => {
 		;(async () => {
-			const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
+			const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + Date.now())
 
 			if (response.status !== 200) {
 				console.error("Could not fetch cfg:", response.status)
@@ -1794,9 +1745,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 										width="100%"
 										height="100%"
 										backgroundColor={
-											activeTerm == term.termType
-												? getColor(darkMode, "backgroundPrimary")
-												: "transparent"
+											activeTerm == term.termType ? getColor(darkMode, "backgroundPrimary") : "transparent"
 										}
 										padding="10px"
 										paddingTop="5px"
@@ -1808,9 +1757,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 									>
 										<AppText
 											darkMode={darkMode}
-											fontWeight={
-												activeTerm == term.termType || term.termType == 4 ? "bold" : "normal"
-											}
+											fontWeight={activeTerm == term.termType || term.termType == 4 ? "bold" : "normal"}
 											fontSize={15}
 											color={
 												activeTerm == term.termType
@@ -2050,13 +1997,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 				color={getColor(darkMode, "textPrimary")}
 				fontWeight="bold"
 			>
-				{i18n(
-					lang,
-					"referInfo",
-					true,
-					["__STORAGE__"],
-					[formatBytes(userAccount.refStorage * userAccount.refLimit)]
-				)}
+				{i18n(lang, "referInfo", true, ["__STORAGE__"], [formatBytes(userAccount.refStorage * userAccount.refLimit)])}
 			</AppText>
 			<AppText
 				darkMode={darkMode}

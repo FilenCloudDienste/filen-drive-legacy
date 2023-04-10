@@ -1,14 +1,10 @@
 import Cookies from "js-cookie"
 import eventListener from "../eventListener"
 
-export const set = (
-	key: string,
-	value: string,
-	opts: { domain: string | undefined } | undefined = undefined
-): boolean => {
+export const set = (key: string, value: string, opts: { domain: string | undefined } | undefined = undefined): boolean => {
 	try {
 		Cookies.set(key, value, {
-			expires: new Date(new Date().getTime() + 86400000 * 365),
+			expires: new Date(Date.now() + 86400000 * 365),
 			domain: process.env.NODE_ENV == "development" ? undefined : ".filen.io"
 		})
 
