@@ -1,3 +1,3 @@
-import en from "./it"
+import it from "./it"
 
 export default it
