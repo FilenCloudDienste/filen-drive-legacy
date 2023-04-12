@@ -194,7 +194,7 @@ const zh: {
 	listEmpty_11: "回收站里什么都没有",
 	listEmpty_12: "一旦你标记了要删除的文件或文件夹，它们将出现在这里",
 	listEmpty_13: "还没有上传文件或文件夹",
-	listEmpty_14: "在这里拖放文件或文件夹，或按下面的按钮",
+	listEmpty_14: "在这里拖放文件或文件夹，或按下面的“上传”按钮",
 	listFooterSelected: "已选择 __TOTAL__ 个项目中的 __COUNT__ 个",
 	name: "文件名称",
 	size: "大小",
@@ -376,6 +376,7 @@ const zh: {
 	finishing: "整理中",
 	searchNothingFound: '"__TERM__" 未找到'
 	queued: "排队中"
+	searchInThisFolder: "在此文件夹中搜索..."
 }
 
 export default zh
