@@ -389,7 +389,8 @@ const ru: {
 	support: "Поддержка",
 	finishing: "Завершение",
 	searchNothingFound: '"__TERM__" не найдено',
-	queued: "В очереди"
+	queued: "В очереди",
+	searchInThisFolder: "Искать в этой папке..."
 }
 
 export default ru
