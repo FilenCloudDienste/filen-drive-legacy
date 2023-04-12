@@ -49,6 +49,7 @@
 		"cors": "2.8.5",
 		"crypto-api-v1": "1.0.0",
 		"crypto-js": "4.1.1",
+		"dompurify": "^3.0.1",
 		"framer-motion": "6.4.2",
 		"heic-convert": "1.2.4",
 		"helmet": "6.0.0",
@@ -113,6 +114,7 @@
 	},
 	"devDependencies": {
 		"@types/crypto-js": "4.1.1",
+		"@types/dompurify": "^3.0.1",
 		"@types/js-cookie": "3.0.2",
 		"@types/js-md5": "0.4.3",
 		"@types/mime-types": "2.1.1",

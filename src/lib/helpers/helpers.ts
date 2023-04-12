@@ -3,6 +3,7 @@ import eventListener from "../eventListener"
 import type { ItemProps, UploadQueueItemFile } from "../../types"
 import { API_DOMAINS, DOWNLOAD_DOMAINS, UPLOAD_DOMAINS, API_V3_DOMAINS, UPLOAD_V3_DOMAINS } from "../constants"
 import { wrap, memoize, debounce } from "lodash"
+import DOMPurify from "dompurify"
 
 export const getAPIServer = (): string => {
 	return API_DOMAINS[getRandomArbitrary(0, API_DOMAINS.length - 1)]
@@ -1177,4 +1178,42 @@ export const debounceByParam = (targetFunc: any, resolver: any, ...debounceParam
 			getMemoizedFunc(...params)(...params)
 		}
 	)
+}
+
+export const sanitizeSVG = (file: File): Promise<File> => {
+	return new Promise((resolve, reject) => {
+		if (!DOMPurify.isSupported) {
+			reject(new Error("SVG sanitization not supported"))
+
+			return
+		}
+
+		const reader = new FileReader()
+
+		reader.onload = () => {
+			try {
+				const svgText = reader.result
+
+				if (!svgText) return reject(new Error("sanitizeSVG: empty text"))
+				if (typeof svgText !== "string") return reject(new Error("sanitizeSVG: no text"))
+
+				const sanitized = DOMPurify.sanitize(svgText)
+
+				if (sanitized.length <= 0) return reject(new Error("sanitizeSVG: sanitization failed"))
+
+				resolve(
+					new File([new TextEncoder().encode(sanitized)], file.name, {
+						type: file.type,
+						lastModified: file.lastModified
+					})
+				)
+			} catch (e) {
+				reject(e)
+			}
+		}
+
+		reader.onerror = reject
+
+		reader.readAsText(file)
+	})
 }

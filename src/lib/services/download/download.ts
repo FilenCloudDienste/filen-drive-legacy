@@ -1,7 +1,7 @@
 import type { ItemProps, Download } from "../../../types"
 import { MAX_CONCURRENT_DOWNLOADS, MAX_DOWNLOAD_THREADS, MAX_DOWNLOAD_WRITERS } from "../../constants"
 import eventListener from "../../eventListener"
-import { Semaphore, getDownloadServer, mergeUInt8Arrays } from "../../helpers"
+import { Semaphore, getDownloadServer, mergeUInt8Arrays, sanitizeSVG } from "../../helpers"
 import streamSaver from "../../streamSaver"
 import { downloadAndDecryptChunk } from "../../worker/worker.com"
 import { getDirectoryTree } from "../items"
@@ -218,6 +218,25 @@ export const downloadFile = (
 
 		if (streamToDisk) {
 			return resolve(item)
+		}
+
+		try {
+			if (item.name.endsWith(".svg")) {
+				const sanitizedSVG = await sanitizeSVG(
+					new File([chunksConcatted], item.name, {
+						type: item.mime,
+						lastModified: item.lastModified
+					})
+				)
+
+				const sanitizedArrayBuffer = await sanitizedSVG.arrayBuffer()
+
+				return resolve(new Uint8Array(sanitizedArrayBuffer))
+			}
+		} catch (e: any) {
+			console.error(e)
+
+			return reject(e)
 		}
 
 		return resolve(chunksConcatted)
