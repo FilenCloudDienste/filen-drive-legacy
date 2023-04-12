@@ -85,8 +85,7 @@ const de: {
 	invalidEmail: "Ungültige E-Mail",
 	invalidPassword: "Ungültiges Passwort",
 	emailsDoNotMatch: "Emails stimmen nicht überein",
-	changeEmailPleaseConfirm:
-		"Bitte bestätigen Sie Ihre neue E-Mail-Adresse, indem Sie auf den an sie gesendeten Link klicken",
+	changeEmailPleaseConfirm: "Bitte bestätigen Sie Ihre neue E-Mail-Adresse, indem Sie auf den an sie gesendeten Link klicken",
 	newEmail: "Neue E-Mail",
 	confirmNewEmail: "Bestätigen Sie die neue E-Mail",
 	save: "Speichern",
@@ -112,8 +111,7 @@ const de: {
 	newPassword: "Neues Passwort",
 	confirmNewPassword: "Bestätigen Sie das neue Passwort",
 	currentPassword: "Aktuelles Passwort",
-	deleteAccountConfirm:
-		"Bitte bestätigen Sie die Löschung Ihres Accounts, indem Sie auf den Link in Ihrer E-Mail klicken.",
+	deleteAccountConfirm: "Bitte bestätigen Sie die Löschung Ihres Accounts, indem Sie auf den Link in Ihrer E-Mail klicken.",
 	areYouSureDeleteAccount:
 		"Sind Sie sicher, dass Sie Ihren Account löschen möchten? Wir senden Ihnen einen Bestätigungslink an Ihre E-Mail-Adresse.",
 	invalid2FACode: "Ungültiger Code für die Zwei-Faktor-Authentifizierung",
@@ -140,8 +138,7 @@ const de: {
 	oneTimePayment: "Einmalige Zahlung",
 	buyRecurringInfo:
 		"Mit dem Kauf eines Plans ermächtigen Sie Filen, Ihnen automatisch jeden Abrechnungszeitraum zu berechnen, bis Sie kündigen. Sie können jederzeit über Ihre Kontoseite kündigen. Keine Teilerstattungen.",
-	buyLifetimeInfo:
-		"Mit dem Kauf eines Plans ermächtigen Sie Filen, Ihre Zahlungsmethode zu belasten. Keine Teilrückerstattung.",
+	buyLifetimeInfo: "Mit dem Kauf eines Plans ermächtigen Sie Filen, Ihre Zahlungsmethode zu belasten. Keine Teilrückerstattung.",
 	creditDebit: "Kredit-/Debitkarten",
 	cancelSub: "Abonnement kündigen",
 	cancelSubSure: "Sind Sie sicher, dass Sie dieses Abonnement kündigen möchten?",
@@ -340,8 +337,7 @@ const de: {
 	passwordsDoNotMatch: "Passwörter stimmen nicht überein",
 	registerWeakPassword: "hr Passwort muss mindestens 10 Zeichen lang sein.",
 	invalidEmailOrPassword: "Ungültige E-Mail oder ungültiges Passwort",
-	unknownErrorSupp:
-		"Unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+	unknownErrorSupp: "Unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
 	registerEmailAlreadyRegistered: "Diese E-Mail Adresse ist bereits registriert.",
 	gotIt: "Verstanden",
 	registration: "Registrierung",
@@ -375,7 +371,8 @@ const de: {
 	support: "Support",
 	finishing: "Beende",
 	searchNothingFound: '"__TERM__" nicht gefunden',
-	queued: "Warteschlange"
+	queued: "Warteschlange",
+	searchInThisFolder: "In diesem Ordner suchen..."
 }
 
 export default de

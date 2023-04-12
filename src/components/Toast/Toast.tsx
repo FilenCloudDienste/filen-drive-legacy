@@ -18,9 +18,11 @@ const { toast } = createStandaloneToast()
 let activeToasts: number = 0
 
 const SuccessToast = memo(({ message }: { message: string }) => {
+	const darkMode = useDarkMode()
+
 	return (
 		<Flex
-			backgroundColor="green"
+			backgroundColor={getColor(darkMode, "green")}
 			width="auto"
 			paddingTop="6px"
 			paddingLeft="10px"
@@ -41,9 +43,11 @@ const SuccessToast = memo(({ message }: { message: string }) => {
 })
 
 const ErrorToast = memo(({ message }: { message: string }) => {
+	const darkMode = useDarkMode()
+
 	return (
 		<Flex
-			backgroundColor="red"
+			backgroundColor={getColor(darkMode, "red")}
 			width="auto"
 			paddingTop="6px"
 			paddingLeft="10px"
@@ -334,7 +338,7 @@ const LoadingToast = memo(({ message }: { message: string }) => {
 			<AppText
 				darkMode={false}
 				isMobile={false}
-				color="white"
+				color={getColor(darkMode, "textSecondary")}
 				marginLeft="15px"
 			>
 				{message}
@@ -347,19 +351,14 @@ const getToastElement = (type: CustomToastTypes, message: string, id: ToastId, o
 	switch (type) {
 		case "success":
 			return <SuccessToast message={message} />
-			break
 		case "error":
 			return <ErrorToast message={message} />
-			break
 		case "transfers":
 			return <TransfersToast />
-			break
 		case "loading":
 			return <LoadingToast message={message} />
-			break
 		default:
 			return <>{message}</>
-			break
 	}
 }
 

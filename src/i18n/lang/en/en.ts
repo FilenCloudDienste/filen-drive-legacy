@@ -32,8 +32,7 @@ const en: {
 	abuseReport: "Abuse report",
 	abuseReportModalInfo: "Use this form to report inappropriate, illegal, or otherwise harmful shared files.",
 	yourEmailAddress: "Your email address",
-	abuseReportModalInfoPlaceholder:
-		"Please provide us with all the details so that we can take appropriate action (optional)",
+	abuseReportModalInfoPlaceholder: "Please provide us with all the details so that we can take appropriate action (optional)",
 	send: "Send",
 	abuseReportModalReason: "Please choose a reason",
 	avatarUploadMaxFileSize: "File size cannot exceed 3 MB",
@@ -109,16 +108,14 @@ const en: {
 	confirmNewPassword: "Confirm new password",
 	currentPassword: "Current password",
 	deleteAccountConfirm: "Please confirm the account deletion by clicking the link sent to your email",
-	areYouSureDeleteAccount:
-		"Are you sure you want to delete your account? We will send a confirmation link to your email address.",
+	areYouSureDeleteAccount: "Are you sure you want to delete your account? We will send a confirmation link to your email address.",
 	invalid2FACode: "Invalid Two Factor Authentication code",
 	enable2FA: "Enable Two Factor Authentication",
 	copy: "Copy",
 	enter2FA: "Enter Two Factor Authentication code",
 	enable: "Enable",
 	recoveryKeys: "Recovery keys",
-	recoveryKeysInfo:
-		"Please store your recovery key safely. It is the only way to recover your account in case of 2FA device loss.",
+	recoveryKeysInfo: "Please store your recovery key safely. It is the only way to recover your account in case of 2FA device loss.",
 	close: "Close",
 	disable2FA: "Disable Two Factor Authentication",
 	disable: "Disable",
@@ -226,8 +223,7 @@ const en: {
 	publicLinkPassword: "Password (leave empty to disable)",
 	removedSharedItems: "Removed __COUNT__ shared items",
 	couldNotRemoveSharedItems: "Could not remove __NAME__: __ERR__",
-	removeSharedItemsModalInfo:
-		"Are you sure you want to remove __COUNT__ items? You will no longer be able the access them.",
+	removeSharedItemsModalInfo: "Are you sure you want to remove __COUNT__ items? You will no longer be able the access them.",
 	renameNewName: "New name",
 	selectFromComputer: "Select from computer",
 	upload: "Upload",
@@ -242,8 +238,7 @@ const en: {
 	upgrade: "Upgrade",
 	stoppedSharingItems: "Stopped sharing __COUNT__ items",
 	couldNotStopSharingItem: "Could not stop sharing __NAME__: __ERR__",
-	stopSharingModalSure:
-		"Are you sure you want to stop sharing __COUNT__ items? The other parties will no longer be able to access them.",
+	stopSharingModalSure: "Are you sure you want to stop sharing __COUNT__ items? The other parties will no longer be able to access them.",
 	aboutRemaining: "About __TIME__ remaining",
 	transferringItems: "Transferring __COUNT__ items",
 	uploadingItems: "Uploading __COUNT__ items",
@@ -341,8 +336,7 @@ const en: {
 		"To complete your registration please confirm your email address. A link with instructions has been sent to you.",
 	forgotPasswordEmailSent: "An email with instructions on how to reset your password has been sent to you.",
 	maxStorageReached: "Storage full",
-	maxStorageReachedInfo:
-		"You have reached your maximum storage allowance. Please upgrade your account to upload more files.",
+	maxStorageReachedInfo: "You have reached your maximum storage allowance. Please upgrade your account to upload more files.",
 	upgradeNow: "Upgrade now",
 	abuseReportSubmitted: "Abuse report sent!",
 	invalidAbuseReason: "Invalid reason",
@@ -366,8 +360,7 @@ const en: {
 	requestPayout: "Request payout",
 	invalidPayoutAddress: "Invalid payout address",
 	affiliatePayoutSuccess: "Payout request submitted",
-	requestPayoutInfo:
-		"We will send your earned affiliate comission to the given Bitcoin address within 1-7 working days.",
+	requestPayoutInfo: "We will send your earned affiliate comission to the given Bitcoin address within 1-7 working days.",
 	comissionEarned: "Comission earned",
 	receivedBonusStorage: "Total received bonus storage",
 	referInfo: "Receive up to __STORAGE__ of storage by inviting others",
@@ -383,7 +376,8 @@ const en: {
 	support: "Support",
 	finishing: "Finishing",
 	searchNothingFound: '"__TERM__" not found',
-	queued: "Queued"
+	queued: "Queued",
+	searchInThisFolder: "Search in this folder..."
 }
 
 export default en

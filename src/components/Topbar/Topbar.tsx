@@ -10,6 +10,7 @@ import db from "../../lib/db"
 import { useNavigate, useLocation } from "react-router-dom"
 import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
+import { i18n } from "../../i18n"
 
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
@@ -76,13 +77,14 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 					<Input
 						darkMode={darkMode}
 						isMobile={isMobile}
-						placeholder="Search in this folder.."
+						placeholder={i18n(lang, "searchInThisFolder")}
 						width={windowWidth / 3 + "px"}
 						maxWidth="450px"
 						height="26px"
 						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						borderRadius="3px"
-						fontSize={12.5}
+						borderRadius="5px"
+						fontWeight="400"
+						fontSize={13}
 						paddingLeft="10px"
 						paddingRight="10px"
 						value={searchTerm}
@@ -114,18 +116,10 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 					/>
 				) : (
 					<Avatar
-						name={
-							typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0
-								? undefined
-								: userInfo.email
-						}
+						name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 						width="28px"
 						height="28px"
-						src={
-							typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0
-								? userInfo.avatarURL
-								: undefined
-						}
+						src={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}
 					/>
