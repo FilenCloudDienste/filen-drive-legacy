@@ -221,7 +221,7 @@ export const downloadFile = (
 		}
 
 		try {
-			if (item.name.endsWith(".svg")) {
+			if (item.name.endsWith(".svg") || item.mime === "image/svg+xml") {
 				const sanitizedSVG = await sanitizeSVG(
 					new File([chunksConcatted], item.name, {
 						type: item.mime,
