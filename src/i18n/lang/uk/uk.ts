@@ -388,7 +388,8 @@ const uk: {
 	support: "Підтримка",
 	finishing: "Завершення",
 	searchNothingFound: '"__TERM__" не знайдено',
-	queued: "В черзі"
+	queued: "В черзі",
+	searchInThisFolder: "Шукати в цій папці..."
 }
 
 export default uk
