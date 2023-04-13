@@ -9,12 +9,9 @@ import fr from "./lang/fr"
 import zh from "./lang/zh"
 import ko from "./lang/ko"
 import tr from "./lang/tr"
+import it from "./lang/it"
 
-const translations: {
-	[key: string]: {
-		[key: string]: string
-	}
-} = {
+const translations: Record<string, Record<string, string>> = {
 	en,
 	de,
 	ja,
@@ -25,7 +22,8 @@ const translations: {
 	fr,
 	zh,
 	ko,
-	tr
+	tr,
+	it
 }
 
 export const i18n = (

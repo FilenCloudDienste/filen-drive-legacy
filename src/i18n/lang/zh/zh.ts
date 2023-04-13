@@ -130,8 +130,7 @@ const zh: {
 	monthlyRecurring: "月费",
 	annuallyRecurring: "年费",
 	oneTimePayment: "一次性付款",
-	buyRecurringInfo:
-		"通过购买计划,您授权Filen在每个账单期自动向您收费,直到您取消。您可以随时通过您的账户页面取消。没有部分退款.",
+	buyRecurringInfo: "通过购买计划,您授权Filen在每个账单期自动向您收费,直到您取消。您可以随时通过您的账户页面取消。没有部分退款.",
 	buyLifetimeInfo: "通过购买计划,您授权Filen从您的付款方式中收取费用。没有部分退款.",
 	creditDebit: "信用卡 / 借记卡",
 	cancelSub: "取消订阅",
@@ -351,8 +350,7 @@ const zh: {
 		"我明白，由于零知识端到端加密的工作原理，在没有导出主密钥的情况下重设我的密码，将无法访问在我账户上存储的所有数据.",
 	invalidAuthVersion: "无效的认证版本",
 	recoveryMasterKeysInput: "主密钥已导出",
-	exportMasterKeysInfo:
-		"导出你的主密钥可以使你有可能在忘记密码的情况下恢复你的账户而不损失数据。请确保每次更改密码时都能导出新的主密钥.",
+	exportMasterKeysInfo: "导出你的主密钥可以使你有可能在忘记密码的情况下恢复你的账户而不损失数据。请确保每次更改密码时都能导出新的主密钥.",
 	import: "导入",
 	invite: "邀请",
 	yourReferralLink: "你的链接",
@@ -374,8 +372,8 @@ const zh: {
 	subCancelled: "已取消",
 	support: "支持",
 	finishing: "整理中",
-	searchNothingFound: '"__TERM__" 未找到'
-	queued: "排队中"
+	searchNothingFound: "__TERM__ 未找到",
+	queued: "排队中",
 	searchInThisFolder: "在此文件夹中搜索..."
 }
 
