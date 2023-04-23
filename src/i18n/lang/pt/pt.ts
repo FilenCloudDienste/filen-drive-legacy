@@ -1,4 +1,4 @@
-const en: {
+const pt: {
 	[key: string]: string
 } = {
 	forgotPasswordSendInstructions: "Enviar instruções",
