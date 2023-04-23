@@ -12,7 +12,7 @@ import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
 import AuthContainer from "../../components/AuthContainer"
 import toast from "../../components/Toast"
-import { authInfo, login as apiLogin, userInfo, baseFolders } from "../../lib/api"
+import { authInfo, login as apiLogin, userInfo, baseFolder } from "../../lib/api"
 import { generatePasswordAndMasterKeysBasedOnAuthVersion } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -62,7 +62,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 				sTfa = "XXXXXX"
 			}
 
-			const authInfoResponse = await authInfo({ email: sEmail })
+			const authInfoResponse = await authInfo(sEmail)
 
 			const authVersion: number = authInfoResponse.authVersion
 			const salt: string = authInfoResponse.salt
@@ -84,10 +84,10 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 				authVersion
 			})
 
-			const userInfoResponse = await userInfo(loginResponse.apiKey)
-			const baseFoldersResponse = await baseFolders(loginResponse.apiKey)
-
-			const defaultDriveUUID = baseFoldersResponse.folders.filter((folder: any) => folder.is_default)
+			const [userInfoResponse, defaultDriveUUID] = await Promise.all([
+				userInfo(loginResponse.apiKey),
+				baseFolder(loginResponse.apiKey)
+			])
 
 			if (defaultDriveUUID.length == 0) {
 				toast.show("error", i18n(lang, "couldNotFindDefaultFolder"), "bottom", 5000)
@@ -102,7 +102,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 				db.set("userId", userInfoResponse.id),
 				db.set("masterKeys", [masterKeys]),
 				db.set("authVersion", authVersion),
-				db.set("defaultDriveUUID", defaultDriveUUID[0].uuid),
+				db.set("defaultDriveUUID", defaultDriveUUID),
 				db.set("userEmail", sEmail)
 			])
 

@@ -1,15 +1,5 @@
 import { memo, useState, useEffect, useMemo, useCallback } from "react"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader,
-	Flex
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -54,7 +44,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 		setLoadingPayURL(true)
 
 		try {
-			const url = await buySub(plan.id, activePaymentMethod, plan.lifetime)
+			const url = await buySub(plan.id, activePaymentMethod)
 
 			window.open(url, "_blank")
 
@@ -169,9 +159,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 										width="100%"
 										height="100%"
 										backgroundColor={
-											activePaymentMethod == method
-												? getColor(darkMode, "backgroundSecondary")
-												: "transparent"
+											activePaymentMethod == method ? getColor(darkMode, "backgroundSecondary") : "transparent"
 										}
 										padding="10px"
 										paddingTop="5px"

@@ -48,7 +48,7 @@ const ResendConfirmationForm = memo(({ windowWidth, windowHeight, darkMode, isMo
 		try {
 			const res = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/confirmation/resend",
+				endpoint: "/v3/confirmation/send",
 				data: {
 					email: userEmail
 				}
