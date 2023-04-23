@@ -1541,7 +1541,7 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 
 		fetchEvents(lastTimestamp, filter)
 			.then(data => {
-				setEvents(prev => [...prev, ...data.events])
+				setEvents(prev => [...prev, ...data])
 				setLoading(false)
 			})
 			.catch(err => {

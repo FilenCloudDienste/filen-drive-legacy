@@ -34,7 +34,8 @@ const textDecoder = new TextDecoder()
 const apiRequest = (
 	method: string = "POST",
 	endpoint: string,
-	data: any
+	data: any,
+	apiKey: string | null
 ): Promise<{ status: boolean; message: string; [key: string]: any }> => {
 	return new Promise((resolve, reject) => {
 		let current = -1
@@ -53,8 +54,16 @@ const apiRequest = (
 						? axios.post(getAPIServer() + endpoint, data)
 						: axios.get(getAPIServer() + endpoint)
 					: method.toUpperCase() == "POST"
-					? axios.post(getAPIV3Server() + endpoint, data)
-					: axios.get(getAPIV3Server() + endpoint)
+					? axios.post(getAPIV3Server() + endpoint, data, {
+							headers: {
+								Authorization: "Bearer " + apiKey
+							}
+					  })
+					: axios.get(getAPIV3Server() + endpoint, {
+							headers: {
+								Authorization: "Bearer " + apiKey
+							}
+					  })
 
 			promise
 				.then(response => {
@@ -112,18 +121,7 @@ const deriveKeyFromPassword = async (
 	returnHex: boolean
 ): Promise<string | ArrayBuffer> => {
 	const cacheKey =
-		"deriveKeyFromPassword:" +
-		password +
-		":" +
-		salt +
-		":" +
-		iterations +
-		":" +
-		hash +
-		":" +
-		bitLength +
-		":" +
-		returnHex.toString()
+		"deriveKeyFromPassword:" + password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
 
 	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
@@ -547,10 +545,7 @@ const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array |
 	return transfer(result, [result.buffer])
 }
 
-const bufferToHash = async (
-	buffer: Uint8Array,
-	algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"
-): Promise<string> => {
+const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	const digest = await globalThis.crypto.subtle.digest(algorithm, buffer)
 	const hashArray = Array.from(new Uint8Array(digest))
 	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
@@ -570,9 +565,7 @@ const encryptAndUploadFileChunk = (
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
 				bufferToHash(
-					(encryptedChunk as Uint8Array).byteLength > 0
-						? (encryptedChunk as Uint8Array)
-						: new Uint8Array([1]),
+					(encryptedChunk as Uint8Array).byteLength > 0 ? (encryptedChunk as Uint8Array) : new Uint8Array([1]),
 					"SHA-512"
 				)
 					.then(chunkHash => {
@@ -700,9 +693,7 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 
 			return transfer(result, [result.buffer])
 		} else if (sliced.indexOf("U2FsdGVk") !== -1) {
-			const result = convertWordArrayToArrayBuffer(
-				CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key)
-			)
+			const result = convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key))
 
 			return transfer(result, [result.buffer])
 		} else {

@@ -74,7 +74,7 @@ export const login = async ({
 }): Promise<any> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/login",
+		endpoint: "/v3/login",
 		data: {
 			email,
 			password,
@@ -147,37 +147,20 @@ export const baseFolders = (apiKey: string | undefined = undefined): Promise<any
 	})
 }
 
-export const folderContent = ({
-	apiKey,
-	uuid,
-	foldersOnly = false
-}: {
-	apiKey: string
-	uuid: string
-	foldersOnly?: boolean
-}): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/dir/content",
-			data: {
-				apiKey,
-				app: "true",
-				folders: JSON.stringify(["default"]),
-				page: 1,
-				uuid,
-				foldersOnly: foldersOnly ? "true" : "false"
-			}
-		})
-			.then((response: any) => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data)
-			})
-			.catch(reject)
+export const folderContent = async (uuid: string): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/content",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
 export const sharedInContent = ({ apiKey, uuid }: { apiKey: string; uuid: string }): Promise<any> => {
@@ -229,24 +212,20 @@ export const sharedOutContent = ({ apiKey, uuid }: { apiKey: string; uuid: strin
 	})
 }
 
-export const recentContent = ({ apiKey }: { apiKey: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/user/recent",
-			data: {
-				apiKey
-			}
-		})
-			.then((response: any) => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data)
-			})
-			.catch(reject)
+export const recentContent = async (): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/content",
+		data: {
+			uuid: "recents"
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.uploads
 }
 
 export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string; uploadKey: string }): Promise<any> => {
@@ -318,7 +297,7 @@ export const getFolderContents = ({
 				apiRequest({
 					method: "POST",
 					endpoint:
-						type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v1/download/dir/link" : "/v1/download/dir",
+						type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v3/dir/download/link" : "/v3/dir/download",
 					data:
 						type == "shared"
 							? {
@@ -344,7 +323,6 @@ export const getFolderContents = ({
 											: await hashFn("empty")
 							  }
 							: {
-									apiKey,
 									uuid
 							  }
 				})
@@ -1231,62 +1209,50 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 	})
 }
 
-export const folderExists = ({ name, parent }: { name: string; parent: string }): Promise<{ exists: boolean; existsUUID: string }> => {
-	return new Promise((resolve, reject) => {
-		Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
-			.then(([apiKey, nameHashed]) => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/dir/exists",
-					data: {
-						apiKey,
-						parent,
-						nameHashed
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							exists: response.data.exists ? true : false,
-							existsUUID: response.data.uuid
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const folderExists = async ({
+	name,
+	parent
+}: {
+	name: string
+	parent: string
+}): Promise<{ exists: boolean; existsUUID?: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/exists",
+		data: {
+			parent,
+			nameHashed: await hashFn(name.toLowerCase())
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		exists: response.data.exists,
+		existsUUID: response.data.uuid
+	}
 }
 
-export const fileExists = ({ name, parent }: { name: string; parent: string }): Promise<{ exists: boolean; existsUUID: string }> => {
-	return new Promise((resolve, reject) => {
-		Promise.all([db.get("apiKey"), hashFn(name.toLowerCase())])
-			.then(([apiKey, nameHashed]) => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/file/exists",
-					data: {
-						apiKey,
-						parent,
-						nameHashed
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							exists: response.data.exists ? true : false,
-							existsUUID: response.data.uuid
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const fileExists = async ({ name, parent }: { name: string; parent: string }): Promise<{ exists: boolean; existsUUID?: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/file/exists",
+		data: {
+			parent,
+			nameHashed: await hashFn(name.toLowerCase())
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		exists: response.data.exists,
+		existsUUID: response.data.uuid
+	}
 }
 
 export const createFolder = ({
@@ -1492,25 +1458,20 @@ export const createFolder = ({
 	})
 }
 
-export const folderPresent = ({ apiKey, uuid }: { apiKey: string; uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/dir/present",
-			data: {
-				apiKey,
-				uuid
-			}
-		})
-			.then((response: any) => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data)
-			})
-			.catch(reject)
+export const folderPresent = async (uuid: string): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/present",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
 export const trashItem = (item: ItemProps): Promise<boolean> => {
@@ -1840,86 +1801,81 @@ export const fetchFolderSize = (item: ItemProps, href: string): Promise<number> 
 		fetchFolderSizeSemaphore
 			.acquire()
 			.then(() => {
-				db.get("apiKey")
-					.then(apiKey => {
-						let payload: {
-							apiKey?: string
-							uuid?: string
-							sharerId?: number
-							receiverId?: number
-							trash?: number
-							linkUUID?: string
-						} = {}
+				let payload: {
+					apiKey?: string
+					uuid?: string
+					sharerId?: number
+					receiverId?: number
+					trash?: number
+					linkUUID?: string
+				} = {}
 
-						try {
-							if (href.indexOf("shared-out") !== -1) {
-								payload = {
-									apiKey,
-									uuid: item.uuid,
-									sharerId: item.sharerId || 0,
-									receiverId: item.receiverId || 0
-								}
-							} else if (href.indexOf("shared-in") !== -1) {
-								payload = {
-									apiKey,
-									uuid: item.uuid,
-									sharerId: item.sharerId || 0,
-									receiverId: item.receiverId || 0
-								}
-							} else if (href.indexOf("trash") !== -1) {
-								payload = {
-									apiKey,
-									uuid: item.uuid,
-									sharerId: 0,
-									receiverId: 0,
-									trash: 1
-								}
-							} else if (href.indexOf("/f/") !== -1) {
-								payload = {
-									linkUUID: href.split("/f/")[1].split("#")[0],
-									uuid: item.uuid
-								}
-							} else {
-								payload = {
-									apiKey,
-									uuid: item.uuid,
-									sharerId: 0,
-									receiverId: 0
-								}
-							}
-						} catch (e) {
-							fetchFolderSizeSemaphore.release()
+				try {
+					if (href.indexOf("shared-out") !== -1) {
+						payload = {
+							uuid: item.uuid,
+							sharerId: item.sharerId || 0,
+							receiverId: item.receiverId || 0,
+							trash: 0
+						}
+					} else if (href.indexOf("shared-in") !== -1) {
+						payload = {
+							uuid: item.uuid,
+							sharerId: item.sharerId || 0,
+							receiverId: item.receiverId || 0,
+							trash: 0
+						}
+					} else if (href.indexOf("trash") !== -1) {
+						payload = {
+							uuid: item.uuid,
+							sharerId: 0,
+							receiverId: 0,
+							trash: 1
+						}
+					} else if (href.indexOf("/f/") !== -1) {
+						payload = {
+							linkUUID: href.split("/f/")[1].split("#")[0],
+							uuid: item.uuid
+						}
+					} else {
+						payload = {
+							uuid: item.uuid,
+							sharerId: 0,
+							receiverId: 0,
+							trash: 0
+						}
+					}
+				} catch (e) {
+					fetchFolderSizeSemaphore.release()
 
-							return reject(e)
+					return reject(e)
+				}
+
+				apiRequest({
+					method: "POST",
+					endpoint: "/v3/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
+					data: payload
+				})
+					.then(response => {
+						fetchFolderSizeSemaphore.release()
+
+						if (!response.status) {
+							return reject(response.message)
 						}
 
-						apiRequest({
-							method: "POST",
-							endpoint: "/v1/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
-							data: payload
-						})
-							.then(response => {
-								fetchFolderSizeSemaphore.release()
-
-								if (!response.status) {
-									return reject(response.message)
-								}
-
-								return resolve(response.data.size)
-							})
-							.catch(err => {
-								fetchFolderSizeSemaphore.release()
-
-								return reject(err)
-							})
+						return resolve(response.data.size)
 					})
-					.catch(reject)
+					.catch(err => {
+						fetchFolderSizeSemaphore.release()
+
+						return reject(err)
+					})
 			})
 			.catch(reject)
 	})
 }
 
-export const favoriteItem = ({
+export const favoriteItem = async ({
 	item,
 	favorite,
 	emitEvents = true
@@ -1927,148 +1883,92 @@ export const favoriteItem = ({
 	item: ItemProps
 	favorite: number
 	emitEvents?: boolean
-}): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/item/favorite",
-					data: {
-						apiKey,
-						uuid: item.uuid,
-						type: item.type,
-						value: favorite
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/favorite",
+		data: {
+			uuid: item.uuid,
+			type: item.type,
+			value: favorite
+		}
+	})
 
-						if (emitEvents) {
-							eventListener.emit("itemFavorited", {
-								item,
-								favorited: favorite
-							})
-						}
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+	if (emitEvents) {
+		eventListener.emit("itemFavorited", {
+			item,
+			favorited: favorite
+		})
+	}
+}
+
+export const emptyTrash = async (): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/trash/empty",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	eventListener.emit("trashEmptied")
+}
+
+export const deleteItemPermanently = async (item: ItemProps): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: item.type == "folder" ? "/v3/dir/delete/permanent" : "/v3/file/delete/permanent",
+		data: {
+			uuid: item.uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	eventListener.emit("itemDeletedPermanently", {
+		item
 	})
 }
 
-export const emptyTrash = (): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/trash/empty",
-					data: {
-						apiKey
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
+export const restoreItem = async (item: ItemProps): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: item.type == "folder" ? "/v3/dir/restore" : "/v3/file/restore",
+		data: {
+			uuid: item.uuid
+		}
+	})
 
-						eventListener.emit("trashEmptied")
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+	eventListener.emit("itemRestored", {
+		item
 	})
 }
 
-export const deleteItemPermanently = (item: ItemProps): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: item.type == "folder" ? "/v1/dir/delete/permanent" : "/v1/file/delete/permanent",
-					data: {
-						apiKey,
-						uuid: item.uuid
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						eventListener.emit("itemDeletedPermanently", {
-							item
-						})
-
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const restoreArchivedFile = async ({ uuid, currentUUID }: { uuid: string; currentUUID: string }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/file/version/restore",
+		data: {
+			uuid,
+			current: currentUUID
+		}
 	})
-}
 
-export const restoreItem = (item: ItemProps): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: item.type == "folder" ? "/v1/dir/restore" : "/v1/file/restore",
-					data: {
-						apiKey,
-						uuid: item.uuid
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						eventListener.emit("itemRestored", {
-							item
-						})
-
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
-	})
-}
-
-export const restoreArchivedFile = ({ uuid, currentUUID }: { uuid: string; currentUUID: string }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/file/archive/restore",
-					data: {
-						apiKey,
-						uuid,
-						currentUUID
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
-	})
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
 export const shareItemsToUser = async ({
@@ -2261,24 +2161,20 @@ export const shareItemsToUser = async ({
 	return true
 }
 
-export const getPublicKeyFromEmail = (email: string): Promise<string> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/user/publicKey/get",
-			data: {
-				email
-			}
-		})
-			.then(response => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data.publicKey)
-			})
-			.catch(reject)
+export const getPublicKeyFromEmail = async (email: string): Promise<string> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/publicKey",
+		data: {
+			email
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.publicKey
 }
 
 export const stopSharingItem = (item: ItemProps): Promise<boolean> => {
@@ -2673,59 +2569,39 @@ export const editItemPublicLink = (
 	})
 }
 
-export const fetchFileVersions = (item: ItemProps): Promise<FileVersionsV1[]> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/file/versions",
-					data: {
-						apiKey,
-						uuid: item.uuid
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve(response.data.versions)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const fetchFileVersions = async (item: ItemProps): Promise<FileVersionsV1[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/file/versions",
+		data: {
+			uuid: item.uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.versions
 }
 
-export const changeFolderColor = (folder: ItemProps, color: FolderColors): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/dir/color/change",
-					data: {
-						apiKey,
-						uuid: folder.uuid,
-						color
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
+export const changeFolderColor = async (folder: ItemProps, color: FolderColors): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/color",
+		data: {
+			uuid: folder.uuid,
+			color
+		}
+	})
 
-						eventListener.emit("folderColorChanged", {
-							uuid: folder.uuid,
-							color
-						})
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+	eventListener.emit("folderColorChanged", {
+		uuid: folder.uuid,
+		color
 	})
 }
 
@@ -2747,13 +2623,9 @@ export const userSettings = async (): Promise<UserGetSettingsV1> => {
 }
 
 export const userAccount = async (): Promise<UserGetAccountV1> => {
-	const apiKey = await db.get("apiKey")
 	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/get/account",
-		data: {
-			apiKey
-		}
+		method: "GET",
+		endpoint: "/v3/user/account"
 	})
 
 	if (!response.status) {
@@ -2764,13 +2636,9 @@ export const userAccount = async (): Promise<UserGetAccountV1> => {
 }
 
 export const userGDPR = async (): Promise<any> => {
-	const apiKey = await db.get("apiKey")
 	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/gdpr/download",
-		data: {
-			apiKey
-		}
+		method: "GET",
+		endpoint: "/v3/user/gdpr"
 	})
 
 	if (!response.status) {
@@ -2796,15 +2664,12 @@ export const uploadAvatar = async (buffer: Uint8Array): Promise<boolean> => {
 	return true
 }
 
-export const changeEmail = async (email: string, emailRepeat: string, password: string, authVersion: number): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const changeEmail = async (email: string, password: string, authVersion: number): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/settings/email/change",
+		endpoint: "/v3/user/settings/email/change",
 		data: {
-			apiKey,
 			email,
-			emailRepeat,
 			password,
 			authVersion
 		}
@@ -2813,8 +2678,6 @@ export const changeEmail = async (email: string, emailRepeat: string, password: 
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }
 
 export const updatePersonal = async ({
@@ -2837,7 +2700,7 @@ export const updatePersonal = async ({
 	street?: string
 	streetNumber?: string
 	vatId?: string
-}): Promise<boolean> => {
+}): Promise<void> => {
 	if (city.length <= 0) {
 		city = "__NONE__"
 	}
@@ -2874,12 +2737,10 @@ export const updatePersonal = async ({
 		vatId = "__NONE__"
 	}
 
-	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/personal/update",
+		endpoint: "/v3/user/personal/update",
 		data: {
-			apiKey,
 			city,
 			companyName,
 			country,
@@ -2895,17 +2756,13 @@ export const updatePersonal = async ({
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }
 
-export const deleteAccount = async (twoFactorKey: string = "XXXXXX"): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const deleteAccount = async (twoFactorKey: string = "XXXXXX"): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/account/delete",
+		endpoint: "/v3/user/delete",
 		data: {
-			apiKey,
 			twoFactorKey
 		}
 	})
@@ -2913,26 +2770,6 @@ export const deleteAccount = async (twoFactorKey: string = "XXXXXX"): Promise<bo
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
-}
-
-export const redeemCode = async (code: string): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
-	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/code/redeem",
-		data: {
-			apiKey,
-			code
-		}
-	})
-
-	if (!response.status) {
-		throw new Error(response.message)
-	}
-
-	return true
 }
 
 export const deleteVersioned = async (): Promise<boolean> => {
@@ -2971,27 +2808,22 @@ export const deleteAll = async (): Promise<boolean> => {
 
 export const changePassword = async ({
 	password,
-	passwordRepeat,
 	currentPassword,
 	authVersion,
 	salt,
 	masterKeys
 }: {
 	password: string
-	passwordRepeat: string
 	currentPassword: string
 	authVersion: number
 	salt: string
 	masterKeys: string
 }): Promise<any> => {
-	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/settings/password/change",
+		endpoint: "/v3/user/password/change",
 		data: {
-			apiKey,
 			password,
-			passwordRepeat,
 			currentPassword,
 			authVersion,
 			salt,
@@ -3007,12 +2839,10 @@ export const changePassword = async ({
 }
 
 export const enable2FA = async (code: string): Promise<string> => {
-	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/settings/2fa/enable",
+		endpoint: "/v3/user/2fa/enable",
 		data: {
-			apiKey,
 			code
 		}
 	})
@@ -3024,13 +2854,11 @@ export const enable2FA = async (code: string): Promise<string> => {
 	return response.data.recoveryKeys
 }
 
-export const disable2FA = async (code: string): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const disable2FA = async (code: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/settings/2fa/disable",
+		endpoint: "/v3/user/2fa/disable",
 		data: {
-			apiKey,
 			code
 		}
 	})
@@ -3038,20 +2866,16 @@ export const disable2FA = async (code: string): Promise<boolean> => {
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }
 
 export const fetchEvents = async (
 	lastTimestamp: number = Math.floor(Date.now() / 1000) + 60,
 	filter: string = "all"
-): Promise<{ events: UserEvent[]; limit: number }> => {
-	const apiKey: string = await db.get("apiKey")
+): Promise<UserEvent[]> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v2/user/events",
+		endpoint: "/v3/user/events",
 		data: {
-			apiKey,
 			filter,
 			timestamp: lastTimestamp
 		}
@@ -3061,19 +2885,14 @@ export const fetchEvents = async (
 		throw new Error(response.message)
 	}
 
-	return {
-		events: response.data.events,
-		limit: response.data.limit
-	}
+	return response.data.events
 }
 
 export const fetchEventInfo = async (uuid: string): Promise<any> => {
-	const apiKey: string = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/events/get",
+		endpoint: "/v3/user/event",
 		data: {
-			apiKey,
 			uuid
 		}
 	})
@@ -3156,30 +2975,27 @@ export const folderLinkContents = async (uuid: string, parent: string, password:
 	return response.data
 }
 
-export const cancelSub = async (id: string): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const cancelSub = async (uuid: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/sub/cancel",
+		endpoint: "/v3/user/sub/cancel",
 		data: {
-			apiKey,
-			id
+			uuid
 		}
 	})
 
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }
 
-export const generateInvoice = async (id: string): Promise<string> => {
-	const apiKey: string = await db.get("apiKey")
+export const generateInvoice = async (uuid: string): Promise<string> => {
 	const response = await apiRequest({
-		method: "GET",
-		endpoint: "/v1/invoice/download?apiKey=" + apiKey + "&uuid=" + id,
-		data: {}
+		method: "POST",
+		endpoint: "/v3/user/invoice",
+		data: {
+			uuid
+		}
 	})
 
 	if (!response.status) {
@@ -3242,13 +3058,11 @@ export const buySub = async (planId: number, paymentMethod: PaymentMethods, life
 	return response.data.url
 }
 
-export const requestAffiliatePayout = async (method: string, address: string): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const requestAffiliatePayout = async (method: string, address: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/affiliate/payout",
+		endpoint: "/v3/user/affiliate/payout",
 		data: {
-			apiKey,
 			method,
 			address
 		}
@@ -3257,23 +3071,16 @@ export const requestAffiliatePayout = async (method: string, address: string): P
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }
 
-export const detectOrphans = async (): Promise<boolean> => {
-	const apiKey: string = await db.get("apiKey")
+export const fixOrphans = async (): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/orphans",
-		data: {
-			apiKey
-		}
+		endpoint: "/v3/user/orphans",
+		data: {}
 	})
 
 	if (!response.status) {
 		throw new Error(response.message)
 	}
-
-	return true
 }

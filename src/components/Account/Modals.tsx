@@ -213,7 +213,7 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 			const { authVersion, salt } = await authInfo({ email: userEmail })
 			const { derivedPassword } = await generatePasswordAndMasterKeysBasedOnAuthVersion(password.trim(), authVersion, salt)
 
-			await changeEmail(email.trim(), confirmEmail.trim(), derivedPassword, authVersion)
+			await changeEmail(email.trim(), derivedPassword, authVersion)
 
 			showToast("success", i18n(lang, "changeEmailPleaseConfirm"), "bottom", 10000)
 		} catch (e: any) {
@@ -1016,7 +1016,6 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			const newMasterKeys = await encryptMetadata(masterKeys.join("|"), masterKeys[masterKeys.length - 1])
 			const response = await changePassword({
 				password: newPasswordHash,
-				passwordRepeat: newPasswordHash,
 				currentPassword: currentPasswordHash,
 				authVersion,
 				salt: newSalt,

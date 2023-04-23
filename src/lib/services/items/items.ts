@@ -283,7 +283,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 				)
 			}
 		} else if (href.indexOf("recent") !== -1) {
-			const files = await recentContent({ apiKey })
+			const files = await recentContent()
 
 			for (const file of files) {
 				promises.push(
@@ -337,11 +337,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 				)
 			}
 		} else {
-			const content = await folderContent({
-				apiKey,
-				uuid
-			})
-
+			const content = await folderContent(uuid)
 			const folders = content.folders
 			const files = content.uploads
 
@@ -521,11 +517,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 		const promises: Promise<ItemProps | null>[] = []
 
 		if (uuid == "base" || uuid == "cloudDrive") {
-			const content = await folderContent({
-				apiKey,
-				uuid: defaultDriveUUID,
-				foldersOnly: true
-			})
+			const content = await folderContent(defaultDriveUUID)
 
 			const folders = content.folders
 
@@ -576,12 +568,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 				)
 			}
 		} else {
-			const content = await folderContent({
-				apiKey,
-				uuid,
-				foldersOnly: true
-			})
-
+			const content = await folderContent(uuid)
 			const folders = content.folders
 
 			for (const folder of folders) {

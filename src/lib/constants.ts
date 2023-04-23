@@ -29,6 +29,7 @@ export const DROP_NAVIGATION_TIMEOUT = 1000
 export const ONE_YEAR = 86400000 * 365
 export const AUTH_VERSION = 2
 export const PREVIEW_MAX_SIZE = 1024 * 1024 * 128
+
 export const API_DOMAINS = [
 	"https://api.filen.io",
 	"https://api.filen.net",
@@ -39,16 +40,21 @@ export const API_DOMAINS = [
 	"https://api.filen-5.net",
 	"https://api.filen-6.net"
 ]
-export const API_V3_DOMAINS = [
-	"https://api.gateway.filen.io",
-	"https://api.gateway.filen.net",
-	"https://api.gateway.filen-1.net",
-	"https://api.gateway.filen-2.net",
-	"https://api.gateway.filen-3.net",
-	"https://api.gateway.filen-4.net",
-	"https://api.gateway.filen-5.net",
-	"https://api.gateway.filen-6.net"
-]
+
+export const API_V3_DOMAINS =
+	process.env.NODE_ENV == "development"
+		? ["http://localhost:1337"]
+		: [
+				"https://data.filen.io",
+				"https://data.filen.net",
+				"https://data.filen-1.net",
+				"https://data.filen-2.net",
+				"https://data.filen-3.net",
+				"https://data.filen-4.net",
+				"https://data.filen-5.net",
+				"https://data.filen-6.net"
+		  ]
+
 export const DOWNLOAD_DOMAINS = [
 	"https://down.filen.io",
 	"https://down.filen.net",
@@ -59,6 +65,18 @@ export const DOWNLOAD_DOMAINS = [
 	"https://down.filen-5.net",
 	"https://down.filen-6.net"
 ]
+
+export const DOWNLOAD_V3_DOMAINS = [
+	"https://egest.filen.io",
+	"https://egest.filen.net",
+	"https://egest.filen-1.net",
+	"https://egest.filen-2.net",
+	"https://egest.filen-3.net",
+	"https://egest.filen-4.net",
+	"https://egest.filen-5.net",
+	"https://egest.filen-6.net"
+]
+
 export const UPLOAD_DOMAINS = [
 	"https://up.filen.io",
 	"https://up.filen.net",
@@ -69,18 +87,22 @@ export const UPLOAD_DOMAINS = [
 	"https://up.filen-5.net",
 	"https://up.filen-6.net"
 ]
-export const UPLOAD_V3_DOMAINS = [
-	"https://upload.gateway.filen.io",
-	"https://upload.gateway.filen.net",
-	"https://upload.gateway.filen-1.net",
-	"https://upload.gateway.filen-2.net",
-	"https://upload.gateway.filen-3.net",
-	"https://upload.gateway.filen-4.net",
-	"https://upload.gateway.filen-5.net",
-	"https://upload.gateway.filen-6.net"
-]
-export const SOCKET = "https://socket.filen.io"
-export const REPORT_API_URL =
+
+export const UPLOAD_V3_DOMAINS =
 	process.env.NODE_ENV == "development"
-		? "http://localhost:3000/api/v1/ticket/submit"
-		: "https://filen.io/api/v1/ticket/submit"
+		? ["http://localhost:1338"]
+		: [
+				"https://ingest.filen.io",
+				"https://ingest.filen.net",
+				"https://ingest.filen-1.net",
+				"https://ingest.filen-2.net",
+				"https://ingest.filen-3.net",
+				"https://ingest.filen-4.net",
+				"https://ingest.filen-5.net",
+				"https://ingest.filen-6.net"
+		  ]
+
+export const SOCKET = "https://socket.filen.io"
+
+export const REPORT_API_URL =
+	process.env.NODE_ENV == "development" ? "http://localhost:3000/api/v1/ticket/submit" : "https://filen.io/api/v1/ticket/submit"
