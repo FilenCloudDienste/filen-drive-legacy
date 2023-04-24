@@ -54,11 +54,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 		const promises: Promise<ItemProps | null>[] = []
 
 		if (href.indexOf("shared-in") !== -1) {
-			const content = await sharedInContent({
-				apiKey,
-				uuid
-			})
-
+			const content = await sharedInContent(uuid)
 			const folders = content.folders
 			const files = content.uploads
 			const exists: Record<string, boolean> = {}
@@ -166,10 +162,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 				)
 			}
 		} else if (href.indexOf("shared-out") !== -1) {
-			const content = await sharedOutContent({
-				apiKey,
-				uuid
-			})
+			const content = await sharedOutContent(uuid)
 			const folders = content.folders
 			const files = content.uploads
 			const exists: Record<string, boolean> = {}

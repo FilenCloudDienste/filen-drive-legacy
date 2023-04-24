@@ -142,53 +142,37 @@ export const folderContent = async (uuid: string): Promise<any> => {
 	return response.data
 }
 
-export const sharedInContent = ({ apiKey, uuid }: { apiKey: string; uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/user/shared/in",
-			data: {
-				apiKey,
-				app: "true",
-				folders: JSON.stringify(["shared-in"]),
-				page: 1,
-				uuid
-			}
-		})
-			.then((response: any) => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data)
-			})
-			.catch(reject)
+export const sharedInContent = async (uuid: string): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/shared/in",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
-export const sharedOutContent = ({ apiKey, uuid }: { apiKey: string; uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/user/shared/out",
-			data: {
-				apiKey,
-				app: "true",
-				folders: JSON.stringify(["shared-out"]),
-				page: 1,
-				receiverId: window.currentReceiverId,
-				uuid
-			}
-		})
-			.then((response: any) => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(response.data)
-			})
-			.catch(reject)
+export const sharedOutContent = async (uuid: string): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/shared/out",
+		data: {
+			uuid,
+			receiverId: window.currentReceiverId
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
 export const recentContent = async (): Promise<any> => {
@@ -270,14 +254,12 @@ export const getFolderContents = async ({
 	linkPassword?: string | undefined
 	linkSalt?: string | undefined
 }): Promise<any> => {
-	const apiKey = await db.get("apiKey")
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v3/dir/download/link" : "/v3/dir/download",
+		endpoint: type == "shared" ? "/v3/dir/download/shared" : type == "linked" ? "/v3/dir/download/link" : "/v3/dir/download",
 		data:
 			type == "shared"
 				? {
-						apiKey,
 						uuid
 				  }
 				: type == "linked"
@@ -1249,41 +1231,6 @@ export const createFolder = async ({
 		})
 
 		if (!response.status) {
-			if (typeof response.data !== "undefined" && typeof response.data.existsUUID !== "undefined") {
-				createFolderSemaphore.release()
-
-				if (emitEvents) {
-					eventListener.emit("createFolder", {
-						type: "done",
-						data: {
-							uuid,
-							name,
-							parent
-						}
-					})
-				}
-
-				eventListener.emit("folderCreated", {
-					uuid: response.data.existsUUID,
-					name,
-					parent
-				})
-
-				return response.data.existsUUID
-			}
-
-			if (emitEvents) {
-				eventListener.emit("createFolder", {
-					type: "err",
-					data: {
-						uuid,
-						name,
-						parent
-					},
-					err: response.message
-				})
-			}
-
 			throw new Error(response.message)
 		}
 
@@ -1315,7 +1262,7 @@ export const createFolder = async ({
 			parent
 		})
 
-		return uuid
+		return response.data.uuid
 	} catch (e: any) {
 		createFolderSemaphore.release()
 
@@ -2259,13 +2206,9 @@ export const changeFolderColor = async (folder: ItemProps, color: FolderColors):
 }
 
 export const userSettings = async (): Promise<UserGetSettingsV1> => {
-	const apiKey = await db.get("apiKey")
 	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/get/settings",
-		data: {
-			apiKey
-		}
+		method: "GET",
+		endpoint: "/v3/user/settings"
 	})
 
 	if (!response.status) {
