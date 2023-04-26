@@ -167,7 +167,10 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 										borderRadius="10px"
 										transition="200ms"
 										cursor="pointer"
-										onClick={() => setActivePaymentMethod(method as PaymentMethods)}
+										onClick={() => {
+											setActivePaymentMethod(method as PaymentMethods)
+											setPayURL("")
+										}}
 										justifyContent="center"
 									>
 										<AppText

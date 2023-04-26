@@ -10,7 +10,7 @@ import {
 } from "../worker/worker.com"
 import db from "../db"
 import striptags from "striptags"
-import { Semaphore, generateRandomString, convertArrayBufferToBinaryString, getAPIServer, arrayBufferToBase64 } from "../helpers"
+import { Semaphore, generateRandomString, arrayBufferToBase64, SemaphoreProps } from "../helpers"
 import type {
 	ItemProps,
 	UserInfoV1,
@@ -29,10 +29,12 @@ import { getDirectoryTree } from "../services/items"
 import { v4 as uuidv4 } from "uuid"
 import { FileVersionsV1, ICFG } from "../../types"
 import axios from "axios"
+import { bufferToHash } from "../worker/worker.com"
 
 const createFolderSemaphore = new Semaphore(1)
 const shareItemsSemaphore = new Semaphore(10)
 const linkItemsSemaphore = new Semaphore(10)
+const fetchFolderSizeSemaphores: Record<string, SemaphoreProps> = {}
 
 export const getCfg = async (): Promise<ICFG> => {
 	const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + Date.now())
@@ -1364,7 +1366,7 @@ export const renameFile = async ({ file, name }: { file: ItemProps; name: string
 			uuid: file.uuid,
 			name: encryptedName,
 			nameHashed,
-			metaData: encrypted
+			metadata: encrypted
 		}
 	})
 
@@ -1423,61 +1425,75 @@ export const renameFolder = async ({ folder, name }: { folder: ItemProps; name: 
 }
 
 export const fetchFolderSize = async (item: ItemProps, href: string): Promise<number> => {
-	let payload: {
-		apiKey?: string
-		uuid?: string
-		sharerId?: number
-		receiverId?: number
-		trash?: number
-		linkUUID?: string
-	} = {}
-
-	if (href.indexOf("shared-out") !== -1) {
-		payload = {
-			uuid: item.uuid,
-			sharerId: item.sharerId || 0,
-			receiverId: item.receiverId || 0,
-			trash: 0
-		}
-	} else if (href.indexOf("shared-in") !== -1) {
-		payload = {
-			uuid: item.uuid,
-			sharerId: item.sharerId || 0,
-			receiverId: item.receiverId || 0,
-			trash: 0
-		}
-	} else if (href.indexOf("trash") !== -1) {
-		payload = {
-			uuid: item.uuid,
-			sharerId: 0,
-			receiverId: 0,
-			trash: 1
-		}
-	} else if (href.indexOf("/f/") !== -1) {
-		payload = {
-			linkUUID: href.split("/f/")[1].split("#")[0],
-			uuid: item.uuid
-		}
-	} else {
-		payload = {
-			uuid: item.uuid,
-			sharerId: 0,
-			receiverId: 0,
-			trash: 0
-		}
+	if (!fetchFolderSizeSemaphores[item.uuid]) {
+		fetchFolderSizeSemaphores[item.uuid] = new Semaphore(1)
 	}
 
-	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v3/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
-		data: payload
-	})
+	await fetchFolderSizeSemaphores[item.uuid].acquire()
 
-	if (!response.status) {
-		throw new Error(response.message)
+	try {
+		let payload: {
+			apiKey?: string
+			uuid?: string
+			sharerId?: number
+			receiverId?: number
+			trash?: number
+			linkUUID?: string
+		} = {}
+
+		if (href.indexOf("shared-out") !== -1) {
+			payload = {
+				uuid: item.uuid,
+				sharerId: item.sharerId || 0,
+				receiverId: item.receiverId || 0,
+				trash: 0
+			}
+		} else if (href.indexOf("shared-in") !== -1) {
+			payload = {
+				uuid: item.uuid,
+				sharerId: item.sharerId || 0,
+				receiverId: item.receiverId || 0,
+				trash: 0
+			}
+		} else if (href.indexOf("trash") !== -1) {
+			payload = {
+				uuid: item.uuid,
+				sharerId: 0,
+				receiverId: 0,
+				trash: 1
+			}
+		} else if (href.indexOf("/f/") !== -1) {
+			payload = {
+				linkUUID: href.split("/f/")[1].split("#")[0],
+				uuid: item.uuid
+			}
+		} else {
+			payload = {
+				uuid: item.uuid,
+				sharerId: 0,
+				receiverId: 0,
+				trash: 0
+			}
+		}
+
+		const response = await apiRequest({
+			method: "POST",
+			endpoint: "/v3/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
+			data: payload
+		})
+
+		fetchFolderSizeSemaphores[item.uuid].release()
+
+		if (!response.status) {
+			throw new Error(response.message)
+		}
+
+		return response.data.size
+	} catch (e) {
+		fetchFolderSizeSemaphores[item.uuid].release()
+
+		throw e
 	}
-
-	return response.data.size
 }
 
 export const favoriteItem = async ({
@@ -1586,8 +1602,7 @@ export const shareItemsToUser = async ({
 	email: string
 	publicKey: string
 	progressCallback?: (current: number, total: number) => any
-}): Promise<boolean> => {
-	const apiKey = await db.get("apiKey")
+}): Promise<void> => {
 	const encryptPromises = []
 	const itemsToShare: { item: ItemProps; encrypted: string }[] = []
 
@@ -1710,7 +1725,7 @@ export const shareItemsToUser = async ({
 	await Promise.all(encryptPromises)
 
 	if (itemsToShare.length == 0) {
-		return true
+		return
 	}
 
 	const sorted = itemsToShare.sort((a, b) => a.item.parent.length - b.item.parent.length)
@@ -1759,8 +1774,6 @@ export const shareItemsToUser = async ({
 			throw e
 		}
 	}
-
-	return true
 }
 
 export const getPublicKeyFromEmail = async (email: string): Promise<string> => {
@@ -2135,7 +2148,8 @@ export const uploadAvatar = async (buffer: Uint8Array): Promise<void> => {
 		method: "POST",
 		endpoint: "/v3/user/avatar",
 		data: {
-			base64
+			base64,
+			hash: await bufferToHash(new TextEncoder().encode(base64), "SHA-512")
 		}
 	})
 
