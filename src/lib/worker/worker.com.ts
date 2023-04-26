@@ -9,7 +9,7 @@ import db from "../db"
 let nextWorkerId: number = -1
 
 const workerInstances: Worker[] = []
-const workerAPIs: typeof api[] = []
+const workerAPIs: (typeof api)[] = []
 
 const getWorkerAPI = () => {
 	if (workerAPIs.length < WORKER_THREADS) {
@@ -52,7 +52,7 @@ export const apiRequest = async ({
 	data?: any
 	apiKey?: string | null | undefined
 }): Promise<any> => {
-	const dbAPIKey = typeof apiKey === "string" ? apiKey : await db.get("apiKey")
+	const dbAPIKey = typeof apiKey === "string" && apiKey.length === 64 ? apiKey : await db.get("apiKey")
 	const response = await getWorkerAPI().apiRequest(method, endpoint, data, dbAPIKey)
 
 	if (typeof response == "object") {

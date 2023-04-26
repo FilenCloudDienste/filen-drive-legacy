@@ -31,7 +31,6 @@ import { FileVersionsV1, ICFG } from "../../types"
 import axios from "axios"
 
 const createFolderSemaphore = new Semaphore(1)
-const fetchFolderSizeSemaphore = new Semaphore(8192)
 const shareItemsSemaphore = new Semaphore(10)
 const linkItemsSemaphore = new Semaphore(10)
 
@@ -285,60 +284,42 @@ export const getFolderContents = async ({
 	return response.data
 }
 
-export const isSharingFolder = ({ uuid }: { uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/share/dir/status",
-					data: {
-						apiKey,
-						uuid
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							sharing: response.data.sharing ? true : false,
-							users: response.data.users
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const isSharingFolder = async (uuid: string): Promise<{ sharing: boolean; users: any }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/shared",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		sharing: response.data.sharing,
+		users: response.data.users
+	}
 }
 
-export const isPublicLinkingFolder = ({ uuid }: { uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/link/dir/status",
-					data: {
-						apiKey,
-						uuid
-					}
-				})
-					.then((response: any) => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							linking: response.data.link ? true : false,
-							links: response.data.links
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const isPublicLinkingFolder = async (uuid: string): Promise<{ linking: boolean; links: any }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/linked",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		linking: response.data.link,
+		links: response.data.links
+	}
 }
 
 export const addItemToPublicLink = async (data: {
@@ -361,114 +342,78 @@ export const addItemToPublicLink = async (data: {
 	}
 }
 
-export const shareItem = ({ data }: { data: any }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/share",
-			data
-		})
-			.then(response => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(true)
-			})
-			.catch(reject)
+export const shareItem = async (data: { uuid: string; parent: string; email: string; type: string; metadata: string }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/share",
+		data
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
-export const isSharingItem = ({ uuid }: { uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/user/shared/item/status",
-					data: {
-						apiKey,
-						uuid
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							sharing: response.data.sharing ? true : false,
-							users: response.data.users
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const isSharingItem = async (uuid: string): Promise<{ sharing: boolean; users: any }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/shared",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		sharing: response.data.sharing,
+		users: response.data.users
+	}
 }
 
-export const isItemInPublicLink = ({ uuid }: { uuid: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/link/dir/item/status",
-					data: {
-						apiKey,
-						uuid
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve({
-							linking: response.data.link ? true : false,
-							links: response.data.links
-						})
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const isItemInPublicLink = async (uuid: string): Promise<{ linking: boolean; links: any }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/linked",
+		data: {
+			uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return {
+		linking: response.data.link,
+		links: response.data.links
+	}
 }
 
-export const renameItemInPublicLink = ({ data }: { data: any }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/link/dir/item/rename",
-			data
-		})
-			.then(response => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(true)
-			})
-			.catch(reject)
+export const renameItemInPublicLink = async (data: { uuid: string; linkUUID: string; metadata: string }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/linked/rename",
+		data
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
-export const renameSharedItem = ({ data }: { data: any }): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		apiRequest({
-			method: "POST",
-			endpoint: "/v1/user/shared/item/rename",
-			data
-		})
-			.then(response => {
-				if (!response.status) {
-					return reject(response.message)
-				}
-
-				return resolve(true)
-			})
-			.catch(reject)
+export const renameSharedItem = async (data: { uuid: string; receiverId: number; metadata: string }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/shared/rename",
+		data
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
 export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: string; parent: string; metaData: any }): Promise<any> => {
@@ -500,7 +445,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 
 						doneInterval = setInterval(done, 100)
 
-						isSharingFolder({ uuid: parent })
+						isSharingFolder(parent)
 							.then((data: any) => {
 								if (!data.sharing) {
 									shareCheckDone = true
@@ -538,14 +483,11 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 										encryptMetadataPublicKey(itemMetadata, user.publicKey)
 											.then(encrypted => {
 												shareItem({
-													data: {
-														apiKey,
-														uuid: metaData.uuid,
-														parent,
-														email: user.email,
-														type,
-														metadata: encrypted
-													}
+													uuid: metaData.uuid,
+													parent,
+													email: user.email,
+													type,
+													metadata: encrypted
 												})
 													.then(() => {
 														return doneSharing()
@@ -657,14 +599,11 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 													encryptMetadataPublicKey(itemMetadata, user.publicKey)
 														.then(encrypted => {
 															shareItem({
-																data: {
-																	apiKey,
-																	uuid: itemToShare.uuid,
-																	parent: itemToShare.parent,
-																	email: user.email,
-																	type: itemToShare.type,
-																	metadata: encrypted
-																}
+																uuid: itemToShare.uuid,
+																parent: itemToShare.parent,
+																email: user.email,
+																type: itemToShare.type,
+																metadata: encrypted
 															})
 																.then(() => {
 																	return doneSharingItem()
@@ -700,7 +639,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: st
 								return done()
 							})
 
-						isPublicLinkingFolder({ uuid: parent })
+						isPublicLinkingFolder(parent)
 							.then(async (data: any) => {
 								if (!data.linking) {
 									linkCheckDone = true
@@ -980,7 +919,7 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 
 						doneInterval = setInterval(done, 100)
 
-						isSharingItem({ uuid })
+						isSharingItem(uuid)
 							.then((data: any) => {
 								if (!data.sharing) {
 									shareCheckDone = true
@@ -1024,12 +963,9 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 									encryptMetadataPublicKey(itemMetadata, user.publicKey)
 										.then(encrypted => {
 											renameSharedItem({
-												data: {
-													apiKey,
-													uuid,
-													receiverId: user.id,
-													metadata: encrypted
-												}
+												uuid,
+												receiverId: user.id,
+												metadata: encrypted
 											})
 												.then(() => {
 													return doneSharing()
@@ -1055,7 +991,7 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 								return done()
 							})
 
-						isItemInPublicLink({ uuid })
+						isItemInPublicLink(uuid)
 							.then((data: any) => {
 								if (!data.linking) {
 									linkCheckDone = true
@@ -1102,12 +1038,9 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: s
 											encryptMetadata(itemMetadata, key)
 												.then(encrypted => {
 													renameItemInPublicLink({
-														data: {
-															apiKey,
-															uuid,
-															linkUUID: link.linkUUID,
-															metadata: encrypted
-														}
+														uuid,
+														linkUUID: link.linkUUID,
+														metadata: encrypted
 													})
 														.then(() => {
 															return doneLinking()
@@ -1490,73 +1423,61 @@ export const renameFolder = async ({ folder, name }: { folder: ItemProps; name: 
 }
 
 export const fetchFolderSize = async (item: ItemProps, href: string): Promise<number> => {
-	await fetchFolderSizeSemaphore.acquire()
+	let payload: {
+		apiKey?: string
+		uuid?: string
+		sharerId?: number
+		receiverId?: number
+		trash?: number
+		linkUUID?: string
+	} = {}
 
-	try {
-		let payload: {
-			apiKey?: string
-			uuid?: string
-			sharerId?: number
-			receiverId?: number
-			trash?: number
-			linkUUID?: string
-		} = {}
-
-		if (href.indexOf("shared-out") !== -1) {
-			payload = {
-				uuid: item.uuid,
-				sharerId: item.sharerId || 0,
-				receiverId: item.receiverId || 0,
-				trash: 0
-			}
-		} else if (href.indexOf("shared-in") !== -1) {
-			payload = {
-				uuid: item.uuid,
-				sharerId: item.sharerId || 0,
-				receiverId: item.receiverId || 0,
-				trash: 0
-			}
-		} else if (href.indexOf("trash") !== -1) {
-			payload = {
-				uuid: item.uuid,
-				sharerId: 0,
-				receiverId: 0,
-				trash: 1
-			}
-		} else if (href.indexOf("/f/") !== -1) {
-			payload = {
-				linkUUID: href.split("/f/")[1].split("#")[0],
-				uuid: item.uuid
-			}
-		} else {
-			payload = {
-				uuid: item.uuid,
-				sharerId: 0,
-				receiverId: 0,
-				trash: 0
-			}
+	if (href.indexOf("shared-out") !== -1) {
+		payload = {
+			uuid: item.uuid,
+			sharerId: item.sharerId || 0,
+			receiverId: item.receiverId || 0,
+			trash: 0
 		}
-
-		const response = await apiRequest({
-			method: "POST",
-			endpoint: "/v3/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
-			data: payload
-		})
-
-		fetchFolderSizeSemaphore.release()
-
-		if (!response.status) {
-			throw new Error(response.message)
+	} else if (href.indexOf("shared-in") !== -1) {
+		payload = {
+			uuid: item.uuid,
+			sharerId: item.sharerId || 0,
+			receiverId: item.receiverId || 0,
+			trash: 0
 		}
-
-		return response.data.size
-	} catch (e) {
-		console.error(e)
-
-		fetchFolderSizeSemaphore.release()
-
-		return 0
+	} else if (href.indexOf("trash") !== -1) {
+		payload = {
+			uuid: item.uuid,
+			sharerId: 0,
+			receiverId: 0,
+			trash: 1
+		}
+	} else if (href.indexOf("/f/") !== -1) {
+		payload = {
+			linkUUID: href.split("/f/")[1].split("#")[0],
+			uuid: item.uuid
+		}
+	} else {
+		payload = {
+			uuid: item.uuid,
+			sharerId: 0,
+			receiverId: 0,
+			trash: 0
+		}
 	}
+
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/size" + (href.indexOf("/f/") !== -1 ? "/link" : ""),
+		data: payload
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.size
 }
 
 export const favoriteItem = async ({
@@ -1805,14 +1726,11 @@ export const shareItemsToUser = async ({
 				await shareItemsSemaphore.acquire()
 
 				shareItem({
-					data: {
-						apiKey,
-						uuid: itemToShare.uuid,
-						parent: itemToShare.parent,
-						email: email,
-						type: itemToShare.type,
-						metadata: encrypted
-					}
+					uuid: itemToShare.uuid,
+					parent: itemToShare.parent,
+					email: email,
+					type: itemToShare.type,
+					metadata: encrypted
 				})
 					.then(() => {
 						done += 1
@@ -1861,87 +1779,54 @@ export const getPublicKeyFromEmail = async (email: string): Promise<string> => {
 	return response.data.publicKey
 }
 
-export const stopSharingItem = (item: ItemProps): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/user/shared/item/out/remove",
-					data: {
-						apiKey,
-						uuid: item.uuid,
-						receiverId: item.receiverId
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const stopSharingItem = async (item: ItemProps): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/shared/out/remove",
+		data: {
+			uuid: item.uuid,
+			receiverId: item.receiverId
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
-export const removeSharedInItem = (item: ItemProps): Promise<boolean> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: "/v1/user/shared/item/in/remove",
-					data: {
-						apiKey,
-						uuid: item.uuid,
-						receiverId: 0
-					}
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve(true)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const removeSharedInItem = async (item: ItemProps): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/item/shared/in/remove",
+		data: {
+			uuid: item.uuid
+		}
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
-export const itemPublicLinkInfo = (item: ItemProps): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		db.get("apiKey")
-			.then(apiKey => {
-				apiRequest({
-					method: "POST",
-					endpoint: item.type == "file" ? "/v1/link/status" : "/v1/dir/link/status",
-					data:
-						item.type == "file"
-							? {
-									apiKey,
-									fileUUID: item.uuid
-							  }
-							: {
-									apiKey,
-									uuid: item.uuid
-							  }
-				})
-					.then(response => {
-						if (!response.status) {
-							return reject(response.message)
-						}
-
-						return resolve(response.data)
-					})
-					.catch(reject)
-			})
-			.catch(reject)
+export const itemPublicLinkInfo = async (item: ItemProps): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: item.type == "file" ? "/v3/file/link/status" : "/v3/dir/link/status",
+		data:
+			item.type == "file"
+				? {
+						uuid: item.uuid
+				  }
+				: {
+						uuid: item.uuid
+				  }
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
 export const addItemToFolderPublicLink = async (data: {
@@ -2133,7 +2018,7 @@ export const editItemPublicLink = async (
 
 		const response = await apiRequest({
 			method: "POST",
-			endpoint: "/v3/link/edit",
+			endpoint: "/v3/file/link/edit",
 			data: {
 				uuid: linkUUID,
 				fileUUID: item.uuid,
@@ -2492,7 +2377,7 @@ export const fetchEventInfo = async (uuid: string): Promise<any> => {
 export const publicLinkInfo = async (uuid: string, password: string): Promise<LinkGetInfoV1> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/link/get/info",
+		endpoint: "/v3/file/link/info",
 		data: {
 			uuid,
 			password
@@ -2509,7 +2394,7 @@ export const publicLinkInfo = async (uuid: string, password: string): Promise<Li
 export const publicLinkHasPassword = async (uuid: string): Promise<LinkHasPasswordV1> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/link/hasPassword",
+		endpoint: "/v3/file/link/password",
 		data: {
 			uuid
 		}
@@ -2528,7 +2413,7 @@ export const publicLinkHasPassword = async (uuid: string): Promise<LinkHasPasswo
 export const folderLinkInfo = async (uuid: string): Promise<LinkDirInfoV1> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/link/dir/info",
+		endpoint: "/v3/dir/link/info",
 		data: {
 			uuid
 		}
@@ -2544,12 +2429,11 @@ export const folderLinkInfo = async (uuid: string): Promise<LinkDirInfoV1> => {
 export const folderLinkContents = async (uuid: string, parent: string, password: string): Promise<LinkDirContentV1> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/link/dir/content",
+		endpoint: "/v3/dir/link/content",
 		data: {
 			uuid,
 			password,
-			parent,
-			folders: JSON.stringify(["default"])
+			parent
 		}
 	})
 
