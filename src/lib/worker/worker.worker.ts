@@ -553,14 +553,7 @@ const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" |
 	return hashHex
 }
 
-const encryptAndUploadFileChunk = (
-	chunk: Uint8Array,
-	key: string,
-	url: string,
-	uuid: string,
-	chunkIndex: number,
-	chunkSize: number
-): Promise<any> => {
+const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, apiKey: string): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
@@ -591,6 +584,9 @@ const encryptAndUploadFileChunk = (
 								url,
 								data: new Blob([encryptedChunk]),
 								timeout: 3600000,
+								headers: {
+									Authorization: "Bearer " + apiKey
+								},
 								onUploadProgress: event => {
 									if (typeof event !== "object" || typeof event.loaded !== "number") {
 										return

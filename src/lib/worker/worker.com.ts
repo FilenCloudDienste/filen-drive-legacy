@@ -144,10 +144,9 @@ export const encryptAndUploadFileChunk = async (
 	key: string,
 	url: string,
 	uuid: string,
-	chunkIndex: number,
-	chunkSize: number
+	apiKey: string
 ): Promise<any> => {
-	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, chunkIndex, chunkSize)
+	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, apiKey)
 }
 
 export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {

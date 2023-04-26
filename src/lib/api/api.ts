@@ -192,52 +192,29 @@ export const recentContent = async (): Promise<any> => {
 	return response.data.uploads
 }
 
-export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string; uploadKey: string }): Promise<any> => {
-	return new Promise((resolve, reject) => {
-		const max = 32
-		let current = 0
-		const timeout = 1000
-
-		const req = () => {
-			if (current > max) {
-				return reject(new Error("Could not mark upload " + uuid + " as done, max tries reached"))
-			}
-
-			current += 1
-
-			apiRequest({
-				method: "POST",
-				endpoint: "/v1/upload/done",
-				data: {
-					uuid,
-					uploadKey
-				}
-			})
-				.then(response => {
-					if (!response.status) {
-						if (
-							response.message.toString().toLowerCase().indexOf("chunks are not matching") !== -1 ||
-							response.message.toString().toLowerCase().indexOf("done yet") !== -1 ||
-							response.message.toString().toLowerCase().indexOf("finished yet") !== -1 ||
-							response.message.toString().toLowerCase().indexOf("chunks not found") !== -1
-						) {
-							return setTimeout(req, timeout)
-						}
-
-						return reject(response.message)
-					}
-
-					eventListener.emit("uploadMarkedDone", {
-						uuid
-					})
-
-					return resolve(response.data)
-				})
-				.catch(reject)
-		}
-
-		req()
+export const markUploadAsDone = async (data: {
+	uuid: string
+	name: string
+	nameHashed: string
+	size: string
+	chunks: number
+	mime: string
+	rm: string
+	metadata: string
+	version: number
+	uploadKey: string
+}): Promise<{ chunks: number; size: number }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/upload/done",
+		data
 	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }
 
 export const getFolderContents = async ({

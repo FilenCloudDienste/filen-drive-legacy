@@ -1,6 +1,6 @@
 import type { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
-import { generateRandomString, Semaphore, getUploadServer, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
+import { generateRandomString, Semaphore, getUploadV3Server, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
 import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
@@ -9,6 +9,8 @@ import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { addItemsToStore } from "../metadata"
 import { fetchUserInfoCached } from "../user"
 import { generateThumbnailAfterUpload } from "../thumbnails"
+import { show as showToast } from "../../../components/Toast/Toast"
+import { i18n } from "../../../i18n"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
@@ -70,7 +72,6 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 		const chunkSizeToUse = 1024 * 1024 * 1
 		let dummyOffset = 0
 		let fileChunks = 0
-		const expire = "never"
 		const lastModified = item.file.lastModified || Date.now()
 		let paused = false
 		let stopped = false
@@ -162,113 +163,87 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 				}
 
 				const params = new URLSearchParams({
-					apiKey,
 					uuid,
-					name: nameEncrypted,
-					nameHashed: nameHashed,
-					size: sizeEncrypted,
-					chunks: fileChunks,
-					mime: mimeEncrypted,
 					index,
-					rm,
-					expire,
-					uploadKey,
-					metaData: metadata,
 					parent,
-					version: UPLOAD_VERSION
+					uploadKey
 				} as any).toString()
 
-				const url = getUploadServer() + "/v2/upload?" + params
+				const url = getUploadV3Server() + "/v3/upload?" + params
 
 				readChunk(item.file, index, chunkSizeToUse)
 					.then(chunk => {
-						encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, index, chunkSizeToUse).then(resolve).catch(reject)
+						encryptAndUploadFileChunk(new Uint8Array(chunk), key, url, uuid, apiKey).then(resolve).catch(reject)
 					})
 					.catch(reject)
 			})
 		}
 
 		try {
-			const res = await upload(0)
+			await new Promise((resolve, reject) => {
+				let done = 0
 
-			bucket = res.data.bucket
-			region = res.data.region
-		} catch (e: any) {
-			eventListener.emit("upload", {
-				type: "err",
-				err: e.toString(),
-				data: item
+				for (let i = 0; i < fileChunks; i++) {
+					uploadThreadsSemaphore.acquire().then(() => {
+						if (stopped) {
+							uploadThreadsSemaphore.release()
+
+							return reject("stopped")
+						}
+
+						upload(i)
+							.then(res => {
+								bucket = res.data.bucket
+								region = res.data.region
+
+								if (stopped) {
+									uploadThreadsSemaphore.release()
+
+									return reject("stopped")
+								}
+
+								done += 1
+
+								uploadThreadsSemaphore.release()
+
+								if (done >= fileChunks) {
+									return resolve(true)
+								}
+							})
+							.catch(err => {
+								uploadThreadsSemaphore.release()
+
+								return reject(err)
+							})
+					})
+				}
 			})
+		} catch (e: any) {
+			if (e.toString().toLowerCase().indexOf("already exists") !== -1) {
+				cleanup()
+
+				eventListener.emit("upload", {
+					type: "err",
+					err: e.toString(),
+					data: item
+				})
+
+				return
+			} else if (e == "stopped") {
+				cleanup()
+
+				eventListener.emit("upload", {
+					type: "err",
+					err: e.toString(),
+					data: item
+				})
+
+				return
+			}
 
 			cleanup()
 
-			return reject(e)
-		}
-
-		if (typeof err == "undefined") {
-			try {
-				await new Promise((resolve, reject) => {
-					let done = 1
-
-					for (let i = 1; i < fileChunks + 1; i++) {
-						uploadThreadsSemaphore.acquire().then(() => {
-							if (stopped) {
-								uploadThreadsSemaphore.release()
-
-								return reject("stopped")
-							}
-
-							upload(i)
-								.then(() => {
-									if (stopped) {
-										uploadThreadsSemaphore.release()
-
-										return reject("stopped")
-									}
-
-									done += 1
-
-									uploadThreadsSemaphore.release()
-
-									if (done >= fileChunks + 1) {
-										return resolve(true)
-									}
-								})
-								.catch(err => {
-									uploadThreadsSemaphore.release()
-
-									return reject(err)
-								})
-						})
-					}
-				})
-			} catch (e: any) {
-				if (e.toString().toLowerCase().indexOf("already exists") !== -1) {
-					cleanup()
-
-					eventListener.emit("upload", {
-						type: "err",
-						err: e.toString(),
-						data: item
-					})
-
-					return
-				} else if (e == "stopped") {
-					cleanup()
-
-					eventListener.emit("upload", {
-						type: "err",
-						err: e.toString(),
-						data: item
-					})
-
-					return
-				}
-
-				cleanup()
-
-				err = e
-			}
+			err = e
 		}
 
 		if (typeof err !== "undefined") {
@@ -283,26 +258,31 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			if (err == "stopped") {
 				return reject("stopped")
 			} else if (err.toString().toLowerCase().indexOf("blacklist") !== -1) {
-				//showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
+				showToast("error", i18n("en", "notEnoughRemoteStorage"))
 
 				return reject("notEnoughRemoteStorage")
 			} else {
-				//showToast({ message: err.toString() })
+				showToast("error", err.toString())
 
 				return reject(err)
 			}
 		}
 
 		try {
-			const doneRes = await markUploadAsDone({ uuid, uploadKey })
+			const done = await markUploadAsDone({
+				uuid,
+				name: nameEncrypted,
+				nameHashed,
+				size: sizeEncrypted,
+				chunks: fileChunks,
+				mime: mimeEncrypted,
+				rm,
+				metadata,
+				version: UPLOAD_VERSION,
+				uploadKey
+			})
 
-			if (doneRes.data && doneRes.data.chunks) {
-				fileChunks = doneRes.data.chunks
-			}
-
-			if (canCompressThumbnail(getFileExt(name))) {
-				await generateThumbnailAfterUpload(item.file, uuid, name)
-			}
+			fileChunks = done.chunks
 
 			await checkIfItemParentIsShared({
 				type: "file",
@@ -326,6 +306,14 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			cleanup()
 
 			return reject(e)
+		}
+
+		try {
+			if (canCompressThumbnail(getFileExt(name))) {
+				await generateThumbnailAfterUpload(item.file, uuid, name)
+			}
+		} catch (e) {
+			console.error(e)
 		}
 
 		eventListener.emit("upload", {
