@@ -693,7 +693,8 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 					padding="0px"
 					outline="none"
 				>
-					{Object.keys(currentUploads).length + Object.keys(finishedTransfers).length > 0 ? (
+					{Object.keys(currentUploads).length + Object.keys(finishedTransfers).length + Object.keys(erroredTransfers).length >
+					0 ? (
 						<UploadModalList
 							darkMode={darkMode}
 							isMobile={isMobile}
