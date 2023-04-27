@@ -379,7 +379,11 @@ const ja: {
 	emptyTrashSuccess: "ごみ箱を空にしました",
 	itemRenamed: "名前を変更しました",
 	subCancelled: "キャンセル済み",
-	support: "お問い合わせ"
+	support: "お問い合わせ",
+	finishing: "終了処理中",
+	searchNothingFound: '"__TERM__"に合致するアイテムはありませんでした。',
+	queued: "待機中",
+	searchInThisFolder: "このフォルダ内で検索..."
 }
 
 export default ja
