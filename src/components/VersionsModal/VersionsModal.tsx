@@ -255,9 +255,7 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
 					width="100%"
 					alignItems="center"
 					justifyContent="center"
-					maxHeight={
-						isMobile ? (document.documentElement.clientHeight || window.innerHeight) - 100 + "px" : "500px"
-					}
+					maxHeight={isMobile ? (document.documentElement.clientHeight || window.innerHeight) - 100 + "px" : "500px"}
 					overflowY="auto"
 				>
 					{typeof versions == "undefined" ? (
@@ -356,26 +354,28 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
 										borderColor={getColor(darkMode, "borderPrimary")}
 										minWidth="150px"
 									>
-										<MenuItem
-											height="auto"
-											fontSize={14}
-											paddingTop="5px"
-											paddingBottom="5px"
-											backgroundColor={getColor(darkMode, "backgroundPrimary")}
-											color={getColor(darkMode, "textPrimary")}
-											_hover={{
-												backgroundColor: getColor(darkMode, "backgroundSecondary")
-											}}
-											_active={{
-												backgroundColor: getColor(darkMode, "backgroundSecondary")
-											}}
-											_focus={{
-												backgroundColor: getColor(darkMode, "backgroundSecondary")
-											}}
-											onClick={() => restoreVersion(version)}
-										>
-											{i18n(lang, "restore")}
-										</MenuItem>
+										{currentItem.uuid !== version.item.uuid && (
+											<MenuItem
+												height="auto"
+												fontSize={14}
+												paddingTop="5px"
+												paddingBottom="5px"
+												backgroundColor={getColor(darkMode, "backgroundPrimary")}
+												color={getColor(darkMode, "textPrimary")}
+												_hover={{
+													backgroundColor: getColor(darkMode, "backgroundSecondary")
+												}}
+												_active={{
+													backgroundColor: getColor(darkMode, "backgroundSecondary")
+												}}
+												_focus={{
+													backgroundColor: getColor(darkMode, "backgroundSecondary")
+												}}
+												onClick={() => restoreVersion(version)}
+											>
+												{i18n(lang, "restore")}
+											</MenuItem>
+										)}
 										<MenuItem
 											height="auto"
 											fontSize={14}
