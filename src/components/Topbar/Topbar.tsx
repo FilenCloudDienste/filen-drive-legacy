@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
 import { i18n } from "../../i18n"
+import { getCurrentParent } from "../../lib/helpers"
 
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
@@ -24,9 +25,10 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 			location.hash.indexOf("links") == -1 &&
 			location.hash.indexOf("favorites") == -1 &&
 			location.hash.indexOf("recent") == -1 &&
-			location.hash.indexOf("account") == -1
+			location.hash.indexOf("account") == -1 &&
+			getCurrentParent(window.location.href) !== "shared-out"
 		)
-	}, [location.hash])
+	}, [location])
 
 	const fetchData = useCallback(() => {
 		fetchUserInfo()

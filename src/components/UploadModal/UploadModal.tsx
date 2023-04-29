@@ -242,9 +242,9 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
 										color={darkMode ? "black" : "white"}
 										fontWeight="bold"
 									>
-										{progress <= 1 ? (
+										{progress <= 0.01 ? (
 											<>{i18n(lang, "queued")}</>
-										) : progress >= 99 ? (
+										) : progress >= 99.99 ? (
 											<>{i18n(lang, "finishing")}</>
 										) : item.done ? (
 											<>{i18n(lang, "done")}</>
@@ -254,7 +254,7 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
 									</AppText>
 								</Flex>
 							)}
-							{progress >= 1 && progress <= 99 && !item.done && (
+							{progress >= 0.01 && progress <= 99.99 && !item.done && (
 								<UploadModalListItemActionButtons
 									darkMode={darkMode}
 									isMobile={isMobile}
@@ -273,7 +273,7 @@ const UploadModalListItem = memo(({ darkMode, isMobile, item, style, lang }: Upl
 			<Flex marginTop="6px">
 				<Progress
 					value={item.done || item.errored ? 100 : progress}
-					isIndeterminate={item.errored || item.done ? false : progress >= 99 || progress <= 1 || paused ? true : false}
+					isIndeterminate={item.errored || item.done ? false : progress >= 99.99 || progress <= 0.01 || paused ? true : false}
 					colorScheme={item.done ? "green" : item.errored ? "red" : CHAKRA_COLOR_SCHEME}
 					width="100%"
 					height="3px"

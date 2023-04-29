@@ -79,7 +79,7 @@ export const login = async ({
 		data: {
 			email,
 			password,
-			twoFactorKey: twoFactorCode,
+			twoFactorCode,
 			authVersion
 		}
 	})
@@ -2125,7 +2125,7 @@ export const uploadAvatar = async (buffer: Uint8Array): Promise<void> => {
 		method: "POST",
 		endpoint: "/v3/user/avatar",
 		data: {
-			base64,
+			avatar: base64,
 			hash: await bufferToHash(new TextEncoder().encode(base64), "SHA-512")
 		}
 	})

@@ -41,6 +41,7 @@ declare global {
 window.doingSetup = false
 window.transfersToastId = undefined
 window.visibleItems = []
+window.currentReceiverId = 0
 
 const App = memo(() => {
 	const windowWidth: number = useWindowWidth()
@@ -50,8 +51,7 @@ const App = memo(() => {
 	const lang: string = useLang()
 	const [loggedIn] = useCookie("loggedIn")
 	const [analytics, setAnalytics] = useState<boolean>(
-		typeof cookies.get("cookieConsent") == "string" &&
-			(cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all")
+		typeof cookies.get("cookieConsent") == "string" && (cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all")
 			? true
 			: false
 	)
