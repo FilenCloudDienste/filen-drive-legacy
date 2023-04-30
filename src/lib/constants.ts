@@ -45,14 +45,14 @@ export const API_V3_DOMAINS =
 	process.env.NODE_ENV == "development"
 		? ["http://localhost:1337"]
 		: [
-				"https://data.filen.io",
-				"https://data.filen.net",
-				"https://data.filen-1.net",
-				"https://data.filen-2.net",
-				"https://data.filen-3.net",
-				"https://data.filen-4.net",
-				"https://data.filen-5.net",
-				"https://data.filen-6.net"
+				"https://gateway.filen.io",
+				"https://gateway.filen.net",
+				"https://gateway.filen-1.net",
+				"https://gateway.filen-2.net",
+				"https://gateway.filen-3.net",
+				"https://gateway.filen-4.net",
+				"https://gateway.filen-5.net",
+				"https://gateway.filen-6.net"
 		  ]
 
 export const DOWNLOAD_DOMAINS = [
