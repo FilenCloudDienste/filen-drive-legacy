@@ -1,13 +1,9 @@
 import cookies from "../cookies"
 import eventListener from "../eventListener"
 import type { ItemProps, UploadQueueItemFile } from "../../types"
-import { API_DOMAINS, DOWNLOAD_DOMAINS, UPLOAD_DOMAINS, API_V3_DOMAINS, UPLOAD_V3_DOMAINS } from "../constants"
+import { DOWNLOAD_DOMAINS, API_V3_DOMAINS, UPLOAD_V3_DOMAINS } from "../constants"
 import { wrap, memoize, debounce } from "lodash"
 import DOMPurify from "dompurify"
-
-export const getAPIServer = (): string => {
-	return API_DOMAINS[getRandomArbitrary(0, API_DOMAINS.length - 1)]
-}
 
 export const getAPIV3Server = (): string => {
 	return API_V3_DOMAINS[getRandomArbitrary(0, API_V3_DOMAINS.length - 1)]
@@ -15,10 +11,6 @@ export const getAPIV3Server = (): string => {
 
 export const getDownloadServer = (): string => {
 	return DOWNLOAD_DOMAINS[getRandomArbitrary(0, DOWNLOAD_DOMAINS.length - 1)]
-}
-
-export const getUploadServer = (): string => {
-	return UPLOAD_DOMAINS[getRandomArbitrary(0, UPLOAD_DOMAINS.length - 1)]
 }
 
 export const getUploadV3Server = (): string => {

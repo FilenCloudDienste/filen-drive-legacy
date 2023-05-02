@@ -7,9 +7,7 @@ import {
 	arrayBufferToBase64,
 	generateRandomString,
 	convertTimestampToMs,
-	readChunk,
 	mergeUInt8Arrays,
-	getAPIServer,
 	getAPIV3Server,
 	convertWordArrayToArrayBuffer,
 	convertArrayBufferToBinaryString
@@ -36,7 +34,7 @@ const apiRequest = (
 	endpoint: string,
 	data: any,
 	apiKey: string | null
-): Promise<{ status: boolean; message: string; [key: string]: any }> => {
+): Promise<{ status: boolean; message: string; code: string; data: any }> => {
 	return new Promise((resolve, reject) => {
 		let current = -1
 		let lastErr: Error
@@ -49,11 +47,7 @@ const apiRequest = (
 			}
 
 			const promise =
-				endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
-					? method.toUpperCase() == "POST"
-						? axios.post(getAPIServer() + endpoint, data)
-						: axios.get(getAPIServer() + endpoint)
-					: method.toUpperCase() == "POST"
+				method.toUpperCase() === "POST"
 					? axios.post(getAPIV3Server() + endpoint, data, {
 							headers: {
 								Authorization: "Bearer " + apiKey
@@ -179,6 +173,7 @@ const generatePasswordAndMasterKeysBasedOnAuthVersion = async (
 	let derivedMasterKeys: any = undefined
 
 	if (authVersion == 1) {
+		//old and deprecated, no longer in use
 		derivedPassword = await hashPassword(rawPassword)
 		derivedMasterKeys = await hashFn(rawPassword)
 	} else if (authVersion == 2) {
@@ -204,7 +199,7 @@ const decryptMetadata = async (data: string, key: string): Promise<any> => {
 	const sliced: string = data.slice(0, 8)
 
 	if (sliced == "U2FsdGVk") {
-		//old deprecated
+		//old and deprecated, no longer in use
 		try {
 			const decrypted = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
 
@@ -682,6 +677,7 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 	}
 
 	if (version == 1) {
+		//old and deprecated, no longer in use
 		const sliced = convertArrayBufferToBinaryString(new Uint8Array(data.slice(0, 16)))
 
 		if (sliced.indexOf("Salted") !== -1) {

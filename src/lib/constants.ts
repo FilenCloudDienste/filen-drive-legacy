@@ -30,19 +30,8 @@ export const ONE_YEAR = 86400000 * 365
 export const AUTH_VERSION = 2
 export const PREVIEW_MAX_SIZE = 1024 * 1024 * 128
 
-export const API_DOMAINS = [
-	"https://api.filen.io",
-	"https://api.filen.net",
-	"https://api.filen-1.net",
-	"https://api.filen-2.net",
-	"https://api.filen-3.net",
-	"https://api.filen-4.net",
-	"https://api.filen-5.net",
-	"https://api.filen-6.net"
-]
-
 export const API_V3_DOMAINS =
-	process.env.NODE_ENV == "development"
+	process.env.NODE_ENV === "development"
 		? ["http://localhost:1337"]
 		: [
 				"https://gateway.filen.io",
@@ -55,41 +44,22 @@ export const API_V3_DOMAINS =
 				"https://gateway.filen-6.net"
 		  ]
 
-export const DOWNLOAD_DOMAINS = [
-	"https://down.filen.io",
-	"https://down.filen.net",
-	"https://down.filen-1.net",
-	"https://down.filen-2.net",
-	"https://down.filen-3.net",
-	"https://down.filen-4.net",
-	"https://down.filen-5.net",
-	"https://down.filen-6.net"
-]
-
-export const DOWNLOAD_V3_DOMAINS = [
-	"https://egest.filen.io",
-	"https://egest.filen.net",
-	"https://egest.filen-1.net",
-	"https://egest.filen-2.net",
-	"https://egest.filen-3.net",
-	"https://egest.filen-4.net",
-	"https://egest.filen-5.net",
-	"https://egest.filen-6.net"
-]
-
-export const UPLOAD_DOMAINS = [
-	"https://up.filen.io",
-	"https://up.filen.net",
-	"https://up.filen-1.net",
-	"https://up.filen-2.net",
-	"https://up.filen-3.net",
-	"https://up.filen-4.net",
-	"https://up.filen-5.net",
-	"https://up.filen-6.net"
-]
+export const DOWNLOAD_DOMAINS =
+	process.env.NODE_ENV === "development"
+		? ["http://localhost:1339"]
+		: [
+				"https://down.filen.io",
+				"https://down.filen.net",
+				"https://down.filen-1.net",
+				"https://down.filen-2.net",
+				"https://down.filen-3.net",
+				"https://down.filen-4.net",
+				"https://down.filen-5.net",
+				"https://down.filen-6.net"
+		  ]
 
 export const UPLOAD_V3_DOMAINS =
-	process.env.NODE_ENV == "development"
+	process.env.NODE_ENV === "development"
 		? ["http://localhost:1338"]
 		: [
 				"https://ingest.filen.io",
@@ -105,4 +75,4 @@ export const UPLOAD_V3_DOMAINS =
 export const SOCKET = "https://socket.filen.io"
 
 export const REPORT_API_URL =
-	process.env.NODE_ENV == "development" ? "http://localhost:3000/api/v1/ticket/submit" : "https://filen.io/api/v1/ticket/submit"
+	process.env.NODE_ENV === "development" ? "http://localhost:3000/api/v1/ticket/submit" : "https://filen.io/api/v1/ticket/submit"
