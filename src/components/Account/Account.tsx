@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, useCallback } from "react"
-import type { AccountProps, UserInfoV1, UserGetSettingsV1, UserGetAccountV1, UserEvent, ICFG } from "../../types"
+import type { AccountProps, UserInfoV1, UserGetSettingsV3, UserGetAccountV1, UserEvent, ICFG } from "../../types"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, Spinner, Switch, Skeleton, Progress, Badge } from "@chakra-ui/react"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
@@ -9,7 +9,7 @@ import { fetchUserInfo, fetchUserSettings, fetchUserAccount } from "../../lib/se
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
 import { formatBytes, downloadObjectAsJson, simpleDate, convertTimestampToMs, downloadPDF, firstToLowerCase } from "../../lib/helpers"
-import { userGDPR, uploadAvatar, fetchEvents, generateInvoice } from "../../lib/api"
+import { userGDPR, uploadAvatar, fetchEvents, generateInvoice, versioning, loginAlerts } from "../../lib/api"
 import * as Modals from "./Modals"
 import { show as showToast } from "../Toast/Toast"
 import { List as RVList, AutoSizer } from "react-virtualized"
@@ -86,7 +86,7 @@ const Skeletons = memo(({ darkMode, count }: { darkMode: boolean; count: number 
 const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
 	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
 	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
 	const [downloadingGDPR, setDownloadingGDPR] = useState<boolean>(false)
 	const [uploadingAvatar, setUploadingAvatar] = useState<boolean>(false)
 	const navigate = useNavigate()
@@ -636,20 +636,49 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 })
 
 const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
 	const [versionedSize, setVersionedSize] = useState<number>(0)
 
-	useEffect(() => {
-		fetchUserSettings()
-			.then(settings => {
-				setUserSettings(settings)
-				setVersionedSize(settings.versionedStorage)
-			})
-			.catch(err => {
-				console.error(err)
+	const fetchSettings = useCallback(async () => {
+		setUserSettings(undefined)
+		setVersionedSize(0)
 
-				showToast("error", err.toString(), "bottom", 5000)
-			})
+		try {
+			const settings = await fetchUserSettings()
+
+			setUserSettings(settings)
+			setVersionedSize(settings.versionedStorage)
+		} catch (e: any) {
+			console.error(e)
+
+			showToast("error", e.toString(), "bottom", 5000)
+		}
+	}, [])
+
+	const toggleVersioning = useCallback(async (enable: boolean) => {
+		try {
+			await versioning(enable)
+			await fetchSettings()
+		} catch (e: any) {
+			console.error(e)
+
+			showToast("error", e.toString(), "bottom", 5000)
+		}
+	}, [])
+
+	const toggleLoginAlerts = useCallback(async (enable: boolean) => {
+		try {
+			await loginAlerts(enable)
+			await fetchSettings()
+		} catch (e: any) {
+			console.error(e)
+
+			showToast("error", e.toString(), "bottom", 5000)
+		}
+	}, [])
+
+	useEffect(() => {
+		fetchSettings()
 
 		const versionedDeletedListener = eventListener.on("versionedDeleted", () => setVersionedSize(0))
 
@@ -755,6 +784,69 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						)}
 					</Flex>
 				</Flex>
+				{/*<Flex
+					alignItems="center"
+					justifyContent="space-between"
+					height="60px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+					marginTop="50px"
+				>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+						>
+							{i18n(lang, "fileVersioning")}
+						</AppText>
+					</Flex>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							marginLeft="20px"
+							textDecoration="underline"
+							fontWeight="bold"
+							cursor="pointer"
+							noOfLines={1}
+							onClick={() => toggleVersioning(!userSettings.versioningEnabled)}
+						>
+							{userSettings.versioningEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
+						</AppText>
+					</Flex>
+				</Flex>
+				<Flex
+					alignItems="center"
+					justifyContent="space-between"
+					height="60px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+				>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+						>
+							{i18n(lang, "loginAlerts")}
+						</AppText>
+					</Flex>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							marginLeft="20px"
+							textDecoration="underline"
+							fontWeight="bold"
+							cursor="pointer"
+							noOfLines={1}
+							onClick={() => toggleLoginAlerts(!userSettings.loginAlertsEnabled)}
+						>
+							{userSettings.loginAlertsEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
+						</AppText>
+					</Flex>
+						</Flex>*/}
 				<Flex
 					alignItems="center"
 					justifyContent="space-between"
@@ -808,7 +900,7 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 })
 
 const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
 
 	const fetchSettings = () => {
 		setUserSettings(undefined)

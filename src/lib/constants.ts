@@ -44,7 +44,7 @@ export const API_V3_DOMAINS =
 				"https://gateway.filen-6.net"
 		  ]
 
-export const DOWNLOAD_DOMAINS =
+/*export const DOWNLOAD_DOMAINS =
 	process.env.NODE_ENV === "development"
 		? ["http://localhost:1339"]
 		: [
@@ -56,7 +56,18 @@ export const DOWNLOAD_DOMAINS =
 				"https://down.filen-4.net",
 				"https://down.filen-5.net",
 				"https://down.filen-6.net"
-		  ]
+		  ]*/
+
+export const DOWNLOAD_DOMAINS = [
+	"https://down.filen.io",
+	"https://down.filen.net",
+	"https://down.filen-1.net",
+	"https://down.filen-2.net",
+	"https://down.filen-3.net",
+	"https://down.filen-4.net",
+	"https://down.filen-5.net",
+	"https://down.filen-6.net"
+]
 
 export const UPLOAD_V3_DOMAINS =
 	process.env.NODE_ENV === "development"

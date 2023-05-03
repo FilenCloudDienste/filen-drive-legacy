@@ -377,7 +377,9 @@ const en: {
 	finishing: "Finishing",
 	searchNothingFound: '"__TERM__" not found',
 	queued: "Queued",
-	searchInThisFolder: "Search in this folder..."
+	searchInThisFolder: "Search in this folder...",
+	fileVersioning: "File versioning",
+	loginAlerts: "Login alerts"
 }
 
 export default en

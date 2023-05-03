@@ -17,6 +17,7 @@ import type {
 	FolderColors,
 	UserGetSettingsV1,
 	UserGetAccountV1,
+	UserGetSettingsV3,
 	UserEvent,
 	LinkGetInfoV1,
 	LinkHasPasswordV1,
@@ -2080,7 +2081,7 @@ export const changeFolderColor = async (folder: ItemProps, color: FolderColors):
 	})
 }
 
-export const userSettings = async (): Promise<UserGetSettingsV1> => {
+export const userSettings = async (): Promise<UserGetSettingsV3> => {
 	const response = await apiRequest({
 		method: "GET",
 		endpoint: "/v3/user/settings"
@@ -2489,6 +2490,34 @@ export const requestAffiliatePayout = async (method: string, address: string): P
 		data: {
 			method,
 			address
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const versioning = async (enable: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/versioning",
+		data: {
+			enabled: enable ? 1 : 0
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const loginAlerts = async (enable: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/loginAlerts",
+		data: {
+			enabled: enable ? 1 : 0
 		}
 	})
 
