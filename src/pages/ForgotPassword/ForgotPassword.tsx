@@ -11,11 +11,7 @@ import { Link } from "react-router-dom"
 import AuthContainer from "../../components/AuthContainer"
 import { i18n } from "../../i18n"
 import toast from "../../components/Toast"
-import {
-	apiRequest,
-	encryptMetadata,
-	generatePasswordAndMasterKeysBasedOnAuthVersion
-} from "../../lib/worker/worker.com"
+import { apiRequest, encryptMetadata, generatePasswordAndMasterKeysBasedOnAuthVersion } from "../../lib/worker/worker.com"
 import { useParams, useNavigate } from "react-router-dom"
 import { generateRandomString, toggleColorMode } from "../../lib/helpers"
 import { AUTH_VERSION } from "../../lib/constants"
@@ -139,18 +135,14 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 
 			const res = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/user/password/forgot/reset",
+				endpoint: "/v3/user/password/forgot/reset",
 				data: {
 					token: params.token,
 					password,
-					passwordRepeat,
 					salt,
 					authVersion: AUTH_VERSION,
-					newMasterKeys: await encryptMetadata(
-						newMasterKeys.join("|"),
-						newMasterKeys[newMasterKeys.length - 1]
-					),
-					hasRecoveryKeys: newMasterKeys.length >= 2 ? 1 : 0
+					newMasterKeys: await encryptMetadata(newMasterKeys.join("|"), newMasterKeys[newMasterKeys.length - 1]),
+					hasRecoveryKeys: newMasterKeys.length >= 2 ? true : false
 				}
 			})
 
@@ -393,7 +385,7 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
 		try {
 			const res = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/forgot-password",
+				endpoint: "/v3/user/password/forgot",
 				data: {
 					email: userEmail
 				}

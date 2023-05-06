@@ -2,13 +2,7 @@ import { apiRequest } from "../worker/worker.com"
 import { decryptMetadata, generateKeypair, encryptMetadata } from "../worker/worker.com"
 import db from "../db"
 
-export const updateKeypair = async ({
-	publicKey,
-	privateKey
-}: {
-	publicKey: string
-	privateKey: string
-}): Promise<void> => {
+export const updateKeypair = async ({ publicKey, privateKey }: { publicKey: string; privateKey: string }): Promise<void> => {
 	const [apiKey, masterKeys] = await Promise.all([db.get("apiKey"), db.get("masterKeys")])
 
 	if (!Array.isArray(masterKeys)) {
@@ -22,12 +16,12 @@ export const updateKeypair = async ({
 	const encryptedPrivateKey = await encryptMetadata(privateKey, masterKeys[masterKeys.length - 1])
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/keyPair/update",
+		endpoint: "/v3/user/keyPair/update",
 		data: {
-			apiKey,
 			publicKey,
 			privateKey: encryptedPrivateKey
-		}
+		},
+		apiKey
 	})
 
 	if (!response.status) {
@@ -35,13 +29,7 @@ export const updateKeypair = async ({
 	}
 }
 
-export const setKeypair = async ({
-	publicKey,
-	privateKey
-}: {
-	publicKey: string
-	privateKey: string
-}): Promise<void> => {
+export const setKeypair = async ({ publicKey, privateKey }: { publicKey: string; privateKey: string }): Promise<void> => {
 	const [apiKey, masterKeys] = await Promise.all([db.get("apiKey"), db.get("masterKeys")])
 
 	if (!Array.isArray(masterKeys)) {
@@ -55,12 +43,12 @@ export const setKeypair = async ({
 	const encryptedPrivateKey = await encryptMetadata(privateKey, masterKeys[masterKeys.length - 1])
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/keyPair/set",
+		endpoint: "/v3/user/keyPair/set",
 		data: {
-			apiKey,
 			publicKey,
 			privateKey: encryptedPrivateKey
-		}
+		},
+		apiKey
 	})
 
 	if (!response.status) {
@@ -80,11 +68,9 @@ export const updatePublicAndPrivateKey = async (): Promise<void> => {
 	}
 
 	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/keyPair/info",
-		data: {
-			apiKey
-		}
+		method: "GET",
+		endpoint: "/v3/user/keyPair/info",
+		apiKey
 	})
 
 	if (!response.status) {
@@ -148,11 +134,11 @@ export const updateKeys = async (): Promise<void> => {
 	const encryptedMasterKeys = await encryptMetadata(masterKeys.join("|"), masterKeys[masterKeys.length - 1])
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/user/masterKeys",
+		endpoint: "/v3/user/masterKeys",
 		data: {
-			apiKey,
 			masterKeys: encryptedMasterKeys
-		}
+		},
+		apiKey
 	})
 
 	if (!response.status) {

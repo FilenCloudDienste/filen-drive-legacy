@@ -1,4 +1,4 @@
-import type { UserInfoV1, UserGetSettingsV1, UserGetAccountV1 } from "../../../types"
+import type { UserInfoV1, UserGetSettingsV3, UserGetAccountV1 } from "../../../types"
 import { userInfo, userSettings, userAccount } from "../../api"
 import memoryCache from "../../memoryCache"
 
@@ -25,10 +25,10 @@ export const fetchUserInfoCached = (): UserInfoV1 | undefined => {
 	return undefined
 }
 
-export const fetchUserSettings = async (): Promise<UserGetSettingsV1> => {
+export const fetchUserSettings = async (): Promise<UserGetSettingsV3> => {
 	if (memoryCache.has("fetchUserSettings") && memoryCache.has("fetchUserSettingsTimeout")) {
 		if (memoryCache.get("fetchUserSettingsTimeout") > Date.now()) {
-			return memoryCache.get("fetchUserSettings") as UserGetSettingsV1
+			return memoryCache.get("fetchUserSettings") as UserGetSettingsV3
 		}
 	}
 

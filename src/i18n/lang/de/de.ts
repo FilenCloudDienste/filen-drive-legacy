@@ -372,7 +372,9 @@ const de: {
 	finishing: "Beende",
 	searchNothingFound: '"__TERM__" nicht gefunden',
 	queued: "Warteschlange",
-	searchInThisFolder: "In diesem Ordner suchen..."
+	searchInThisFolder: "In diesem Ordner suchen...",
+	fileVersioning: "Dateiversionierung",
+	loginAlerts: "Login Benachrichtigungen"
 }
 
 export default de

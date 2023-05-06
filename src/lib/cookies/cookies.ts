@@ -5,7 +5,12 @@ export const set = (key: string, value: string, opts: { domain: string | undefin
 	try {
 		Cookies.set(key, value, {
 			expires: new Date(Date.now() + 86400000 * 365),
-			domain: process.env.NODE_ENV == "development" ? undefined : ".filen.io"
+			domain:
+				process.env.NODE_ENV == "development"
+					? undefined
+					: window.location.host.indexOf("filen.dev") !== -1
+					? ".filen.dev"
+					: ".filen.io"
 		})
 
 		eventListener.emit("cookiesSet", {
@@ -34,7 +39,12 @@ export const get = (key: string): string | null => {
 export const remove = (key: string): boolean => {
 	try {
 		Cookies.remove(key, {
-			domain: process.env.NODE_ENV == "development" ? undefined : ".filen.io"
+			domain:
+				process.env.NODE_ENV == "development"
+					? undefined
+					: window.location.host.indexOf("filen.dev") !== -1
+					? ".filen.dev"
+					: ".filen.io"
 		})
 
 		eventListener.emit("cookiesRemove", {

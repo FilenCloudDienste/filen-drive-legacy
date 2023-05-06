@@ -1,15 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { RenameModalProps, ItemProps } from "../../types"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -74,27 +65,24 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 				currentItem.type == "file"
 					? renameFile({ file: currentItem, name: value })
 					: renameFolder({ folder: currentItem, name: value })
-			const result = await promise
 
-			if (result) {
-				if (currentItem.type == "folder") {
-					await addFolderNameToDb(currentItem.uuid, value)
-				}
+			await promise
 
-				const sortBy = (await db.get("sortBy")) || {}
-
-				setItems(prev =>
-					orderItemsByType(
-						prev.map(item =>
-							item.uuid == currentItem.uuid
-								? { ...item, name: value, selected: true }
-								: { ...item, selected: false }
-						),
-						sortBy[window.location.href],
-						window.location.href
-					)
-				)
+			if (currentItem.type == "folder") {
+				await addFolderNameToDb(currentItem.uuid, value)
 			}
+
+			const sortBy = (await db.get("sortBy")) || {}
+
+			setItems(prev =>
+				orderItemsByType(
+					prev.map(item =>
+						item.uuid == currentItem.uuid ? { ...item, name: value, selected: true } : { ...item, selected: false }
+					),
+					sortBy[window.location.href],
+					window.location.href
+				)
+			)
 
 			changeItemsInStore(
 				[

@@ -41,6 +41,7 @@ import { useDoubleTap } from "use-double-tap"
 import { useLongPress } from "use-long-press"
 
 const dragImg = new Image()
+const fetchFolderSizeTimeout: Record<string, number> = {}
 
 dragImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
 
@@ -580,6 +581,12 @@ export const Item = memo(
 		}, [item, didGenerateThumbnail.current])
 
 		const loadFolderSize = useCallback(() => {
+			if (fetchFolderSizeTimeout[item.uuid] && fetchFolderSizeTimeout[item.uuid] > Date.now()) {
+				return
+			}
+
+			fetchFolderSizeTimeout[item.uuid] = Date.now() + 30000
+
 			if (item.type == "folder") {
 				if (window.location.href.indexOf("/f/") == -1) {
 					Promise.all([db.get("loadItems:" + item.uuid, "metadata"), db.get("loadSidebarItems:" + item.uuid, "metadata")]).catch(
@@ -611,7 +618,7 @@ export const Item = memo(
 					})
 					.catch(console.error)
 			}
-		}, [item, window.location.href, startURL, setItems])
+		}, [item, window.location.href, startURL])
 
 		useEffect(() => {
 			currentItems.current = items

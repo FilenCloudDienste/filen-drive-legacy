@@ -7,9 +7,7 @@ import {
 	arrayBufferToBase64,
 	generateRandomString,
 	convertTimestampToMs,
-	readChunk,
 	mergeUInt8Arrays,
-	getAPIServer,
 	getAPIV3Server,
 	convertWordArrayToArrayBuffer,
 	convertArrayBufferToBinaryString
@@ -34,8 +32,9 @@ const textDecoder = new TextDecoder()
 const apiRequest = (
 	method: string = "POST",
 	endpoint: string,
-	data: any
-): Promise<{ status: boolean; message: string; [key: string]: any }> => {
+	data: any,
+	apiKey: string | null
+): Promise<{ status: boolean; message: string; code: string; data: any }> => {
 	return new Promise((resolve, reject) => {
 		let current = -1
 		let lastErr: Error
@@ -48,13 +47,17 @@ const apiRequest = (
 			}
 
 			const promise =
-				endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/")
-					? method.toUpperCase() == "POST"
-						? axios.post(getAPIServer() + endpoint, data)
-						: axios.get(getAPIServer() + endpoint)
-					: method.toUpperCase() == "POST"
-					? axios.post(getAPIV3Server() + endpoint, data)
-					: axios.get(getAPIV3Server() + endpoint)
+				method.toUpperCase() === "POST"
+					? axios.post(getAPIV3Server() + endpoint, data, {
+							headers: {
+								Authorization: "Bearer " + apiKey
+							}
+					  })
+					: axios.get(getAPIV3Server() + endpoint, {
+							headers: {
+								Authorization: "Bearer " + apiKey
+							}
+					  })
 
 			promise
 				.then(response => {
@@ -112,18 +115,7 @@ const deriveKeyFromPassword = async (
 	returnHex: boolean
 ): Promise<string | ArrayBuffer> => {
 	const cacheKey =
-		"deriveKeyFromPassword:" +
-		password +
-		":" +
-		salt +
-		":" +
-		iterations +
-		":" +
-		hash +
-		":" +
-		bitLength +
-		":" +
-		returnHex.toString()
+		"deriveKeyFromPassword:" + password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
 
 	if (memoryCache.has(cacheKey)) {
 		return memoryCache.get(cacheKey)
@@ -181,6 +173,7 @@ const generatePasswordAndMasterKeysBasedOnAuthVersion = async (
 	let derivedMasterKeys: any = undefined
 
 	if (authVersion == 1) {
+		//old and deprecated, no longer in use
 		derivedPassword = await hashPassword(rawPassword)
 		derivedMasterKeys = await hashFn(rawPassword)
 	} else if (authVersion == 2) {
@@ -206,7 +199,7 @@ const decryptMetadata = async (data: string, key: string): Promise<any> => {
 	const sliced: string = data.slice(0, 8)
 
 	if (sliced == "U2FsdGVk") {
-		//old deprecated
+		//old and deprecated, no longer in use
 		try {
 			const decrypted = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
 
@@ -547,10 +540,7 @@ const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array |
 	return transfer(result, [result.buffer])
 }
 
-const bufferToHash = async (
-	buffer: Uint8Array,
-	algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"
-): Promise<string> => {
+const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	const digest = await globalThis.crypto.subtle.digest(algorithm, buffer)
 	const hashArray = Array.from(new Uint8Array(digest))
 	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
@@ -558,21 +548,12 @@ const bufferToHash = async (
 	return hashHex
 }
 
-const encryptAndUploadFileChunk = (
-	chunk: Uint8Array,
-	key: string,
-	url: string,
-	uuid: string,
-	chunkIndex: number,
-	chunkSize: number
-): Promise<any> => {
+const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, apiKey: string): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
 				bufferToHash(
-					(encryptedChunk as Uint8Array).byteLength > 0
-						? (encryptedChunk as Uint8Array)
-						: new Uint8Array([1]),
+					(encryptedChunk as Uint8Array).byteLength > 0 ? (encryptedChunk as Uint8Array) : new Uint8Array([1]),
 					"SHA-512"
 				)
 					.then(chunkHash => {
@@ -598,6 +579,9 @@ const encryptAndUploadFileChunk = (
 								url,
 								data: new Blob([encryptedChunk]),
 								timeout: 3600000,
+								headers: {
+									Authorization: "Bearer " + apiKey
+								},
 								onUploadProgress: event => {
 									if (typeof event !== "object" || typeof event.loaded !== "number") {
 										return
@@ -693,6 +677,7 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 	}
 
 	if (version == 1) {
+		//old and deprecated, no longer in use
 		const sliced = convertArrayBufferToBinaryString(new Uint8Array(data.slice(0, 16)))
 
 		if (sliced.indexOf("Salted") !== -1) {
@@ -700,9 +685,7 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 
 			return transfer(result, [result.buffer])
 		} else if (sliced.indexOf("U2FsdGVk") !== -1) {
-			const result = convertWordArrayToArrayBuffer(
-				CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key)
-			)
+			const result = convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToBinaryString(new Uint8Array(data)), key))
 
 			return transfer(result, [result.buffer])
 		} else {

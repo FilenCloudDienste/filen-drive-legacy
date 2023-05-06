@@ -4,11 +4,12 @@ import eventListener from "../eventListener"
 import type { ItemProps } from "../../types"
 import { WORKER_THREADS } from "../constants"
 import { logout } from "../services/user/logout"
+import db from "../db"
 
 let nextWorkerId: number = -1
 
 const workerInstances: Worker[] = []
-const workerAPIs: typeof api[] = []
+const workerAPIs: (typeof api)[] = []
 
 const getWorkerAPI = () => {
 	if (workerAPIs.length < WORKER_THREADS) {
@@ -43,13 +44,16 @@ const getWorkerAPI = () => {
 export const apiRequest = async ({
 	method = "POST",
 	endpoint,
-	data
+	data,
+	apiKey
 }: {
 	method: string
 	endpoint: string
-	data: any
+	data?: any
+	apiKey?: string | null | undefined
 }): Promise<any> => {
-	const response = await getWorkerAPI().apiRequest(method, endpoint, data)
+	const dbAPIKey = typeof apiKey === "string" && apiKey.length === 64 ? apiKey : await db.get("apiKey")
+	const response = await getWorkerAPI().apiRequest(method, endpoint, data, dbAPIKey)
 
 	if (typeof response == "object") {
 		if (typeof response.message == "string") {
@@ -140,17 +144,9 @@ export const encryptAndUploadFileChunk = async (
 	key: string,
 	url: string,
 	uuid: string,
-	chunkIndex: number,
-	chunkSize: number
+	apiKey: string
 ): Promise<any> => {
-	return await getWorkerAPI().encryptAndUploadFileChunk(
-		transfer(chunk, [chunk.buffer]),
-		key,
-		url,
-		uuid,
-		chunkIndex,
-		chunkSize
-	)
+	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, apiKey)
 }
 
 export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
@@ -185,9 +181,6 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 	return await getWorkerAPI().convertHeic(transfer(buffer, [buffer.buffer]), format)
 }
 
-export const bufferToHash = async (
-	buffer: Uint8Array,
-	algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"
-): Promise<string> => {
+export const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	return await getWorkerAPI().bufferToHash(buffer, algorithm)
 }

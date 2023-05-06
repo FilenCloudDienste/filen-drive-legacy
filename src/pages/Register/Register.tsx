@@ -20,84 +20,82 @@ import { MdOutlineMarkEmailRead } from "react-icons/md"
 
 const CryptoJS = require("crypto-js")
 
-export const RegisterDoneModal = memo(
-	({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
-		const [open, setOpen] = useState<boolean>(false)
+export const RegisterDoneModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
+	const [open, setOpen] = useState<boolean>(false)
 
-		useEffect(() => {
-			const openRegisterDoneModalListener = eventListener.on("openRegisterDoneModal", () => {
-				setOpen(true)
-			})
+	useEffect(() => {
+		const openRegisterDoneModalListener = eventListener.on("openRegisterDoneModal", () => {
+			setOpen(true)
+		})
 
-			return () => {
-				openRegisterDoneModalListener.remove()
-			}
-		}, [])
+		return () => {
+			openRegisterDoneModalListener.remove()
+		}
+	}, [])
 
-		return (
-			<Modal
-				onClose={() => setOpen(false)}
-				isOpen={open}
-				isCentered={true}
-				size={isMobile ? "xl" : "md"}
-				autoFocus={false}
+	return (
+		<Modal
+			onClose={() => setOpen(false)}
+			isOpen={open}
+			isCentered={true}
+			size={isMobile ? "xl" : "md"}
+			autoFocus={false}
+		>
+			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
+			<ModalContent
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+				color={getColor(darkMode, "textSecondary")}
+				borderRadius={isMobile ? "0px" : "5px"}
 			>
-				<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
-				<ModalContent
-					backgroundColor={getColor(darkMode, "backgroundSecondary")}
-					color={getColor(darkMode, "textSecondary")}
-					borderRadius={isMobile ? "0px" : "5px"}
+				<ModalBody
+					height="100%"
+					width="100%"
+					justifyContent="center"
+					alignItems="center"
+					paddingTop="25px"
+					paddingBottom="25px"
 				>
-					<ModalBody
-						height="100%"
-						width="100%"
+					<Flex
+						flexDirection="column"
 						justifyContent="center"
 						alignItems="center"
-						paddingTop="25px"
-						paddingBottom="25px"
 					>
-						<Flex
-							flexDirection="column"
-							justifyContent="center"
-							alignItems="center"
-						>
-							<MdOutlineMarkEmailRead
-								color={getColor(darkMode, "textPrimary")}
-								fontSize={100}
-							/>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								color={getColor(darkMode, "textSecondary")}
-								marginTop="20px"
-								textAlign="center"
-								fontSize={14}
-							>
-								{i18n(lang, "registrationEmailInstructions")}
-							</AppText>
-						</Flex>
-					</ModalBody>
-					<ModalFooter>
+						<MdOutlineMarkEmailRead
+							color={getColor(darkMode, "textPrimary")}
+							fontSize={100}
+						/>
 						<AppText
 							darkMode={darkMode}
 							isMobile={isMobile}
-							noOfLines={1}
-							wordBreak="break-all"
 							color={getColor(darkMode, "textSecondary")}
-							cursor="pointer"
-							onClick={() => setOpen(false)}
-							_hover={{
-								color: getColor(darkMode, "textPrimary")
-							}}
+							marginTop="20px"
+							textAlign="center"
+							fontSize={14}
 						>
-							{i18n(lang, "gotIt")}
+							{i18n(lang, "registrationEmailInstructions")}
 						</AppText>
-					</ModalFooter>
-				</ModalContent>
-			</Modal>
-		)
-	}
-)
+					</Flex>
+				</ModalBody>
+				<ModalFooter>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						wordBreak="break-all"
+						color={getColor(darkMode, "textSecondary")}
+						cursor="pointer"
+						onClick={() => setOpen(false)}
+						_hover={{
+							color: getColor(darkMode, "textPrimary")
+						}}
+					>
+						{i18n(lang, "gotIt")}
+					</AppText>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+	)
+})
 
 const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
 	const [email, setEmail] = useState<string>("")
@@ -160,11 +158,10 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 
 			const res = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/register",
+				endpoint: "/v3/register",
 				data: {
 					email: userEmail,
 					password: userPassword,
-					passwordRepeat: userConfirmPassword,
 					salt,
 					authVersion: AUTH_VERSION,
 					refId: typeof Cookies.get("refId") == "string" ? Cookies.get("refId") : "none",
@@ -173,11 +170,7 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 			})
 
 			if (!res.status) {
-				if (
-					res.message.toLowerCase().indexOf("invalid email") !== -1 ||
-					res.message.toLowerCase().indexOf("invalid password") !== -1 ||
-					res.message.toLowerCase().indexOf("invalid email") !== -1
-				) {
+				if (res.code === "invalid_params") {
 					setEmail("")
 					setPassword("")
 					setConfirmPassword("")
@@ -187,43 +180,13 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 					toast.show("error", i18n(lang, "invalidEmailOrPassword"), "bottom", 5000)
 
 					return
-				} else if (
-					res.message.toLowerCase().indexOf("your password needs to be at least 10 characters long") !== -1
-				) {
-					setPassword("")
-					setConfirmPassword("")
-
-					setLoading(false)
-
-					toast.show("error", i18n(lang, "registerWeakPassword"), "bottom", 5000)
-
-					return
-				} else if (res.message.toLowerCase().indexOf("passwords do not match") !== -1) {
-					setPassword("")
-					setConfirmPassword("")
-
-					setLoading(false)
-
-					toast.show("error", i18n(lang, "passwordsDoNotMatch"), "bottom", 5000)
-
-					return
-				} else if (res.message.toLowerCase().indexOf("invalid email") !== -1) {
-					setEmail("")
-					setPassword("")
-					setConfirmPassword("")
-
-					setLoading(false)
-
-					toast.show("error", i18n(lang, "invalidEmailOrPassword"), "bottom", 5000)
-
-					return
-				} else if (res.message.toLowerCase().indexOf("database error") !== -1) {
+				} else if (res.code === "internal_error") {
 					setLoading(false)
 
 					toast.show("error", i18n(lang, "unknownErrorSupp"), "bottom", 5000)
 
 					return
-				} else if (res.message.toLowerCase().indexOf("self email is already registered") !== -1) {
+				} else if (res.code === "email_address_already_registered") {
 					setEmail("")
 					setPassword("")
 					setConfirmPassword("")
@@ -231,20 +194,6 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 					setLoading(false)
 
 					toast.show("error", i18n(lang, "registerEmailAlreadyRegistered"), "bottom", 5000)
-
-					return
-				} else if (
-					res.message
-						.toLowerCase()
-						.indexOf("we could not send an email at self time, please try again later") !== -1
-				) {
-					setEmail("")
-					setPassword("")
-					setConfirmPassword("")
-
-					setLoading(false)
-
-					toast.show("error", i18n(lang, "unknownErrorSupp"), "bottom", 5000)
 
 					return
 				}
