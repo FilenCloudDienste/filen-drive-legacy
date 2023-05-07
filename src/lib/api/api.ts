@@ -2283,7 +2283,7 @@ export const changePassword = async ({
 }): Promise<any> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v3/user/password/change",
+		endpoint: "/v3/user/settings/password/change",
 		data: {
 			password,
 			currentPassword,
