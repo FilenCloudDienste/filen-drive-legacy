@@ -979,7 +979,11 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			return
 		}
 
-		if (newPassword !== confirmNewPassword) {
+		if (newPassword.trim() === password.trim()) {
+			return
+		}
+
+		if (newPassword.trim() !== confirmNewPassword.trim()) {
 			showToast("error", i18n(lang, "newPasswordsDontMatch"), "bottom", 5000)
 
 			return
@@ -1045,12 +1049,6 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 		setLoading(false)
 	}, [loading, newPassword, confirmNewPassword, password])
 
-	const inputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
-		if (e.which == 13) {
-			save()
-		}
-	}, [])
-
 	useEffect(() => {
 		const openListener = eventListener.on("openPasswordModal", () => setOpen(true))
 
@@ -1102,7 +1100,11 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							placeholder={i18n(lang, "newPassword")}
 							type="password"
 							isDisabled={loading}
-							onKeyDown={inputKeyDown}
+							onKeyDown={e => {
+								if (e.key === "Enter") {
+									save()
+								}
+							}}
 							maxLength={255}
 							color={getColor(darkMode, "textSecondary")}
 							_placeholder={{
@@ -1118,7 +1120,11 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							placeholder={i18n(lang, "confirmNewPassword")}
 							type="password"
 							isDisabled={loading}
-							onKeyDown={inputKeyDown}
+							onKeyDown={e => {
+								if (e.key === "Enter") {
+									save()
+								}
+							}}
 							maxLength={255}
 							color={getColor(darkMode, "textSecondary")}
 							_placeholder={{
@@ -1134,7 +1140,11 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							placeholder={i18n(lang, "currentPassword")}
 							type="password"
 							isDisabled={loading}
-							onKeyDown={inputKeyDown}
+							onKeyDown={e => {
+								if (e.key === "Enter") {
+									save()
+								}
+							}}
 							color={getColor(darkMode, "textSecondary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
