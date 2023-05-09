@@ -55,16 +55,19 @@ export const DOWNLOAD_DOMAINS = [
 	"https://down.filen-6.net"
 ]
 
-export const UPLOAD_V3_DOMAINS = [
-	"https://ingest.filen.io",
-	"https://ingest.filen.net",
-	"https://ingest.filen-1.net",
-	"https://ingest.filen-2.net",
-	"https://ingest.filen-3.net",
-	"https://ingest.filen-4.net",
-	"https://ingest.filen-5.net",
-	"https://ingest.filen-6.net"
-]
+export const UPLOAD_V3_DOMAINS =
+	process.env.NODE_ENV === "development"
+		? ["http://localhost:1338"]
+		: [
+				"https://ingest.filen.io",
+				"https://ingest.filen.net",
+				"https://ingest.filen-1.net",
+				"https://ingest.filen-2.net",
+				"https://ingest.filen-3.net",
+				"https://ingest.filen-4.net",
+				"https://ingest.filen-5.net",
+				"https://ingest.filen-6.net"
+		  ]
 
 export const SOCKET = "https://socket.filen.io"
 
