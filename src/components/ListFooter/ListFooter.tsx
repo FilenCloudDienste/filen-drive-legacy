@@ -16,16 +16,7 @@ import { IoMove, IoTrashBinOutline } from "react-icons/io5"
 import { i18n } from "../../i18n"
 
 const ListFooter = memo(
-	({
-		darkMode,
-		isMobile,
-		items,
-		loadingItems,
-		listScrollState,
-		windowWidth,
-		sidebarWidth,
-		lang
-	}: ListFooterProps) => {
+	({ darkMode, isMobile, items, loadingItems, listScrollState, windowWidth, sidebarWidth, lang }: ListFooterProps) => {
 		const location = useLocation()
 
 		const [
@@ -48,22 +39,20 @@ const ListFooter = memo(
 				fileCount == 1 &&
 				folderCount == 0 &&
 				items.filter(
-					item =>
-						item.selected &&
-						item.type == "file" &&
-						["text", "code"].includes(getFilePreviewType(getFileExt(item.name)))
+					item => item.selected && item.type == "file" && ["text", "code"].includes(getFilePreviewType(getFileExt(item.name)))
 				).length == 1 &&
 				location.hash.indexOf("shared-in") == -1
 			const canPreview: boolean =
 				selectedCount == 1 &&
 				fileCount == 1 &&
 				folderCount == 0 &&
-				items.filter(
-					item => item.selected && item.type == "file" && getFilePreviewType(getFileExt(item.name)) !== "none"
-				).length == 1
+				items.filter(item => item.selected && item.type == "file" && getFilePreviewType(getFileExt(item.name)) !== "none").length ==
+					1
 			const favoriteEnabledCount: number = selected.filter(item => item.favorited == 1).length
 			const favoriteDisabledCount: number = selected.filter(item => item.favorited == 0).length
-			const selectedItemsSize: number = selected.reduce((a, b) => a + b.size, 0)
+			const selectedItemsSize: number = selected
+				.filter(item => typeof item.size === "number" && !isNaN(item.size) && item.size >= 0)
+				.reduce((a, b) => a + b.size, 0)
 
 			return [
 				selected,
@@ -161,12 +150,7 @@ const ListFooter = memo(
 							cursor="pointer"
 							onClick={() => {
 								if (folderCount > 0 || fileCount >= 2) {
-									const downloadingToast = showToast(
-										"loading",
-										"Preparing download",
-										"bottom",
-										ONE_YEAR
-									)
+									const downloadingToast = showToast("loading", "Preparing download", "bottom", ONE_YEAR)
 
 									zipDownload(selected, () => {
 										dismissToast(downloadingToast)
@@ -178,12 +162,7 @@ const ListFooter = memo(
 										dismissToast(downloadingToast)
 									})
 								} else {
-									const downloadingToast = showToast(
-										"loading",
-										"Preparing download",
-										"bottom",
-										ONE_YEAR
-									)
+									const downloadingToast = showToast("loading", "Preparing download", "bottom", ONE_YEAR)
 
 									normalDownload(selected, () => {
 										dismissToast(downloadingToast)
