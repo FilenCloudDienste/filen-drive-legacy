@@ -61,7 +61,7 @@ export type Color =
 const colors: any = {
 	light: {
 		textPrimary: "#000000",
-		textSecondary: "#6f6f6f",
+		textSecondary: "#282828",
 		backgroundPrimary: "#FFFFFF",
 		backgroundSecondary: "#f0f0f0",
 		backgroundTertiary: "#FAFAFA",
