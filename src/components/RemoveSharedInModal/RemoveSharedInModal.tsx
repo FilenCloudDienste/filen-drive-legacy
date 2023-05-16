@@ -1,15 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { RemoveSharedInModalProps, ItemProps } from "../../types"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -17,6 +8,7 @@ import { removeSharedInItem } from "../../lib/api"
 import { show as showToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
 import { removeItemsFromStore } from "../../lib/services/metadata"
+import ModalCloseButton from "../ModalCloseButton"
 
 const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: RemoveSharedInModalProps) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -117,15 +109,12 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
 	}, [open])
 
 	useEffect(() => {
-		const openRemoveSharedInModalListener = eventListener.on(
-			"openRemoveSharedInModal",
-			({ items }: { items: ItemProps[] }) => {
-				removeSharedInItems.current = items
+		const openRemoveSharedInModalListener = eventListener.on("openRemoveSharedInModal", ({ items }: { items: ItemProps[] }) => {
+			removeSharedInItems.current = items
 
-				setSelected(items)
-				setOpen(true)
-			}
-		)
+			setSelected(items)
+			setOpen(true)
+		})
 
 		window.addEventListener("keydown", windowKeyDown)
 
@@ -150,17 +139,7 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "remove")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

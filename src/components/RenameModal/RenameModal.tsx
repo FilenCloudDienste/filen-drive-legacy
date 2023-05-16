@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { RenameModalProps, ItemProps } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -12,6 +12,7 @@ import { show as showToast } from "../Toast/Toast"
 import { addFolderNameToDb } from "../../lib/services/items"
 import { i18n } from "../../i18n"
 import { changeItemsInStore } from "../../lib/services/metadata"
+import ModalCloseButton from "../ModalCloseButton"
 
 const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameModalProps) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -181,17 +182,7 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "rename")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

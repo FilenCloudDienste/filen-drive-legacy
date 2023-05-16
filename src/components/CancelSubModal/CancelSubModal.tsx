@@ -1,20 +1,12 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	ModalFooter,
-	ModalHeader,
-	Flex
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import { cancelSub } from "../../lib/api"
 import { i18n } from "../../i18n"
+import ModalCloseButton from "../ModalCloseButton"
 
 const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -71,17 +63,7 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; 
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "cancelSub")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

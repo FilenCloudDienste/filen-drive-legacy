@@ -83,7 +83,7 @@ const ListFooter = memo(
 
 		return (
 			<Flex
-				height={isMobile ? "45px" : "52px"}
+				height={isMobile ? "45px" : "55px"}
 				width={windowWidth - sidebarWidth + "px"}
 				position="fixed"
 				bottom="0px"

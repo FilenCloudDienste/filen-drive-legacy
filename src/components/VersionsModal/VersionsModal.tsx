@@ -5,7 +5,6 @@ import {
 	ModalOverlay,
 	ModalContent,
 	ModalBody,
-	ModalCloseButton,
 	Spinner,
 	ModalFooter,
 	ModalHeader,
@@ -26,6 +25,7 @@ import { FileVersionsV1 } from "../../types"
 import { convertTimestampToMs, simpleDate, formatBytes } from "../../lib/helpers"
 import { queueFileDownload } from "../../lib/services/download"
 import { i18n } from "../../i18n"
+import ModalCloseButton from "../ModalCloseButton"
 
 export type Version = {
 	item: FileVersionsV1
@@ -240,17 +240,7 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "versions")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					width="100%"
 					alignItems="center"

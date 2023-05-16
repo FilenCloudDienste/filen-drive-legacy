@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useRef, useCallback, useMemo, Component } from "react"
 import eventListener from "../../lib/eventListener"
 import { getColor } from "../../styles/colors"
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Flex, ModalFooter, Progress } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Flex, ModalFooter, Progress } from "@chakra-ui/react"
 import type {
 	UploadModalProps,
 	UploadQueueItem,
@@ -34,6 +34,7 @@ import { throttle } from "lodash"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
 import { show as showToast, update as updateToast, dismiss as dismissToast } from "../Toast/Toast"
 import { ONE_YEAR } from "../../lib/constants"
+import ModalCloseButton from "../ModalCloseButton"
 
 const ROW_HEIGHT = 45
 
@@ -676,17 +677,7 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 				height={windowHeight / 2 + "px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "upload")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

@@ -1,20 +1,12 @@
 import { memo, useState, useEffect } from "react"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	ModalFooter,
-	ModalHeader,
-	Flex
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import { AiOutlineExclamationCircle } from "react-icons/ai"
 import { useNavigate } from "react-router-dom"
+import ModalCloseButton from "../ModalCloseButton"
 
 const MaxStorageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -45,17 +37,7 @@ const MaxStorageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean;
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "maxStorageReached")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

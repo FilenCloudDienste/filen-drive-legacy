@@ -5,7 +5,6 @@ import {
 	ModalOverlay,
 	ModalContent,
 	ModalBody,
-	ModalCloseButton,
 	Flex,
 	ModalHeader,
 	ModalFooter,
@@ -41,6 +40,7 @@ import { EditorView } from "@codemirror/view"
 import MarkdownPreview from "@uiw/react-markdown-preview"
 import { useLocation } from "react-router-dom"
 import { memoize } from "lodash"
+import ModalCloseButton from "../ModalCloseButton"
 
 export const getCodeMirrorLanguageExtensionForFile = memoize((name: string) => {
 	const ext: string = getFileExt(name)
@@ -301,17 +301,7 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "fileHasBeenChanged")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"
@@ -382,248 +372,238 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 	)
 })
 
-const TextEditor = memo(
-	({ darkMode, isMobile, windowHeight, windowWidth, currentItem, text, lang, isNewFile }: TextEditorProps) => {
-		const [textEdited, setTextEdited] = useState<string>("")
-		const newText = useRef<string>("")
-		const beforeText = useRef<string>(text)
-		const location = useLocation()
+const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, text, lang, isNewFile }: TextEditorProps) => {
+	const [textEdited, setTextEdited] = useState<string>("")
+	const newText = useRef<string>("")
+	const beforeText = useRef<string>(text)
+	const location = useLocation()
 
-		const showMarkDownPreview: boolean = useMemo(() => {
-			if (
-				getFileExt(currentItem.name) == "md" &&
-				location.pathname.indexOf("/d/") == -1 &&
-				location.pathname.indexOf("/f/") == -1 &&
-				window.location.href.indexOf("/f/") == -1 &&
-				window.location.href.indexOf("/d/") == -1
-			) {
-				return true
-			}
+	const showMarkDownPreview: boolean = useMemo(() => {
+		if (
+			getFileExt(currentItem.name) == "md" &&
+			location.pathname.indexOf("/d/") == -1 &&
+			location.pathname.indexOf("/f/") == -1 &&
+			window.location.href.indexOf("/f/") == -1 &&
+			window.location.href.indexOf("/d/") == -1
+		) {
+			return true
+		}
 
-			return false
-		}, [currentItem, location])
+		return false
+	}, [currentItem, location])
 
-		const textEditorWidth: number = useMemo(() => {
-			if (showMarkDownPreview) {
-				return Math.floor(windowWidth / 2)
-			}
+	const textEditorWidth: number = useMemo(() => {
+		if (showMarkDownPreview) {
+			return Math.floor(windowWidth / 2)
+		}
 
-			return windowWidth
-		}, [showMarkDownPreview, windowWidth])
+		return windowWidth
+	}, [showMarkDownPreview, windowWidth])
 
-		const save = useCallback(() => {
-			if (beforeText.current == newText.current) {
+	const save = useCallback(() => {
+		if (beforeText.current == newText.current) {
+			return
+		}
+
+		const encoded = new TextEncoder().encode(newText.current)
+
+		const blob = new Blob([encoded.buffer], {
+			type: currentItem.mime
+		})
+
+		let file = new File([blob], currentItem.name, {
+			type: currentItem.mime
+		}) as UploadQueueItemFile
+
+		file = Object.assign(file, {
+			fullPath: currentItem.name
+		})
+
+		eventListener.emit("openUploadModal", {
+			files: [file],
+			openModal: false
+		})
+
+		beforeText.current = newText.current
+
+		memoryCache.set("textEditorChanged", false)
+	}, [newText.current, currentItem, beforeText.current])
+
+	const windowOnKeyDownListener = useCallback(
+		(e: KeyboardEvent) => {
+			if (window.location.href.indexOf("/f/") !== -1 || window.location.href.indexOf("/d/") !== -1) {
 				return
 			}
 
-			const encoded = new TextEncoder().encode(newText.current)
+			if (e.which == 83 && (e.ctrlKey || e.metaKey) && typeof currentItem !== "undefined") {
+				e.preventDefault()
+				e.stopPropagation()
 
-			const blob = new Blob([encoded.buffer], {
-				type: currentItem.mime
-			})
-
-			let file = new File([blob], currentItem.name, {
-				type: currentItem.mime
-			}) as UploadQueueItemFile
-
-			file = Object.assign(file, {
-				fullPath: currentItem.name
-			})
-
-			eventListener.emit("openUploadModal", {
-				files: [file],
-				openModal: false
-			})
-
-			beforeText.current = newText.current
-
-			memoryCache.set("textEditorChanged", false)
-		}, [newText.current, currentItem, beforeText.current])
-
-		const windowOnKeyDownListener = useCallback(
-			(e: KeyboardEvent) => {
-				if (window.location.href.indexOf("/f/") !== -1 || window.location.href.indexOf("/d/") !== -1) {
-					return
+				save()
+			} else {
+				if (!e.ctrlKey && !e.metaKey && !e.altKey && !(e.which == 27)) {
+					memoryCache.set("textEditorChanged", true)
 				}
-
-				if (e.which == 83 && (e.ctrlKey || e.metaKey) && typeof currentItem !== "undefined") {
-					e.preventDefault()
-					e.stopPropagation()
-
-					save()
-				} else {
-					if (!e.ctrlKey && !e.metaKey && !e.altKey && !(e.which == 27)) {
-						memoryCache.set("textEditorChanged", true)
-					}
-				}
-			},
-			[newText.current, currentItem]
-		)
-
-		useEffect(() => {
-			newText.current = textEdited
-		}, [textEdited])
-
-		useEffect(() => {
-			memoryCache.set("textEditorChanged", false)
-
-			window.addEventListener("keydown", windowOnKeyDownListener)
-
-			const previewModalBeforeCloseListener = eventListener.on("previewModalBeforeClose", () => {
-				if (memoryCache.get("textEditorChanged")) {
-					eventListener.emit("openBeforeCloseModal")
-
-					return
-				}
-
-				eventListener.emit("closePreviewModal")
-			})
-
-			const saveTextEditorListener = eventListener.on("saveTextEditor", () => save())
-
-			return () => {
-				window.removeEventListener("keydown", windowOnKeyDownListener)
-
-				previewModalBeforeCloseListener.remove()
-				saveTextEditorListener.remove()
 			}
-		}, [])
+		},
+		[newText.current, currentItem]
+	)
 
-		return (
-			<>
+	useEffect(() => {
+		newText.current = textEdited
+	}, [textEdited])
+
+	useEffect(() => {
+		memoryCache.set("textEditorChanged", false)
+
+		window.addEventListener("keydown", windowOnKeyDownListener)
+
+		const previewModalBeforeCloseListener = eventListener.on("previewModalBeforeClose", () => {
+			if (memoryCache.get("textEditorChanged")) {
+				eventListener.emit("openBeforeCloseModal")
+
+				return
+			}
+
+			eventListener.emit("closePreviewModal")
+		})
+
+		const saveTextEditorListener = eventListener.on("saveTextEditor", () => save())
+
+		return () => {
+			window.removeEventListener("keydown", windowOnKeyDownListener)
+
+			previewModalBeforeCloseListener.remove()
+			saveTextEditorListener.remove()
+		}
+	}, [])
+
+	return (
+		<>
+			<Flex
+				className="full-viewport"
+				flexDirection="column"
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+			>
 				<Flex
-					className="full-viewport"
-					flexDirection="column"
-					backgroundColor={getColor(darkMode, "backgroundSecondary")}
+					width={windowWidth}
+					height="50px"
+					flexDirection="row"
+					alignItems="center"
+					paddingLeft="15px"
+					paddingRight="15px"
 				>
-					<Flex
-						width={windowWidth}
-						height="50px"
-						flexDirection="row"
-						alignItems="center"
-						paddingLeft="15px"
-						paddingRight="15px"
-					>
-						{window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
-							<Flex>
-								<FileMenu
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-									isNewFile={isNewFile}
-								/>
-							</Flex>
-						)}
+					{window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
 						<Flex>
-							<AppText
+							<FileMenu
 								darkMode={darkMode}
 								isMobile={isMobile}
-								noOfLines={1}
-								wordBreak="break-all"
-								color={getColor(darkMode, "textSecondary")}
-							>
-								{currentItem.name}
-							</AppText>
+								lang={lang}
+								isNewFile={isNewFile}
+							/>
 						</Flex>
-					</Flex>
-					<Flex
-						width={windowWidth + "px"}
-						height={windowHeight - 50 + "px"}
-					>
-						<CodeMirror
-							value={text}
-							width={textEditorWidth + "px"}
-							height={windowHeight - 50 + "px"}
-							theme={createCodeMirrorTheme(darkMode)}
-							indentWithTab={true}
-							autoFocus={true}
-							basicSetup={{
-								crosshairCursor: false,
-								searchKeymap: false,
-								foldKeymap: false,
-								lintKeymap: false,
-								completionKeymap: false,
-								closeBracketsKeymap: false,
-								foldGutter: false
-							}}
-							onChange={value => {
-								if (
-									window.location.href.indexOf("/f/") !== -1 ||
-									window.location.href.indexOf("/d/") !== -1
-								) {
-									return
-								}
-
-								setTextEdited(value)
-							}}
-							style={{
-								paddingLeft: "5px",
-								paddingRight: "5px",
-								maxWidth: textEditorWidth + "px",
-								maxHeight: windowHeight - 50 + "px",
-								width: textEditorWidth + "px",
-								height: windowHeight - 50 + "px"
-							}}
-							extensions={[
-								getCodeMirrorLanguageExtensionForFile(currentItem.name),
-								EditorView.lineWrapping
-							]}
-						/>
-						{showMarkDownPreview &&
-							window.location.href.indexOf("/f/") == -1 &&
-							window.location.href.indexOf("/d/") == -1 && (
-								<Flex
-									width={textEditorWidth + "px"}
-									height={windowHeight - 50 + "px"}
-									overflowY="auto"
-									backgroundColor={darkMode ? "#0D1117" : "white"}
-								>
-									<MarkdownPreview
-										source={textEdited}
-										style={{
-											width: textEditorWidth + "px",
-											height: windowHeight - 50 + "px",
-											paddingLeft: "15px",
-											paddingRight: "15px",
-											paddingTop: "6px",
-											paddingBottom: "15px",
-											color: getColor(darkMode, "textPrimary"),
-											userSelect: "all"
-										}}
-										rehypeRewrite={(node, index, parent) => {
-											try {
-												if (
-													// @ts-ignore
-													node.tagName === "a" &&
-													parent &&
-													// @ts-ignore
-													/^h(1|2|3|4|5|6)/.test(parent.tagName)
-												) {
-													parent.children = parent.children.slice(1)
-												}
-											} catch (e) {
-												console.error(e)
-											}
-										}}
-										skipHtml={true}
-										linkTarget="_blank"
-										warpperElement={{
-											"data-color-mode": darkMode ? "dark" : "light"
-										}}
-									/>
-								</Flex>
-							)}
+					)}
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "textSecondary")}
+						>
+							{currentItem.name}
+						</AppText>
 					</Flex>
 				</Flex>
-				<BeforeCloseModal
-					darkMode={darkMode}
-					isMobile={isMobile}
-					lang={lang}
-					isNewFile={isNewFile}
-				/>
-			</>
-		)
-	}
-)
+				<Flex
+					width={windowWidth + "px"}
+					height={windowHeight - 50 + "px"}
+				>
+					<CodeMirror
+						value={text}
+						width={textEditorWidth + "px"}
+						height={windowHeight - 50 + "px"}
+						theme={createCodeMirrorTheme(darkMode)}
+						indentWithTab={true}
+						autoFocus={true}
+						basicSetup={{
+							crosshairCursor: false,
+							searchKeymap: false,
+							foldKeymap: false,
+							lintKeymap: false,
+							completionKeymap: false,
+							closeBracketsKeymap: false,
+							foldGutter: false
+						}}
+						onChange={value => {
+							if (window.location.href.indexOf("/f/") !== -1 || window.location.href.indexOf("/d/") !== -1) {
+								return
+							}
+
+							setTextEdited(value)
+						}}
+						style={{
+							paddingLeft: "5px",
+							paddingRight: "5px",
+							maxWidth: textEditorWidth + "px",
+							maxHeight: windowHeight - 50 + "px",
+							width: textEditorWidth + "px",
+							height: windowHeight - 50 + "px"
+						}}
+						extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
+					/>
+					{showMarkDownPreview && window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
+						<Flex
+							width={textEditorWidth + "px"}
+							height={windowHeight - 50 + "px"}
+							overflowY="auto"
+							backgroundColor={darkMode ? "#0D1117" : "white"}
+						>
+							<MarkdownPreview
+								source={textEdited}
+								style={{
+									width: textEditorWidth + "px",
+									height: windowHeight - 50 + "px",
+									paddingLeft: "15px",
+									paddingRight: "15px",
+									paddingTop: "6px",
+									paddingBottom: "15px",
+									color: getColor(darkMode, "textPrimary"),
+									userSelect: "all"
+								}}
+								rehypeRewrite={(node, index, parent) => {
+									try {
+										if (
+											// @ts-ignore
+											node.tagName === "a" &&
+											parent &&
+											// @ts-ignore
+											/^h(1|2|3|4|5|6)/.test(parent.tagName)
+										) {
+											parent.children = parent.children.slice(1)
+										}
+									} catch (e) {
+										console.error(e)
+									}
+								}}
+								skipHtml={true}
+								linkTarget="_blank"
+								warpperElement={{
+									"data-color-mode": darkMode ? "dark" : "light"
+								}}
+							/>
+						</Flex>
+					)}
+				</Flex>
+			</Flex>
+			<BeforeCloseModal
+				darkMode={darkMode}
+				isMobile={isMobile}
+				lang={lang}
+				isNewFile={isNewFile}
+			/>
+		</>
+	)
+})
 
 export default TextEditor

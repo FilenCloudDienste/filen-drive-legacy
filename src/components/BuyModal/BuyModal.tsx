@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useMemo, useCallback } from "react"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -8,6 +8,7 @@ import { buySub } from "../../lib/api"
 import type { PaymentMethods } from "../../types"
 import Button from "../Button"
 import { i18n } from "../../i18n"
+import ModalCloseButton from "../ModalCloseButton"
 
 export interface PlanProps {
 	id: number
@@ -90,17 +91,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{plan.name}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="auto"
 					width="100%"

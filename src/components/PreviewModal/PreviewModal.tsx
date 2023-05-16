@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { PreviewModalProps, ItemProps } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, Flex } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import { getFilePreviewType, getFileExt } from "../../lib/helpers"
@@ -16,6 +16,7 @@ import VideoViewer from "./VideoViewer"
 import AudioViewer from "./AudioViewer"
 import { useMountedState } from "react-use"
 import DocXViewer from "./DocXViewer"
+import ModalCloseButton from "../ModalCloseButton"
 
 const previewCache = new Map()
 let blobURLs: string[] = []
@@ -394,18 +395,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 				padding="0px"
 				overflow="hidden"
 			>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-					zIndex={1000001}
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody padding="0px">
 					<Flex
 						height={windowHeight + "px"}

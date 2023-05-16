@@ -5,7 +5,6 @@ import {
 	ModalOverlay,
 	ModalContent,
 	ModalBody,
-	ModalCloseButton,
 	Spinner,
 	ModalFooter,
 	ModalHeader,
@@ -26,6 +25,7 @@ import { decryptFolderLinkKey } from "../../lib/worker/worker.com"
 import { ONE_YEAR } from "../../lib/constants"
 import { i18n } from "../../i18n"
 import { removeItemsFromStore, addItemsToStore } from "../../lib/services/metadata"
+import ModalCloseButton from "../ModalCloseButton"
 
 const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLinkModalProps) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -49,67 +49,64 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 		}
 	}, [lang])
 
-	const fetchInfo = useCallback(
-		(item: ItemProps, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false) => {
-			setInfo(undefined)
-			setFetchingInfo(true)
-			setKey("")
-			setPasswordDummy("")
+	const fetchInfo = useCallback((item: ItemProps, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false) => {
+		setInfo(undefined)
+		setFetchingInfo(true)
+		setKey("")
+		setPasswordDummy("")
 
-			const req = () => {
-				itemPublicLinkInfo(item)
-					.then(async info => {
-						if (waitUntilEnabled) {
-							if (item.type == "folder") {
-								if (typeof info.exists == "boolean" && !info.exists) {
-									return setTimeout(req, 250)
-								}
-							} else {
-								if (typeof info.enabled == "boolean" && !info.enabled) {
-									return setTimeout(req, 250)
-								}
+		const req = () => {
+			itemPublicLinkInfo(item)
+				.then(async info => {
+					if (waitUntilEnabled) {
+						if (item.type == "folder") {
+							if (typeof info.exists == "boolean" && !info.exists) {
+								return setTimeout(req, 250)
+							}
+						} else {
+							if (typeof info.enabled == "boolean" && !info.enabled) {
+								return setTimeout(req, 250)
 							}
 						}
+					}
 
-						if (waitUntilDisabled) {
-							if (item.type == "folder") {
-								if (typeof info.exists == "boolean" && info.exists) {
-									return setTimeout(req, 250)
-								}
-							} else {
-								if (typeof info.enabled == "boolean" && info.enabled) {
-									return setTimeout(req, 250)
-								}
+					if (waitUntilDisabled) {
+						if (item.type == "folder") {
+							if (typeof info.exists == "boolean" && info.exists) {
+								return setTimeout(req, 250)
+							}
+						} else {
+							if (typeof info.enabled == "boolean" && info.enabled) {
+								return setTimeout(req, 250)
 							}
 						}
+					}
 
-						if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
-							const masterKeys: string[] = await db.get("masterKeys")
-							const keyDecrypted: string = await decryptFolderLinkKey(info.key, masterKeys)
+					if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
+						const masterKeys: string[] = await db.get("masterKeys")
+						const keyDecrypted: string = await decryptFolderLinkKey(info.key, masterKeys)
 
-							if (keyDecrypted.length == 0) {
-								setOpen(false)
+						if (keyDecrypted.length == 0) {
+							setOpen(false)
 
-								return
-							}
-
-							setKey(keyDecrypted)
+							return
 						}
 
-						setInfo(info)
-						setFetchingInfo(false)
-					})
-					.catch(err => {
-						setFetchingInfo(false)
+						setKey(keyDecrypted)
+					}
 
-						console.error(err)
-					})
-			}
+					setInfo(info)
+					setFetchingInfo(false)
+				})
+				.catch(err => {
+					setFetchingInfo(false)
 
-			req()
-		},
-		[]
-	)
+					console.error(err)
+				})
+		}
+
+		req()
+	}, [])
 
 	const enable = useCallback(async () => {
 		if (typeof currentItem == "undefined") {
@@ -125,12 +122,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 				const left: number = total - current
 
 				if (left <= 0) {
-					updateToast(
-						loading,
-						"loading",
-						i18n(lang, "addingItemsToPublicLinkProgress", true, ["__LEFT__"], ["0"]),
-						ONE_YEAR
-					)
+					updateToast(loading, "loading", i18n(lang, "addingItemsToPublicLinkProgress", true, ["__LEFT__"], ["0"]), ONE_YEAR)
 
 					return
 				}
@@ -251,17 +243,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "publicLink")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"
@@ -419,10 +401,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 															key={exp}
 															value={exp}
 															style={{
-																backgroundColor: getColor(
-																	darkMode,
-																	"backgroundSecondary"
-																)
+																backgroundColor: getColor(darkMode, "backgroundSecondary")
 															}}
 														>
 															{mapExpirationToString[exp]}
@@ -518,10 +497,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 								</>
 							) : (
 								<>
-									{typeof info.exists == "boolean" &&
-									info.exists &&
-									typeof key == "string" &&
-									key.length >= 32 ? (
+									{typeof info.exists == "boolean" && info.exists && typeof key == "string" && key.length >= 32 ? (
 										<>
 											<Flex
 												justifyContent="space-between"
@@ -659,10 +635,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 															key={exp}
 															value={exp}
 															style={{
-																backgroundColor: getColor(
-																	darkMode,
-																	"backgroundSecondary"
-																)
+																backgroundColor: getColor(darkMode, "backgroundSecondary")
 															}}
 														>
 															{mapExpirationToString[exp]}
@@ -732,8 +705,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 				</ModalBody>
 				<ModalFooter marginTop="15px">
 					{!fetchingInfo &&
-						((typeof info.enabled == "boolean" && info.enabled) ||
-							(typeof info.exists == "boolean" && info.exists)) && (
+						((typeof info.enabled == "boolean" && info.enabled) || (typeof info.exists == "boolean" && info.exists)) && (
 							<>
 								<AppText
 									darkMode={darkMode}

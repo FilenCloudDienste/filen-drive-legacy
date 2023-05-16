@@ -1,16 +1,6 @@
 import { memo, useState, useEffect, useCallback } from "react"
 import type { EventInfoModalProps, UserEvent } from "../../types"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader,
-	Flex
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -19,6 +9,7 @@ import { getEventText } from "../../lib/services/events"
 import db from "../../lib/db"
 import { simpleDate, convertTimestampToMs } from "../../lib/helpers"
 import { i18n } from "../../i18n"
+import ModalCloseButton from "../ModalCloseButton"
 
 export interface EventInfo {
 	event: UserEvent
@@ -97,17 +88,7 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "event")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

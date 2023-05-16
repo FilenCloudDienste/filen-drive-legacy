@@ -1557,8 +1557,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 				paddingLeft="0px"
 				paddingRight="10px"
 				marginTop="5px"
-				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
-				boxShadow="sm"
+				borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 				cursor="pointer"
 				onClick={() => eventListener.emit("openEventInfoModal", event.uuid)}
 			>
@@ -1572,8 +1571,8 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 						{typeof userInfo !== "undefined" && (
 							<Avatar
 								name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
-								width="26px"
-								height="26px"
+								width="22px"
+								height="22px"
 								src={
 									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}
@@ -1587,6 +1586,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 							color={getColor(darkMode, "textSecondary")}
 							cursor="pointer"
 							marginLeft="10px"
+							fontSize={15}
 						>
 							{text}
 						</AppText>

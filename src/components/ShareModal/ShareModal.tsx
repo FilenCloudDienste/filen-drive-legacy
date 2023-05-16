@@ -1,15 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import type { ShareModalProps, ItemProps } from "../../types"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -18,6 +9,7 @@ import { show as showToast, dismiss as dismissToast, update as updateToast } fro
 import Input from "../Input"
 import { ONE_YEAR } from "../../lib/constants"
 import { i18n } from "../../i18n"
+import ModalCloseButton from "../ModalCloseButton"
 
 const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -70,13 +62,7 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 
 			showToast(
 				"success",
-				i18n(
-					lang,
-					"itemsSharedWith",
-					true,
-					["__COUNT__", "__EMAIL__"],
-					[toShare.current.length.toString(), userEmail]
-				),
+				i18n(lang, "itemsSharedWith", true, ["__COUNT__", "__EMAIL__"], [toShare.current.length.toString(), userEmail]),
 				"bottom",
 				5000
 			)
@@ -121,17 +107,7 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "share")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
 					width="100%"

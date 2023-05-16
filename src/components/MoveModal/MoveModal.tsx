@@ -1,16 +1,6 @@
 import { memo, useState, useEffect, useCallback, useMemo } from "react"
 import type { MoveModalProps, ItemProps } from "../../types"
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalBody,
-	ModalCloseButton,
-	Spinner,
-	ModalFooter,
-	ModalHeader,
-	Flex
-} from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -21,7 +11,8 @@ import db from "../../lib/db"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
 import { addItemsToStore, removeItemsFromStore } from "../../lib/services/metadata"
-import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
+import { show as showToast } from "../Toast/Toast"
+import ModalCloseButton from "../ModalCloseButton"
 
 export const CloudTreeItem = memo(
 	({
@@ -115,17 +106,13 @@ export const CloudTreeItem = memo(
 							<Spinner
 								width={parent.uuid == "base" ? "16px" : "13px"}
 								height={parent.uuid == "base" ? "16px" : "13px"}
-								color={
-									bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
-								}
+								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								flexShrink={0}
 							/>
 						) : moveModalFolderOpen[parent.uuid] ? (
 							<IoChevronDown
 								size={parent.uuid == "base" ? 16 : 13}
-								color={
-									bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
-								}
+								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => {
 									if (parent.uuid == "base" || !canMove) {
 										return
@@ -143,9 +130,7 @@ export const CloudTreeItem = memo(
 						) : (
 							<IoChevronForward
 								size={parent.uuid == "base" ? 16 : 13}
-								color={
-									bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
-								}
+								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => {
 									if (parent.uuid == "base" || !canMove) {
 										return
@@ -164,9 +149,7 @@ export const CloudTreeItem = memo(
 						{parent.uuid == "base" ? (
 							<IoCloud
 								size={parent.uuid == "base" ? 20 : 16}
-								color={
-									bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
-								}
+								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								style={{
 									marginLeft: "6px",
 									flexShrink: 0
@@ -407,33 +390,15 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
 				borderRadius={isMobile ? "0px" : "5px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "selectDestination")}</ModalHeader>
-				<ModalCloseButton
-					color={getColor(darkMode, "textSecondary")}
-					backgroundColor={getColor(darkMode, "backgroundTertiary")}
-					_hover={{
-						color: getColor(darkMode, "textPrimary"),
-						backgroundColor: getColor(darkMode, "backgroundPrimary")
-					}}
-					autoFocus={false}
-					tabIndex={-1}
-					borderRadius="full"
-				/>
+				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
-					height={
-						isMobile
-							? (document.documentElement.clientHeight || window.innerHeight) - 62 - 75 + "px"
-							: "500px"
-					}
+					height={isMobile ? (document.documentElement.clientHeight || window.innerHeight) - 62 - 75 + "px" : "500px"}
 					width="100%"
 					alignItems="center"
 					justifyContent="center"
 				>
 					<Flex
-						height={
-							isMobile
-								? (document.documentElement.clientHeight || window.innerHeight) - 62 - 75 + "px"
-								: "500px"
-						}
+						height={isMobile ? (document.documentElement.clientHeight || window.innerHeight) - 62 - 75 + "px" : "500px"}
 						overflow="auto"
 					>
 						<CloudTree
