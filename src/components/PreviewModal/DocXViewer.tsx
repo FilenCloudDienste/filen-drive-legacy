@@ -1,9 +1,9 @@
-import { memo } from "react"
+import { memo, useEffect } from "react"
 import type { ItemProps } from "../../types"
 import { Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
-import DOCViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer"
+import * as docx from "docx-preview"
 
 export interface DocViewerProps {
 	darkMode: boolean
@@ -11,10 +11,31 @@ export interface DocViewerProps {
 	windowHeight: number
 	windowWidth: number
 	currentItem: ItemProps
-	doc: string
+	docX: Uint8Array
 }
 
-const DocViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, doc }: DocViewerProps) => {
+const DocXViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, docX }: DocViewerProps) => {
+	const container = document.getElementById("docXContainer")!
+
+	useEffect(() => {
+		if (docX.byteLength > 0) {
+			docx.renderAsync(docX, container, container, {
+				ignoreHeight: false,
+				ignoreWidth: false,
+				ignoreFonts: false,
+				breakPages: true,
+				debug: process.env.NODE_ENV === "development",
+				experimental: true,
+				inWrapper: true,
+				trimXmlDeclaration: true,
+				ignoreLastRenderedPageBreak: true,
+				renderHeaders: true,
+				renderFooters: true,
+				renderFootnotes: true
+			})
+		}
+	}, [docX])
+
 	return (
 		<Flex
 			className="full-viewport"
@@ -47,19 +68,18 @@ const DocViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, current
 				height={windowHeight - 50 + "px"}
 				alignItems="center"
 				justifyContent="center"
+				backgroundColor={getColor(darkMode, "backgroundPrimary")}
 			>
-				{doc.length > 0 ? (
-					<DOCViewer
-						documents={[
-							{
-								uri: doc,
-								fileName: currentItem.name,
-								fileType: currentItem.mime
-							}
-						]}
-						pluginRenderers={DocViewerRenderers}
-					/>
-				) : (
+				<div
+					id="docXContainer"
+					style={{
+						maxWidth: windowWidth,
+						maxHeight: windowHeight - 50,
+						overflowY: "auto",
+						overflowX: "auto"
+					}}
+				/>
+				{docX.byteLength <= 0 && (
 					<Spinner
 						width="64px"
 						height="64px"
@@ -71,4 +91,4 @@ const DocViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, current
 	)
 })
 
-export default DocViewer
+export default DocXViewer

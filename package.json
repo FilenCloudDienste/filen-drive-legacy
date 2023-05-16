@@ -49,6 +49,7 @@
 		"cors": "2.8.5",
 		"crypto-api-v1": "1.0.0",
 		"crypto-js": "4.1.1",
+		"docx-preview": "git+https://github.com/VolodymyrBaydalka/docxjs.git",
 		"dompurify": "^3.0.1",
 		"framer-motion": "6.4.2",
 		"heic-convert": "1.2.4",

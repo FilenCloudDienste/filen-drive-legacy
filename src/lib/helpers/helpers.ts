@@ -610,6 +610,8 @@ export const getFilePreviewType = (ext: string) => {
 			return "pdf"
 			break
 		case "docx":
+			return "docx"
+			break
 		case "doc":
 		case "csv":
 		case "ppt":

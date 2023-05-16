@@ -27,8 +27,9 @@ import { MdReportGmailerrorred } from "react-icons/md"
 import AbuseReportModal from "../../components/AbuseReportModal"
 import { i18n } from "../../i18n"
 import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewModal/TextEditor"
+import * as docx from "docx-preview"
 
-const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video"]
+const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video", "docx"]
 const MAX_SIZE: number = 1024 * 1024 * 16
 
 const getItemFromFile = (info: LinkGetInfoV1, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
@@ -78,6 +79,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 	const [loadingPassword, setLoadingPassword] = useState<boolean>(false)
 	const [passwordCorrect, setPasswordCorrect] = useState<boolean>(false)
 	const [video, setVideo] = useState<string>("")
+	const [docX, setDocX] = useState<Uint8Array>(new Uint8Array())
 
 	const [previewContainerWidth, previewContainerHeight] = useMemo(() => {
 		if (isMobile) {
@@ -186,6 +188,35 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 													} catch (e) {
 														console.error(e)
 													}
+												} else if (getFilePreviewType(getFileExt(name)) == "docx") {
+													setDocX(buffer)
+
+													const container = document.getElementById("docXContainer")
+
+													new Promise<void>(resolve => {
+														const wait = setInterval(() => {
+															if (container) {
+																clearInterval(wait)
+
+																resolve()
+															}
+														}, 10)
+													}).then(() => {
+														docx.renderAsync(buffer, container!, container!, {
+															ignoreHeight: false,
+															ignoreWidth: false,
+															ignoreFonts: false,
+															breakPages: true,
+															debug: process.env.NODE_ENV === "development",
+															experimental: true,
+															inWrapper: true,
+															trimXmlDeclaration: true,
+															ignoreLastRenderedPageBreak: true,
+															renderHeaders: true,
+															renderFooters: true,
+															renderFootnotes: true
+														})
+													})
 												}
 											} else {
 												return console.error(new Error("buffer !== Uint8Array"))
@@ -531,6 +562,49 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 															controls={true}
 															src={video}
 															style={{
+																maxHeight: "100%",
+																maxWidth: "100%"
+															}}
+														/>
+													</PreviewContainer>
+												)}
+											</>
+										)}
+										{getFilePreviewType(getFileExt(file.name)) == "docx" && (
+											<>
+												{docX.byteLength <= 0 ? (
+													<Flex
+														width="300px"
+														flexDirection="column"
+														justifyContent="center"
+														alignItems="center"
+													>
+														<Spinner
+															width="32px"
+															height="32px"
+															color={getColor(darkMode, "textPrimary")}
+														/>
+													</Flex>
+												) : (
+													<PreviewContainer
+														darkMode={darkMode}
+														isMobile={isMobile}
+														windowWidth={windowWidth}
+														windowHeight={windowHeight}
+														lang={lang}
+														info={info}
+														file={file}
+														download={download}
+														toggleColorMode={toggleColorMode}
+														previewContainerWidth={previewContainerWidth}
+														previewContainerHeight={previewContainerHeight}
+														password={password}
+													>
+														<div
+															id="docXContainer"
+															style={{
+																overflowY: "auto",
+																overflowX: "auto",
 																maxHeight: "100%",
 																maxWidth: "100%"
 															}}
