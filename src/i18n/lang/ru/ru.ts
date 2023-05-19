@@ -390,7 +390,9 @@ const ru: {
 	finishing: "Завершение",
 	searchNothingFound: '"__TERM__" не найдено',
 	queued: "В очереди",
-	searchInThisFolder: "Искать в этой папке..."
+	searchInThisFolder: "Искать в этой папке...",
+	fileVersioning: "Версионирование файлов",
+	loginAlerts: "Оповещения о входе в систему"
 }
 
 export default ru

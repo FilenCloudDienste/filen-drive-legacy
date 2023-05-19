@@ -389,7 +389,9 @@ const uk: {
 	finishing: "Завершення",
 	searchNothingFound: '"__TERM__" не знайдено',
 	queued: "В черзі",
-	searchInThisFolder: "Шукати в цій папці..."
+	searchInThisFolder: "Шукати в цій папці...",
+	fileVersioning: "Версіонування файлів",
+	loginAlerts: "Сповіщення про вхід до системи"
 }
 
 export default uk
