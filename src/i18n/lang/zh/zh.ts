@@ -374,7 +374,9 @@ const zh: {
 	finishing: "整理中",
 	searchNothingFound: "__TERM__ 未找到",
 	queued: "排队中",
-	searchInThisFolder: "在此文件夹中搜索..."
+	searchInThisFolder: "在此文件夹中搜索...",
+        fileVersioning: "文件版本管理",
+        loginAlerts: "登录提醒"
 }
 
 export default zh
