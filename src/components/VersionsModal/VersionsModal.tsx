@@ -112,23 +112,27 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
 			}
 
 			try {
-				await restoreArchivedFile({ uuid: currentItem.uuid, currentUUID: version.item.uuid })
+				await restoreArchivedFile({ uuid: version.item.uuid, currentUUID: currentItem.uuid })
 
 				setCurrentItem(prev => {
 					if (typeof prev == "undefined") {
 						return item
 					}
 
-					return {
+					const newItem = {
 						...prev,
 						uuid: version.item.uuid
 					}
+
+					loadVersions(newItem)
+
+					eventListener.emit("updateList", newItem.parent)
+
+					return newItem
 				})
 			} catch (e) {
 				console.error(e)
 			}
-
-			loadVersions(currentItem)
 		},
 		[currentItem]
 	)
