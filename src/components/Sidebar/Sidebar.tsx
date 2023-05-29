@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { Flex, Avatar, Spinner, Progress, CircularProgress } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
-import { IoTrash, IoCloud, IoFolderOpen, IoFolder, IoChevronDown, IoChevronForward } from "react-icons/io5"
+import { IoTrash, IoCloud, IoFolderOpen, IoFolder, IoChevronDown, IoChevronForward, IoChatbubblesSharp } from "react-icons/io5"
 import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri"
 import { MdOutlineFavorite } from "react-icons/md"
 import { HiClock } from "react-icons/hi"
@@ -24,7 +24,7 @@ import type {
 	UserInfoV1
 } from "../../types"
 import { loadSidebarItems } from "../../lib/services/items"
-import { getFolderColor, getCurrentParent, formatBytes } from "../../lib/helpers"
+import { getFolderColor, getCurrentParent, formatBytes, safeAwait } from "../../lib/helpers"
 import db from "../../lib/db"
 import { CHAKRA_COLOR_SCHEME, DROP_NAVIGATION_TIMEOUT } from "../../lib/constants"
 import eventListener from "../../lib/eventListener"
@@ -35,6 +35,7 @@ import { i18n } from "../../i18n"
 import { contextMenu } from "react-contexify"
 import type { SocketEvent } from "../../lib/services/socket"
 import memoryCache from "../../lib/memoryCache"
+import { chatUnread } from "../../lib/api"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -54,6 +55,7 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	const navigate = useNavigate()
 	const [hovering, setHovering] = useState<boolean>(false)
 	const location = useLocation()
+	const [unreadChatMessages, setUnreadChatMessages] = useState<number>(0)
 
 	const active = useMemo(() => {
 		return "/" + location.hash == to || location.hash.indexOf(type) !== -1
@@ -65,6 +67,50 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 			text: hovering || active ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
 		}
 	}, [darkMode, hovering, active])
+
+	const updateChatUnread = useCallback(async () => {
+		if (window.location.href.indexOf("chats") !== -1) {
+			return
+		}
+
+		const [unreadErr, unreadRes] = await safeAwait(chatUnread())
+
+		if (unreadErr) {
+			console.error(unreadErr)
+
+			return
+		}
+
+		setUnreadChatMessages(unreadRes)
+	}, [])
+
+	useEffect(() => {
+		let refreshTimer: ReturnType<typeof setInterval>
+		let updateChatUnreadListener: ReturnType<typeof eventListener.on>
+		let updateChatUnreadNumberListener: ReturnType<typeof eventListener.on>
+
+		if (type === "chats" && window.location.href.indexOf("chats") === -1) {
+			updateChatUnread()
+
+			refreshTimer = setInterval(updateChatUnread, 5000)
+			updateChatUnreadListener = eventListener.on("updateChatUnread", updateChatUnread)
+			updateChatUnreadNumberListener = eventListener.on("updateChatUnreadNumber", (number: number) => setUnreadChatMessages(number))
+		}
+
+		return () => {
+			if (refreshTimer) {
+				clearInterval(refreshTimer)
+			}
+
+			if (updateChatUnreadListener) {
+				updateChatUnreadListener.remove()
+			}
+
+			if (updateChatUnreadNumberListener) {
+				updateChatUnreadNumberListener.remove()
+			}
+		}
+	}, [])
 
 	return (
 		<Flex
@@ -82,6 +128,30 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 			backgroundColor={hovering || active ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 			onClick={() => navigate(to)}
 		>
+			{type === "chats" && unreadChatMessages > 0 && window.location.href.indexOf("chats") === -1 && (
+				<Flex
+					position="absolute"
+					width="16px"
+					height="16px"
+					backgroundColor={getColor(darkMode, "red")}
+					borderRadius="full"
+					justifyContent="center"
+					alignItems="center"
+					marginTop="-16px"
+					marginLeft="11px"
+				>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						fontSize={13}
+						fontWeight="bold"
+						color={colors.text}
+					>
+						{unreadChatMessages}
+					</AppText>
+				</Flex>
+			)}
 			{type == "cloudDrive" && (
 				<IoCloud
 					size={20}
@@ -120,6 +190,12 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 			)}
 			{type == "trash" && (
 				<IoTrash
+					size={20}
+					color={colors.icon}
+				/>
+			)}
+			{type === "chats" && (
+				<IoChatbubblesSharp
 					size={20}
 					color={colors.icon}
 				/>
@@ -952,6 +1028,18 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				type="trash"
 				text={i18n(lang, "trash")}
 				to="/#/trash"
+			/>
+			<Divider
+				darkMode={darkMode}
+				marginTop={4}
+				marginBottom={4}
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="chats"
+				text={i18n(lang, "chats")}
+				to="/#/chats"
 			/>
 			<Usage
 				darkMode={darkMode}

@@ -368,6 +368,32 @@ const encryptMetadataPublicKey = async (data: string, publicKey: string): Promis
 	return arrayBufferToBase64(encrypted)
 }
 
+const decryptMetadataPrivateKey = async (data: string, privateKey: string): Promise<string> => {
+	try {
+		const cacheKey: string = "decryptMetadataPrivateKey:" + data
+
+		if (memoryCache.has(cacheKey)) {
+			return memoryCache.get(cacheKey)
+		}
+
+		const importedKey = await importPrivateKey(privateKey, ["decrypt"])
+		const decrypted = await globalThis.crypto.subtle.decrypt(
+			{
+				name: "RSA-OAEP"
+			},
+			importedKey,
+			base64ToArrayBuffer(data)
+		)
+		const metadata = textDecoder.decode(decrypted)
+
+		memoryCache.set(cacheKey, metadata)
+
+		return metadata
+	} catch (e) {
+		return ""
+	}
+}
+
 const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]): Promise<CryptoKey> => {
 	const cacheKey = "importPrivateKey:" + mode.join(":") + ":" + publicKey
 
@@ -904,6 +930,60 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 	return transfer(result, [result.buffer])
 }
 
+export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	try {
+		const key = await decryptMetadataPrivateKey(metadata, privateKey)
+
+		if (!key) {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptChatMessage = async (message: string, metadata: string, privateKey: string): Promise<string> => {
+	try {
+		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
+
+		if (keyDecrypted.length === 0) {
+			return ""
+		}
+
+		const messageDecrypted = await decryptMetadata(message, keyDecrypted)
+
+		if (!messageDecrypted) {
+			return ""
+		}
+
+		const parsedMessage = JSON.parse(messageDecrypted)
+
+		if (typeof parsedMessage.message !== "string") {
+			return ""
+		}
+
+		return parsedMessage.message
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ message }), key)
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -928,7 +1008,11 @@ export const api = {
 	decryptFolderNameLink,
 	decryptFileMetadataLink,
 	convertHeic,
-	bufferToHash
+	bufferToHash,
+	decryptMetadataPrivateKey,
+	decryptChatMessageKey,
+	decryptChatMessage,
+	encryptChatMessage
 }
 
 expose(api)

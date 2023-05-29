@@ -5,6 +5,7 @@ import eventListener from "../../eventListener"
 import db from "../../db"
 import cookies from "../../cookies"
 import type { FolderColors } from "../../../types"
+import { ChatMessage, TypingType } from "../../api"
 
 export interface SocketNewEvent {
 	uuid: string
@@ -123,6 +124,31 @@ export interface SocketFolderColorChanged {
 	color: FolderColors
 }
 
+export interface SocketChatMessageNew extends ChatMessage {
+	conversation: string
+}
+
+export interface SocketChatTyping {
+	conversation: string
+	senderAvatar: string | null
+	senderEmail: string
+	senderFirstName: string | null
+	senderId: number
+	senderLastName: string | null
+	timestamp: number
+	type: TypingType
+}
+
+export interface SocketChatConversationsNew {
+	uuid: string
+	metadata: string
+	addedTimestamp: number
+}
+
+export interface SocketChatMessageDelete {
+	uuid: string
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -183,18 +209,43 @@ export type SocketEvent =
 	| {
 			type: "trashEmpty"
 	  }
+	| {
+			type: "chatMessageNew"
+			data: SocketChatMessageNew
+	  }
+	| {
+			type: "chatTyping"
+			data: SocketChatTyping
+	  }
+	| {
+			type: "chatConversationsNew"
+			data: SocketChatConversationsNew
+	  }
+	| {
+			type: "chatMessageDelete"
+			data: SocketChatMessageDelete
+	  }
 
-let CONNECTED: boolean = false
-let PING_INTERVAL: any = undefined
-let SOCKET_HANDLE: any = undefined
+const waitForLogin = () => {
+	return new Promise<void>(resolve => {
+		const wait = setInterval(async () => {
+			const loggedIn = cookies.get("loggedIn")
+			const apiKey = await db.get("apiKey")
+
+			if (loggedIn === "true" && typeof apiKey === "string" && apiKey.length > 0) {
+				clearInterval(wait)
+
+				resolve()
+			}
+		}, 1000)
+	})
+}
 
 export const connect = () => {
-	CONNECTED = false
-	SOCKET_HANDLE = undefined
+	let PING_INTERVAL: ReturnType<typeof setInterval>
+	let emitSocketAuthed: boolean = false
 
-	clearInterval(PING_INTERVAL)
-
-	SOCKET_HANDLE = io(SOCKET, {
+	const SOCKET_HANDLE = io(SOCKET, {
 		path: "",
 		reconnect: true,
 		reconnection: true,
@@ -203,29 +254,41 @@ export const connect = () => {
 	})
 
 	SOCKET_HANDLE.on("connect", async () => {
-		CONNECTED = true
+		console.log("Connected to socket")
 
-		console.log("Connected to socket server")
+		SOCKET_HANDLE.emit("authed", Date.now())
 
-		const loggedIn = cookies.get("loggedIn")
+		PING_INTERVAL = setInterval(() => {
+			SOCKET_HANDLE.emit("authed", Date.now())
+		}, 3000)
+	})
 
-		if (loggedIn == "true") {
+	SOCKET_HANDLE.on("authFailed", () => {
+		console.log("Socket auth failed")
+	})
+
+	SOCKET_HANDLE.on("authed", async (authed: boolean) => {
+		if (!authed) {
+			await waitForLogin()
+
 			SOCKET_HANDLE.emit("auth", {
 				apiKey: (await db.get("apiKey")) || ""
 			})
 
-			clearInterval(PING_INTERVAL)
+			emitSocketAuthed = true
+		} else {
+			if (emitSocketAuthed) {
+				emitSocketAuthed = false
 
-			PING_INTERVAL = setInterval(() => {
-				SOCKET_HANDLE.emit("heartbeat")
-			}, 5000)
+				eventListener.emit("socketAuthed")
+			}
 		}
 	})
 
 	SOCKET_HANDLE.on("disconnect", () => {
-		CONNECTED = false
+		clearInterval(PING_INTERVAL)
 
-		console.log("Disconnected from socket server")
+		console.log("Disconnected from socket")
 	})
 
 	SOCKET_HANDLE.on("new-event", (data: SocketNewEvent) => {
@@ -329,6 +392,20 @@ export const connect = () => {
 	SOCKET_HANDLE.on("trash-empty", () => {
 		eventListener.emit("socketEvent", {
 			type: "trashEmpty"
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageNew", (data: SocketChatMessageNew) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageNew",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatTyping", (data: SocketChatTyping) => {
+		eventListener.emit("socketEvent", {
+			type: "chatTyping",
+			data
 		} as SocketEvent)
 	})
 }

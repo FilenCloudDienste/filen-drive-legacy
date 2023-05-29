@@ -379,7 +379,9 @@ const en: {
 	queued: "Queued",
 	searchInThisFolder: "Search in this folder...",
 	fileVersioning: "File versioning",
-	loginAlerts: "Login alerts"
+	loginAlerts: "Login alerts",
+	chats: "Chats",
+	chatsMessageInput: "Send a message to __NAME__"
 }
 
 export default en

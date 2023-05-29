@@ -153,6 +153,10 @@ export const encryptMetadataPublicKey = async (data: string, publicKey: string):
 	return await getWorkerAPI().encryptMetadataPublicKey(data, publicKey)
 }
 
+export const decryptMetadataPrivateKey = async (data: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptMetadataPrivateKey(data, privateKey)
+}
+
 export const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]): Promise<CryptoKey> => {
 	return await getWorkerAPI().importPublicKey(publicKey, mode)
 }
@@ -183,4 +187,16 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 
 export const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	return await getWorkerAPI().bufferToHash(buffer, algorithm)
+}
+
+export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptChatMessageKey(metadata, privateKey)
+}
+
+export const decryptChatMessage = async (message: string, metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptChatMessage(message, metadata, privateKey)
+}
+
+export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptChatMessage(message, key)
 }

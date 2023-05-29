@@ -193,7 +193,7 @@ export const recentContent = async (): Promise<any> => {
 	return response.data.uploads
 }
 
-export const markUploadAsDone = async (data: {
+export const markUploadAsDone = (data: {
 	uuid: string
 	name: string
 	nameHashed: string
@@ -205,17 +205,44 @@ export const markUploadAsDone = async (data: {
 	version: number
 	uploadKey: string
 }): Promise<{ chunks: number; size: number }> => {
-	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v3/upload/done",
-		data
+	return new Promise<{ chunks: number; size: number }>((resolve, reject) => {
+		let tries = 0
+		let lastErr: Error
+
+		const req = async () => {
+			if (tries >= 10) {
+				reject(lastErr)
+
+				return
+			}
+
+			tries += 1
+
+			try {
+				const response = await apiRequest({
+					method: "POST",
+					endpoint: "/v3/upload/done",
+					data
+				})
+
+				if (!response.status) {
+					lastErr = new Error(response.message)
+
+					setTimeout(req, 3000)
+
+					return
+				}
+
+				resolve(response.data)
+			} catch (e: any) {
+				lastErr = e
+
+				setTimeout(req, 3000)
+			}
+		}
+
+		req()
 	})
-
-	if (!response.status) {
-		throw new Error(response.message)
-	}
-
-	return response.data
 }
 
 export const getFolderContents = async ({
@@ -2518,6 +2545,212 @@ export const loginAlerts = async (enable: boolean): Promise<void> => {
 		endpoint: "/v3/user/loginAlerts",
 		data: {
 			enabled: enable ? 1 : 0
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface ChatConversationParticipant {
+	userId: number
+	email: string
+	avatar: string | null
+	firstName: string | null
+	lastName: string | null
+	metadata: string
+	permissionsAdd: boolean
+	addedTimestamp: number
+}
+
+export interface ChatConversation {
+	uuid: string
+	lastMessageSender: number
+	lastMessage: string | null
+	lastMessageTimestamp: number
+	ownerId: number
+	participants: ChatConversationParticipant[]
+}
+
+export const chatConversations = async (timestamp: number): Promise<ChatConversation[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/conversations",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface ChatMessage {
+	uuid: string
+	senderId: number
+	senderEmail: string
+	senderAvatar: string | null
+	senderFirstName: string | null
+	senderLastName: string | null
+	message: string
+	sentTimestamp: number
+}
+
+export const chatMessages = async (conversation: string, timestamp: number): Promise<ChatMessage[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/messages",
+		data: {
+			conversation,
+			timestamp
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const sendChatMessage = async (conversation: string, uuid: string, message: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/send",
+		data: {
+			conversation,
+			uuid,
+			message
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsCreate = async (uuid: string, metadata: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/create",
+		data: {
+			uuid,
+			metadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsParticipantsAdd = async (uuid: string, email: string, metadata: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/participants/add",
+		data: {
+			uuid,
+			email,
+			metadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export type TypingType = "up" | "down"
+
+export const chatSendTyping = async (conversation: string, type: TypingType): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/typing",
+		data: {
+			conversation,
+			type
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsRead = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/read",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsUnread = async (uuid: string): Promise<number> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/unread",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.unread
+}
+
+export const chatUnread = async (): Promise<number> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/unread",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.unread
+}
+
+export interface ChatConversationsOnline {
+	userId: number
+	lastActive: number
+	appearOffline: boolean
+}
+
+export const chatConversationsOnline = async (conversation: string): Promise<ChatConversationsOnline[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/online",
+		data: {
+			conversation
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const chatDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/delete",
+		data: {
+			uuid
 		}
 	})
 
