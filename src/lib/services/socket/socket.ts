@@ -408,6 +408,13 @@ export const connect = () => {
 			data
 		} as SocketEvent)
 	})
+
+	SOCKET_HANDLE.on("chatMessageDelete", (data: SocketChatMessageDelete) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageDelete",
+			data
+		} as SocketEvent)
+	})
 }
 
 connect()
