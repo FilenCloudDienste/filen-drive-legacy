@@ -92,6 +92,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						value={searchTerm}
 						onChange={e => setSearchTerm(e.target.value)}
 						color={getColor(darkMode, "textSecondary")}
+						border="none"
 						_placeholder={{
 							color: !darkMode ? "gray" : getColor(darkMode, "textSecondary")
 						}}

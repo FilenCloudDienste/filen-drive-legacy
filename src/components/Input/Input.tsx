@@ -11,7 +11,7 @@ const Input = memo(
 			<ChakraInput
 				ref={ref}
 				color={getColor(darkMode, "textPrimary")}
-				border="none"
+				border={"1px solid " + getColor(darkMode, "borderPrimary") + " !important"}
 				shadow="none"
 				outline="none"
 				borderRadius="10px"
