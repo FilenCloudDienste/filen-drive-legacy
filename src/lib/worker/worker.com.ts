@@ -1,7 +1,7 @@
 import { api } from "./worker.worker"
 import { wrap, transfer } from "comlink"
 import eventListener from "../eventListener"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { WORKER_THREADS } from "../constants"
 import { logout } from "../services/user/logout"
 import db from "../db"

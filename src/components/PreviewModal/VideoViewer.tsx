@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"

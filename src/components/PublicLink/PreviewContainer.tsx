@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { AppBaseProps, LinkGetInfoV1 } from "../../types"
+import { AppBaseProps, LinkGetInfo } from "../../types"
 import { Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
@@ -9,7 +9,7 @@ import eventListener from "../../lib/eventListener"
 
 export interface PreviewContainerProps extends AppBaseProps {
 	children?: React.ReactNode
-	info: LinkGetInfoV1 | undefined
+	info: LinkGetInfo | undefined
 	file: { name: string; size: number; mime: string } | undefined
 	download: any
 	toggleColorMode: any

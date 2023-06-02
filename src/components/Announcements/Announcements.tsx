@@ -3,7 +3,7 @@ import { Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import Button from "../Button"
-import type { ICFG, CFGAnnouncement } from "../../types"
+import { ICFG, CFGAnnouncement } from "../../types"
 import db from "../../lib/db"
 
 export interface AnnouncementsProps {
@@ -115,9 +115,7 @@ const Announcement = memo(
 )
 
 const Announcements = memo(({ darkMode, isMobile, cfg }: AnnouncementsProps) => {
-	const [acknowledgedAnnouncements, setAcknowledgedAnnouncements] = useState<{ [key: string]: boolean } | undefined>(
-		undefined
-	)
+	const [acknowledgedAnnouncements, setAcknowledgedAnnouncements] = useState<{ [key: string]: boolean } | undefined>(undefined)
 
 	useEffect(() => {
 		db.get("acknowledgedAnnouncements")

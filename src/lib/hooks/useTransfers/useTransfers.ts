@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import eventListener from "../../eventListener"
-import type { CurrentDownload, ProgressData, CurrentUpload, Upload, Download, UseTransfersParams, UseTransfers } from "../../../types"
+import { CurrentDownload, ProgressData, CurrentUpload, Upload, Download, UseTransfersParams, UseTransfers } from "../../../types"
 import { calcSpeed, calcTimeLeft } from "../../helpers"
 import memoryCache from "../../memoryCache"
 import { useWhyDidYouUpdate } from "@chakra-ui/react"

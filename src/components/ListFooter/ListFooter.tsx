@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react"
 import { Flex } from "@chakra-ui/react"
-import type { ListFooterProps, ItemProps } from "../../types"
+import { ListFooterProps, ItemProps } from "../../types"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
 import { formatBytes } from "../../lib/helpers"

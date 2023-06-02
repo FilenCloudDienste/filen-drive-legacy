@@ -376,7 +376,8 @@ const de: {
 	fileVersioning: "Dateiversionierung",
 	loginAlerts: "Login Benachrichtigungen",
 	chats: "Chats",
-	chatsMessageInput: "Sende eine Nachricht an __NAME__"
+	chatsMessageInput: "Sende eine Nachricht an __NAME__",
+	notes: "Notizen"
 }
 
 export default de

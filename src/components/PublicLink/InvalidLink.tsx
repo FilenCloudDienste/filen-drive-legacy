@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { AppBaseProps } from "../../types"
+import { AppBaseProps } from "../../types"
 import { Flex } from "@chakra-ui/react"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"

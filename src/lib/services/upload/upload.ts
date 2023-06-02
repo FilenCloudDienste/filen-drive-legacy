@@ -1,4 +1,4 @@
-import type { UploadQueueItem, ItemProps } from "../../../types"
+import { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
 import { generateRandomString, Semaphore, getUploadV3Server, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
 import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"

@@ -2,7 +2,7 @@ import { memo } from "react"
 import { Flex, Menu, MenuButton, MenuList, MenuItem, forwardRef, Button } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
-import type { SelectFromComputerProps } from "../../types"
+import { SelectFromComputerProps } from "../../types"
 import eventListener from "../../lib/eventListener"
 import { i18n } from "../../i18n"
 

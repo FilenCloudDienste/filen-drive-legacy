@@ -4,7 +4,7 @@ import io from "socket.io-client"
 import eventListener from "../../eventListener"
 import db from "../../db"
 import cookies from "../../cookies"
-import type { FolderColors } from "../../../types"
+import { FolderColors } from "../../../types"
 import { ChatMessage, TypingType } from "../../api"
 
 export interface SocketNewEvent {

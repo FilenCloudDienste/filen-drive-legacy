@@ -1,7 +1,7 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react"
 import { Flex, Image, Avatar, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import type { TopbarProps, UserInfoV1 } from "../../types"
+import { TopbarProps, UserInfo } from "../../types"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
 import Input from "../../components/Input"
@@ -16,7 +16,7 @@ import { getCurrentParent } from "../../lib/helpers"
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 
 	const uploadButtonEnabled: boolean = useMemo(() => {
 		return (
@@ -74,7 +74,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 					}}
 				/>
 			</Flex>
-			{location.hash.indexOf("account") == -1 && (
+			{location.hash.indexOf("account") === -1 && location.hash.indexOf("chats") === -1 && location.hash.indexOf("notes") === -1 && (
 				<Flex>
 					<Input
 						darkMode={darkMode}
@@ -93,7 +93,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						onChange={e => setSearchTerm(e.target.value)}
 						color={getColor(darkMode, "textSecondary")}
 						_placeholder={{
-							color: getColor(darkMode, "textSecondary")
+							color: !darkMode ? "gray" : getColor(darkMode, "textSecondary")
 						}}
 					/>
 				</Flex>

@@ -1,4 +1,4 @@
-import type { ItemProps, Download } from "../../../types"
+import { ItemProps, Download } from "../../../types"
 import { MAX_CONCURRENT_DOWNLOADS, MAX_DOWNLOAD_THREADS, MAX_DOWNLOAD_WRITERS } from "../../constants"
 import eventListener from "../../eventListener"
 import { Semaphore, getDownloadServer, mergeUInt8Arrays, sanitizeSVG } from "../../helpers"

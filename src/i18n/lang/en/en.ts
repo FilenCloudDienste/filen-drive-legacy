@@ -381,7 +381,8 @@ const en: {
 	fileVersioning: "File versioning",
 	loginAlerts: "Login alerts",
 	chats: "Chats",
-	chatsMessageInput: "Send a message to __NAME__"
+	chatsMessageInput: "Send a message to __NAME__",
+	notes: "Notes"
 }
 
 export default en

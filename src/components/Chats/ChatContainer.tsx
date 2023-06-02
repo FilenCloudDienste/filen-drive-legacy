@@ -14,7 +14,7 @@ import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import ChatContainerMessages from "./ChatContainerMessages"
 import ChatContainerInput from "./ChatContainerInput"
-import { decryptChatMessage } from "../../lib/worker/worker.worker"
+import { decryptChatMessage } from "../../lib/worker/worker.com"
 import ChatContainerTopbar from "./ChatContainerTopbar"
 
 export interface ChatContainerProps {

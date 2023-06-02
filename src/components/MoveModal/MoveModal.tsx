@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback, useMemo } from "react"
-import type { MoveModalProps, ItemProps } from "../../types"
+import { MoveModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"

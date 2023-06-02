@@ -5,7 +5,7 @@ import { Flex } from "@chakra-ui/react"
 import { ChatConversation } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import NewConversationModal from "./NewConversationModal"
-import ChatOptions from "./ChatOptions"
+import ChatMemberList from "./ChatMemberList"
 import AddUserConversationModal from "./AddUserToConversationModal"
 
 export interface ChatsProps {
@@ -59,6 +59,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 				windowHeight={windowHeight}
 				sizes={sizes}
 				setCurrentConversation={setCurrentConversation}
+				lang={lang}
 			/>
 			<ChatContainer
 				darkMode={darkMode}
@@ -69,7 +70,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 				currentConversation={currentConversation}
 				currentConversationMe={currentConversationMe}
 			/>
-			<ChatOptions
+			<ChatMemberList
 				darkMode={darkMode}
 				isMobile={isMobile}
 				windowHeight={windowHeight}

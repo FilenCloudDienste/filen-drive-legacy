@@ -10,12 +10,13 @@ import {
 	mergeUInt8Arrays,
 	getAPIV3Server,
 	convertWordArrayToArrayBuffer,
-	convertArrayBufferToBinaryString
+	convertArrayBufferToBinaryString,
+	parseURLParams
 } from "../helpers"
 // @ts-ignore
 import CryptoApi from "crypto-api-v1"
 import CryptoJS from "crypto-js"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import {
 	MAX_DOWNLOAD_RETRIES,
 	DOWNLOAD_RETRY_TIMEOUT,
@@ -39,46 +40,51 @@ const apiRequest = (
 		let current = -1
 		let lastErr: Error
 
-		const req = () => {
-			current += 1
+		bufferToHash(textEncoder.encode(JSON.stringify(typeof data !== "undefined" ? data : {})), "SHA-512")
+			.then(checksum => {
+				const req = () => {
+					current += 1
 
-			if (current >= MAX_API_RETRIES) {
-				return reject(lastErr)
-			}
-
-			const promise =
-				method.toUpperCase() === "POST"
-					? axios.post(getAPIV3Server() + endpoint, data, {
-							headers: {
-								Authorization: "Bearer " + apiKey
-							}
-					  })
-					: axios.get(getAPIV3Server() + endpoint, {
-							headers: {
-								Authorization: "Bearer " + apiKey
-							}
-					  })
-
-			promise
-				.then(response => {
-					if (response.status !== 200) {
-						lastErr = new Error("Response status " + response.status)
-
-						setTimeout(req, API_RETRY_TIMEOUT)
-
-						return
+					if (current >= MAX_API_RETRIES) {
+						return reject(lastErr)
 					}
 
-					return resolve(response.data)
-				})
-				.catch(err => {
-					lastErr = err
+					const promise =
+						method.toUpperCase() === "POST"
+							? axios.post(getAPIV3Server() + endpoint, data, {
+									headers: {
+										Authorization: "Bearer " + apiKey,
+										Checksum: checksum
+									}
+							  })
+							: axios.get(getAPIV3Server() + endpoint, {
+									headers: {
+										Authorization: "Bearer " + apiKey
+									}
+							  })
 
-					setTimeout(req, API_RETRY_TIMEOUT)
-				})
-		}
+					promise
+						.then(response => {
+							if (response.status !== 200) {
+								lastErr = new Error("Response status " + response.status)
 
-		req()
+								setTimeout(req, API_RETRY_TIMEOUT)
+
+								return
+							}
+
+							return resolve(response.data)
+						})
+						.catch(err => {
+							lastErr = err
+
+							setTimeout(req, API_RETRY_TIMEOUT)
+						})
+				}
+
+				req()
+			})
+			.catch(reject)
 	})
 }
 
@@ -539,17 +545,9 @@ const decryptFileMetadataPrivateKey = async (
 	}
 }
 
-const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array | string> => {
-	if (typeof data == "undefined") {
-		return ""
-	}
-
-	if (typeof data.byteLength == "undefined") {
-		return ""
-	}
-
-	if (data.byteLength == 0) {
-		return ""
+const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array> => {
+	if (typeof data === "undefined" || typeof data.byteLength === "undefined" || data.byteLength === 0) {
+		throw new Error("encryptData: Invalid data")
 	}
 
 	const iv = generateRandomString(12)
@@ -578,82 +576,90 @@ const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, 
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
-				bufferToHash(
-					(encryptedChunk as Uint8Array).byteLength > 0 ? (encryptedChunk as Uint8Array) : new Uint8Array([1]),
-					"SHA-512"
-				)
+				if (encryptedChunk.byteLength <= 0) {
+					reject(new Error("Chunk byteLength <= 0"))
+
+					return
+				}
+
+				bufferToHash(encryptedChunk, "SHA-512")
 					.then(chunkHash => {
 						let current = -1
 						let lastBytes = 0
 						let lastErr: Error
 
-						if ((encryptedChunk as Uint8Array).byteLength > 0) {
-							url = url + "&hash=" + encodeURIComponent(chunkHash)
-						}
+						url = url + "&hash=" + encodeURIComponent(chunkHash)
 
-						const req = () => {
-							current += 1
+						const urlParams = parseURLParams(url)
 
-							if (current >= MAX_UPLOAD_RETRIES) {
-								return reject(lastErr)
-							}
+						bufferToHash(textEncoder.encode(JSON.stringify(urlParams)), "SHA-512")
+							.then(checksum => {
+								const req = () => {
+									current += 1
 
-							lastBytes = 0
-
-							axios({
-								method: "post",
-								url,
-								data: new Blob([encryptedChunk]),
-								timeout: 3600000,
-								headers: {
-									Authorization: "Bearer " + apiKey
-								},
-								onUploadProgress: event => {
-									if (typeof event !== "object" || typeof event.loaded !== "number") {
-										return
+									if (current >= MAX_UPLOAD_RETRIES) {
+										return reject(lastErr)
 									}
 
-									let bytes = event.loaded
+									lastBytes = 0
 
-									if (lastBytes == 0) {
-										lastBytes = event.loaded
-									} else {
-										bytes = Math.floor(event.loaded - lastBytes)
-										lastBytes = event.loaded
-									}
+									axios({
+										method: "post",
+										url,
+										data: new Blob([encryptedChunk]),
+										timeout: 3600000,
+										headers: {
+											Authorization: "Bearer " + apiKey,
+											Checksum: checksum
+										},
+										onUploadProgress: event => {
+											if (typeof event !== "object" || typeof event.loaded !== "number") {
+												return
+											}
 
-									globalThis.postMessage({
-										type: "uploadProgress",
-										data: {
-											uuid,
-											bytes: bytes
+											let bytes = event.loaded
+
+											if (lastBytes == 0) {
+												lastBytes = event.loaded
+											} else {
+												bytes = Math.floor(event.loaded - lastBytes)
+												lastBytes = event.loaded
+											}
+
+											globalThis.postMessage({
+												type: "uploadProgress",
+												data: {
+													uuid,
+													bytes: bytes
+												}
+											})
 										}
 									})
+										.then(response => {
+											if (response.status !== 200) {
+												lastErr = new Error("Request status: " + response.status)
+
+												setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+
+												return
+											}
+
+											if (!response.data.status) {
+												return reject(response.data.message)
+											}
+
+											return resolve(response.data)
+										})
+										.catch(err => {
+											lastErr = err
+
+											setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+										})
 								}
+
+								req()
 							})
-								.then(response => {
-									if (response.status !== 200) {
-										lastErr = new Error("Request status: " + response.status)
-
-										setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-
-										return
-									}
-
-									if (!response.data.status) {
-										return reject(response.data.message)
-									}
-
-									return resolve(response.data)
-								})
-								.catch(err => {
-									lastErr = err
-
-									setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-								})
-						}
-
-						req()
+							.catch(reject)
 					})
 					.catch(reject)
 			})
@@ -825,7 +831,7 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 					lastErr = err
 
 					console.error(lastErr)
-					console.log("Axios error")
+					console.error("Axios error")
 
 					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
 				})

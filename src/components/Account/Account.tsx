@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, useCallback } from "react"
-import type { AccountProps, UserInfoV1, UserGetSettingsV3, UserGetAccountV1, UserEvent, ICFG } from "../../types"
+import { AccountProps, UserInfo, UserGetSettings, UserGetAccount, UserEvent, ICFG } from "../../types"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, Spinner, Switch, Skeleton, Progress, Badge } from "@chakra-ui/react"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
@@ -84,9 +84,9 @@ const Skeletons = memo(({ darkMode, count }: { darkMode: boolean; count: number 
 })
 
 const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [downloadingGDPR, setDownloadingGDPR] = useState<boolean>(false)
 	const [uploadingAvatar, setUploadingAvatar] = useState<boolean>(false)
 	const navigate = useNavigate()
@@ -636,7 +636,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 })
 
 const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [versionedSize, setVersionedSize] = useState<number>(0)
 
 	const fetchSettings = useCallback(async () => {
@@ -900,7 +900,7 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 })
 
 const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 
 	const fetchSettings = () => {
 		setUserSettings(undefined)
@@ -1063,7 +1063,7 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 })
 
 const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 
 	useEffect(() => {
 		fetchUserAccount()
@@ -1297,7 +1297,7 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
 })
 
 const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 	const [downloadingInvoice, setDownloadingInvoice] = useState<boolean>(false)
 
 	useEffect(() => {
@@ -1484,7 +1484,7 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 export interface EventRowProps {
 	style: React.CSSProperties
 	darkMode: boolean
-	userInfo: UserInfoV1 | undefined
+	userInfo: UserInfo | undefined
 	isMobile: boolean
 	event: UserEvent
 	masterKeys: string[]
@@ -1611,7 +1611,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) => {
 	const [events, setEvents] = useState<UserEvent[]>([])
 	const [loading, setLoading] = useState<boolean>(false)
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 	const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
 
 	const fetchData = (): void => {
@@ -2031,7 +2031,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 })
 
 const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 
 	const copy = (text: string) => {
 		try {

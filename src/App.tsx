@@ -14,8 +14,8 @@ import useWindowHeight from "./lib/hooks/useWindowHeight"
 import useCookie from "./lib/hooks/useCookie"
 import { getColor } from "./styles/colors"
 import { Helmet } from "react-helmet-async"
-import type { ItemProps, ICFG } from "./types"
-import type { ToastId } from "@chakra-ui/react"
+import { ItemProps, ICFG } from "./types"
+import { ToastId } from "@chakra-ui/react"
 import PublicLinkFile from "./pages/PublicLinkFile"
 import PublicLinkFolder from "./pages/PublicLinkFolder"
 import CookieConsent from "./components/CookieConsent"
@@ -106,61 +106,25 @@ const App = memo(() => {
 		)
 	}
 
-	if (cfg.maintenance) {
-		return (
-			<Flex
-				className="full-viewport"
-				flexDirection="column"
-				backgroundColor={getColor(darkMode, "backgroundPrimary")}
-				overflow="hidden"
-				justifyContent="center"
-				alignItems="center"
-			>
-				<Image
-					src={darkMode ? LogoLight : LogoDark}
-					width="100px"
-					height="100px"
-				/>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					marginTop="20px"
-				>
-					Filen is currently unavailable due to maintenance. We will be back as soon as possible.
-				</AppText>
-				<Flex
-					marginTop="10px"
-					alignItems="center"
-					gap="5px"
-				>
-					<AiOutlineTwitter
-						color={getColor(darkMode, "linkPrimary")}
-						size="20"
-					/>
-					<AppText
-						darkMode={darkMode}
-						isMobile={isMobile}
-						color={getColor(darkMode, "linkPrimary")}
-						onClick={() => window.open("https://twitter.com/filen_io", "_blank")}
-						cursor="pointer"
-						_hover={{
-							textDecoration: "underline"
-						}}
-					>
-						Updates on Twitter
-					</AppText>
-				</Flex>
-			</Flex>
-		)
-	}
-
 	return (
-		<>
+		<Flex
+			width="100%"
+			height="100%"
+		>
 			<Helmet>
-				<link
-					rel="stylesheet"
-					href={darkMode ? "/dark.css" : "/light.css"}
-				/>
+				{darkMode ? (
+					<link
+						rel="stylesheet"
+						type="text/css"
+						href="/dark.css"
+					/>
+				) : (
+					<link
+						rel="stylesheet"
+						type="text/css"
+						href="/light.css"
+					/>
+				)}
 				<meta
 					name="theme-color"
 					content={getColor(darkMode, "backgroundPrimary")}
@@ -175,144 +139,197 @@ const App = memo(() => {
 			</Helmet>
 			<BrowserRouter>
 				<Routes>
-					<Route
-						path="/*"
-						element={
-							loggedIn == "true" ? (
-								<Drive
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							) : (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/login?" + paramsEx[1] : "/login"}
-								/>
-							)
-						}
-					/>
-					<Route
-						path="/d/:uuid"
-						element={
-							<PublicLinkFile
-								windowWidth={windowWidth}
-								windowHeight={windowHeight}
-								darkMode={darkMode}
-								isMobile={isMobile}
-								lang={lang}
+					{cfg.maintenance ? (
+						<Route
+							path="/*"
+							element={
+								<Flex
+									className="full-viewport"
+									flexDirection="column"
+									backgroundColor={getColor(darkMode, "backgroundPrimary")}
+									overflow="hidden"
+									justifyContent="center"
+									alignItems="center"
+								>
+									<Image
+										src={darkMode ? LogoLight : LogoDark}
+										width="100px"
+										height="100px"
+									/>
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
+										marginTop="20px"
+									>
+										Filen is currently unavailable due to maintenance. We will be back as soon as possible.
+									</AppText>
+									<Flex
+										marginTop="10px"
+										alignItems="center"
+										gap="5px"
+									>
+										<AiOutlineTwitter
+											color={getColor(darkMode, "linkPrimary")}
+											size="20"
+										/>
+										<AppText
+											darkMode={darkMode}
+											isMobile={isMobile}
+											color={getColor(darkMode, "linkPrimary")}
+											onClick={() => window.open("https://twitter.com/filen_io", "_blank")}
+											cursor="pointer"
+											_hover={{
+												textDecoration: "underline"
+											}}
+										>
+											Updates on Twitter
+										</AppText>
+									</Flex>
+								</Flex>
+							}
+						/>
+					) : (
+						<>
+							<Route
+								path="/*"
+								element={
+									loggedIn == "true" ? (
+										<Drive
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									) : (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/login?" + paramsEx[1] : "/login"}
+										/>
+									)
+								}
 							/>
-						}
-					/>
-					<Route
-						path="/f/:uuid"
-						element={
-							<PublicLinkFolder
-								windowWidth={windowWidth}
-								windowHeight={windowHeight}
-								darkMode={darkMode}
-								isMobile={isMobile}
-								lang={lang}
+							<Route
+								path="/d/:uuid"
+								element={
+									<PublicLinkFile
+										windowWidth={windowWidth}
+										windowHeight={windowHeight}
+										darkMode={darkMode}
+										isMobile={isMobile}
+										lang={lang}
+									/>
+								}
 							/>
-						}
-					/>
-					<Route
-						path="/login"
-						element={
-							loggedIn == "true" ? (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
-								/>
-							) : (
-								<Login
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							)
-						}
-					/>
-					<Route
-						path="/register"
-						element={
-							loggedIn == "true" ? (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
-								/>
-							) : (
-								<Register
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							)
-						}
-					/>
-					<Route
-						path="/forgot-password"
-						element={
-							loggedIn == "true" ? (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
-								/>
-							) : (
-								<ForgotPassword
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							)
-						}
-					/>
-					<Route
-						path="/forgot-password/:token"
-						element={
-							loggedIn == "true" ? (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
-								/>
-							) : (
-								<ForgotPassword
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							)
-						}
-					/>
-					<Route
-						path="/resend-confirmation"
-						element={
-							loggedIn == "true" ? (
-								<Navigate
-									replace={true}
-									to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
-								/>
-							) : (
-								<ResendConfirmation
-									windowWidth={windowWidth}
-									windowHeight={windowHeight}
-									darkMode={darkMode}
-									isMobile={isMobile}
-									lang={lang}
-								/>
-							)
-						}
-					/>
+							<Route
+								path="/f/:uuid"
+								element={
+									<PublicLinkFolder
+										windowWidth={windowWidth}
+										windowHeight={windowHeight}
+										darkMode={darkMode}
+										isMobile={isMobile}
+										lang={lang}
+									/>
+								}
+							/>
+							<Route
+								path="/login"
+								element={
+									loggedIn == "true" ? (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
+										/>
+									) : (
+										<Login
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									)
+								}
+							/>
+							<Route
+								path="/register"
+								element={
+									loggedIn == "true" ? (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
+										/>
+									) : (
+										<Register
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									)
+								}
+							/>
+							<Route
+								path="/forgot-password"
+								element={
+									loggedIn == "true" ? (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
+										/>
+									) : (
+										<ForgotPassword
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									)
+								}
+							/>
+							<Route
+								path="/forgot-password/:token"
+								element={
+									loggedIn == "true" ? (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
+										/>
+									) : (
+										<ForgotPassword
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									)
+								}
+							/>
+							<Route
+								path="/resend-confirmation"
+								element={
+									loggedIn == "true" ? (
+										<Navigate
+											replace={true}
+											to={includesPlanRedirect ? "/?" + paramsEx[1] : "/"}
+										/>
+									) : (
+										<ResendConfirmation
+											windowWidth={windowWidth}
+											windowHeight={windowHeight}
+											darkMode={darkMode}
+											isMobile={isMobile}
+											lang={lang}
+										/>
+									)
+								}
+							/>
+						</>
+					)}
 				</Routes>
 			</BrowserRouter>
 			<CookieConsent
@@ -324,7 +341,7 @@ const App = memo(() => {
 				isMobile={isMobile}
 				cfg={cfg}
 			/>
-		</>
+		</Flex>
 	)
 })
 

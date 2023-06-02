@@ -1,5 +1,5 @@
 import db from "../../db"
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { Semaphore } from "../../helpers"
 
 const addSemaphore = new Semaphore(1)

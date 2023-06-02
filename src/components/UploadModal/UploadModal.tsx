@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useRef, useCallback, useMemo, Component } fr
 import eventListener from "../../lib/eventListener"
 import { getColor } from "../../styles/colors"
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Flex, ModalFooter, Progress } from "@chakra-ui/react"
-import type {
+import {
 	UploadModalProps,
 	UploadQueueItem,
 	UploadQueueItemFile,

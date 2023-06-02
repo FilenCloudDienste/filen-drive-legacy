@@ -1,6 +1,6 @@
 import db from "../../db"
 import memoryCache from "../../memoryCache"
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { Semaphore } from "../../helpers"
 
 const mutex = new Semaphore(1)
@@ -237,12 +237,7 @@ export const changeItemsInStore = async (items: ItemProps[], parent: string): Pr
 
 export type ChangeItemInStorePropTypes = "name" | "color"
 
-export const changeItemInStore = async (
-	uuid: string,
-	parent: string,
-	prop: ChangeItemInStorePropTypes,
-	value: any
-): Promise<void> => {
+export const changeItemInStore = async (uuid: string, parent: string, prop: ChangeItemInStorePropTypes, value: any): Promise<void> => {
 	await mutex.acquire()
 
 	try {
@@ -334,10 +329,7 @@ export const clearItemsInStore = async (parent: string): Promise<void> => {
 	await mutex.acquire()
 
 	try {
-		await Promise.all([
-			db.set("loadItems:" + parent, [], "metadata"),
-			db.set("loadSidebarItems:" + parent, [], "metadata")
-		])
+		await Promise.all([db.set("loadItems:" + parent, [], "metadata"), db.set("loadSidebarItems:" + parent, [], "metadata")])
 	} catch (e) {
 		mutex.release()
 

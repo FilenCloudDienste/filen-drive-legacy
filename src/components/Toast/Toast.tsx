@@ -9,7 +9,7 @@ import { calcTimeLeft, calcSpeed, getTimeRemaining, bpsToReadable } from "../../
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
-import type { CustomToastTypes } from "../../types"
+import { CustomToastTypes } from "../../types"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
 import { throttle } from "lodash"
 import { createStandaloneToast, ToastPosition, ToastId } from "@chakra-ui/react"

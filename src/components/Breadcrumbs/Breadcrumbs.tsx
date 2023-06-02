@@ -1,9 +1,9 @@
 import { memo, useEffect, useState, useRef, useCallback } from "react"
-import type { BreadcrumbsProps, BreadcrumbProps, ItemProps, FolderRenamedEvent } from "../../types"
+import { BreadcrumbsProps, BreadcrumbProps, ItemProps, FolderRenamedEvent } from "../../types"
 import { Flex } from "@chakra-ui/react"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
-import { IoChevronForward, IoGrid, IoList } from "react-icons/io5"
+import { IoChevronForward, IoGridOutline, IoListOutline } from "react-icons/io5"
 import { useLocation, useNavigate } from "react-router-dom"
 import { validate as validateUUID } from "uuid"
 import memoryCache from "../../lib/memoryCache"
@@ -154,10 +154,7 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 
 	const update = useCallback(async () => {
 		try {
-			const [defaultDriveUUID, folderNames] = await Promise.all([
-				db.get("defaultDriveUUID"),
-				db.get("folderNames", "metadata")
-			])
+			const [defaultDriveUUID, folderNames] = await Promise.all([db.get("defaultDriveUUID"), db.get("folderNames", "metadata")])
 
 			const ex = location.hash.split("/")
 			const validFolders = []
@@ -294,13 +291,9 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 				{items.length > 0 && (
 					<>
 						{!gridFolders[window.location.href] ? (
-							<IoGrid
+							<IoGridOutline
 								size={18}
-								color={
-									hoveringListLayoutToggle
-										? getColor(darkMode, "textPrimary")
-										: getColor(darkMode, "textSecondary")
-								}
+								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: true })}
 								cursor="pointer"
 								className="do-not-unselect-items"
@@ -311,13 +304,9 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 								}}
 							/>
 						) : (
-							<IoList
+							<IoListOutline
 								size={18}
-								color={
-									hoveringListLayoutToggle
-										? getColor(darkMode, "textPrimary")
-										: getColor(darkMode, "textSecondary")
-								}
+								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: false })}
 								cursor="pointer"
 								className="do-not-unselect-items"

@@ -1,6 +1,6 @@
 import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
-import { Flex, Button } from "@chakra-ui/react"
+import { Flex, Button, Avatar, AvatarBadge } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import {
 	chatConversations as fetchChatConversations,
@@ -15,6 +15,105 @@ import { validate } from "uuid"
 import Conversation from "./Conversation"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
+import { fetchUserAccount } from "../../lib/services/user"
+import { UserGetAccount } from "../../types"
+import { getUserNameFromAccount } from "./utils"
+import AppText from "../AppText"
+import { HiCog } from "react-icons/hi"
+
+export interface MeProps {
+	darkMode: boolean
+	isMobile: boolean
+	lang: string
+}
+
+const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
+	const [hoveringSettings, setHoveringSettings] = useState<boolean>(false)
+
+	const fetchAccount = useCallback(async () => {
+		const [accountErr, accountRes] = await safeAwait(fetchUserAccount())
+
+		if (accountErr) {
+			console.error(accountErr)
+
+			return
+		}
+
+		setUserAccount(accountRes)
+	}, [])
+
+	useEffect(() => {
+		fetchAccount()
+	}, [])
+
+	if (!userAccount) {
+		return null
+	}
+
+	return (
+		<Flex
+			borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
+			alignItems="center"
+			height={isMobile ? "41px" : "52px"}
+			flexDirection="row"
+			paddingLeft="10px"
+			paddingRight="10px"
+			justifyContent="space-between"
+		>
+			<Flex
+				flexDirection="row"
+				alignItems="center"
+			>
+				<Avatar
+					name={
+						typeof userAccount.avatarURL === "string" && userAccount.avatarURL.indexOf("https://") !== -1
+							? undefined
+							: userAccount.email
+					}
+					src={
+						typeof userAccount.avatarURL === "string" && userAccount.avatarURL.indexOf("https://") !== -1
+							? userAccount.avatarURL
+							: undefined
+					}
+					width="30px"
+					height="30px"
+					borderRadius="full"
+					border="none"
+				>
+					<AvatarBadge
+						boxSize="12px"
+						border="none"
+						backgroundColor={getColor(darkMode, "green")}
+					/>
+				</Avatar>
+				<AppText
+					darkMode={darkMode}
+					isMobile={isMobile}
+					noOfLines={1}
+					wordBreak="break-all"
+					color={getColor(darkMode, "textSecondary")}
+					marginLeft="10px"
+					fontSize={15}
+				>
+					{getUserNameFromAccount(userAccount)}
+				</AppText>
+			</Flex>
+			<Flex>
+				<HiCog
+					size={20}
+					cursor="pointer"
+					onMouseEnter={() => setHoveringSettings(true)}
+					onMouseLeave={() => setHoveringSettings(false)}
+					color={hoveringSettings ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+					style={{
+						marginRight: "3px"
+					}}
+				/>
+			</Flex>
+		</Flex>
+	)
+})
 
 export interface ConversationsProps {
 	darkMode: boolean
@@ -22,9 +121,10 @@ export interface ConversationsProps {
 	windowHeight: number
 	sizes: ChatSizes
 	setCurrentConversation: React.Dispatch<React.SetStateAction<ChatConversation | undefined>>
+	lang: string
 }
 
-const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurrentConversation }: ConversationsProps) => {
+const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurrentConversation, lang }: ConversationsProps) => {
 	const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
 	const [conversations, setConversations] = useState<ChatConversation[]>([])
 	const [loading, setLoading] = useState<boolean>(true)
@@ -184,45 +284,56 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 	return (
 		<Flex
 			width={sizes.conversations}
-			height={windowHeight - 50}
 			borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
 			flexDirection="column"
 		>
 			<Flex
-				flexDirection="row"
-				borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
-				alignItems="center"
-				padding="10px"
+				width={sizes.conversations}
+				flexDirection="column"
+				height={windowHeight - 50 - (isMobile ? 41 : 52)}
 			>
-				<Button
-					backgroundColor={darkMode ? "white" : "gray"}
-					color={darkMode ? "black" : "white"}
-					height="28px"
-					width="100%"
-					paddingLeft="10px"
-					paddingRight="10px"
-					fontSize={13}
-					border={"1px solid " + darkMode ? "white" : "gray"}
-					onClick={() => eventListener.emit("openNewConversationModal")}
+				<Flex
+					flexDirection="row"
+					alignItems="center"
+					padding="10px"
+					paddingBottom="0px"
 				>
-					New chat
-				</Button>
+					<Button
+						backgroundColor={darkMode ? "white" : "gray"}
+						color={darkMode ? "black" : "white"}
+						height="28px"
+						width="100%"
+						paddingLeft="10px"
+						paddingRight="10px"
+						fontSize={13}
+						border={"1px solid " + darkMode ? "white" : "gray"}
+						onClick={() => eventListener.emit("openNewConversationModal")}
+					>
+						New chat
+					</Button>
+				</Flex>
+				{conversationsSorted.map((conversation, index) => {
+					return (
+						<Conversation
+							key={conversation.uuid}
+							index={index}
+							isMobile={isMobile}
+							darkMode={darkMode}
+							conversation={conversation}
+							userId={userId}
+							setCurrentConversation={setCurrentConversation}
+							unreadConversationsMessages={unreadConversationsMessages}
+							setUnreadConversationsMessages={setUnreadConversationsMessages}
+							lang={lang}
+						/>
+					)
+				})}
 			</Flex>
-			{conversationsSorted.map((conversation, index) => {
-				return (
-					<Conversation
-						key={conversation.uuid}
-						index={index}
-						isMobile={isMobile}
-						darkMode={darkMode}
-						conversation={conversation}
-						userId={userId}
-						setCurrentConversation={setCurrentConversation}
-						unreadConversationsMessages={unreadConversationsMessages}
-						setUnreadConversationsMessages={setUnreadConversationsMessages}
-					/>
-				)
-			})}
+			<Me
+				darkMode={darkMode}
+				isMobile={isMobile}
+				lang={lang}
+			/>
 		</Flex>
 	)
 })

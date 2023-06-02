@@ -11,24 +11,23 @@ import {
 import db from "../db"
 import striptags from "striptags"
 import { Semaphore, generateRandomString, arrayBufferToBase64, SemaphoreProps } from "../helpers"
-import type {
+import {
 	ItemProps,
-	UserInfoV1,
+	UserInfo,
 	FolderColors,
-	UserGetSettingsV1,
-	UserGetAccountV1,
-	UserGetSettingsV3,
+	UserGetSettings,
+	UserGetAccount,
 	UserEvent,
-	LinkGetInfoV1,
-	LinkHasPasswordV1,
-	LinkDirInfoV1,
-	LinkDirContentV1,
+	LinkGetInfo,
+	LinkHasPassword,
+	LinkDirInfo,
+	LinkDirContent,
 	PaymentMethods
 } from "../../types"
 import eventListener from "../eventListener"
 import { getDirectoryTree } from "../services/items"
 import { v4 as uuidv4 } from "uuid"
-import { FileVersionsV1, ICFG } from "../../types"
+import { FileVersions, ICFG } from "../../types"
 import axios from "axios"
 import { bufferToHash } from "../worker/worker.com"
 
@@ -92,7 +91,7 @@ export const login = async ({
 	return response.data
 }
 
-export const userInfo = async (apiKey: string | undefined = undefined): Promise<UserInfoV1> => {
+export const userInfo = async (apiKey: string | undefined = undefined): Promise<UserInfo> => {
 	if (typeof apiKey == "undefined") {
 		apiKey = await db.get("apiKey")
 	}
@@ -2072,7 +2071,7 @@ export const editItemPublicLink = async (
 	}
 }
 
-export const fetchFileVersions = async (item: ItemProps): Promise<FileVersionsV1[]> => {
+export const fetchFileVersions = async (item: ItemProps): Promise<FileVersions[]> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/file/versions",
@@ -2108,7 +2107,7 @@ export const changeFolderColor = async (folder: ItemProps, color: FolderColors):
 	})
 }
 
-export const userSettings = async (): Promise<UserGetSettingsV3> => {
+export const userSettings = async (): Promise<UserGetSettings> => {
 	const response = await apiRequest({
 		method: "GET",
 		endpoint: "/v3/user/settings"
@@ -2121,7 +2120,7 @@ export const userSettings = async (): Promise<UserGetSettingsV3> => {
 	return response.data
 }
 
-export const userAccount = async (): Promise<UserGetAccountV1> => {
+export const userAccount = async (): Promise<UserGetAccount> => {
 	const response = await apiRequest({
 		method: "GET",
 		endpoint: "/v3/user/account"
@@ -2393,7 +2392,7 @@ export const fetchEventInfo = async (uuid: string): Promise<any> => {
 	return response.data
 }
 
-export const publicLinkInfo = async (uuid: string, password: string): Promise<LinkGetInfoV1> => {
+export const publicLinkInfo = async (uuid: string, password: string): Promise<LinkGetInfo> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/file/link/info",
@@ -2410,7 +2409,7 @@ export const publicLinkInfo = async (uuid: string, password: string): Promise<Li
 	return response.data
 }
 
-export const publicLinkHasPassword = async (uuid: string): Promise<LinkHasPasswordV1> => {
+export const publicLinkHasPassword = async (uuid: string): Promise<LinkHasPassword> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/file/link/password",
@@ -2429,7 +2428,7 @@ export const publicLinkHasPassword = async (uuid: string): Promise<LinkHasPasswo
 	}
 }
 
-export const folderLinkInfo = async (uuid: string): Promise<LinkDirInfoV1> => {
+export const folderLinkInfo = async (uuid: string): Promise<LinkDirInfo> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/dir/link/info",
@@ -2445,7 +2444,7 @@ export const folderLinkInfo = async (uuid: string): Promise<LinkDirInfoV1> => {
 	return response.data
 }
 
-export const folderLinkContents = async (uuid: string, parent: string, password: string): Promise<LinkDirContentV1> => {
+export const folderLinkContents = async (uuid: string, parent: string, password: string): Promise<LinkDirContent> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/dir/link/content",

@@ -1,4 +1,4 @@
-import type { ItemProps, ItemReceiver } from "../../../types"
+import { ItemProps, ItemReceiver } from "../../../types"
 import db from "../../db"
 import {
 	decryptFolderName,

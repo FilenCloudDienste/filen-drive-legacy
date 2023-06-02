@@ -1,5 +1,5 @@
 import { memo, useState, useRef, useEffect, useMemo, useCallback } from "react"
-import type { ItemComponentProps, ItemProps, SkeletonItemProps } from "../../types"
+import { ItemComponentProps, ItemProps, SkeletonItemProps } from "../../types"
 import { Flex, Skeleton, Image as ChakraImage, Spinner, Badge } from "@chakra-ui/react"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"

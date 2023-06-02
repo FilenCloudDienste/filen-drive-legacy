@@ -1,6 +1,6 @@
-import type { ButtonProps as ChakraButtonProps, InputProps as ChakraInputProps, TextProps } from "@chakra-ui/react"
-import type { ReactElement } from "react"
-import type { MouseEventHandler } from "react"
+import { ButtonProps as ChakraButtonProps, InputProps as ChakraInputProps, TextProps } from "@chakra-ui/react"
+import { ReactElement } from "react"
+import { MouseEventHandler } from "react"
 
 export interface AppBaseProps {
 	windowWidth: number

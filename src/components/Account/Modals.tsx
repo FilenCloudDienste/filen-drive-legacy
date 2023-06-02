@@ -22,7 +22,7 @@ import { show as showToast } from "../Toast/Toast"
 import { fetchUserAccount, fetchUserSettings } from "../../lib/services/user"
 import { generateRandomString, downloadObjectAsText } from "../../lib/helpers"
 import QRCode from "react-qr-code"
-import type { UserGetSettingsV1 } from "../../types"
+import { UserGetSettings } from "../../types"
 import { i18n } from "../../i18n"
 import cookies from "../../lib/cookies"
 import useDb from "../../lib/hooks/useDb"
@@ -1266,7 +1266,7 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(false)
-	const [settings, setSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+	const [settings, setSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [code, setCode] = useState<string>("")
 
 	const fetchSettings = useCallback(async () => {

@@ -1,9 +1,9 @@
 import { memo, useEffect, useState, useRef, useCallback, useMemo } from "react"
-import type { AppBaseProps } from "../../types"
+import { AppBaseProps } from "../../types"
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { Flex, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import type {
+import {
 	ItemProps,
 	ItemDragState,
 	DragSelectState,
@@ -69,6 +69,7 @@ import { debounce } from "lodash"
 import EmptryTrashModal from "../../components/EmptyTrashModal"
 import { validate } from "uuid"
 import Chats from "../../components/Chats"
+import Notes from "../../components/Notes"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -490,7 +491,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		async (refresh: boolean = false): Promise<void> => {
 			const startingURL = window.location.href
 
-			if (startingURL.indexOf("#/") === -1 || startingURL.indexOf("chats") !== -1) {
+			if (startingURL.indexOf("#/") === -1 || startingURL.indexOf("chats") !== -1 || startingURL.indexOf("notes") !== -1) {
 				return
 			}
 
@@ -1201,6 +1202,15 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						/>
 					) : location.hash.indexOf("chats") !== -1 ? (
 						<Chats
+							darkMode={darkMode}
+							isMobile={isMobile}
+							windowWidth={windowWidth}
+							windowHeight={windowHeight}
+							sidebarWidth={sidebarWidth}
+							lang={lang}
+						/>
+					) : location.hash.indexOf("notes") !== -1 ? (
+						<Notes
 							darkMode={darkMode}
 							isMobile={isMobile}
 							windowWidth={windowWidth}

@@ -1,6 +1,6 @@
 import cookies from "../cookies"
 import eventListener from "../eventListener"
-import type { ItemProps, UploadQueueItemFile } from "../../types"
+import { ItemProps, UploadQueueItemFile } from "../../types"
 import { DOWNLOAD_DOMAINS, API_V3_DOMAINS, UPLOAD_V3_DOMAINS } from "../constants"
 import { wrap, memoize, debounce } from "lodash"
 import DOMPurify from "dompurify"
@@ -1210,4 +1210,15 @@ export const sanitizeSVG = (file: File): Promise<File> => {
 
 		reader.readAsText(file)
 	})
+}
+
+export const parseURLParams = (url: string) => {
+	const urlParams = new URLSearchParams(new URL(url).search)
+	const params: Record<string, string> = {}
+
+	urlParams.forEach((value, key) => {
+		params[key] = value
+	})
+
+	return params
 }

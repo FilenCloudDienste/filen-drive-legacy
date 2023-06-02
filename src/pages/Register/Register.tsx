@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from "react"
-import type { AppBaseProps } from "../../types"
+import { AppBaseProps } from "../../types"
 import { Flex, Image, Spinner, Modal, ModalFooter, ModalBody, ModalContent, ModalOverlay } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import DarkLogo from "../../assets/images/dark_logo.svg"

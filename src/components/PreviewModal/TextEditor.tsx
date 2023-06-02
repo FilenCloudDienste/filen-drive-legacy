@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react"
-import type { ItemProps, UploadQueueItemFile } from "../../types"
+import { ItemProps, UploadQueueItemFile } from "../../types"
 import {
 	Modal,
 	ModalOverlay,

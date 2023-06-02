@@ -5,54 +5,18 @@ import { ChatMessage, chatDelete } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
 import { IoTrash } from "react-icons/io5"
-import { safeAwait } from "../../lib/helpers"
+import { safeAwait, getRandomArbitrary } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import useDb from "../../lib/hooks/useDb"
-
-function formatTimestamp(timestamp: number): string {
-	const now = Date.now()
-	const diff = now - timestamp
-
-	// Convert milliseconds to seconds
-	const seconds = Math.floor(diff / 1000)
-
-	// Helper functions to format date and time
-	const formatDate = (date: Date): string =>
-		date.toLocaleDateString(window.navigator.language, { year: "numeric", month: "2-digit", day: "2-digit" })
-	const formatTime = (date: Date): string => date.toLocaleTimeString(window.navigator.language, { hour: "2-digit", minute: "2-digit" })
-
-	if (seconds <= 0) {
-		return "now"
-	}
-
-	if (seconds < 60) {
-		return `${seconds} seconds ago`
-	} else if (seconds < 3600) {
-		const minutes = Math.floor(seconds / 60)
-		return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
-	} else if (seconds < 86400) {
-		const hours = Math.floor(seconds / 3600)
-		return `${hours} hour${hours > 1 ? "s" : ""} ago`
-	} else if (diff < 172800000) {
-		const date = new Date(timestamp)
-		const yesterday = new Date(now - 86400000) // 24 hours ago
-		return `Yesterday at ${formatTime(date)}`
-	} else if (diff < 2592000000) {
-		const date = new Date(timestamp)
-		return `Today at ${formatTime(date)}`
-	} else {
-		const date = new Date(timestamp)
-		return `${formatDate(date)} ${formatTime(date)}`
-	}
-}
+import { getUserNameFromMessage, formatMessageDate } from "./utils"
 
 const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean; isMobile: boolean; timestamp: number }) => {
-	const [date, setDate] = useState<string>(formatTimestamp(timestamp))
+	const [date, setDate] = useState<string>(formatMessageDate(timestamp))
 
 	useEffect(() => {
 		const updateInterval = setInterval(() => {
-			setDate(formatTimestamp(timestamp))
-		}, 5000)
+			setDate(formatMessageDate(timestamp))
+		}, getRandomArbitrary(10000, 15000))
 
 		return () => {
 			clearInterval(updateInterval)
@@ -267,12 +231,7 @@ const ChatContainerMessagesMessage = memo(
 								color={getColor(darkMode, "textPrimary")}
 								fontSize={15}
 							>
-								{typeof message.senderFirstName === "string" &&
-								message.senderFirstName.length > 0 &&
-								typeof message.senderLastName === "string" &&
-								message.senderLastName.length > 0
-									? message.senderFirstName + " " + message.senderLastName
-									: message.senderEmail}
+								{getUserNameFromMessage(message)}
 							</AppText>
 							{!isMobile && (
 								<MessageDate

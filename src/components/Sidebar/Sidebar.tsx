@@ -3,11 +3,20 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { Flex, Avatar, Spinner, Progress, CircularProgress } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
-import { IoTrash, IoCloud, IoFolderOpen, IoFolder, IoChevronDown, IoChevronForward, IoChatbubblesSharp } from "react-icons/io5"
-import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri"
-import { MdOutlineFavorite } from "react-icons/md"
-import { HiClock } from "react-icons/hi"
-import type {
+import {
+	IoTrashOutline,
+	IoCloudOutline,
+	IoFolderOpen,
+	IoFolder,
+	IoChevronDown,
+	IoChevronForward,
+	IoChatbubbleOutline,
+	IoBookOutline
+} from "react-icons/io5"
+import { RiFolderSharedLine, RiLink, RiFolderReceivedLine } from "react-icons/ri"
+import { AiOutlineHeart } from "react-icons/ai"
+import { HiOutlineClock } from "react-icons/hi"
+import {
 	SidebarProps,
 	DividerProps,
 	ButtonProps,
@@ -21,7 +30,7 @@ import type {
 	ItemTrashedEvent,
 	FolderCreatedEvent,
 	SidebarUsageProps,
-	UserInfoV1
+	UserInfo
 } from "../../types"
 import { loadSidebarItems } from "../../lib/services/items"
 import { getFolderColor, getCurrentParent, formatBytes, safeAwait } from "../../lib/helpers"
@@ -33,7 +42,7 @@ import { fetchUserInfo } from "../../lib/services/user"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
 import { contextMenu } from "react-contexify"
-import type { SocketEvent } from "../../lib/services/socket"
+import { SocketEvent } from "../../lib/services/socket"
 import memoryCache from "../../lib/memoryCache"
 import { chatUnread } from "../../lib/api"
 
@@ -89,7 +98,7 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 		let updateChatUnreadListener: ReturnType<typeof eventListener.on>
 		let updateChatUnreadNumberListener: ReturnType<typeof eventListener.on>
 
-		if (type === "chats" && window.location.href.indexOf("chats") === -1) {
+		if (type === "chats") {
 			updateChatUnread()
 
 			refreshTimer = setInterval(updateChatUnread, 5000)
@@ -153,19 +162,19 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				</Flex>
 			)}
 			{type == "cloudDrive" && (
-				<IoCloud
+				<IoCloudOutline
 					size={20}
 					color={colors.icon}
 				/>
 			)}
 			{type == "shared-in" && (
-				<RiFolderReceivedFill
+				<RiFolderReceivedLine
 					size={20}
 					color={colors.icon}
 				/>
 			)}
 			{type == "shared-out" && (
-				<RiFolderSharedFill
+				<RiFolderSharedLine
 					size={20}
 					color={colors.icon}
 				/>
@@ -177,25 +186,31 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				/>
 			)}
 			{type == "favorites" && (
-				<MdOutlineFavorite
+				<AiOutlineHeart
 					size={20}
 					color={colors.icon}
 				/>
 			)}
 			{type == "recent" && (
-				<HiClock
+				<HiOutlineClock
 					size={20}
 					color={colors.icon}
 				/>
 			)}
 			{type == "trash" && (
-				<IoTrash
+				<IoTrashOutline
 					size={20}
 					color={colors.icon}
 				/>
 			)}
 			{type === "chats" && (
-				<IoChatbubblesSharp
+				<IoChatbubbleOutline
+					size={20}
+					color={colors.icon}
+				/>
+			)}
+			{type === "notes" && (
+				<IoBookOutline
 					size={20}
 					color={colors.icon}
 				/>
@@ -468,7 +483,7 @@ export const CloudTreeItem = memo(
 							/>
 						)}
 						{parent.uuid == "base" ? (
-							<IoCloud
+							<IoCloudOutline
 								size={parent.uuid == "base" ? 20 : 16}
 								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => {
@@ -743,7 +758,7 @@ export const CloudTree = memo(
 )
 
 const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProps) => {
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 	const [percent, setPercent] = useState<number>(0)
 	const navigate = useNavigate()
 
@@ -751,7 +766,7 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 
 	const fetchUsage = useCallback(async (): Promise<void> => {
 		try {
-			const info: UserInfoV1 = await fetchUserInfo()
+			const info: UserInfo = await fetchUserInfo()
 			const percentage: number = parseFloat(((info.storageUsed / info.maxStorage) * 100).toFixed(2))
 
 			setUserInfo(info)
@@ -899,7 +914,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 	const [sidebarFolderOpen, setSidebarFolderOpen] = useState<{ [key: string]: boolean }>({ base: true })
 
 	const treeMaxHeight: number = useMemo(() => {
-		const sidebarOtherHeight: number = 40 * 11
+		const sidebarOtherHeight: number = 40 * 12
 		const treeHeight: number = windowHeight - sidebarOtherHeight
 		const treeMaxHeight: number = treeHeight < 40 ? 40 : treeHeight
 
@@ -1029,7 +1044,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "trash")}
 				to="/#/trash"
 			/>
-			<Divider
+			{/*<Divider
 				darkMode={darkMode}
 				marginTop={4}
 				marginBottom={4}
@@ -1041,6 +1056,13 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "chats")}
 				to="/#/chats"
 			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="notes"
+				text={i18n(lang, "notes")}
+				to="/#/notes"
+				/>*/}
 			<Usage
 				darkMode={darkMode}
 				isMobile={isMobile}

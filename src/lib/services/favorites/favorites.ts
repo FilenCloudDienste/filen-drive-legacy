@@ -1,4 +1,4 @@
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { favoriteItem } from "../../api"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
@@ -12,13 +12,7 @@ export const markAsFavorite = async (items: ItemProps[], favorite: 0 | 1): Promi
 
 	const toastId = showToast(
 		"loading",
-		i18n(
-			lang,
-			favorite == 1 ? "favoritingItems" : "unfavoritingItems",
-			true,
-			["__COUNT__"],
-			[items.length.toString()]
-		),
+		i18n(lang, favorite == 1 ? "favoritingItems" : "unfavoritingItems", true, ["__COUNT__"], [items.length.toString()]),
 		"bottom",
 		ONE_YEAR
 	)

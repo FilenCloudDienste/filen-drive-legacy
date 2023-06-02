@@ -1,4 +1,4 @@
-import type { ItemProps, FolderColors } from "../../../types"
+import { ItemProps, FolderColors } from "../../../types"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { changeFolderColor } from "../../api"
@@ -10,12 +10,7 @@ import { changeItemsInStore } from "../metadata"
 export const changeColor = async (items: ItemProps[], color: FolderColors) => {
 	const lang: string = getLang()
 
-	const toastId = showToast(
-		"loading",
-		i18n(lang, "changingColor", true, ["__COUNT__"], [items.length.toString()]),
-		"bottom",
-		ONE_YEAR
-	)
+	const toastId = showToast("loading", i18n(lang, "changingColor", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 
 	const promises = []
 	const changed: ItemProps[] = []

@@ -1,6 +1,6 @@
 import { memo, forwardRef } from "react"
 import { Input as ChakraInput } from "@chakra-ui/react"
-import type { InputProps } from "../../types"
+import { InputProps } from "../../types"
 import { getColor } from "../../styles/colors"
 
 const Input = memo(
@@ -11,7 +11,7 @@ const Input = memo(
 			<ChakraInput
 				ref={ref}
 				color={getColor(darkMode, "textPrimary")}
-				border={"1px solid " + getColor(darkMode, "borderPrimary") + " !important"}
+				border="none"
 				shadow="none"
 				outline="none"
 				borderRadius="10px"
@@ -21,22 +21,22 @@ const Input = memo(
 					outline: "none"
 				}}
 				_hover={{
-					border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
+					//border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
 					shadow: "none",
 					outline: "none"
 				}}
 				_active={{
-					border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
+					//border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
 					shadow: "none",
 					outline: "none"
 				}}
 				_focus={{
-					border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
+					//border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
 					shadow: "none",
 					outline: "none"
 				}}
 				_highlighted={{
-					border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
+					//border: "1px solid " + getColor(darkMode, "borderActive") + " !important",
 					shadow: "none",
 					outline: "none"
 				}}

@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react"
 import { Flex } from "@chakra-ui/react"
-import type { DragSelectProps } from "../../types"
+import { DragSelectProps } from "../../types"
 import { getDragSelectCoords } from "../../lib/helpers"
 import { getColor } from "../../styles/colors"
 

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react"
-import type { AppBaseProps, LinkGetInfoV1, ItemProps, LinkHasPasswordV1 } from "../../types"
+import { AppBaseProps, LinkGetInfo, ItemProps, LinkHasPassword } from "../../types"
 import { useParams } from "react-router-dom"
 import { validate as validateUUID } from "uuid"
 import InvalidLink from "../../components/PublicLink/InvalidLink"
@@ -32,7 +32,7 @@ import * as docx from "docx-preview"
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video", "docx"]
 const MAX_SIZE: number = 1024 * 1024 * 16
 
-const getItemFromFile = (info: LinkGetInfoV1, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
+const getItemFromFile = (info: LinkGetInfo, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
 	const item: ItemProps = {
 		root: "",
 		type: "file",
@@ -66,7 +66,7 @@ const getItemFromFile = (info: LinkGetInfoV1, file: { name: string; size: number
 const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const params = useParams()
 	const key = useRef<string>(window.location.hash.split("#").join("").split("!").join("")).current
-	const [info, setInfo] = useState<LinkGetInfoV1 | undefined>(undefined)
+	const [info, setInfo] = useState<LinkGetInfo | undefined>(undefined)
 	const [needsPassword, setNeedsPassword] = useState<boolean>(false)
 	const [password, setPassword] = useState<string>("")
 	const [notFound, setNotFound] = useState<boolean>(false)
@@ -101,7 +101,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 
 		downloadTimeout.current = Date.now() + 2500
 
-		queueFileDownload(getItemFromFile(info as LinkGetInfoV1, file as { name: string; size: number; mime: string }, key))
+		queueFileDownload(getItemFromFile(info as LinkGetInfo, file as { name: string; size: number; mime: string }, key))
 			.then(console.log)
 			.catch(console.error)
 	}, [info, file, key, downloadTimeout.current])
@@ -109,7 +109,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 	const fetchInfo = useCallback(() => {
 		if (typeof params.uuid == "string" && typeof key == "string") {
 			if (validateUUID(params.uuid) && key.length == 32) {
-				const getInfo = async (passwordInfo: LinkHasPasswordV1) => {
+				const getInfo = async (passwordInfo: LinkHasPassword) => {
 					setLoadingPassword(true)
 					setPasswordCorrect(false)
 

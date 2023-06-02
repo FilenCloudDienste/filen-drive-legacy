@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react"
-import type { PublicLinkModalProps, ItemProps } from "../../types"
+import { PublicLinkModalProps, ItemProps } from "../../types"
 import {
 	Modal,
 	ModalOverlay,
