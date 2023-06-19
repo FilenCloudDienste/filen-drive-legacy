@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { ChatSizes } from "./Chats"
 import { getColor } from "../../styles/colors"
-import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import { ChatConversation, ChatConversationParticipant, chatConversationsOnline, ChatConversationsOnline } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import AppText from "../AppText"
@@ -13,10 +13,79 @@ import { IoIosAdd } from "react-icons/io"
 import { i18n } from "../../i18n"
 import { decryptChatMessageKey } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
+import useIsMobile from "../../lib/hooks/useIsMobile"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 const ONLINE_TIMEOUT = 900000
 
 export type OnlineUsers = Record<string, ChatConversationsOnline>
+
+export const ChatMemberSkeleton = memo(() => {
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+
+	return (
+		<Flex
+			padding="10px"
+			paddingBottom="0px"
+		>
+			<Flex
+				padding="10px"
+				paddingTop="6px"
+				paddingLeft="6px"
+				paddingRight="6px"
+				flexDirection="row"
+				alignItems="center"
+				cursor="pointer"
+				borderRadius="10px"
+				width="100%"
+				_hover={{
+					backgroundColor: getColor(darkMode, "backgroundSecondary")
+				}}
+				justifyContent="space-between"
+			>
+				<Flex
+					alignItems="center"
+					flexDirection="row"
+				>
+					<Skeleton
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
+						width="30px"
+						height="30px"
+						borderRadius="full"
+					>
+						<Avatar
+							name={Math.random().toString()}
+							width="30px"
+							height="30px"
+							borderRadius="full"
+							border="none"
+						/>
+					</Skeleton>
+					<Skeleton
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
+						borderRadius="10px"
+						marginLeft="10px"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "textSecondary")}
+							marginLeft="10px"
+							fontSize={15}
+						>
+							{Math.random().toString()}
+						</AppText>
+					</Skeleton>
+				</Flex>
+			</Flex>
+		</Flex>
+	)
+})
 
 export interface ChatMemberProps {
 	darkMode: boolean
@@ -27,7 +96,7 @@ export interface ChatMemberProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 }
 
-const ChatMember = memo(({ user, darkMode, onlineUsers, isMobile, currentConversation, currentConversationMe }: ChatMemberProps) => {
+export const ChatMember = memo(({ user, darkMode, onlineUsers, isMobile, currentConversation, currentConversationMe }: ChatMemberProps) => {
 	const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
 	const currentConversationMeRef = useRef<ChatConversationParticipant | undefined>(currentConversationMe)
 	const [hovering, setHovering] = useState<boolean>(false)
@@ -242,17 +311,23 @@ const ChatMemberList = memo(
 		}, [currentConversation, currentConversationMe])
 
 		const itemContent = useCallback(
-			(index: number, participant: ChatConversationParticipant) => (
-				<ChatMember
-					key={participant.userId}
-					isMobile={isMobile}
-					darkMode={darkMode}
-					onlineUsers={onlineUsers}
-					user={participant}
-					currentConversation={currentConversation}
-					currentConversationMe={currentConversationMe}
-				/>
-			),
+			(index: number, participant: ChatConversationParticipant) => {
+				if (!currentConversation || !currentConversationMe) {
+					return <ChatMemberSkeleton key={index} />
+				}
+
+				return (
+					<ChatMember
+						key={participant.userId}
+						isMobile={isMobile}
+						darkMode={darkMode}
+						onlineUsers={onlineUsers}
+						user={participant}
+						currentConversation={currentConversation}
+						currentConversationMe={currentConversationMe}
+					/>
+				)
+			},
 			[darkMode, isMobile, onlineUsers, currentConversation, currentConversationMe]
 		)
 
@@ -338,11 +413,29 @@ const ChatMemberList = memo(
 					)}
 				</Flex>
 				<Virtuoso
-					data={usersSorted}
+					data={
+						!currentConversation || !currentConversationMe
+							? (new Array(50).fill(1).map(() => ({
+									userId: 0,
+									email: "",
+									avatar: null,
+									firstName: null,
+									lastName: null,
+									metadata: "",
+									permissionsAdd: false,
+									addedTimestamp: 0
+							  })) as ChatConversationParticipant[])
+							: usersSorted
+					}
 					height={windowHeight - 40}
 					width={sizes.chatOptions}
 					itemContent={itemContent}
-					totalCount={usersSorted.length}
+					totalCount={!currentConversation || !currentConversationMe ? 50 : usersSorted.length}
+					overscan={8}
+					style={{
+						overflowX: "hidden",
+						overflowY: !currentConversation || !currentConversationMe ? "hidden" : "auto"
+					}}
 				/>
 			</Flex>
 		)

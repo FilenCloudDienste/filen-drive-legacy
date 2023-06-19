@@ -1175,16 +1175,18 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					flexDirection="column"
 					outline="none"
 				>
-					{location.hash.indexOf("account") === -1 && location.hash.indexOf("chats") === -1 && (
-						<Topbar
-							darkMode={darkMode}
-							isMobile={isMobile}
-							windowWidth={windowWidth}
-							lang={lang}
-							searchTerm={searchTerm}
-							setSearchTerm={setSearchTerm}
-						/>
-					)}
+					{location.hash.indexOf("account") === -1 &&
+						location.hash.indexOf("chats") === -1 &&
+						location.hash.indexOf("notes") === -1 && (
+							<Topbar
+								darkMode={darkMode}
+								isMobile={isMobile}
+								windowWidth={windowWidth}
+								lang={lang}
+								searchTerm={searchTerm}
+								setSearchTerm={setSearchTerm}
+							/>
+						)}
 					{location.hash.indexOf("account") !== -1 ? (
 						<Account
 							darkMode={darkMode}
@@ -1204,14 +1206,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 							lang={lang}
 						/>
 					) : location.hash.indexOf("notes") !== -1 ? (
-						<Notes
-							darkMode={darkMode}
-							isMobile={isMobile}
-							windowWidth={windowWidth}
-							windowHeight={windowHeight}
-							sidebarWidth={sidebarWidth}
-							lang={lang}
-						/>
+						<Notes sidebarWidth={sidebarWidth} />
 					) : (
 						<>
 							<Breadcrumbs

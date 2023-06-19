@@ -1,7 +1,7 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react"
 import { ChatConversation } from "../../lib/api"
 import { getColor } from "../../styles/colors"
-import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import { useNavigate } from "react-router-dom"
 import AppText from "../AppText"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
@@ -9,6 +9,92 @@ import db from "../../lib/db"
 import { getCurrentParent } from "../../lib/helpers"
 import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useIsMobile from "../../lib/hooks/useIsMobile"
+
+export const ConversationSkeleton = memo(({ index }: { index: number }) => {
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+
+	return (
+		<Flex
+			padding="10px"
+			paddingTop={index <= 0 ? "5px" : "0px"}
+			paddingBottom="0px"
+		>
+			<Flex
+				flexDirection="row"
+				alignItems="center"
+				justifyContent="space-between"
+				padding="10px"
+				cursor="pointer"
+				borderRadius="10px"
+				width="100%"
+			>
+				<Flex
+					alignItems="center"
+					flexDirection="row"
+				>
+					<Flex>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							width="30px"
+							height="30px"
+							borderRadius="full"
+						>
+							<Avatar
+								name={Math.random().toString()}
+								width="30px"
+								height="30px"
+								borderRadius="full"
+							/>
+						</Skeleton>
+					</Flex>
+					<Flex
+						flexDirection="column"
+						paddingLeft="10px"
+					>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								marginLeft="10px"
+								fontSize={15}
+							>
+								{Math.random().toString()}
+							</AppText>
+						</Skeleton>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+							marginTop="5px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textSecondary")}
+								marginLeft="10px"
+								fontSize={12}
+							>
+								{Math.random().toString()}
+							</AppText>
+						</Skeleton>
+					</Flex>
+				</Flex>
+			</Flex>
+		</Flex>
+	)
+})
 
 export interface ConversationProps {
 	darkMode: boolean
@@ -22,7 +108,7 @@ export interface ConversationProps {
 	lang: string
 }
 
-const Conversation = memo(
+export const Conversation = memo(
 	({
 		darkMode,
 		isMobile,
@@ -119,7 +205,7 @@ const Conversation = memo(
 					borderRadius="10px"
 					width="100%"
 					backgroundColor={
-						getCurrentParent(window.location.href) === conversation.uuid
+						getCurrentParent(window.location.href) === conversation.uuid || hovering
 							? getColor(darkMode, "backgroundSecondary")
 							: "transparent"
 					}
@@ -136,6 +222,7 @@ const Conversation = memo(
 					_hover={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary")
 					}}
+					gap="10px"
 				>
 					<Flex
 						alignItems="center"
@@ -212,7 +299,7 @@ const Conversation = memo(
 								noOfLines={1}
 								wordBreak="break-all"
 								color={
-									getCurrentParent(window.location.href) === conversation.uuid
+									getCurrentParent(window.location.href) === conversation.uuid || hovering
 										? getColor(darkMode, "textPrimary")
 										: getColor(darkMode, "textSecondary")
 								}
@@ -230,7 +317,7 @@ const Conversation = memo(
 								wordBreak="break-all"
 								color={getColor(darkMode, "textSecondary")}
 								marginLeft="10px"
-								fontSize={11}
+								fontSize={12}
 							>
 								{lastMessageInlcudingSender}
 							</AppText>

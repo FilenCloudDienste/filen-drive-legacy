@@ -12,7 +12,7 @@ import { safeAwait, getCurrentParent, Semaphore } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
 import { validate } from "uuid"
-import Conversation from "./Conversation"
+import Conversation, { ConversationSkeleton } from "./Conversation"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import { fetchUserAccount } from "../../lib/services/user"
@@ -215,7 +215,7 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 			await safeAwait(chatConversationsRead(currentConversationUUID))
 		}
 
-		safeAwait(fetchConversations())
+		safeAwait(fetchConversations(false))
 	}, [])
 
 	const onBlur = useCallback(() => {
@@ -223,20 +223,31 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 	}, [])
 
 	const itemContent = useCallback(
-		(index: number, convo: ChatConversation) => (
-			<Conversation
-				index={index}
-				isMobile={isMobile}
-				darkMode={darkMode}
-				conversation={convo}
-				userId={userId}
-				setCurrentConversation={setCurrentConversation}
-				unreadConversationsMessages={unreadConversationsMessages}
-				setUnreadConversationsMessages={setUnreadConversationsMessages}
-				lang={lang}
-			/>
-		),
-		[darkMode, isMobile, lang, userId, unreadConversationsMessages]
+		(index: number, convo: ChatConversation) => {
+			if (loading) {
+				return (
+					<ConversationSkeleton
+						key={index}
+						index={index}
+					/>
+				)
+			}
+
+			return (
+				<Conversation
+					index={index}
+					isMobile={isMobile}
+					darkMode={darkMode}
+					conversation={convo}
+					userId={userId}
+					setCurrentConversation={setCurrentConversation}
+					unreadConversationsMessages={unreadConversationsMessages}
+					setUnreadConversationsMessages={setUnreadConversationsMessages}
+					lang={lang}
+				/>
+			)
+		},
+		[darkMode, isMobile, lang, userId, unreadConversationsMessages, loading]
 	)
 
 	useEffect(() => {
@@ -364,11 +375,27 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 				</Flex>
 			</Flex>
 			<Virtuoso
-				data={conversationsSorted}
+				data={
+					loading
+						? (new Array(50).fill(1).map(() => ({
+								uuid: "",
+								lastMessageSender: 0,
+								lastMessage: null,
+								lastMessageTimestamp: 0,
+								ownerId: 0,
+								participants: []
+						  })) as ChatConversation[])
+						: conversationsSorted
+				}
 				height={windowHeight - 40 - (isMobile ? 51 : 62)}
 				width={sizes.conversations}
 				itemContent={itemContent}
-				totalCount={conversationsSorted.length}
+				totalCount={loading ? 50 : conversationsSorted.length}
+				overscan={8}
+				style={{
+					overflowX: "hidden",
+					overflowY: loading ? "hidden" : "auto"
+				}}
 			/>
 			<Me
 				darkMode={darkMode}

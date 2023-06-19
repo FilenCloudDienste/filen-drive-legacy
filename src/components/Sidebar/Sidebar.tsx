@@ -169,7 +169,7 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 							noOfLines={1}
 							fontSize={13}
 							fontWeight="bold"
-							color={colors.text}
+							color="white"
 						>
 							{unreadChatMessages}
 						</AppText>
@@ -1068,7 +1068,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "trash")}
 				to="/#/trash"
 			/>
-			{/*<Divider
+			<Divider
 				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
@@ -1086,7 +1086,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				type="notes"
 				text={i18n(lang, "notes")}
 				to="/#/notes"
-				/>*/}
+			/>
 			<Usage
 				darkMode={darkMode}
 				isMobile={isMobile}

@@ -53,35 +53,53 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 
 	return (
 		<Flex flexDirection="row">
-			<Conversations
-				darkMode={darkMode}
-				isMobile={isMobile}
-				windowHeight={windowHeight}
-				sizes={sizes}
-				setCurrentConversation={setCurrentConversation}
-				lang={lang}
-			/>
-			<ChatContainer
-				darkMode={darkMode}
-				isMobile={isMobile}
-				windowHeight={windowHeight}
-				lang={lang}
-				sizes={sizes}
-				currentConversation={currentConversation}
-				currentConversationMe={currentConversationMe}
-			/>
-			<ChatMemberList
-				darkMode={darkMode}
-				isMobile={isMobile}
-				windowHeight={windowHeight}
-				windowWidth={windowWidth}
-				sidebarWidth={sidebarWidth}
-				lang={lang}
-				sizes={sizes}
-				currentConversation={currentConversation}
-				currentConversationMe={currentConversationMe}
-				setCurrentConversation={setCurrentConversation}
-			/>
+			<Flex
+				width={sizes.conversations + "px"}
+				height={windowHeight + "px"}
+				flexDirection="column"
+			>
+				<Conversations
+					darkMode={darkMode}
+					isMobile={isMobile}
+					windowHeight={windowHeight}
+					sizes={sizes}
+					setCurrentConversation={setCurrentConversation}
+					lang={lang}
+				/>
+			</Flex>
+			<Flex
+				width={sizes.chatContainer + "px"}
+				height={windowHeight + "px"}
+				flexDirection="column"
+			>
+				<ChatContainer
+					darkMode={darkMode}
+					isMobile={isMobile}
+					windowHeight={windowHeight}
+					lang={lang}
+					sizes={sizes}
+					currentConversation={currentConversation}
+					currentConversationMe={currentConversationMe}
+				/>
+			</Flex>
+			<Flex
+				width={sizes.chatOptions + "px"}
+				height={windowHeight + "px"}
+				flexDirection="column"
+			>
+				<ChatMemberList
+					darkMode={darkMode}
+					isMobile={isMobile}
+					windowHeight={windowHeight}
+					windowWidth={windowWidth}
+					sidebarWidth={sidebarWidth}
+					lang={lang}
+					sizes={sizes}
+					currentConversation={currentConversation}
+					currentConversationMe={currentConversationMe}
+					setCurrentConversation={setCurrentConversation}
+				/>
+			</Flex>
 			<NewConversationModal
 				darkMode={darkMode}
 				isMobile={isMobile}

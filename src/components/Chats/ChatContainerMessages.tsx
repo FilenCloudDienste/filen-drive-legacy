@@ -1,19 +1,87 @@
 import { memo, useMemo, useState, useEffect, useCallback, useRef } from "react"
-import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody } from "@chakra-ui/react"
+import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, chatDelete } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
 import { IoTrash } from "react-icons/io5"
-import { safeAwait, getRandomArbitrary } from "../../lib/helpers"
+import { safeAwait, getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import useDb from "../../lib/hooks/useDb"
 import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
-import { Virtuoso } from "react-virtuoso"
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
+import useWindowHeight from "../../lib/hooks/useWindowHeight"
 
-const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean; isMobile: boolean; timestamp: number }) => {
+export const MessageSkeleton = memo(({ index }: { index: number }) => {
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+
+	return (
+		<Flex
+			flexDirection="column"
+			width="100%"
+			marginTop="5px"
+		>
+			<Flex
+				flexDirection="row"
+				paddingTop={index === 0 ? "10px" : "2px"}
+				paddingBottom="2px"
+				paddingRight="15px"
+				paddingLeft="15px"
+				width="100%"
+			>
+				<Flex>
+					<Skeleton
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
+						width="30px"
+						height="30px"
+						borderRadius="full"
+					>
+						<Avatar
+							name={Math.random().toString()}
+							width="30px"
+							height="30px"
+							borderRadius="full"
+						/>
+					</Skeleton>
+				</Flex>
+				<Flex
+					flexDirection="column"
+					paddingLeft="15px"
+				>
+					<Flex
+						flexDirection="row"
+						alignItems="center"
+						justifyContent="center"
+					>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+							marginLeft="10px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textPrimary")}
+								fontSize={15}
+							>
+								{randomStringUnsafe(getRandomArbitrary(8, 128))}
+							</AppText>
+						</Skeleton>
+					</Flex>
+				</Flex>
+			</Flex>
+		</Flex>
+	)
+})
+
+export const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean; isMobile: boolean; timestamp: number }) => {
 	const [date, setDate] = useState<string>(formatMessageDate(timestamp))
 
 	useEffect(() => {
@@ -41,7 +109,7 @@ const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean
 	)
 })
 
-const DateDivider = memo(({ timestamp }: { timestamp: number }) => {
+export const DateDivider = memo(({ timestamp }: { timestamp: number }) => {
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
 
@@ -86,7 +154,7 @@ const DateDivider = memo(({ timestamp }: { timestamp: number }) => {
 	)
 })
 
-const OuterMessage = memo(
+export const OuterMessage = memo(
 	({
 		message,
 		isScrollingChat,
@@ -193,7 +261,7 @@ export interface MessageProps {
 	index: number
 }
 
-const Message = memo(
+export const Message = memo(
 	({ darkMode, isMobile, message, failedMessages, prevMessage, nextMessage, userId, isScrollingChat, index }: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
@@ -424,54 +492,128 @@ export interface ChatContainerMessagesProps {
 	failedMessages: string[]
 	width: number
 	height: number
+	loading: boolean
 }
 
-const ChatContainerMessages = memo(({ darkMode, isMobile, messages, failedMessages, width, height }: ChatContainerMessagesProps) => {
-	const [userId] = useDb("userId", 0)
-	const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
+const loadingMessages = new Array(50).fill(1).map(() => ({
+	uuid: "",
+	senderId: 0,
+	senderEmail: "",
+	senderAvatar: null,
+	senderFirstName: null,
+	senderLastName: null,
+	message: "",
+	sentTimestamp: 0
+})) as ChatMessage[]
 
-	const followOutput = useCallback((isAtBottom: boolean) => {
-		return isAtBottom ? "auto" : false
-	}, [])
+export const ChatContainerMessages = memo(
+	({ darkMode, isMobile, messages, failedMessages, width, height, loading }: ChatContainerMessagesProps) => {
+		const windowHeight = useWindowHeight()
+		const [userId] = useDb("userId", 0)
+		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
+		const [isAtBottom, setIsAtBottom] = useState<boolean>(false)
+		const virtuosoRef = useRef<VirtuosoHandle>(null)
 
-	const atTopStateChange = useCallback((atTop: boolean) => {
-		if (atTop) {
-			eventListener.emit("messagesTopReached")
+		const followOutput = useCallback(
+			(atBottom: boolean) => {
+				if (loading) {
+					return false
+				}
+
+				return atBottom ? "smooth" : false
+			},
+			[loading]
+		)
+
+		const atTopStateChange = useCallback(
+			(atTop: boolean) => {
+				if (loading) {
+					return
+				}
+
+				if (atTop) {
+					eventListener.emit("messagesTopReached")
+				}
+			},
+			[loading]
+		)
+
+		const atBottomStateChange = useCallback((atBottom: boolean) => {
+			setIsAtBottom(atBottom)
+		}, [])
+
+		const itemContent = useCallback(
+			(index: number, message: ChatMessage) => {
+				if (loading) {
+					return (
+						<MessageSkeleton
+							key={index}
+							index={index}
+						/>
+					)
+				}
+
+				return (
+					<Message
+						key={message.uuid}
+						darkMode={darkMode}
+						isMobile={isMobile}
+						failedMessages={failedMessages}
+						message={message}
+						prevMessage={messages[index - 1]}
+						nextMessage={messages[index + 1]}
+						userId={userId}
+						isScrollingChat={isScrollingChat}
+						index={index}
+					/>
+				)
+			},
+			[darkMode, isMobile, userId, failedMessages, messages, isScrollingChat, loading]
+		)
+
+		if (loading) {
+			return (
+				<Flex
+					flexDirection="column"
+					height={windowHeight - 50 + "px"}
+					width={width + "px"}
+					overflow="hidden"
+					transition="200ms"
+				>
+					{loadingMessages.map((_, index) => {
+						return (
+							<MessageSkeleton
+								key={index}
+								index={index}
+							/>
+						)
+					})}
+				</Flex>
+			)
 		}
-	}, [])
 
-	const itemContent = useCallback(
-		(index: number, message: ChatMessage) => (
-			<Message
-				key={message.uuid}
-				darkMode={darkMode}
-				isMobile={isMobile}
-				failedMessages={failedMessages}
-				message={message}
-				prevMessage={messages[index - 1]}
-				nextMessage={messages[index + 1]}
-				userId={userId}
-				isScrollingChat={isScrollingChat}
-				index={index}
+		return (
+			<Virtuoso
+				data={messages}
+				ref={virtuosoRef}
+				height={height}
+				atBottomStateChange={atBottomStateChange}
+				isScrolling={setIsScrollingChat}
+				width={width}
+				followOutput={followOutput}
+				itemContent={itemContent}
+				totalCount={messages.length}
+				initialTopMostItemIndex={999}
+				atTopStateChange={atTopStateChange}
+				overscan={8}
+				style={{
+					overflowX: "hidden",
+					overflowY: loading ? "hidden" : "auto",
+					transition: "200ms"
+				}}
 			/>
-		),
-		[darkMode, isMobile, userId, failedMessages, messages, isScrollingChat]
-	)
-
-	return (
-		<Virtuoso
-			data={messages}
-			height={height}
-			isScrolling={setIsScrollingChat}
-			width={width}
-			followOutput={followOutput}
-			initialTopMostItemIndex={messages.length}
-			itemContent={itemContent}
-			totalCount={messages.length}
-			atTopStateChange={atTopStateChange}
-			overscan={16}
-		/>
-	)
-})
+		)
+	}
+)
 
 export default ChatContainerMessages

@@ -503,6 +503,29 @@ export const randomIdUnsafe = () => {
 	return Math.random().toString().slice(3)
 }
 
+export const randomIdUnsafeLength = (length: number = 32) => {
+	return (
+		Math.random().toString().slice(3) +
+		Math.random().toString().slice(3) +
+		Math.random().toString().slice(3) +
+		Math.random().toString().slice(3)
+	).slice(0, length)
+}
+
+export const randomStringUnsafe = (length: number = 32) => {
+	let result = ""
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	const charactersLength = characters.length
+	let counter = 0
+
+	while (counter < length) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength))
+		counter += 1
+	}
+
+	return result
+}
+
 export const canCompressThumbnail = (ext: string) => {
 	switch (ext.toLowerCase()) {
 		case "jpeg":

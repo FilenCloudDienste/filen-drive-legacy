@@ -132,10 +132,20 @@ export interface ChatContainerInputProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 	setFailedMessages: React.Dispatch<React.SetStateAction<string[]>>
 	setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
+	loading: boolean
 }
 
 const ChatContainerInput = memo(
-	({ darkMode, isMobile, lang, currentConversation, currentConversationMe, setFailedMessages, setMessages }: ChatContainerInputProps) => {
+	({
+		darkMode,
+		isMobile,
+		lang,
+		currentConversation,
+		currentConversationMe,
+		setFailedMessages,
+		setMessages,
+		loading
+	}: ChatContainerInputProps) => {
 		const [messageInput, setMessageInput] = useState<string>("")
 		const isTyping = useRef<boolean>(false)
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -243,7 +253,7 @@ const ChatContainerInput = memo(
 		return (
 			<>
 				<Input
-					placeholder={i18n(lang, "searchInThisFolder")}
+					placeholder={i18n(lang, "chatInput")}
 					width="100%"
 					height="40px"
 					marginTop="5px"
@@ -269,6 +279,7 @@ const ChatContainerInput = memo(
 					_placeholder={{
 						color: getColor(darkMode, "textSecondary")
 					}}
+					disabled={loading}
 				/>
 				<ChatContainerInputTyping
 					darkMode={darkMode}

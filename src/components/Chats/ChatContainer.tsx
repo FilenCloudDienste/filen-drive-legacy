@@ -64,10 +64,10 @@ const ChatContainer = memo(
 				fetchChatMessages(currentConversationRef.current.uuid, messagesTimestamp.current)
 			)
 
-			setLoading(false)
-
 			if (messagesErr) {
 				console.error(messagesErr)
+
+				setLoading(false)
 
 				return
 			}
@@ -89,6 +89,7 @@ const ChatContainer = memo(
 			}
 
 			setMessages(messagesDecrypted)
+			setLoading(false)
 			safeAwait(chatConversationsRead(currentConversationRef.current.uuid))
 		}, [])
 
@@ -178,10 +179,6 @@ const ChatContainer = memo(
 			fetchMessages()
 		}, [currentConversation?.uuid])
 
-		if (!currentConversation) {
-			return null
-		}
-
 		return (
 			<Flex
 				width={sizes.chatContainer + "px"}
@@ -189,7 +186,8 @@ const ChatContainer = memo(
 				flexDirection="column"
 			>
 				<Flex
-					height={heights.topbarContainer}
+					height={heights.topbarContainer + "px"}
+					width={sizes.chatContainer + "px"}
 					flexDirection="row"
 					overflowY="hidden"
 				>
@@ -198,6 +196,7 @@ const ChatContainer = memo(
 						isMobile={isMobile}
 						currentConversation={currentConversation}
 						currentConversationMe={currentConversationMe}
+						loading={loading}
 					/>
 				</Flex>
 				<ChatContainerMessages
@@ -207,11 +206,13 @@ const ChatContainer = memo(
 					messages={sortedMessages}
 					width={sizes.chatContainer}
 					height={heights.messagesContainer}
+					loading={loading}
 				/>
 				<Flex
 					flexDirection="column"
 					justifyContent="center"
-					height={heights.inputContainer}
+					height={heights.inputContainer + "px"}
+					width={sizes.chatContainer + "px"}
 					paddingLeft="15px"
 					paddingRight="15px"
 				>
@@ -223,6 +224,7 @@ const ChatContainer = memo(
 						setMessages={setMessages}
 						setFailedMessages={setFailedMessages}
 						lang={lang}
+						loading={loading}
 					/>
 				</Flex>
 			</Flex>
