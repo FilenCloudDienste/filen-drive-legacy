@@ -48,8 +48,8 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 			flexDirection="row"
 			alignItems="center"
 			justifyContent="space-between"
-			paddingLeft="15px"
-			paddingRight="15px"
+			paddingLeft="20px"
+			paddingRight="20px"
 			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 		>
 			<Flex

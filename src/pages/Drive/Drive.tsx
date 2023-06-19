@@ -702,29 +702,27 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		})
 
 		const fileUploadedListener = eventListener.on("fileUploaded", (data: FileUploadedEvent) => {
-			setItems(prev => {
-				if (getCurrentURLParentFolder() == data.item.parent) {
-					if (prev.filter(item => item.uuid == data.item.uuid).length == 0) {
-						const items: ItemProps[] = [...prev.filter(item => item.name !== data.item.name), ...[data.item]]
-
-						return orderItemsByType(items, sortBy[window.location.href], window.location.href)
-					}
-				}
-
-				return prev
-			})
+			if (getCurrentURLParentFolder() == data.item.parent) {
+				setItems(prev =>
+					orderItemsByType(
+						[...prev.filter(item => item.name !== data.item.name && item.uuid !== data.item.uuid), data.item],
+						sortBy[window.location.href],
+						window.location.href
+					)
+				)
+			}
 		})
 
 		const addFolderListener = eventListener.on("addFolder", (data: AddFolderEvent) => {
-			setItems(prev => {
-				if (getCurrentURLParentFolder() == data.item.parent) {
-					if (prev.filter(item => item.uuid == data.item.uuid).length == 0) {
-						return orderItemsByType([...prev, ...[data.item]], sortBy[window.location.href], window.location.href)
-					}
-				}
-
-				return prev
-			})
+			if (getCurrentURLParentFolder() == data.item.parent) {
+				setItems(prev =>
+					orderItemsByType(
+						[...prev.filter(item => item.name !== data.item.name && item.uuid !== data.item.uuid), data.item],
+						sortBy[window.location.href],
+						window.location.href
+					)
+				)
+			}
 		})
 
 		const itemColorChangedListener = eventListener.on("itemColorChanged", (data: ItemColorChangedEvent) => {
@@ -859,16 +857,14 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 										region: event.data.region
 									}
 
-									setItems(prev =>
-										orderItemsByType(
-											[...prev, ...[{ ...newItem, selected: false }]],
-											sortBy[window.location.href],
-											window.location.href
-										)
-									)
-
 									addItemsToStore([newItem], event.data.parent).catch(console.error)
 									removeItemsFromStore([newItem], "trash").catch(console.error)
+
+									return orderItemsByType(
+										[...prev, ...[{ ...newItem, selected: false }]],
+										sortBy[window.location.href],
+										window.location.href
+									)
 								}
 
 								return prev
@@ -918,12 +914,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											region: event.data.region
 										}
 
-										setItems(prev =>
-											orderItemsByType(
-												[...prev, ...[{ ...newItem, selected: false }]],
-												sortBy[window.location.href],
-												window.location.href
-											)
+										return orderItemsByType(
+											[...prev, ...[{ ...newItem, selected: false }]],
+											sortBy[window.location.href],
+											window.location.href
 										)
 									}
 
@@ -968,12 +962,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											region: ""
 										}
 
-										setItems(prev =>
-											orderItemsByType(
-												[...prev, ...[{ ...newFolderItem, selected: false }]],
-												sortBy[window.location.href],
-												window.location.href
-											)
+										return orderItemsByType(
+											[...prev, ...[{ ...newFolderItem, selected: false }]],
+											sortBy[window.location.href],
+											window.location.href
 										)
 									}
 
@@ -1163,17 +1155,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					display: "none"
 				}}
 			/>
-			<Topbar
-				darkMode={darkMode}
-				isMobile={isMobile}
-				windowWidth={windowWidth}
-				lang={lang}
-				searchTerm={searchTerm}
-				setSearchTerm={setSearchTerm}
-			/>
 			<Flex
 				width="100%"
-				height={windowHeight - 50 + "px"}
+				height={windowHeight + "px"}
 			>
 				<Sidebar
 					darkMode={darkMode}
@@ -1191,6 +1175,16 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					flexDirection="column"
 					outline="none"
 				>
+					{location.hash.indexOf("account") === -1 && location.hash.indexOf("chats") === -1 && (
+						<Topbar
+							darkMode={darkMode}
+							isMobile={isMobile}
+							windowWidth={windowWidth}
+							lang={lang}
+							searchTerm={searchTerm}
+							setSearchTerm={setSearchTerm}
+						/>
+					)}
 					{location.hash.indexOf("account") !== -1 ? (
 						<Account
 							darkMode={darkMode}

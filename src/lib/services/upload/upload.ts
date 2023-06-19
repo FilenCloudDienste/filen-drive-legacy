@@ -11,27 +11,10 @@ import { fetchUserInfoCached } from "../user"
 import { generateThumbnailAfterUpload } from "../thumbnails"
 import { show as showToast } from "../../../components/Toast/Toast"
 import { i18n } from "../../../i18n"
+import memoryCache from "../../memoryCache"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
-
-export const chunkToHash = async (file: File, index: number, size: number) => {
-	const chunk = await readChunk(file, index, size)
-
-	return await bufferToHash(new Uint8Array(chunk), "SHA-1")
-}
-
-export const generateClientSideFileHashes = async (file: File, fileChunks: number, chunkSizeToUse: number): Promise<string[]> => {
-	const promises: Promise<string>[] = []
-
-	for (let i = 0; i < fileChunks + 1; i++) {
-		promises.push(chunkToHash(file, i, chunkSizeToUse))
-	}
-
-	const hashes = await Promise.all(promises)
-
-	return hashes
-}
 
 export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<ItemProps> => {
 	return new Promise(async (resolve, reject) => {
@@ -268,6 +251,8 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			}
 		}
 
+		memoryCache.set("suppressFileNewSocketEvent:" + uuid, uuid)
+
 		try {
 			const done = await markUploadAsDone({
 				uuid,
@@ -316,11 +301,6 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			console.error(e)
 		}
 
-		eventListener.emit("upload", {
-			type: "done",
-			data: item
-		})
-
 		cleanup()
 
 		const newItem: ItemProps = {
@@ -350,12 +330,20 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			region
 		}
 
-		eventListener.emit("fileUploaded", {
-			item: newItem
-		})
+		// For some reason we need to add a timeout here for the events to fire because sometimes the useTransfers() hook does not work (maybe due to a race condition?)
+		setTimeout(() => {
+			eventListener.emit("fileUploaded", {
+				item: newItem
+			})
 
-		addItemsToStore([newItem], newItem.parent).catch(console.error)
+			eventListener.emit("upload", {
+				type: "done",
+				data: item
+			})
 
-		return resolve(newItem)
+			addItemsToStore([newItem], newItem.parent).catch(console.error)
+		}, 250)
+
+		resolve(newItem)
 	})
 }

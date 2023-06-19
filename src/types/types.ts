@@ -359,6 +359,7 @@ export interface CloudTreeProps extends SidebarBaseProps {
 	items: ItemProps[]
 	setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>
 	setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
+	sidebarWidth: number
 }
 
 export interface SidebarFolderOpenProps {
@@ -376,6 +377,7 @@ export interface CloudTreeItemProps extends SidebarBaseProps {
 	items: ItemProps[]
 	setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>
 	setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
+	sidebarWidth: number
 }
 
 export interface TopbarProps {

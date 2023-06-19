@@ -1,12 +1,9 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react"
-import { Flex, Image, Avatar, Spinner } from "@chakra-ui/react"
+import { Flex, Avatar, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { TopbarProps, UserInfo } from "../../types"
-import DarkLogo from "../../assets/images/dark_logo.svg"
-import LightLogo from "../../assets/images/light_logo.svg"
 import Input from "../../components/Input"
 import eventListener from "../../lib/eventListener"
-import db from "../../lib/db"
 import { useNavigate, useLocation } from "react-router-dom"
 import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
@@ -50,30 +47,13 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 		<Flex
 			width="100%"
 			height="50px"
-			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 			alignItems="center"
-			paddingLeft="15px"
-			paddingRight="15px"
+			paddingLeft="20px"
+			paddingRight="20px"
 			flexDirection="row"
 			justifyContent="space-between"
 		>
-			<Flex>
-				<Image
-					src={darkMode ? LightLogo : DarkLogo}
-					width="28px"
-					height="28px"
-					cursor="pointer"
-					onClick={() => {
-						db.get("defaultDriveUUID")
-							.then(defaultDriveUUID => {
-								if (typeof defaultDriveUUID == "string" && defaultDriveUUID.length > 32) {
-									navigate("/#/" + defaultDriveUUID)
-								}
-							})
-							.catch(console.error)
-					}}
-				/>
-			</Flex>
+			<Flex>&nbsp;</Flex>
 			{location.hash.indexOf("account") === -1 && location.hash.indexOf("chats") === -1 && location.hash.indexOf("notes") === -1 && (
 				<Flex>
 					<Input
@@ -82,9 +62,9 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						placeholder={i18n(lang, "searchInThisFolder")}
 						width={windowWidth / 3 + "px"}
 						maxWidth="450px"
-						height="28px"
+						height="30px"
 						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						borderRadius="8px"
+						borderRadius="10px"
 						fontWeight="350"
 						fontSize={13}
 						paddingLeft="10px"

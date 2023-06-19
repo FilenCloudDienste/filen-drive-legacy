@@ -82,7 +82,7 @@ const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConver
 
 	return (
 		<Flex
-			marginTop="5px"
+			marginTop="0px"
 			marginBottom="3px"
 			flexDirection="row"
 		>

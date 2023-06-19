@@ -382,7 +382,13 @@ const en: {
 	loginAlerts: "Login alerts",
 	chats: "Chats",
 	chatsMessageInput: "Send a message to __NAME__",
-	notes: "Notes"
+	notes: "Notes",
+	chatConversations: "Conversations",
+	chatParticipants: "Participants",
+	chatNew: "New chat",
+	chatNewInviteEmail: "Email address",
+	chatAddUserToConversation: "Add user",
+	add: "Add"
 }
 
 export default en

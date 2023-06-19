@@ -8,6 +8,11 @@ import AppText from "../AppText"
 import eventListener from "../../lib/eventListener"
 import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline } from "react-icons/io5"
+import { Virtuoso } from "react-virtuoso"
+import { IoIosAdd } from "react-icons/io"
+import { i18n } from "../../i18n"
+import { decryptChatMessageKey } from "../../lib/worker/worker.com"
+import db from "../../lib/db"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -72,7 +77,11 @@ const ChatMember = memo(({ user, darkMode, onlineUsers, isMobile, currentConvers
 					flexDirection="row"
 				>
 					<Avatar
-						name={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? undefined : user.email}
+						name={
+							typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1
+								? undefined
+								: user.email.substring(0, 1)
+						}
 						src={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? user.avatar : undefined}
 						width="30px"
 						height="30px"
@@ -159,6 +168,7 @@ const ChatMemberList = memo(
 		const [onlineUsers, setOnlineUsers] = useState<OnlineUsers>({})
 		const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
 		const currentConversationMeRef = useRef<ChatConversationParticipant | undefined>(currentConversationMe)
+		const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 
 		const usersSorted = useMemo(() => {
 			if (!currentConversation || !onlineUsers || Object.keys(onlineUsers).length === 0) {
@@ -217,6 +227,35 @@ const ChatMemberList = memo(
 			setOnlineUsers(online)
 		}, [])
 
+		const addUser = useCallback(async () => {
+			if (!currentConversation || !currentConversationMe) {
+				return
+			}
+
+			const privateKey = await db.get("privateKey")
+			const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
+
+			eventListener.emit("openAddUserToConversationModal", {
+				uuid: currentConversation.uuid,
+				key
+			})
+		}, [currentConversation, currentConversationMe])
+
+		const itemContent = useCallback(
+			(index: number, participant: ChatConversationParticipant) => (
+				<ChatMember
+					key={participant.userId}
+					isMobile={isMobile}
+					darkMode={darkMode}
+					onlineUsers={onlineUsers}
+					user={participant}
+					currentConversation={currentConversation}
+					currentConversationMe={currentConversationMe}
+				/>
+			),
+			[darkMode, isMobile, onlineUsers, currentConversation, currentConversationMe]
+		)
+
 		useEffect(() => {
 			currentConversationRef.current = currentConversation
 			currentConversationMeRef.current = currentConversationMe
@@ -246,25 +285,65 @@ const ChatMemberList = memo(
 
 		return (
 			<Flex
-				height={windowHeight - 50}
-				width={sizes.chatOptions}
+				height={windowHeight + "px"}
+				width={sizes.chatOptions + "px"}
 				borderLeft={"1px solid " + getColor(darkMode, "borderSecondary")}
 				flexDirection="column"
-				overflowY="auto"
 			>
-				{usersSorted.map(user => {
-					return (
-						<ChatMember
-							key={user.userId}
-							isMobile={isMobile}
-							darkMode={darkMode}
-							onlineUsers={onlineUsers}
-							user={user}
-							currentConversation={currentConversation}
-							currentConversationMe={currentConversationMe}
-						/>
-					)
-				})}
+				<Flex
+					width={sizes.chatOptions + "px"}
+					height="40px"
+					flexDirection="row"
+					justifyContent="space-between"
+					alignItems="center"
+					paddingLeft="15px"
+					paddingRight="15px"
+					paddingTop="10px"
+				>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						wordBreak="break-all"
+						color={getColor(darkMode, "textPrimary")}
+						fontSize={18}
+					>
+						{i18n(lang, "chatParticipants")}
+					</AppText>
+					{currentConversationMe?.permissionsAdd && (
+						<Flex
+							backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
+							width="auto"
+							height="auto"
+							padding="4px"
+							borderRadius="full"
+							justifyContent="center"
+							alignItems="center"
+							onMouseEnter={() => setHoveringAdd(true)}
+							onMouseLeave={() => setHoveringAdd(false)}
+							onClick={() => addUser()}
+							cursor="pointer"
+							className="do-not-unselect-items"
+						>
+							<IoIosAdd
+								size={24}
+								color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+								cursor="pointer"
+								className="do-not-unselect-items"
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						</Flex>
+					)}
+				</Flex>
+				<Virtuoso
+					data={usersSorted}
+					height={windowHeight - 40}
+					width={sizes.chatOptions}
+					itemContent={itemContent}
+					totalCount={usersSorted.length}
+				/>
 			</Flex>
 		)
 	}

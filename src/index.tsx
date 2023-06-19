@@ -6,7 +6,7 @@ import reportWebVitals from "./reportWebVitals"
 import { ChakraProvider, extendTheme, theme } from "@chakra-ui/react"
 import { HelmetProvider } from "react-helmet-async"
 import { toastActiveCount } from "./components/Toast/Toast"
-import "./lib/services/socket"
+import "./lib/services/socket/socket"
 
 const extendedTheme = extendTheme({
 	...theme,

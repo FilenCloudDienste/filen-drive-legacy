@@ -1,13 +1,9 @@
-import { memo, useMemo, useRef, useEffect, useState, useCallback } from "react"
+import { memo, useMemo, useRef, useEffect, useState } from "react"
 import { Flex, Avatar } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import AppText from "../AppText"
-import { IoPersonAddOutline, IoPersonAdd } from "react-icons/io5"
-import eventListener from "../../lib/eventListener"
-import db from "../../lib/db"
-import { decryptChatMessageKey } from "../../lib/worker/worker.com"
 
 export interface ChatContainerTopbarProps {
 	darkMode: boolean
@@ -29,20 +25,6 @@ const ChatContainerTopbar = memo(({ darkMode, isMobile, currentConversation, cur
 
 		return currentConversation.participants.filter(participant => participant.userId !== userId)
 	}, [currentConversation, userId])
-
-	const addUser = useCallback(async () => {
-		if (!currentConversation || !currentConversationMe) {
-			return
-		}
-
-		const privateKey = await db.get("privateKey")
-		const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
-
-		eventListener.emit("openAddUserToConversationModal", {
-			uuid: currentConversation.uuid,
-			key
-		})
-	}, [currentConversation, currentConversationMe])
 
 	useEffect(() => {
 		currentConversationRef.current = currentConversation
@@ -82,7 +64,7 @@ const ChatContainerTopbar = memo(({ darkMode, isMobile, currentConversation, cur
 							typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
 							conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
 								? undefined
-								: conversationParticipantsFilteredWithoutMe[0].email
+								: conversationParticipantsFilteredWithoutMe[0].email.substring(0, 1)
 						}
 						src={
 							typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
@@ -108,18 +90,6 @@ const ChatContainerTopbar = memo(({ darkMode, isMobile, currentConversation, cur
 				>
 					{conversationParticipantsFilteredWithoutMe.map(user => user.email).join(", ")}
 				</AppText>
-			</Flex>
-			<Flex>
-				{currentConversationMe.permissionsAdd && (
-					<IoPersonAdd
-						size={18}
-						cursor="pointer"
-						onMouseEnter={() => setHoveringAddUser(true)}
-						onMouseLeave={() => setHoveringAddUser(false)}
-						color={hoveringAddUser ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-						onClick={() => addUser()}
-					/>
-				)}
 			</Flex>
 		</Flex>
 	)

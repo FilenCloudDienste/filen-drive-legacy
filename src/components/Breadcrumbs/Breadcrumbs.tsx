@@ -233,8 +233,8 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 			width="100%"
 			flexDirection="row"
 			alignItems="center"
-			paddingLeft="15px"
-			paddingRight="15px"
+			paddingLeft="20px"
+			paddingRight="20px"
 			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 			justifyContent="space-between"
 		>
@@ -291,31 +291,59 @@ const Breadcrumbs = memo(({ darkMode, isMobile, lang, gridFolders, setGridFolder
 				{items.length > 0 && (
 					<>
 						{!gridFolders[window.location.href] ? (
-							<IoGridOutline
-								size={18}
-								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+							<Flex
+								backgroundColor={hoveringListLayoutToggle ? getColor(darkMode, "backgroundSecondary") : undefined}
+								width="auto"
+								height="auto"
+								padding="8px"
+								borderRadius="full"
+								justifyContent="center"
+								alignItems="center"
+								onMouseEnter={() => setHoveringListLayoutToggle(true)}
+								onMouseLeave={() => setHoveringListLayoutToggle(false)}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: true })}
 								cursor="pointer"
 								className="do-not-unselect-items"
+							>
+								<IoGridOutline
+									size={18}
+									color={
+										hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+									}
+									cursor="pointer"
+									className="do-not-unselect-items"
+									style={{
+										flexShrink: 0
+									}}
+								/>
+							</Flex>
+						) : (
+							<Flex
+								backgroundColor={hoveringListLayoutToggle ? getColor(darkMode, "backgroundSecondary") : undefined}
+								width="auto"
+								height="auto"
+								padding="8px"
+								borderRadius="full"
+								justifyContent="center"
+								alignItems="center"
 								onMouseEnter={() => setHoveringListLayoutToggle(true)}
 								onMouseLeave={() => setHoveringListLayoutToggle(false)}
-								style={{
-									flexShrink: 0
-								}}
-							/>
-						) : (
-							<IoListOutline
-								size={18}
-								color={hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 								onClick={() => setGridFolders({ ...gridFolders, [window.location.href]: false })}
 								cursor="pointer"
 								className="do-not-unselect-items"
-								onMouseEnter={() => setHoveringListLayoutToggle(true)}
-								onMouseLeave={() => setHoveringListLayoutToggle(false)}
-								style={{
-									flexShrink: 0
-								}}
-							/>
+							>
+								<IoListOutline
+									size={18}
+									color={
+										hoveringListLayoutToggle ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+									}
+									cursor="pointer"
+									className="do-not-unselect-items"
+									style={{
+										flexShrink: 0
+									}}
+								/>
+							</Flex>
 						)}
 					</>
 				)}

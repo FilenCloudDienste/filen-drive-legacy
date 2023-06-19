@@ -143,6 +143,23 @@ export const folderContent = async (uuid: string): Promise<any> => {
 	return response.data
 }
 
+export const folderContentFoldersOnly = async (uuid: string): Promise<any> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/dir/content",
+		data: {
+			uuid,
+			foldersOnly: true
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
 export const sharedInContent = async (uuid: string): Promise<any> => {
 	const response = await apiRequest({
 		method: "POST",

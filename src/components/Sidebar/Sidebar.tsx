@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Flex, Avatar, Spinner, Progress, CircularProgress } from "@chakra-ui/react"
+import { Flex, Avatar, Spinner, Progress, CircularProgress, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
 import {
@@ -20,7 +20,6 @@ import {
 	SidebarProps,
 	DividerProps,
 	ButtonProps,
-	AccountButtonProps,
 	CloudTreeProps,
 	CloudTreeItemProps,
 	ItemProps,
@@ -45,6 +44,9 @@ import { contextMenu } from "react-contexify"
 import { SocketEvent } from "../../lib/services/socket"
 import memoryCache from "../../lib/memoryCache"
 import { chatUnread } from "../../lib/api"
+import DarkLogo from "../../assets/images/dark_logo.svg"
+import LightLogo from "../../assets/images/light_logo.svg"
+import useDb from "../../lib/hooks/useDb"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -124,155 +126,147 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	return (
 		<Flex
 			width="100%"
-			height="40px"
-			alignItems="center"
-			paddingLeft="15px"
-			paddingRight="15px"
-			cursor="pointer"
-			transition="200ms"
-			justifyContent={isMobile ? "center" : "flex-start"}
-			color={colors.text}
-			onMouseEnter={() => setHovering(true)}
-			onMouseLeave={() => setHovering(false)}
-			backgroundColor={hovering || active ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-			onClick={() => navigate(to)}
+			height="auto"
+			paddingLeft="10px"
+			paddingRight="10px"
+			marginBottom="2px"
 		>
-			{type === "chats" && unreadChatMessages > 0 && window.location.href.indexOf("chats") === -1 && (
-				<Flex
-					position="absolute"
-					width="16px"
-					height="16px"
-					backgroundColor={getColor(darkMode, "red")}
-					borderRadius="full"
-					justifyContent="center"
-					alignItems="center"
-					marginTop="-16px"
-					marginLeft="11px"
-				>
+			<Flex
+				width="100%"
+				height="auto"
+				alignItems="center"
+				paddingLeft="10px"
+				paddingRight="10px"
+				paddingTop="6px"
+				paddingBottom="6px"
+				cursor="pointer"
+				transition="200ms"
+				justifyContent={isMobile ? "center" : "flex-start"}
+				color={colors.text}
+				onMouseEnter={() => setHovering(true)}
+				onMouseLeave={() => setHovering(false)}
+				backgroundColor={hovering || active ? getColor(darkMode, "backgroundTertiary") : "transparent"}
+				border={hovering || active ? "1px solid " + getColor(darkMode, "borderPrimary") : "1px solid transparent"}
+				borderRadius="10px"
+				boxShadow={hovering || active ? "sm" : undefined}
+				onClick={() => navigate(to)}
+			>
+				{type === "chats" && unreadChatMessages > 0 && window.location.href.indexOf("chats") === -1 && (
+					<Flex
+						position="absolute"
+						width="16px"
+						height="16px"
+						backgroundColor={getColor(darkMode, "red")}
+						borderRadius="full"
+						justifyContent="center"
+						alignItems="center"
+						marginTop="-16px"
+						marginLeft="11px"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							fontSize={13}
+							fontWeight="bold"
+							color={colors.text}
+						>
+							{unreadChatMessages}
+						</AppText>
+					</Flex>
+				)}
+				{type == "cloudDrive" && (
+					<IoCloudOutline
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "shared-in" && (
+					<RiFolderReceivedLine
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "shared-out" && (
+					<RiFolderSharedLine
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "links" && (
+					<RiLink
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "favorites" && (
+					<AiOutlineHeart
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "recent" && (
+					<HiOutlineClock
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type == "trash" && (
+					<IoTrashOutline
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type === "chats" && (
+					<IoChatbubbleOutline
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type === "notes" && (
+					<IoBookOutline
+						size={20}
+						color={colors.icon}
+					/>
+				)}
+				{!isMobile && (
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
+						marginLeft="12px"
 						noOfLines={1}
-						fontSize={13}
+						fontSize={15}
 						fontWeight="bold"
 						color={colors.text}
 					>
-						{unreadChatMessages}
+						{text}
 					</AppText>
-				</Flex>
-			)}
-			{type == "cloudDrive" && (
-				<IoCloudOutline
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "shared-in" && (
-				<RiFolderReceivedLine
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "shared-out" && (
-				<RiFolderSharedLine
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "links" && (
-				<RiLink
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "favorites" && (
-				<AiOutlineHeart
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "recent" && (
-				<HiOutlineClock
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type == "trash" && (
-				<IoTrashOutline
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type === "chats" && (
-				<IoChatbubbleOutline
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{type === "notes" && (
-				<IoBookOutline
-					size={20}
-					color={colors.icon}
-				/>
-			)}
-			{!isMobile && (
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					marginLeft="12px"
-					noOfLines={1}
-					fontSize={15}
-					fontWeight="bold"
-					color={colors.text}
-				>
-					{text}
-				</AppText>
-			)}
-		</Flex>
-	)
-})
-
-export const AccountButton = memo(({ darkMode, isMobile }: AccountButtonProps) => {
-	const navigate = useNavigate()
-	const [hovering, setHovering] = useState<boolean>(false)
-	const location = useLocation()
-
-	const active: boolean = useMemo(() => {
-		return location.pathname == "/account"
-	}, [location.pathname])
-
-	return (
-		<Flex
-			width="100%"
-			height="40px"
-			alignItems="center"
-			paddingLeft="15px"
-			paddingRight="15px"
-			cursor="pointer"
-			transition="200ms"
-			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
-			color={hovering || active ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-			onMouseEnter={() => setHovering(true)}
-			onMouseLeave={() => setHovering(false)}
-			backgroundColor={hovering || active ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-			onClick={() => navigate("/account")}
-		>
-			<Avatar
-				name="User"
-				width="22px"
-				height="22px"
-			/>
-			{!isMobile && (
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					marginLeft="10px"
-					noOfLines={1}
-					color={hovering || active ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-				>
-					user@user.com
-				</AppText>
-			)}
+				)}
+			</Flex>
 		</Flex>
 	)
 })
@@ -290,19 +284,23 @@ export const CloudTreeItem = memo(
 		path,
 		setItems,
 		items,
-		setActiveItem
+		setActiveItem,
+		sidebarWidth
 	}: CloudTreeItemProps) => {
 		const navigate = useNavigate()
 		const [hovering, setHovering] = useState<boolean>(false)
 		const dropNavigationTimer = useRef<number | undefined | ReturnType<typeof setTimeout>>(undefined)
 		const location = useLocation()
 		const currentItems = useRef<ItemProps[]>([])
+		const [defaultDrive] = useDb("defaultDriveUUID", "")
 
-		const active: boolean = useMemo(() => {
-			return getCurrentParent() == parent.uuid
-		}, [parent.uuid, location.hash])
+		const active = useMemo(() => {
+			const currentParent = getCurrentParent(location.hash)
 
-		const bgHover: boolean = useMemo(() => {
+			return currentParent === parent.uuid || (parent.uuid === "base" && currentParent === defaultDrive)
+		}, [parent.uuid, location.hash, defaultDrive])
+
+		const bgHover = useMemo(() => {
 			return hovering || active
 		}, [hovering, active])
 
@@ -417,34 +415,40 @@ export const CloudTreeItem = memo(
 		return (
 			<Flex
 				height="auto"
-				width="100%"
+				width={parent.uuid === "base" ? sidebarWidth + "px" : sidebarWidth - 20 + "px"}
 				flexDirection="column"
+				paddingLeft={parent.uuid === "base" ? "10px" : "0px"}
+				paddingRight={parent.uuid === "base" ? "10px" : "0px"}
+				marginTop={parent.uuid === "base" ? "0px" : "2px"}
 			>
 				<Flex
-					height={parent.uuid == "base" ? "40px" : "35px"}
+					height={parent.uuid === "base" ? "40px" : "30px"}
 					width="100%"
+					paddingLeft="10px"
+					paddingRight="10px"
 					alignItems="center"
-					paddingLeft="15px"
-					paddingRight="15px"
 					flexDirection="row"
 					cursor="pointer"
 					transition="200ms"
 					onMouseEnter={() => setHovering(true)}
 					onMouseLeave={() => setHovering(false)}
-					backgroundColor={bgHover ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 					onDragOver={handleItemOnDragOver}
 					onDragLeave={handleItemOnDragLeave}
 					onDrop={handleItemOnDrop}
 					onContextMenu={handleItemOnContextMenu}
+					backgroundColor={bgHover ? getColor(darkMode, "backgroundTertiary") : "transparent"}
+					border={bgHover ? "1px solid " + getColor(darkMode, "borderPrimary") : "1px solid transparent"}
+					borderRadius="10px"
+					boxShadow={bgHover ? "sm" : undefined}
 				>
 					<Flex
-						height={parent.uuid == "base" ? "40px" : "35px"}
+						height={parent.uuid === "base" ? "40px" : "30px"}
 						width="100%"
 						alignItems="center"
 						flexDirection="row"
 						justifyContent="flex-start"
 						cursor="pointer"
-						paddingLeft={depth * (depth == 1 ? 18 : 17) + "px"}
+						paddingLeft={depth * (depth === 1 ? 18 : 17) + "px"}
 					>
 						{loading ? (
 							<Spinner
@@ -483,9 +487,9 @@ export const CloudTreeItem = memo(
 							/>
 						)}
 						{parent.uuid == "base" ? (
-							<IoCloudOutline
+							<IoFolderOpen
 								size={parent.uuid == "base" ? 20 : 16}
-								color={bgHover ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+								color={getFolderColor(parent.color)}
 								onClick={() => {
 									setSidebarFolderOpen(prev => ({
 										...prev,
@@ -585,6 +589,7 @@ export const CloudTreeItem = memo(
 									items={items}
 									setItems={setItems}
 									setActiveItem={setActiveItem}
+									sidebarWidth={sidebarWidth}
 								/>
 							)
 						})}
@@ -605,7 +610,8 @@ export const CloudTree = memo(
 		path,
 		items,
 		setItems,
-		setActiveItem
+		setActiveItem,
+		sidebarWidth
 	}: CloudTreeProps) => {
 		const [folders, setFolders] = useState<ItemProps[]>([])
 		const [loading, setLoading] = useState<boolean>(false)
@@ -752,6 +758,7 @@ export const CloudTree = memo(
 				items={items}
 				setItems={setItems}
 				setActiveItem={setActiveItem}
+				sidebarWidth={sidebarWidth}
 			/>
 		)
 	}
@@ -797,29 +804,22 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 			height="auto"
 			flexDirection="column"
 			position="absolute"
-			bottom="10px"
+			bottom="15px"
 			zIndex={1001}
-			backgroundColor={getColor(darkMode, "backgroundPrimary")}
-			borderRight={"1px solid " + getColor(darkMode, "borderPrimary")}
 			userSelect="none"
 		>
-			<Divider
-				darkMode={darkMode}
-				marginTop={0}
-				marginBottom={10}
-			/>
 			{typeof userInfo == "undefined" ? (
 				<Flex
-					paddingLeft="20px"
-					paddingRight="20px"
+					paddingLeft="15px"
+					paddingRight="15px"
 					paddingTop="5px"
 					paddingBottom="5px"
 					alignItems="center"
 					justifyContent="center"
 				>
 					<Spinner
-						width="20px"
-						height="20px"
+						width="15px"
+						height="15px"
 						color={getColor(darkMode, "textPrimary")}
 					/>
 				</Flex>
@@ -827,8 +827,8 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 				<>
 					{isMobile ? (
 						<Flex
-							paddingLeft="10px"
-							paddingRight="10px"
+							paddingLeft="15px"
+							paddingRight="15px"
 							alignItems="center"
 							justifyContent="center"
 						>
@@ -840,13 +840,14 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 								max={100}
 								trackColor={getColor(darkMode, "backgroundSecondary")}
 								thickness={18}
+								flexShrink={0}
 							/>
 						</Flex>
 					) : (
 						<>
 							<Flex
-								paddingLeft="20px"
-								paddingRight="20px"
+								paddingLeft="15px"
+								paddingRight="15px"
 							>
 								<Progress
 									value={percent}
@@ -857,14 +858,14 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 									max={100}
 									marginTop="5px"
 									width="100%"
-									backgroundColor={getColor(darkMode, "backgroundSecondary")}
+									backgroundColor={getColor(darkMode, "backgroundPrimary")}
 								/>
 							</Flex>
 							<Flex
 								flexDirection="row"
 								justifyContent="space-between"
-								paddingLeft="20px"
-								paddingRight="20px"
+								paddingLeft="15px"
+								paddingRight="15px"
 								paddingTop="5px"
 							>
 								<AppText
@@ -912,6 +913,7 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, items, setActiveItem, setItems }: SidebarProps) => {
 	//const [sidebarFolderOpen, setSidebarFolderOpen] = useDb("sidebarFolderOpen", {})
 	const [sidebarFolderOpen, setSidebarFolderOpen] = useState<{ [key: string]: boolean }>({ base: true })
+	const navigate = useNavigate()
 
 	const treeMaxHeight: number = useMemo(() => {
 		const sidebarOtherHeight: number = 40 * 12
@@ -926,15 +928,41 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 			width={sidebarWidth + "px"}
 			height="100%"
 			flexDirection="column"
-			borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
 			overflowX="hidden"
 			overflowY="auto"
 			userSelect="none"
+			backgroundColor={getColor(darkMode, "backgroundSecondary")}
+			borderRight={"1px solid " + getColor(darkMode, "borderPrimary")}
 		>
-			{/*<AccountButton
-                darkMode={darkMode}
-                isMobile={isMobile}
-            />*/}
+			<Flex
+				width={sidebarWidth + "px"}
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+				height="50px"
+				alignItems="center"
+				paddingLeft="15px"
+				paddingRight="15px"
+			>
+				<Image
+					src={darkMode ? LightLogo : DarkLogo}
+					width="30px"
+					height="30px"
+					cursor="pointer"
+					onClick={() => {
+						db.get("defaultDriveUUID")
+							.then(defaultDriveUUID => {
+								if (typeof defaultDriveUUID == "string" && defaultDriveUUID.length > 32) {
+									navigate("/#/" + defaultDriveUUID)
+								}
+							})
+							.catch(console.error)
+					}}
+				/>
+			</Flex>
+			<Divider
+				darkMode={darkMode}
+				marginTop={0}
+				marginBottom={10}
+			/>
 			<Flex
 				width={sidebarWidth + "px"}
 				height="auto"
@@ -981,6 +1009,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 						items={items}
 						setItems={setItems}
 						setActiveItem={setActiveItem}
+						sidebarWidth={sidebarWidth}
 					/>
 				) : (
 					<Button
@@ -994,8 +1023,8 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 			</Flex>
 			<Divider
 				darkMode={darkMode}
-				marginTop={0}
-				marginBottom={4}
+				marginTop={10}
+				marginBottom={10}
 			/>
 			<Button
 				darkMode={darkMode}
@@ -1017,11 +1046,6 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				type="links"
 				text={i18n(lang, "links")}
 				to="/#/links"
-			/>
-			<Divider
-				darkMode={darkMode}
-				marginTop={4}
-				marginBottom={4}
 			/>
 			<Button
 				darkMode={darkMode}
@@ -1046,8 +1070,8 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 			/>
 			{/*<Divider
 				darkMode={darkMode}
-				marginTop={4}
-				marginBottom={4}
+				marginTop={10}
+				marginBottom={10}
 			/>
 			<Button
 				darkMode={darkMode}

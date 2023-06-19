@@ -83,18 +83,26 @@ const ListFooter = memo(
 
 		return (
 			<Flex
-				height={isMobile ? "45px" : "55px"}
-				width={windowWidth - sidebarWidth + "px"}
+				height="auto"
+				width={isMobile ? windowWidth * 0.6 + "px" : "auto"}
 				position="fixed"
-				bottom="0px"
+				bottom="-10px"
+				left="50%"
+				transform="translate(-50%, -50%)"
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
-				borderTop={"3px solid " + getColor(darkMode, "backgroundPrimary")}
+				border={"1px solid " + getColor(darkMode, "borderSecondary")}
+				borderRadius="10px"
 				zIndex={10001}
 				flexDirection="row"
 				justifyContent="space-between"
 				alignItems="center"
-				paddingLeft="15px"
-				paddingRight="15px"
+				paddingLeft="10px"
+				paddingRight="10px"
+				paddingBottom="5px"
+				paddingTop="5px"
+				boxShadow="sm"
+				transition="200ms"
+				gap="25px"
 			>
 				<Flex
 					flexDirection="row"

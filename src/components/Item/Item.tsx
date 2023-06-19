@@ -65,8 +65,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 			justifyContent="space-between"
 			width={mode == "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
 			height={(mode == "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
-			paddingLeft={mode == "grid" ? "10px" : "15px"}
-			paddingRight={mode == "grid" ? "0px" : "15px"}
+			paddingLeft={mode == "grid" ? "10px" : "20px"}
+			paddingRight={mode == "grid" ? "0px" : "20px"}
 			paddingTop={mode == "grid" ? "10px" : "10px"}
 			paddingBottom={mode == "grid" ? "0px" : "10px"}
 			cursor="auto"
@@ -75,8 +75,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 			{mode == "grid" ? (
 				<>
 					<Skeleton
-						startColor={getColor(darkMode, "backgroundPrimary")}
-						endColor={getColor(darkMode, "backgroundSecondary")}
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
 						height="100%"
 						width="100%"
 					>
@@ -107,8 +107,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 						alignItems="center"
 					>
 						<Skeleton
-							startColor={getColor(darkMode, "backgroundPrimary")}
-							endColor={getColor(darkMode, "backgroundSecondary")}
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
 						>
 							<AppText
@@ -130,8 +130,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 						justifyContent="flex-start"
 					>
 						<Skeleton
-							startColor={getColor(darkMode, "backgroundPrimary")}
-							endColor={getColor(darkMode, "backgroundSecondary")}
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
 						>
 							<AppText
@@ -152,8 +152,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 						justifyContent="flex-start"
 					>
 						<Skeleton
-							startColor={getColor(darkMode, "backgroundPrimary")}
-							endColor={getColor(darkMode, "backgroundSecondary")}
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
 						>
 							<AppText
@@ -175,8 +175,8 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 							justifyContent="flex-start"
 						>
 							<Skeleton
-								startColor={getColor(darkMode, "backgroundPrimary")}
-								endColor={getColor(darkMode, "backgroundSecondary")}
+								startColor={getColor(darkMode, "backgroundSecondary")}
+								endColor={getColor(darkMode, "backgroundTertiary")}
 								height="24px"
 							>
 								<Flex
@@ -725,8 +725,8 @@ const ItemBody = memo(
 				justifyContent="space-between"
 				width={mode == "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
 				height={(mode == "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
-				paddingLeft={mode == "grid" ? "10px" : "15px"}
-				paddingRight={mode == "grid" ? "0px" : "15px"}
+				paddingLeft={mode == "grid" ? "20px" : "20px"}
+				paddingRight={mode == "grid" ? "0px" : "20px"}
 				paddingTop={mode == "grid" ? "10px" : "10px"}
 				paddingBottom={mode == "grid" ? "0px" : "10px"}
 				cursor={mode == "grid" ? "auto" : "pointer"}
@@ -735,20 +735,20 @@ const ItemBody = memo(
 				_hover={{
 					backgroundColor: mode == "grid" ? "transparent" : getColor(darkMode, "backgroundSecondary")
 				}}
-				{...(mode == "list" ? interactionProps : {})}
+				{...(mode === "list" ? interactionProps : {})}
 			>
-				{mode == "grid" ? (
+				{mode === "grid" ? (
 					<>
 						<Flex
 							width="100%"
 							height="100%"
-							border={bgHover ? "2px solid " + THEME_COLOR : "1px solid " + getColor(darkMode, "borderSecondary")}
-							borderRadius="15px"
+							borderRadius="10px"
 							flexDirection="column"
 							alignItems="center"
 							justifyContent="center"
 							cursor="pointer"
-							backgroundColor={bgHover ? getColor(darkMode, "backgroundSecondary") : "transparent"}
+							border={bgHover ? "1px solid " + THEME_COLOR : "1px solid " + getColor(darkMode, "borderPrimary")}
+							backgroundColor={bgHover ? getColor(darkMode, "backgroundSecondary") : undefined}
 							{...interactionProps}
 						>
 							{item.favorited == 1 && (
@@ -793,11 +793,6 @@ const ItemBody = memo(
 								/>
 							)}
 							<Flex
-								borderBottomLeftRadius="5px"
-								borderBottomRightRadius="5px"
-								backgroundColor={
-									bgHover ? getColor(darkMode, "backgroundSecondary") : getColor(darkMode, "backgroundPrimary")
-								}
 								position="absolute"
 								bottom="5px"
 								paddingBottom="5px"
@@ -809,13 +804,12 @@ const ItemBody = memo(
 								textAlign="center"
 								justifyContent="center"
 								alignItems="center"
-								borderRadius="15px"
 							>
 								<AppText
 									darkMode={darkMode}
 									isMobile={isMobile}
 									noOfLines={1}
-									fontSize={13}
+									fontSize={14}
 									wordBreak="break-all"
 									color={getColor(darkMode, "textSecondary")}
 								>

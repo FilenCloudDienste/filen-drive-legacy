@@ -8,7 +8,7 @@ import {
 	decryptFolderNameLink,
 	decryptFileMetadataLink
 } from "../../worker/worker.com"
-import { folderContent, sharedInContent, sharedOutContent, recentContent, getFolderContents } from "../../api"
+import { folderContent, sharedInContent, sharedOutContent, recentContent, getFolderContents, folderContentFoldersOnly } from "../../api"
 import { orderItemsByType, getCurrentParent, Semaphore, convertTimestampToMs } from "../../helpers"
 import memoryCache from "../../memoryCache"
 import striptags from "striptags"
@@ -433,7 +433,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 			sortBy = {}
 		}
 
-		let items = (await Promise.all(promises)).filter(item => item !== null) as ItemProps[]
+		let items = (await Promise.all(promises)).filter(item => item !== null).map(item => ({ ...item, selected: false })) as ItemProps[]
 
 		if (href.indexOf("shared-out") !== -1) {
 			const groups: ItemProps[] = []
@@ -510,7 +510,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 		const promises: Promise<ItemProps | null>[] = []
 
 		if (uuid == "base" || uuid == "cloudDrive") {
-			const content = await folderContent(defaultDriveUUID)
+			const content = await folderContentFoldersOnly(defaultDriveUUID)
 
 			const folders = content.folders
 
@@ -561,7 +561,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 				)
 			}
 		} else {
-			const content = await folderContent(uuid)
+			const content = await folderContentFoldersOnly(uuid)
 			const folders = content.folders
 
 			for (const folder of folders) {

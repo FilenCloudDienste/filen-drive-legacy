@@ -3,7 +3,6 @@ import eventListener from "../../eventListener"
 import { CurrentDownload, ProgressData, CurrentUpload, Upload, Download, UseTransfersParams, UseTransfers } from "../../../types"
 import { calcSpeed, calcTimeLeft } from "../../helpers"
 import memoryCache from "../../memoryCache"
-import { useWhyDidYouUpdate } from "@chakra-ui/react"
 
 const useTransfers = ({
 	onUploadStart,

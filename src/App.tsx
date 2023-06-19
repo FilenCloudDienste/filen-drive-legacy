@@ -1,4 +1,3 @@
-import "./lib/services/socket/socket"
 import { memo, useEffect, useState, useRef } from "react"
 import useWindowWidth from "./lib/hooks/useWindowWidth"
 import useDarkMode from "./lib/hooks/useDarkMode"

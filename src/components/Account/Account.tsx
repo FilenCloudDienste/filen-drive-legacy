@@ -68,12 +68,13 @@ const Skeletons = memo(({ darkMode, count }: { darkMode: boolean; count: number 
 			{new Array(count).fill(1).map((_, index) => {
 				return (
 					<Skeleton
-						startColor={getColor(darkMode, "backgroundPrimary")}
-						endColor={getColor(darkMode, "backgroundSecondary")}
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
 						height="60px"
 						width="80%"
 						marginBottom="10px"
 						key={index.toString()}
+						borderRadius="10px"
 					>
 						&nbsp;
 					</Skeleton>
@@ -689,10 +690,16 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 
 	if (typeof userSettings == "undefined") {
 		return (
-			<Skeletons
-				count={2}
-				darkMode={darkMode}
-			/>
+			<>
+				<Skeletons
+					count={2}
+					darkMode={darkMode}
+				/>
+				<Skeletons
+					count={1}
+					darkMode={darkMode}
+				/>
+			</>
 		)
 	}
 
@@ -1522,8 +1529,8 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 				style={style}
 			>
 				<Skeleton
-					startColor={getColor(darkMode, "backgroundPrimary")}
-					endColor={getColor(darkMode, "backgroundSecondary")}
+					startColor={getColor(darkMode, "backgroundSecondary")}
+					endColor={getColor(darkMode, "backgroundTertiary")}
 					height="45px"
 					width="100%"
 					marginTop="5px"

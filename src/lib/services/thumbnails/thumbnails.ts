@@ -3,12 +3,7 @@ import imageCompression from "browser-image-compression"
 import { downloadFile } from "../download"
 import db from "../../db"
 import memoryCache from "../../memoryCache"
-import {
-	MAX_THUMBNAIL_TRIES,
-	MAX_CONCURRENT_THUMBNAIL_GENERATIONS,
-	THUMBNAIL_DIMENSIONS,
-	THUMBNAIL_VERSION
-} from "../../constants"
+import { MAX_THUMBNAIL_TRIES, MAX_CONCURRENT_THUMBNAIL_GENERATIONS, THUMBNAIL_DIMENSIONS, THUMBNAIL_VERSION } from "../../constants"
 import { Semaphore, getFileExt, getFilePreviewType } from "../../helpers"
 import { convertHeic } from "../../worker/worker.com"
 import eventListener from "../../eventListener"
@@ -124,8 +119,6 @@ export const generateThumbnailAfterUpload = async (file: File, uuid: string, nam
 		const url = window.URL.createObjectURL(compressed)
 
 		memoryCache.set(cacheKey, url)
-
-		thumbnailSemaphore.release()
 
 		eventListener.emit("thumbnailGenerated", {
 			uuid: uuid,

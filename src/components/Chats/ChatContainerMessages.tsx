@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useCallback } from "react"
+import { memo, useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, chatDelete } from "../../lib/api"
@@ -8,7 +8,10 @@ import { IoTrash } from "react-icons/io5"
 import { safeAwait, getRandomArbitrary } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import useDb from "../../lib/hooks/useDb"
-import { getUserNameFromMessage, formatMessageDate } from "./utils"
+import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
+import { Virtuoso } from "react-virtuoso"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useIsMobile from "../../lib/hooks/useIsMobile"
 
 const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean; isMobile: boolean; timestamp: number }) => {
 	const [date, setDate] = useState<string>(formatMessageDate(timestamp))
@@ -38,7 +41,147 @@ const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: boolean
 	)
 })
 
-export interface ChatContainerMessagesMessageProps {
+const DateDivider = memo(({ timestamp }: { timestamp: number }) => {
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+
+	return (
+		<Flex
+			width="100%"
+			height="30px"
+			flexDirection="row"
+			justifyContent="space-between"
+			gap="1px"
+			paddingLeft="15px"
+			paddingRight="15px"
+			alignItems="center"
+			marginBottom="15px"
+		>
+			<Flex
+				flex={4}
+				height="1px"
+				backgroundColor={getColor(darkMode, "borderPrimary")}
+			/>
+			<Flex
+				width="auto"
+				justifyContent="center"
+				paddingLeft="8px"
+				paddingRight="8px"
+			>
+				<AppText
+					darkMode={darkMode}
+					isMobile={isMobile}
+					color={getColor(darkMode, "textSecondary")}
+					fontSize={11}
+				>
+					{new Date(timestamp).toDateString()}
+				</AppText>
+			</Flex>
+			<Flex
+				flex={4}
+				height="1px"
+				backgroundColor={getColor(darkMode, "borderPrimary")}
+			/>
+		</Flex>
+	)
+})
+
+const OuterMessage = memo(
+	({
+		message,
+		isScrollingChat,
+		userId,
+		darkMode,
+		children,
+		hoveringMessage,
+		setHoveringMessage
+	}: {
+		message: ChatMessage
+		isScrollingChat: boolean
+		userId: number
+		darkMode: boolean
+		children: React.ReactNode
+		hoveringMessage: boolean
+		setHoveringMessage: React.Dispatch<React.SetStateAction<boolean>>
+	}) => {
+		const [hoveringPopover, setHoveringPopover] = useState<boolean>(false)
+
+		const deleteMessage = useCallback(async () => {
+			const [err] = await safeAwait(chatDelete(message.uuid))
+
+			if (err) {
+				console.error(err)
+
+				return
+			}
+
+			eventListener.emit("chatMessageDelete", message.uuid)
+		}, [message.uuid])
+
+		return (
+			<Popover
+				placement="top-end"
+				isOpen={hoveringMessage && !isScrollingChat}
+			>
+				<PopoverTrigger>{children}</PopoverTrigger>
+				{message.senderId === userId && (
+					<Portal>
+						<PopoverContent
+							marginBottom="-20px"
+							marginRight="15px"
+							onMouseEnter={() => {
+								if (isScrollingChat) {
+									return
+								}
+
+								setHoveringMessage(true)
+								setHoveringPopover(true)
+							}}
+							onMouseLeave={() => {
+								setHoveringMessage(false)
+								setHoveringPopover(false)
+							}}
+							backgroundColor={getColor(darkMode, "backgroundSecondary")}
+							boxShadow="md"
+							width="auto"
+							border="none"
+							borderRadius="5px"
+						>
+							<PopoverBody
+								border={"1px solid " + getColor(darkMode, "borderSecondary")}
+								borderRadius="5px"
+								padding="8px"
+								flexDirection="row"
+							>
+								<Tooltip
+									label="Delete"
+									placement="top"
+									borderRadius="5px"
+									backgroundColor={getColor(darkMode, "backgroundSecondary")}
+									boxShadow="md"
+									color={getColor(darkMode, "textSecondary")}
+									marginBottom="5px"
+									hasArrow={true}
+								>
+									<Flex>
+										<IoTrash
+											size={20}
+											cursor="pointer"
+											color={getColor(darkMode, "textSecondary")}
+											onClick={() => deleteMessage()}
+										/>
+									</Flex>
+								</Tooltip>
+							</PopoverBody>
+						</PopoverContent>
+					</Portal>
+				)}
+			</Popover>
+		)
+	}
+)
+
+export interface MessageProps {
 	darkMode: boolean
 	isMobile: boolean
 	message: ChatMessage
@@ -46,12 +189,13 @@ export interface ChatContainerMessagesMessageProps {
 	nextMessage: ChatMessage | undefined
 	failedMessages: string[]
 	userId: number
+	isScrollingChat: boolean
+	index: number
 }
 
-const ChatContainerMessagesMessage = memo(
-	({ darkMode, isMobile, message, failedMessages, prevMessage, nextMessage, userId }: ChatContainerMessagesMessageProps) => {
-		const [hovering, setHovering] = useState<boolean>(false)
-		const [hoveringPopover, setHoveringPopover] = useState<boolean>(false)
+const Message = memo(
+	({ darkMode, isMobile, message, failedMessages, prevMessage, nextMessage, userId, isScrollingChat, index }: MessageProps) => {
+		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
 		const groupWithPrevMessage = useMemo(() => {
 			if (!prevMessage) {
@@ -75,102 +219,87 @@ const ChatContainerMessagesMessage = memo(
 			)
 		}, [message, nextMessage])
 
-		const deleteMessage = useCallback(async () => {
-			const [err] = await safeAwait(chatDelete(message.uuid))
-
-			if (err) {
-				console.error(err)
-
-				return
+		const dontGroupWithNextMessage = useMemo(() => {
+			if (!nextMessage) {
+				return true
 			}
 
-			eventListener.emit("chatMessageDelete", message.uuid)
-		}, [message.uuid])
+			return (
+				nextMessage.senderId !== message.senderId ||
+				Math.floor(nextMessage.sentTimestamp / 60000) !== Math.floor(message.sentTimestamp / 60000)
+			)
+		}, [message, nextMessage])
+
+		const prevMessageSameDay = useMemo(() => {
+			if (!prevMessage) {
+				return true
+			}
+
+			return isTimestampSameDay(prevMessage.sentTimestamp, message.sentTimestamp)
+		}, [prevMessage, message])
 
 		if (groupWithPrevMessage) {
 			return (
-				<Popover
-					placement="top-end"
-					isOpen={hovering}
-				>
-					<PopoverTrigger>
+				<>
+					<OuterMessage
+						darkMode={darkMode}
+						isScrollingChat={isScrollingChat}
+						message={message}
+						userId={userId}
+						hoveringMessage={hoveringMessage}
+						setHoveringMessage={setHoveringMessage}
+					>
 						<Flex
-							flexDirection="row"
-							paddingTop="1px"
-							paddingBottom="1px"
+							flexDirection="column"
+							paddingTop="2px"
+							paddingBottom="2px"
 							paddingRight="15px"
 							paddingLeft="60px"
 							className="user-select-text"
 							userSelect="text"
-							onMouseEnter={() => setHovering(true)}
-							onMouseLeave={() => setHovering(false)}
-							backgroundColor={hovering ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								color={
-									failedMessages.includes(message.uuid) ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")
+							onMouseEnter={() => {
+								if (isScrollingChat) {
+									return
 								}
-								fontSize={14}
-								wordBreak="break-word"
-								marginTop="1px"
-								className="user-select-text"
-								userSelect="text"
-							>
-								{striptags(message.message)}
-							</AppText>
-						</Flex>
-					</PopoverTrigger>
-					{message.senderId === userId && (
-						<Portal>
-							<PopoverContent
-								marginBottom="-20px"
-								marginRight="15px"
-								onMouseEnter={() => {
-									setHovering(true)
-									setHoveringPopover(true)
-								}}
-								onMouseLeave={() => {
-									setHovering(false)
-									setHoveringPopover(false)
-								}}
-								backgroundColor={getColor(darkMode, "backgroundSecondary")}
-								boxShadow="md"
-								width="auto"
-								border="none"
-								borderRadius="5px"
-							>
-								<PopoverBody
-									border={"1px solid " + getColor(darkMode, "borderSecondary")}
-									borderRadius="5px"
-									padding="8px"
-									flexDirection="row"
+
+								setHoveringMessage(true)
+							}}
+							onMouseLeave={() => {
+								setHoveringMessage(false)
+							}}
+							backgroundColor={
+								hoveringMessage && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"
+							}
+						>
+							<Flex flexDirection="row">
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									color={
+										failedMessages.includes(message.uuid)
+											? getColor(darkMode, "red")
+											: getColor(darkMode, "textSecondary")
+									}
+									fontSize={14}
+									wordBreak="break-word"
+									marginTop="1px"
+									className="user-select-text"
+									userSelect="text"
 								>
-									<Tooltip
-										label="Delete"
-										placement="top"
-										borderRadius="5px"
-										backgroundColor={getColor(darkMode, "backgroundSecondary")}
-										boxShadow="md"
-										color={getColor(darkMode, "textSecondary")}
-										marginBottom="5px"
-										hasArrow={true}
-									>
-										<Flex>
-											<IoTrash
-												size={20}
-												cursor="pointer"
-												color={getColor(darkMode, "textSecondary")}
-												onClick={() => deleteMessage()}
-											/>
-										</Flex>
-									</Tooltip>
-								</PopoverBody>
-							</PopoverContent>
-						</Portal>
+									{striptags(message.message)}
+								</AppText>
+							</Flex>
+						</Flex>
+					</OuterMessage>
+					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
+						<Flex
+							flexDirection="row"
+							width="100%"
+							height="15px"
+							backgroundColor="transparent"
+						/>
 					)}
-				</Popover>
+				</>
 			)
 		}
 
@@ -179,98 +308,110 @@ const ChatContainerMessagesMessage = memo(
 				flexDirection="column"
 				width="100%"
 			>
-				<Flex
-					flexDirection="row"
-					paddingTop="5px"
-					paddingBottom={groupWithNextMessage ? "2px" : "5px"}
-					paddingRight="15px"
-					paddingLeft="15px"
-					width="100%"
-					onMouseEnter={() => setHovering(true)}
-					onMouseLeave={() => setHovering(false)}
-					backgroundColor={hovering ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-					className="user-select-text"
-					userSelect="text"
+				{!prevMessageSameDay && <DateDivider timestamp={message.sentTimestamp} />}
+				<OuterMessage
+					darkMode={darkMode}
+					isScrollingChat={isScrollingChat}
+					message={message}
+					userId={userId}
+					hoveringMessage={hoveringMessage}
+					setHoveringMessage={setHoveringMessage}
 				>
-					<Flex>
-						<Avatar
-							name={
-								typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-									? undefined
-									: message.senderEmail
-							}
-							src={
-								typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-									? message.senderAvatar
-									: undefined
-							}
-							width="30px"
-							height="30px"
-							borderRadius="full"
-							border="none"
-							userSelect="none"
-						/>
-					</Flex>
 					<Flex
-						flexDirection="column"
+						flexDirection="row"
+						paddingTop={index === 0 ? "10px" : "2px"}
+						paddingBottom="2px"
+						paddingRight="15px"
 						paddingLeft="15px"
+						width="100%"
+						onMouseEnter={() => setHoveringMessage(true)}
+						onMouseLeave={() => setHoveringMessage(false)}
+						backgroundColor={hoveringMessage ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 						className="user-select-text"
 						userSelect="text"
 					>
-						<Flex
-							flexDirection="row"
-							alignItems="center"
-							className="user-select-text"
-							userSelect="text"
-						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								noOfLines={1}
-								wordBreak="break-all"
-								color={getColor(darkMode, "textPrimary")}
-								fontSize={15}
-							>
-								{getUserNameFromMessage(message)}
-							</AppText>
-							{!isMobile && (
-								<MessageDate
-									darkMode={darkMode}
-									isMobile={isMobile}
-									timestamp={message.sentTimestamp}
-								/>
-							)}
+						<Flex>
+							<Avatar
+								name={
+									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+										? undefined
+										: message.senderEmail.substring(0, 1)
+								}
+								src={
+									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+										? message.senderAvatar
+										: undefined
+								}
+								width="30px"
+								height="30px"
+								borderRadius="full"
+								border="none"
+								userSelect="none"
+							/>
 						</Flex>
 						<Flex
 							flexDirection="column"
+							paddingLeft="15px"
 							className="user-select-text"
 							userSelect="text"
 						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								color={
-									failedMessages.includes(message.uuid) ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")
-								}
-								fontSize={14}
-								wordBreak="break-word"
-								marginTop="2px"
+							<Flex
+								flexDirection="row"
+								alignItems="center"
 								className="user-select-text"
 								userSelect="text"
 							>
-								{striptags(message.message)}
-							</AppText>
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									noOfLines={1}
+									wordBreak="break-all"
+									color={getColor(darkMode, "textPrimary")}
+									fontSize={15}
+								>
+									{getUserNameFromMessage(message)}
+								</AppText>
+								{!isMobile && (
+									<MessageDate
+										darkMode={darkMode}
+										isMobile={isMobile}
+										timestamp={message.sentTimestamp}
+									/>
+								)}
+							</Flex>
+							<Flex
+								flexDirection="column"
+								className="user-select-text"
+								userSelect="text"
+							>
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									color={
+										failedMessages.includes(message.uuid)
+											? getColor(darkMode, "red")
+											: getColor(darkMode, "textSecondary")
+									}
+									fontSize={14}
+									wordBreak="break-word"
+									marginTop="2px"
+									className="user-select-text"
+									userSelect="text"
+								>
+									{striptags(message.message)}
+								</AppText>
+							</Flex>
 						</Flex>
 					</Flex>
-				</Flex>
-				<Flex
-					flexDirection="row"
-					width="100%"
-					height="5px"
-					backgroundColor="transparent"
-				>
-					&nbsp;
-				</Flex>
+				</OuterMessage>
+				{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
+					<Flex
+						flexDirection="row"
+						width="100%"
+						height="15px"
+						backgroundColor="transparent"
+					/>
+				)}
 			</Flex>
 		)
 	}
@@ -281,28 +422,55 @@ export interface ChatContainerMessagesProps {
 	isMobile: boolean
 	messages: ChatMessage[]
 	failedMessages: string[]
+	width: number
+	height: number
 }
 
-const ChatContainerMessages = memo(({ darkMode, isMobile, messages, failedMessages }: ChatContainerMessagesProps) => {
+const ChatContainerMessages = memo(({ darkMode, isMobile, messages, failedMessages, width, height }: ChatContainerMessagesProps) => {
 	const [userId] = useDb("userId", 0)
+	const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
+
+	const followOutput = useCallback((isAtBottom: boolean) => {
+		return isAtBottom ? "auto" : false
+	}, [])
+
+	const atTopStateChange = useCallback((atTop: boolean) => {
+		if (atTop) {
+			eventListener.emit("messagesTopReached")
+		}
+	}, [])
+
+	const itemContent = useCallback(
+		(index: number, message: ChatMessage) => (
+			<Message
+				key={message.uuid}
+				darkMode={darkMode}
+				isMobile={isMobile}
+				failedMessages={failedMessages}
+				message={message}
+				prevMessage={messages[index - 1]}
+				nextMessage={messages[index + 1]}
+				userId={userId}
+				isScrollingChat={isScrollingChat}
+				index={index}
+			/>
+		),
+		[darkMode, isMobile, userId, failedMessages, messages, isScrollingChat]
+	)
 
 	return (
-		<>
-			{messages.map((message, index) => {
-				return (
-					<ChatContainerMessagesMessage
-						key={message.uuid}
-						darkMode={darkMode}
-						isMobile={isMobile}
-						failedMessages={failedMessages}
-						message={message}
-						prevMessage={messages[index + 1]}
-						nextMessage={messages[index - 1]}
-						userId={userId}
-					/>
-				)
-			})}
-		</>
+		<Virtuoso
+			data={messages}
+			height={height}
+			isScrolling={setIsScrollingChat}
+			width={width}
+			followOutput={followOutput}
+			initialTopMostItemIndex={messages.length}
+			itemContent={itemContent}
+			totalCount={messages.length}
+			atTopStateChange={atTopStateChange}
+			overscan={16}
+		/>
 	)
 })
 

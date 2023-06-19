@@ -69,3 +69,12 @@ export const formatMessageDate = (timestamp: number, lang: string = "en"): strin
 		return `${formatDate(date)} ${formatTime(date)}`
 	}
 }
+
+export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
+	const dayInMilliseconds = 24 * 60 * 60 * 1000
+
+	const startOfDay1 = Math.floor(timestamp1 / dayInMilliseconds)
+	const startOfDay2 = Math.floor(timestamp2 / dayInMilliseconds)
+
+	return startOfDay1 === startOfDay2
+}

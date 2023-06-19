@@ -6,6 +6,7 @@ import db from "../../db"
 import cookies from "../../cookies"
 import { FolderColors } from "../../../types"
 import { ChatMessage, TypingType } from "../../api"
+import memoryCache from "../../memoryCache"
 
 export interface SocketNewEvent {
 	uuid: string
@@ -313,6 +314,10 @@ export const connect = () => {
 	})
 
 	SOCKET_HANDLE.on("file-new", (data: SocketFileNew) => {
+		if (memoryCache.has("suppressFileNewSocketEvent:" + data.uuid)) {
+			return
+		}
+
 		eventListener.emit("socketEvent", {
 			type: "fileNew",
 			data

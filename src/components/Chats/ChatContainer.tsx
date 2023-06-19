@@ -39,7 +39,7 @@ const ChatContainer = memo(
 
 		const heights = useMemo(() => {
 			const inputContainer = 85
-			const topbarContainer = 41
+			const topbarContainer = 50
 			const messagesContainer = windowHeight - 50 - inputContainer - topbarContainer
 
 			return {
@@ -50,7 +50,7 @@ const ChatContainer = memo(
 		}, [windowHeight])
 
 		const sortedMessages = useMemo(() => {
-			return messages.sort((a, b) => b.sentTimestamp - a.sentTimestamp)
+			return messages.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
 		}, [messages])
 
 		const fetchMessages = useCallback(async (showLoader = true) => {
@@ -162,10 +162,15 @@ const ChatContainer = memo(
 				setMessages(prev => prev.filter(message => message.uuid !== uuid))
 			})
 
+			const messagesTopReachedListener = eventListener.on("messagesTopReached", () => {
+				console.log("load more messages")
+			})
+
 			return () => {
 				socketEventListener.remove()
 				socketAuthedListener.remove()
 				chatMessageDeleteListener.remove()
+				messagesTopReachedListener.remove()
 			}
 		}, [])
 
@@ -179,8 +184,8 @@ const ChatContainer = memo(
 
 		return (
 			<Flex
-				width={sizes.chatContainer}
-				height={windowHeight - 50}
+				width={sizes.chatContainer + "px"}
+				height={windowHeight + "px"}
 				flexDirection="column"
 			>
 				<Flex
@@ -195,18 +200,14 @@ const ChatContainer = memo(
 						currentConversationMe={currentConversationMe}
 					/>
 				</Flex>
-				<Flex
+				<ChatContainerMessages
+					darkMode={darkMode}
+					isMobile={isMobile}
+					failedMessages={failedMessages}
+					messages={sortedMessages}
+					width={sizes.chatContainer}
 					height={heights.messagesContainer}
-					flexDirection="column-reverse"
-					overflowY="auto"
-				>
-					<ChatContainerMessages
-						darkMode={darkMode}
-						isMobile={isMobile}
-						failedMessages={failedMessages}
-						messages={sortedMessages}
-					/>
-				</Flex>
+				/>
 				<Flex
 					flexDirection="column"
 					justifyContent="center"

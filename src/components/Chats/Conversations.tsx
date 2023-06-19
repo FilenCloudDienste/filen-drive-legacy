@@ -1,6 +1,6 @@
 import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
-import { Flex, Button, Avatar, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import {
 	chatConversations as fetchChatConversations,
@@ -20,6 +20,9 @@ import { UserGetAccount } from "../../types"
 import { getUserNameFromAccount } from "./utils"
 import AppText from "../AppText"
 import { HiCog } from "react-icons/hi"
+import { Virtuoso } from "react-virtuoso"
+import { i18n } from "../../i18n"
+import { IoIosAdd } from "react-icons/io"
 
 export interface MeProps {
 	darkMode: boolean
@@ -55,7 +58,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 		<Flex
 			borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
 			alignItems="center"
-			height={isMobile ? "41px" : "52px"}
+			height={isMobile ? "51px" : "62px"}
 			flexDirection="row"
 			paddingLeft="10px"
 			paddingRight="10px"
@@ -99,16 +102,24 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 					{getUserNameFromAccount(userAccount)}
 				</AppText>
 			</Flex>
-			<Flex>
+			<Flex
+				backgroundColor={hoveringSettings ? getColor(darkMode, "backgroundSecondary") : undefined}
+				width="auto"
+				height="auto"
+				padding="7px"
+				borderRadius="full"
+				justifyContent="center"
+				alignItems="center"
+				onMouseEnter={() => setHoveringSettings(true)}
+				onMouseLeave={() => setHoveringSettings(false)}
+				onClick={() => eventListener.emit("openNewConversationModal")}
+				cursor="pointer"
+				className="do-not-unselect-items"
+			>
 				<HiCog
 					size={20}
 					cursor="pointer"
-					onMouseEnter={() => setHoveringSettings(true)}
-					onMouseLeave={() => setHoveringSettings(false)}
 					color={hoveringSettings ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-					style={{
-						marginRight: "3px"
-					}}
 				/>
 			</Flex>
 		</Flex>
@@ -133,6 +144,7 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
 	const windowFocused = useRef<boolean>(true)
 	const userIdRef = useRef<number>(userId)
+	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 
 	const conversationsSorted = useMemo(() => {
 		return conversations
@@ -210,6 +222,23 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 		windowFocused.current = false
 	}, [])
 
+	const itemContent = useCallback(
+		(index: number, convo: ChatConversation) => (
+			<Conversation
+				index={index}
+				isMobile={isMobile}
+				darkMode={darkMode}
+				conversation={convo}
+				userId={userId}
+				setCurrentConversation={setCurrentConversation}
+				unreadConversationsMessages={unreadConversationsMessages}
+				setUnreadConversationsMessages={setUnreadConversationsMessages}
+				lang={lang}
+			/>
+		),
+		[darkMode, isMobile, lang, userId, unreadConversationsMessages]
+	)
+
 	useEffect(() => {
 		window.addEventListener("focus", onFocus)
 		window.addEventListener("blur", onBlur)
@@ -283,52 +312,64 @@ const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurren
 
 	return (
 		<Flex
-			width={sizes.conversations}
+			width={sizes.conversations + "px"}
 			borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
 			flexDirection="column"
+			overflow="hidden"
+			height={windowHeight + "px"}
 		>
 			<Flex
-				width={sizes.conversations}
-				flexDirection="column"
-				height={windowHeight - 50 - (isMobile ? 41 : 52)}
+				width={sizes.conversations + "px"}
+				height="40px"
+				flexDirection="row"
+				justifyContent="space-between"
+				alignItems="center"
+				paddingLeft="15px"
+				paddingRight="15px"
+				paddingTop="10px"
 			>
-				<Flex
-					flexDirection="row"
-					alignItems="center"
-					padding="10px"
-					paddingBottom="0px"
+				<AppText
+					darkMode={darkMode}
+					isMobile={isMobile}
+					noOfLines={1}
+					wordBreak="break-all"
+					color={getColor(darkMode, "textPrimary")}
+					fontSize={18}
 				>
-					<Button
-						backgroundColor={darkMode ? "white" : "gray"}
-						color={darkMode ? "black" : "white"}
-						height="28px"
-						width="100%"
-						paddingLeft="10px"
-						paddingRight="10px"
-						fontSize={13}
-						border={"1px solid " + darkMode ? "white" : "gray"}
-						onClick={() => eventListener.emit("openNewConversationModal")}
-					>
-						New chat
-					</Button>
+					{i18n(lang, "chatConversations")}
+				</AppText>
+				<Flex
+					backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
+					width="auto"
+					height="auto"
+					padding="4px"
+					borderRadius="full"
+					justifyContent="center"
+					alignItems="center"
+					onMouseEnter={() => setHoveringAdd(true)}
+					onMouseLeave={() => setHoveringAdd(false)}
+					onClick={() => eventListener.emit("openNewConversationModal")}
+					cursor="pointer"
+					className="do-not-unselect-items"
+				>
+					<IoIosAdd
+						size={24}
+						color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+						cursor="pointer"
+						className="do-not-unselect-items"
+						style={{
+							flexShrink: 0
+						}}
+					/>
 				</Flex>
-				{conversationsSorted.map((conversation, index) => {
-					return (
-						<Conversation
-							key={conversation.uuid}
-							index={index}
-							isMobile={isMobile}
-							darkMode={darkMode}
-							conversation={conversation}
-							userId={userId}
-							setCurrentConversation={setCurrentConversation}
-							unreadConversationsMessages={unreadConversationsMessages}
-							setUnreadConversationsMessages={setUnreadConversationsMessages}
-							lang={lang}
-						/>
-					)
-				})}
 			</Flex>
+			<Virtuoso
+				data={conversationsSorted}
+				height={windowHeight - 40 - (isMobile ? 51 : 62)}
+				width={sizes.conversations}
+				itemContent={itemContent}
+				totalCount={conversationsSorted.length}
+			/>
 			<Me
 				darkMode={darkMode}
 				isMobile={isMobile}

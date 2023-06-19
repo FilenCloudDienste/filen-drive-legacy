@@ -173,7 +173,7 @@ const Conversation = memo(
 										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
 										conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
 											? undefined
-											: conversationParticipantsFilteredWithoutMe[0].email
+											: conversationParticipantsFilteredWithoutMe[0].email.substring(0, 1)
 									}
 									src={
 										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&

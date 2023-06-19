@@ -328,16 +328,18 @@ const List = memo(
 							setDragSelectState={setDragSelectState}
 							lang={lang}
 						/>
-						<ListFooter
-							darkMode={darkMode}
-							isMobile={isMobile}
-							items={items}
-							loadingItems={loadingItems}
-							listScrollState={listScrollState}
-							windowWidth={windowWidth}
-							sidebarWidth={sidebarWidth}
-							lang={lang}
-						/>
+						{!isMobile && (
+							<ListFooter
+								darkMode={darkMode}
+								isMobile={isMobile}
+								items={items}
+								loadingItems={loadingItems}
+								listScrollState={listScrollState}
+								windowWidth={windowWidth}
+								sidebarWidth={sidebarWidth}
+								lang={lang}
+							/>
+						)}
 					</>
 				)}
 			</Flex>
