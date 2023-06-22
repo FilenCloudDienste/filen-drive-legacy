@@ -200,3 +200,35 @@ export const decryptChatMessage = async (message: string, metadata: string, priv
 export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
 	return await getWorkerAPI().encryptChatMessage(message, key)
 }
+
+export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	return await getWorkerAPI().decryptNoteKeyOwner(metadata, masterKeys)
+}
+
+export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteKeyParticipant(metadata, privateKey)
+}
+
+export const decryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteContent(content, key)
+}
+
+export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteTitle(title, key)
+}
+
+export const decryptNotePreview = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNotePreview(content, key)
+}
+
+export const encryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteContent(content, key)
+}
+
+export const encryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteTitle(title, key)
+}
+
+export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNotePreview(preview, key)
+}

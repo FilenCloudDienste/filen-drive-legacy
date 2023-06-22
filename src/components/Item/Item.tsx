@@ -780,7 +780,7 @@ const ItemBody = memo(
 									width={"100%"}
 									height={"100%"}
 									flexShrink={0}
-									borderRadius="15px"
+									borderRadius="10px"
 									objectFit="cover"
 								/>
 							) : (
@@ -805,16 +805,26 @@ const ItemBody = memo(
 								justifyContent="center"
 								alignItems="center"
 							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									noOfLines={1}
-									fontSize={14}
-									wordBreak="break-all"
-									color={getColor(darkMode, "textSecondary")}
+								<Flex
+									backgroundColor={
+										item.type === "folder" || thumbnail.length === 0
+											? undefined
+											: getColor(darkMode, "backgroundSecondary")
+									}
+									padding="5px"
+									borderRadius="10px"
 								>
-									{item.name}
-								</AppText>
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
+										noOfLines={1}
+										fontSize={15}
+										wordBreak="break-all"
+										color={getColor(darkMode, "textSecondary")}
+									>
+										{item.name}
+									</AppText>
+								</Flex>
 							</Flex>
 						</Flex>
 					</>

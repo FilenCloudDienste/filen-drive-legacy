@@ -457,7 +457,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						if (typeof params.get("pro") == "string") {
 							navigate("/#/account/plans?pro=" + params.get("pro"))
 						} else {
-							navigate("/#/" + defaultDriveUUID)
+							//navigate("/#/" + defaultDriveUUID)
 						}
 
 						window.doingSetup = false

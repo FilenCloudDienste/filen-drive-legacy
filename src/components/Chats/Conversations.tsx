@@ -126,284 +126,291 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 	)
 })
 
+const loadingConversations = new Array(5).fill(1).map(() => ({
+	uuid: "",
+	lastMessageSender: 0,
+	lastMessage: null,
+	lastMessageTimestamp: 0,
+	ownerId: 0,
+	participants: []
+})) as ChatConversation[]
+
 export interface ConversationsProps {
 	darkMode: boolean
 	isMobile: boolean
 	windowHeight: number
 	sizes: ChatSizes
-	setCurrentConversation: React.Dispatch<React.SetStateAction<ChatConversation | undefined>>
+	conversations: ChatConversation[]
+	setConversations: React.Dispatch<React.SetStateAction<ChatConversation[]>>
 	lang: string
 }
 
-const Conversations = memo(({ darkMode, isMobile, windowHeight, sizes, setCurrentConversation, lang }: ConversationsProps) => {
-	const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
-	const [conversations, setConversations] = useState<ChatConversation[]>([])
-	const [loading, setLoading] = useState<boolean>(true)
-	const [userId] = useDb("userId", 0)
-	const navigate = useNavigate()
-	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
-	const windowFocused = useRef<boolean>(true)
-	const userIdRef = useRef<number>(userId)
-	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
+export const Conversations = memo(
+	({ darkMode, isMobile, windowHeight, sizes, setConversations, lang, conversations }: ConversationsProps) => {
+		const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
+		const [loading, setLoading] = useState<boolean>(true)
+		const [userId] = useDb("userId", 0)
+		const navigate = useNavigate()
+		const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
+		const windowFocused = useRef<boolean>(true)
+		const userIdRef = useRef<number>(userId)
+		const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 
-	const conversationsSorted = useMemo(() => {
-		return conversations
-			.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
-			.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
-	}, [conversations])
+		const conversationsSorted = useMemo(() => {
+			return conversations
+				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
+				.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+		}, [conversations])
 
-	const fetchConversations = useCallback(async (showLoader = true) => {
-		setLoading(showLoader)
+		const fetchConversations = useCallback(async (showLoader = true) => {
+			setLoading(showLoader)
 
-		const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(conversationsTimestamp.current))
+			const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(conversationsTimestamp.current))
 
-		if (conversationsErr) {
-			setLoading(false)
+			if (conversationsErr) {
+				setLoading(false)
 
-			console.error(conversationsErr)
+				console.error(conversationsErr)
 
-			return
-		}
+				return
+			}
 
-		const promises: Promise<void>[] = []
-		const semaphore = new Semaphore(32)
+			const promises: Promise<void>[] = []
+			const semaphore = new Semaphore(32)
 
-		for (const conversation of conversationsRes) {
-			promises.push(
-				new Promise<void>(async resolve => {
-					await semaphore.acquire()
+			for (const conversation of conversationsRes) {
+				promises.push(
+					new Promise<void>(async resolve => {
+						await semaphore.acquire()
 
-					const [conversationsUnreadErr, conversationsUnreadRes] = await safeAwait(chatConversationsUnread(conversation.uuid))
+						const [conversationsUnreadErr, conversationsUnreadRes] = await safeAwait(chatConversationsUnread(conversation.uuid))
 
-					semaphore.release()
+						semaphore.release()
 
-					if (conversationsUnreadErr) {
-						console.error(conversationsUnreadErr)
+						if (conversationsUnreadErr) {
+							console.error(conversationsUnreadErr)
+
+							resolve()
+
+							return
+						}
+
+						setUnreadConversationsMessages(prev => ({
+							...prev,
+							[conversation.uuid]: conversationsUnreadRes
+						}))
 
 						resolve()
+					})
+				)
+			}
 
-						return
-					}
+			await Promise.all(promises)
 
-					setUnreadConversationsMessages(prev => ({
-						...prev,
-						[conversation.uuid]: conversationsUnreadRes
-					}))
+			setLoading(false)
+			setConversations(conversationsRes)
+		}, [])
 
-					resolve()
-				})
-			)
-		}
+		const onFocus = useCallback(async () => {
+			windowFocused.current = true
 
-		await Promise.all(promises)
+			const currentConversationUUID = getCurrentParent(window.location.href)
 
-		setLoading(false)
-		setConversations(conversationsRes)
-	}, [])
+			if (validate(currentConversationUUID)) {
+				setUnreadConversationsMessages(prev => ({
+					...prev,
+					[currentConversationUUID]: 0
+				}))
 
-	const onFocus = useCallback(async () => {
-		windowFocused.current = true
+				await safeAwait(chatConversationsRead(currentConversationUUID))
+			}
 
-		const currentConversationUUID = getCurrentParent(window.location.href)
+			safeAwait(fetchConversations(false))
+		}, [])
 
-		if (validate(currentConversationUUID)) {
-			setUnreadConversationsMessages(prev => ({
-				...prev,
-				[currentConversationUUID]: 0
-			}))
+		const onBlur = useCallback(() => {
+			windowFocused.current = false
+		}, [])
 
-			await safeAwait(chatConversationsRead(currentConversationUUID))
-		}
-
-		safeAwait(fetchConversations(false))
-	}, [])
-
-	const onBlur = useCallback(() => {
-		windowFocused.current = false
-	}, [])
-
-	const itemContent = useCallback(
-		(index: number, convo: ChatConversation) => {
-			if (loading) {
+		const itemContent = useCallback(
+			(index: number, convo: ChatConversation) => {
 				return (
-					<ConversationSkeleton
-						key={index}
+					<Conversation
 						index={index}
+						isMobile={isMobile}
+						darkMode={darkMode}
+						conversation={convo}
+						userId={userId}
+						unreadConversationsMessages={unreadConversationsMessages}
+						setUnreadConversationsMessages={setUnreadConversationsMessages}
+						lang={lang}
 					/>
 				)
+			},
+			[darkMode, isMobile, lang, userId, unreadConversationsMessages]
+		)
+
+		useEffect(() => {
+			window.addEventListener("focus", onFocus)
+			window.addEventListener("blur", onBlur)
+
+			return () => {
+				window.removeEventListener("focus", onFocus)
+				window.removeEventListener("blur", onBlur)
 			}
+		}, [])
 
-			return (
-				<Conversation
-					index={index}
-					isMobile={isMobile}
-					darkMode={darkMode}
-					conversation={convo}
-					userId={userId}
-					setCurrentConversation={setCurrentConversation}
-					unreadConversationsMessages={unreadConversationsMessages}
-					setUnreadConversationsMessages={setUnreadConversationsMessages}
-					lang={lang}
-				/>
-			)
-		},
-		[darkMode, isMobile, lang, userId, unreadConversationsMessages, loading]
-	)
+		useEffect(() => {
+			userIdRef.current = userId
+		}, [userId])
 
-	useEffect(() => {
-		window.addEventListener("focus", onFocus)
-		window.addEventListener("blur", onBlur)
+		useEffect(() => {
+			if (conversationsSorted.length > 0 && !validate(getCurrentParent(window.location.href))) {
+				navigate("#/chats/" + conversationsSorted[0].uuid)
+			}
+		}, [conversationsSorted])
 
-		return () => {
-			window.removeEventListener("focus", onFocus)
-			window.removeEventListener("blur", onBlur)
-		}
-	}, [])
-
-	useEffect(() => {
-		userIdRef.current = userId
-	}, [userId])
-
-	useEffect(() => {
-		if (conversationsSorted.length > 0 && !validate(getCurrentParent(window.location.href))) {
-			setCurrentConversation(conversationsSorted[0])
-
-			navigate("#/chats/" + conversationsSorted[0].uuid)
-		}
-	}, [conversationsSorted])
-
-	useEffect(() => {
-		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
-			if (event.type === "chatMessageNew") {
-				setConversations(prev =>
-					prev.map(conversation =>
-						conversation.uuid === event.data.conversation
-							? {
-									...conversation,
-									lastMessage: event.data.message,
-									lastMessageSender: event.data.senderId,
-									lastMessageTimestamp: event.data.sentTimestamp
-							  }
-							: conversation
+		useEffect(() => {
+			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				if (event.type === "chatMessageNew") {
+					setConversations(prev =>
+						prev.map(conversation =>
+							conversation.uuid === event.data.conversation
+								? {
+										...conversation,
+										lastMessage: event.data.message,
+										lastMessageSender: event.data.senderId,
+										lastMessageTimestamp: event.data.sentTimestamp
+								  }
+								: conversation
+						)
 					)
-				)
 
-				if (
-					(getCurrentParent(window.location.href) !== event.data.conversation || !windowFocused.current) &&
-					event.data.senderId !== userIdRef.current
-				) {
-					setUnreadConversationsMessages(prev => ({
-						...prev,
-						[event.data.conversation]: typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
-					}))
+					if (
+						(getCurrentParent(window.location.href) !== event.data.conversation || !windowFocused.current) &&
+						event.data.senderId !== userIdRef.current
+					) {
+						setUnreadConversationsMessages(prev => ({
+							...prev,
+							[event.data.conversation]:
+								typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
+						}))
+					}
+				} else if (event.type === "chatConversationsNew") {
+					fetchConversations(false)
 				}
-			} else if (event.type === "chatConversationsNew") {
+			})
+
+			const updateChatConversationsListener = eventListener.on("updateChatConversations", () => {
 				fetchConversations(false)
+			})
+
+			const socketAuthedListener = eventListener.on("socketAuthed", () => {
+				fetchConversations(false)
+			})
+
+			return () => {
+				socketEventListener.remove()
+				updateChatConversationsListener.remove()
+				socketAuthedListener.remove()
 			}
-		})
+		}, [])
 
-		const updateChatConversationsListener = eventListener.on("updateChatConversations", () => {
-			fetchConversations(false)
-		})
+		useEffect(() => {
+			fetchConversations()
+		}, [])
 
-		const socketAuthedListener = eventListener.on("socketAuthed", () => {
-			fetchConversations(false)
-		})
-
-		return () => {
-			socketEventListener.remove()
-			updateChatConversationsListener.remove()
-			socketAuthedListener.remove()
-		}
-	}, [])
-
-	useEffect(() => {
-		fetchConversations()
-	}, [])
-
-	return (
-		<Flex
-			width={sizes.conversations + "px"}
-			borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
-			flexDirection="column"
-			overflow="hidden"
-			height={windowHeight + "px"}
-		>
+		return (
 			<Flex
 				width={sizes.conversations + "px"}
-				height="40px"
-				flexDirection="row"
-				justifyContent="space-between"
-				alignItems="center"
-				paddingLeft="15px"
-				paddingRight="15px"
-				paddingTop="10px"
+				borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
+				flexDirection="column"
+				overflow="hidden"
+				height={windowHeight + "px"}
 			>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					noOfLines={1}
-					wordBreak="break-all"
-					color={getColor(darkMode, "textPrimary")}
-					fontSize={18}
-				>
-					{i18n(lang, "chatConversations")}
-				</AppText>
 				<Flex
-					backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
-					width="auto"
-					height="auto"
-					padding="4px"
-					borderRadius="full"
-					justifyContent="center"
+					width={sizes.conversations + "px"}
+					height="40px"
+					flexDirection="row"
+					justifyContent="space-between"
 					alignItems="center"
-					onMouseEnter={() => setHoveringAdd(true)}
-					onMouseLeave={() => setHoveringAdd(false)}
-					onClick={() => eventListener.emit("openNewConversationModal")}
-					cursor="pointer"
-					className="do-not-unselect-items"
+					paddingLeft="15px"
+					paddingRight="15px"
+					paddingTop="10px"
 				>
-					<IoIosAdd
-						size={24}
-						color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						wordBreak="break-all"
+						color={getColor(darkMode, "textPrimary")}
+						fontSize={18}
+					>
+						{i18n(lang, "chatConversations")}
+					</AppText>
+					<Flex
+						backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
+						width="32px"
+						height="32px"
+						padding="4px"
+						borderRadius="full"
+						justifyContent="center"
+						alignItems="center"
+						onMouseEnter={() => setHoveringAdd(true)}
+						onMouseLeave={() => setHoveringAdd(false)}
+						onClick={() => eventListener.emit("openNewConversationModal")}
 						cursor="pointer"
 						className="do-not-unselect-items"
+					>
+						<IoIosAdd
+							size={24}
+							color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+							cursor="pointer"
+							className="do-not-unselect-items"
+							style={{
+								flexShrink: 0
+							}}
+						/>
+					</Flex>
+				</Flex>
+				{loading ? (
+					<Flex
+						flexDirection="column"
+						height={windowHeight - 40 - (isMobile ? 51 : 62) + "px"}
+						width={sizes.conversations + "px"}
+						overflow="hidden"
+					>
+						{loadingConversations.map((_, index) => {
+							return (
+								<ConversationSkeleton
+									key={index}
+									index={index}
+								/>
+							)
+						})}
+					</Flex>
+				) : (
+					<Virtuoso
+						data={conversationsSorted}
+						height={windowHeight - 40 - (isMobile ? 51 : 62)}
+						width={sizes.conversations}
+						itemContent={itemContent}
+						totalCount={conversationsSorted.length}
+						overscan={8}
 						style={{
-							flexShrink: 0
+							overflowX: "hidden",
+							overflowY: "auto"
 						}}
 					/>
-				</Flex>
+				)}
+				<Me
+					darkMode={darkMode}
+					isMobile={isMobile}
+					lang={lang}
+				/>
 			</Flex>
-			<Virtuoso
-				data={
-					loading
-						? (new Array(50).fill(1).map(() => ({
-								uuid: "",
-								lastMessageSender: 0,
-								lastMessage: null,
-								lastMessageTimestamp: 0,
-								ownerId: 0,
-								participants: []
-						  })) as ChatConversation[])
-						: conversationsSorted
-				}
-				height={windowHeight - 40 - (isMobile ? 51 : 62)}
-				width={sizes.conversations}
-				itemContent={itemContent}
-				totalCount={loading ? 50 : conversationsSorted.length}
-				overscan={8}
-				style={{
-					overflowX: "hidden",
-					overflowY: loading ? "hidden" : "auto"
-				}}
-			/>
-			<Me
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-			/>
-		</Flex>
-	)
-})
+		)
+	}
+)
 
 export default Conversations

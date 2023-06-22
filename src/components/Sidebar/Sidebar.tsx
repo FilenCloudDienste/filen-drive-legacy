@@ -251,6 +251,9 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 					<IoBookOutline
 						size={20}
 						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
 					/>
 				)}
 				{!isMobile && (

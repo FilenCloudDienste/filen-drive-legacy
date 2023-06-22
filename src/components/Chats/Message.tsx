@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useCallback, useRef } from "react"
+import { memo, useMemo, useState, useEffect, useCallback } from "react"
 import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, chatDelete } from "../../lib/api"
@@ -7,12 +7,9 @@ import striptags from "striptags"
 import { IoTrash } from "react-icons/io5"
 import { safeAwait, getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
-import useDb from "../../lib/hooks/useDb"
 import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
-import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import useWindowHeight from "../../lib/hooks/useWindowHeight"
 
 export const MessageSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -36,14 +33,14 @@ export const MessageSkeleton = memo(({ index }: { index: number }) => {
 					<Skeleton
 						startColor={getColor(darkMode, "backgroundSecondary")}
 						endColor={getColor(darkMode, "backgroundTertiary")}
-						width="30px"
-						height="30px"
+						width="32px"
+						height="32px"
 						borderRadius="full"
 					>
 						<Avatar
 							name={Math.random().toString()}
-							width="30px"
-							height="30px"
+							width="32px"
+							height="32px"
 							borderRadius="full"
 						/>
 					</Skeleton>
@@ -322,7 +319,7 @@ export const Message = memo(
 							paddingTop="2px"
 							paddingBottom="2px"
 							paddingRight="15px"
-							paddingLeft="60px"
+							paddingLeft="62px"
 							className="user-select-text"
 							userSelect="text"
 							onMouseEnter={() => {
@@ -410,8 +407,8 @@ export const Message = memo(
 										? message.senderAvatar
 										: undefined
 								}
-								width="30px"
-								height="30px"
+								width="32px"
+								height="32px"
 								borderRadius="full"
 								border="none"
 								userSelect="none"
@@ -485,135 +482,4 @@ export const Message = memo(
 	}
 )
 
-export interface ChatContainerMessagesProps {
-	darkMode: boolean
-	isMobile: boolean
-	messages: ChatMessage[]
-	failedMessages: string[]
-	width: number
-	height: number
-	loading: boolean
-}
-
-const loadingMessages = new Array(50).fill(1).map(() => ({
-	uuid: "",
-	senderId: 0,
-	senderEmail: "",
-	senderAvatar: null,
-	senderFirstName: null,
-	senderLastName: null,
-	message: "",
-	sentTimestamp: 0
-})) as ChatMessage[]
-
-export const ChatContainerMessages = memo(
-	({ darkMode, isMobile, messages, failedMessages, width, height, loading }: ChatContainerMessagesProps) => {
-		const windowHeight = useWindowHeight()
-		const [userId] = useDb("userId", 0)
-		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
-		const [isAtBottom, setIsAtBottom] = useState<boolean>(false)
-		const virtuosoRef = useRef<VirtuosoHandle>(null)
-
-		const followOutput = useCallback(
-			(atBottom: boolean) => {
-				if (loading) {
-					return false
-				}
-
-				return atBottom ? "smooth" : false
-			},
-			[loading]
-		)
-
-		const atTopStateChange = useCallback(
-			(atTop: boolean) => {
-				if (loading) {
-					return
-				}
-
-				if (atTop) {
-					eventListener.emit("messagesTopReached")
-				}
-			},
-			[loading]
-		)
-
-		const atBottomStateChange = useCallback((atBottom: boolean) => {
-			setIsAtBottom(atBottom)
-		}, [])
-
-		const itemContent = useCallback(
-			(index: number, message: ChatMessage) => {
-				if (loading) {
-					return (
-						<MessageSkeleton
-							key={index}
-							index={index}
-						/>
-					)
-				}
-
-				return (
-					<Message
-						key={message.uuid}
-						darkMode={darkMode}
-						isMobile={isMobile}
-						failedMessages={failedMessages}
-						message={message}
-						prevMessage={messages[index - 1]}
-						nextMessage={messages[index + 1]}
-						userId={userId}
-						isScrollingChat={isScrollingChat}
-						index={index}
-					/>
-				)
-			},
-			[darkMode, isMobile, userId, failedMessages, messages, isScrollingChat, loading]
-		)
-
-		if (loading) {
-			return (
-				<Flex
-					flexDirection="column"
-					height={windowHeight - 50 + "px"}
-					width={width + "px"}
-					overflow="hidden"
-					transition="200ms"
-				>
-					{loadingMessages.map((_, index) => {
-						return (
-							<MessageSkeleton
-								key={index}
-								index={index}
-							/>
-						)
-					})}
-				</Flex>
-			)
-		}
-
-		return (
-			<Virtuoso
-				data={messages}
-				ref={virtuosoRef}
-				height={height}
-				atBottomStateChange={atBottomStateChange}
-				isScrolling={setIsScrollingChat}
-				width={width}
-				followOutput={followOutput}
-				itemContent={itemContent}
-				totalCount={messages.length}
-				initialTopMostItemIndex={999}
-				atTopStateChange={atTopStateChange}
-				overscan={8}
-				style={{
-					overflowX: "hidden",
-					overflowY: loading ? "hidden" : "auto",
-					transition: "200ms"
-				}}
-			/>
-		)
-	}
-)
-
-export default ChatContainerMessages
+export default Message

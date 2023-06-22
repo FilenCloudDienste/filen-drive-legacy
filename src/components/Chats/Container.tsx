@@ -12,12 +12,12 @@ import { safeAwait } from "../../lib/helpers"
 import db from "../../lib/db"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
-import ChatContainerMessages from "./ChatContainerMessages"
-import ChatContainerInput from "./ChatContainerInput"
+import Messages from "./Messages"
+import Input from "./Input"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
-import ChatContainerTopbar from "./ChatContainerTopbar"
+import Topbar from "./Topbar"
 
-export interface ChatContainerProps {
+export interface ContainerProps {
 	darkMode: boolean
 	isMobile: boolean
 	windowHeight: number
@@ -27,15 +27,13 @@ export interface ChatContainerProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 }
 
-const ChatContainer = memo(
-	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe }: ChatContainerProps) => {
+export const Container = memo(
+	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe }: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
 		const [loading, setLoading] = useState<boolean>(true)
 		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
 		const [failedMessages, setFailedMessages] = useState<string[]>([])
 		const windowFocused = useRef<boolean>(true)
-		const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
-		const currentConversationMeRef = useRef<ChatConversationParticipant | undefined>(currentConversationMe)
 
 		const heights = useMemo(() => {
 			const inputContainer = 85
@@ -53,54 +51,55 @@ const ChatContainer = memo(
 			return messages.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
 		}, [messages])
 
-		const fetchMessages = useCallback(async (showLoader = true) => {
-			if (!currentConversationRef.current || !currentConversationMeRef.current) {
-				return
-			}
-
-			setLoading(showLoader)
-
-			const [messagesErr, messagesRes] = await safeAwait(
-				fetchChatMessages(currentConversationRef.current.uuid, messagesTimestamp.current)
-			)
-
-			if (messagesErr) {
-				console.error(messagesErr)
-
-				setLoading(false)
-
-				return
-			}
-
-			const messagesDecrypted: ChatMessage[] = []
-			const privateKey = await db.get("privateKey")
-
-			for (const message of messagesRes) {
-				const messageDecrypted = await decryptChatMessage(message.message, currentConversationMeRef.current.metadata, privateKey)
-
-				if (messageDecrypted.length === 0) {
-					continue
+		const fetchMessages = useCallback(
+			async (showLoader = true) => {
+				if (!currentConversation || !currentConversationMe) {
+					return
 				}
 
-				messagesDecrypted.push({
-					...message,
-					message: messageDecrypted
-				})
-			}
+				setLoading(showLoader)
 
-			setMessages(messagesDecrypted)
-			setLoading(false)
-			safeAwait(chatConversationsRead(currentConversationRef.current.uuid))
-		}, [])
+				const [messagesErr, messagesRes] = await safeAwait(fetchChatMessages(currentConversation.uuid, messagesTimestamp.current))
+
+				if (messagesErr) {
+					console.error(messagesErr)
+
+					setLoading(false)
+
+					return
+				}
+
+				const messagesDecrypted: ChatMessage[] = []
+				const privateKey = await db.get("privateKey")
+
+				for (const message of messagesRes) {
+					const messageDecrypted = await decryptChatMessage(message.message, currentConversationMe.metadata, privateKey)
+
+					if (messageDecrypted.length === 0) {
+						continue
+					}
+
+					messagesDecrypted.push({
+						...message,
+						message: messageDecrypted
+					})
+				}
+
+				setMessages(messagesDecrypted)
+				setLoading(false)
+				safeAwait(chatConversationsRead(currentConversation.uuid))
+			},
+			[currentConversation, currentConversationMe]
+		)
 
 		const onFocus = useCallback(async () => {
 			windowFocused.current = true
 
-			if (currentConversationRef.current) {
-				safeAwait(chatConversationsRead(currentConversationRef.current.uuid))
+			if (currentConversation) {
+				safeAwait(chatConversationsRead(currentConversation.uuid))
 				safeAwait(fetchMessages(false))
 			}
-		}, [])
+		}, [currentConversation])
 
 		const onBlur = useCallback(() => {
 			windowFocused.current = false
@@ -117,23 +116,14 @@ const ChatContainer = memo(
 		}, [])
 
 		useEffect(() => {
-			currentConversationRef.current = currentConversation
-			currentConversationMeRef.current = currentConversationMe
-		}, [currentConversation, currentConversationMe])
-
-		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 				if (event.type === "chatMessageNew") {
-					if (
-						!currentConversationRef.current ||
-						!currentConversationMeRef.current ||
-						currentConversationRef.current.uuid !== event.data.conversation
-					) {
+					if (!currentConversation || !currentConversationMe || currentConversation.uuid !== event.data.conversation) {
 						return
 					}
 
 					const privateKey = await db.get("privateKey")
-					const message = await decryptChatMessage(event.data.message, currentConversationMeRef.current.metadata, privateKey)
+					const message = await decryptChatMessage(event.data.message, currentConversationMe.metadata, privateKey)
 
 					if (message.length > 0) {
 						setMessages(prev => [
@@ -173,7 +163,7 @@ const ChatContainer = memo(
 				chatMessageDeleteListener.remove()
 				messagesTopReachedListener.remove()
 			}
-		}, [])
+		}, [currentConversation, currentConversationMe])
 
 		useEffect(() => {
 			fetchMessages()
@@ -191,15 +181,14 @@ const ChatContainer = memo(
 					flexDirection="row"
 					overflowY="hidden"
 				>
-					<ChatContainerTopbar
+					<Topbar
 						darkMode={darkMode}
 						isMobile={isMobile}
 						currentConversation={currentConversation}
 						currentConversationMe={currentConversationMe}
-						loading={loading}
 					/>
 				</Flex>
-				<ChatContainerMessages
+				<Messages
 					darkMode={darkMode}
 					isMobile={isMobile}
 					failedMessages={failedMessages}
@@ -216,7 +205,7 @@ const ChatContainer = memo(
 					paddingLeft="15px"
 					paddingRight="15px"
 				>
-					<ChatContainerInput
+					<Input
 						darkMode={darkMode}
 						isMobile={isMobile}
 						currentConversation={currentConversation}
@@ -232,4 +221,4 @@ const ChatContainer = memo(
 	}
 )
 
-export default ChatContainer
+export default Container

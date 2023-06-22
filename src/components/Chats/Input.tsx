@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useRef, useEffect } from "react"
-import { Input, Flex } from "@chakra-ui/react"
+import { Input as TextInput, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 import { ChatMessage, sendChatMessage, ChatConversation, chatSendTyping, ChatConversationParticipant } from "../../lib/api"
@@ -18,25 +18,16 @@ export interface ChatContainerInputTypingProps {
 	currentConversation: ChatConversation | undefined
 }
 
-const TYPING_TIMEOUT = 2000
-const TYPING_TIMEOUT_LAG = 300000
+export const TYPING_TIMEOUT = 2000
+export const TYPING_TIMEOUT_LAG = 300000
 
-const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConversation }: ChatContainerInputTypingProps) => {
+export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConversation }: ChatContainerInputTypingProps) => {
 	const [usersTyping, setUsersTyping] = useState<ChatConversationParticipant[]>([])
 	const usersTypingTimeout = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-	const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
-
-	useEffect(() => {
-		currentConversationRef.current = currentConversation
-	}, [currentConversation])
 
 	useEffect(() => {
 		const chatTypingListener = eventListener.on("socketEvent", (event: SocketEvent) => {
-			if (
-				event.type === "chatTyping" &&
-				currentConversationRef.current &&
-				currentConversationRef.current.uuid === event.data.conversation
-			) {
+			if (event.type === "chatTyping" && currentConversation && currentConversation.uuid === event.data.conversation) {
 				clearTimeout(usersTypingTimeout.current[event.data.senderId])
 
 				if (event.data.type === "down") {
@@ -64,11 +55,7 @@ const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConver
 				}
 			}
 
-			if (
-				event.type === "chatMessageNew" &&
-				currentConversationRef.current &&
-				currentConversationRef.current.uuid === event.data.conversation
-			) {
+			if (event.type === "chatMessageNew" && currentConversation && currentConversation.uuid === event.data.conversation) {
 				clearTimeout(usersTypingTimeout.current[event.data.senderId])
 
 				setUsersTyping(prev => prev.filter(user => user.userId !== event.data.senderId))
@@ -78,7 +65,7 @@ const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConver
 		return () => {
 			chatTypingListener.remove()
 		}
-	}, [])
+	}, [currentConversation])
 
 	return (
 		<Flex
@@ -124,7 +111,7 @@ const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, currentConver
 	)
 })
 
-export interface ChatContainerInputProps {
+export interface InputProps {
 	darkMode: boolean
 	isMobile: boolean
 	lang: string
@@ -135,26 +122,15 @@ export interface ChatContainerInputProps {
 	loading: boolean
 }
 
-const ChatContainerInput = memo(
-	({
-		darkMode,
-		isMobile,
-		lang,
-		currentConversation,
-		currentConversationMe,
-		setFailedMessages,
-		setMessages,
-		loading
-	}: ChatContainerInputProps) => {
+export const Input = memo(
+	({ darkMode, isMobile, lang, currentConversation, currentConversationMe, setFailedMessages, setMessages, loading }: InputProps) => {
 		const [messageInput, setMessageInput] = useState<string>("")
 		const isTyping = useRef<boolean>(false)
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
 		const lastTypingType = useRef<string>("")
-		const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
-		const currentConversationMeRef = useRef<ChatConversationParticipant | undefined>(currentConversationMe)
 
 		const sendTypingEvents = useCallback(async () => {
-			if (!currentConversationRef.current) {
+			if (!currentConversation) {
 				return
 			}
 
@@ -166,12 +142,12 @@ const ChatContainerInput = memo(
 
 			lastTypingType.current = type
 
-			const [sendErr] = await safeAwait(chatSendTyping(currentConversationRef.current.uuid, type))
+			const [sendErr] = await safeAwait(chatSendTyping(currentConversation.uuid, type))
 
 			if (sendErr) {
 				console.error(sendErr)
 			}
-		}, [])
+		}, [currentConversation])
 
 		const onKeyDownOrUp = useCallback(async () => {
 			isTyping.current = true
@@ -190,7 +166,7 @@ const ChatContainerInput = memo(
 		const sendMessage = useCallback(async () => {
 			const message = messageInput.trim()
 
-			if (message.length === 0 || !currentConversationRef.current || !currentConversationMeRef.current) {
+			if (message.length === 0 || !currentConversation || !currentConversationMe) {
 				return
 			}
 
@@ -200,11 +176,11 @@ const ChatContainerInput = memo(
 			setMessages(prev => [
 				{
 					uuid,
-					senderId: currentConversationMeRef.current!.userId,
-					senderEmail: currentConversationMeRef.current!.email,
-					senderAvatar: currentConversationMeRef.current!.avatar,
-					senderFirstName: currentConversationMeRef.current!.firstName,
-					senderLastName: currentConversationMeRef.current!.lastName,
+					senderId: currentConversationMe!.userId,
+					senderEmail: currentConversationMe!.email,
+					senderAvatar: currentConversationMe!.avatar,
+					senderFirstName: currentConversationMe!.firstName,
+					senderLastName: currentConversationMe!.lastName,
 					message,
 					sentTimestamp: Date.now()
 				},
@@ -212,7 +188,7 @@ const ChatContainerInput = memo(
 			])
 
 			const privateKey = await db.get("privateKey")
-			const key = await decryptChatMessageKey(currentConversationMeRef.current.metadata, privateKey)
+			const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
 
 			if (key.length === 0) {
 				setFailedMessages(prev => [...prev, uuid])
@@ -228,7 +204,7 @@ const ChatContainerInput = memo(
 				return
 			}
 
-			const [sendErr] = await safeAwait(sendChatMessage(currentConversationRef.current.uuid, uuid, messageEncrypted))
+			const [sendErr] = await safeAwait(sendChatMessage(currentConversation.uuid, uuid, messageEncrypted))
 
 			if (sendErr) {
 				setFailedMessages(prev => [...prev, uuid])
@@ -243,16 +219,11 @@ const ChatContainerInput = memo(
 			isTyping.current = false
 
 			sendTypingEvents()
-		}, [messageInput])
-
-		useEffect(() => {
-			currentConversationRef.current = currentConversation
-			currentConversationMeRef.current = currentConversationMe
-		}, [currentConversation, currentConversationMe])
+		}, [messageInput, currentConversation, currentConversationMe])
 
 		return (
 			<>
-				<Input
+				<TextInput
 					placeholder={i18n(lang, "chatInput")}
 					width="100%"
 					height="40px"
@@ -292,4 +263,4 @@ const ChatContainerInput = memo(
 	}
 )
 
-export default ChatContainerInput
+export default Input

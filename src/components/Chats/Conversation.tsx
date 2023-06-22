@@ -101,7 +101,6 @@ export interface ConversationProps {
 	isMobile: boolean
 	conversation: ChatConversation
 	userId: number
-	setCurrentConversation: React.Dispatch<React.SetStateAction<ChatConversation | undefined>>
 	unreadConversationsMessages: Record<string, number>
 	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 	index: number
@@ -113,7 +112,6 @@ export const Conversation = memo(
 		darkMode,
 		isMobile,
 		conversation,
-		setCurrentConversation,
 		userId,
 		unreadConversationsMessages,
 		setUnreadConversationsMessages,
@@ -210,8 +208,6 @@ export const Conversation = memo(
 							: "transparent"
 					}
 					onClick={() => {
-						setCurrentConversation(conversation)
-
 						navigate("#/chats/" + conversation.uuid)
 
 						setUnreadConversationsMessages(prev => ({

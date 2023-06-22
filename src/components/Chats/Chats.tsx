@@ -1,12 +1,15 @@
-import { memo, useMemo, useState } from "react"
+import { memo, useMemo, useState, useEffect } from "react"
 import Conversations from "./Conversations"
-import ChatContainer from "./ChatContainer"
+import ChatContainer from "./Container"
 import { Flex } from "@chakra-ui/react"
 import { ChatConversation } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import NewConversationModal from "./NewConversationModal"
-import ChatMemberList from "./ChatMemberList"
+import MemberList from "./MemberList"
 import AddUserConversationModal from "./AddUserToConversationModal"
+import { useLocation } from "react-router-dom"
+import { validate } from "uuid"
+import { getCurrentParent } from "../../lib/helpers"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -24,8 +27,10 @@ export interface ChatSizes {
 }
 
 const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: ChatsProps) => {
-	const [currentConversation, setCurrentConversation] = useState<ChatConversation | undefined>(undefined)
+	const [currentConversationUUID, setCurrentConversationUUID] = useState<string>("")
 	const [userId] = useDb("userId", 0)
+	const [conversations, setConversations] = useState<ChatConversation[]>([])
+	const location = useLocation()
 
 	const sizes: ChatSizes = useMemo(() => {
 		const conversations = isMobile ? 125 : windowWidth > 1100 ? 275 : 175
@@ -39,6 +44,16 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 		}
 	}, [windowWidth, sidebarWidth, isMobile])
 
+	const currentConversation = useMemo(() => {
+		const conversation = conversations.filter(convo => convo.uuid === currentConversationUUID)
+
+		if (conversation.length === 0) {
+			return undefined
+		}
+
+		return conversation[0]
+	}, [conversations, currentConversationUUID])
+
 	const currentConversationMe = useMemo(() => {
 		if (!currentConversation || (currentConversation.participants.length === 0 && userId === 0)) {
 			return undefined
@@ -50,6 +65,14 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			return filtered[0]
 		}
 	}, [currentConversation])
+
+	useEffect(() => {
+		const uuid = getCurrentParent(location.hash)
+
+		if (uuid && validate(uuid)) {
+			setCurrentConversationUUID(uuid)
+		}
+	}, [location.hash])
 
 	return (
 		<Flex flexDirection="row">
@@ -63,7 +86,8 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 					isMobile={isMobile}
 					windowHeight={windowHeight}
 					sizes={sizes}
-					setCurrentConversation={setCurrentConversation}
+					conversations={conversations}
+					setConversations={setConversations}
 					lang={lang}
 				/>
 			</Flex>
@@ -87,24 +111,16 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 				height={windowHeight + "px"}
 				flexDirection="column"
 			>
-				<ChatMemberList
-					darkMode={darkMode}
-					isMobile={isMobile}
-					windowHeight={windowHeight}
-					windowWidth={windowWidth}
-					sidebarWidth={sidebarWidth}
-					lang={lang}
+				<MemberList
 					sizes={sizes}
 					currentConversation={currentConversation}
 					currentConversationMe={currentConversationMe}
-					setCurrentConversation={setCurrentConversation}
 				/>
 			</Flex>
 			<NewConversationModal
 				darkMode={darkMode}
 				isMobile={isMobile}
 				lang={lang}
-				setCurrentConversation={setCurrentConversation}
 			/>
 			<AddUserConversationModal
 				darkMode={darkMode}

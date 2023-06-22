@@ -43,7 +43,7 @@ import { memoize } from "lodash"
 import ModalCloseButton from "../ModalCloseButton"
 
 export const getCodeMirrorLanguageExtensionForFile = memoize((name: string) => {
-	const ext: string = getFileExt(name)
+	const ext = getFileExt(name)
 
 	switch (ext) {
 		case "json":

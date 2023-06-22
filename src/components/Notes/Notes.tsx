@@ -1,84 +1,21 @@
-import { memo, useState, useMemo } from "react"
+import { memo, useState, useMemo, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import useLang from "../../lib/hooks/useLang"
-import useDarkMode from "../../lib/hooks/useDarkMode"
-import { getColor } from "../../styles/colors"
-import AppText from "../AppText"
-import { i18n } from "../../i18n"
-import eventListener from "../../lib/eventListener"
-import { Virtuoso } from "react-virtuoso"
-import { IoIosAdd } from "react-icons/io"
+import { Note as INote } from "../../lib/api"
+import Sidebar from "./Sidebar"
+import Content from "./Content"
+import ContextMenus from "./ContextMenus"
+import { useLocation } from "react-router-dom"
+import { validate } from "uuid"
+import { getCurrentParent } from "../../lib/helpers"
+import HistoryModal from "./HistoryModal"
 
 export interface NotesSizes {
 	notes: number
 	note: number
 }
-
-export const NotesSidebar = memo(({ sizes }: { sizes: NotesSizes }) => {
-	const windowWidth = useWindowWidth()
-	const isMobile = useIsMobile()
-	const windowHeight = useWindowHeight()
-	const lang = useLang()
-	const darkMode = useDarkMode()
-	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
-
-	return (
-		<Flex
-			width={sizes.notes + "px"}
-			borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
-			flexDirection="column"
-			overflow="hidden"
-			height={windowHeight + "px"}
-		>
-			<Flex
-				width={sizes.notes + "px"}
-				height="40px"
-				flexDirection="row"
-				justifyContent="space-between"
-				alignItems="center"
-				paddingLeft="15px"
-				paddingRight="15px"
-				paddingTop="10px"
-			>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					noOfLines={1}
-					wordBreak="break-all"
-					color={getColor(darkMode, "textPrimary")}
-					fontSize={18}
-				>
-					{i18n(lang, "notes")}
-				</AppText>
-				<Flex
-					backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
-					width="auto"
-					height="auto"
-					padding="4px"
-					borderRadius="full"
-					justifyContent="center"
-					alignItems="center"
-					onMouseEnter={() => setHoveringAdd(true)}
-					onMouseLeave={() => setHoveringAdd(false)}
-					onClick={() => eventListener.emit("openNewConversationModal")}
-					cursor="pointer"
-				>
-					<IoIosAdd
-						size={24}
-						color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-						cursor="pointer"
-						style={{
-							flexShrink: 0
-						}}
-					/>
-				</Flex>
-			</Flex>
-		</Flex>
-	)
-})
 
 export interface NotesProps {
 	sidebarWidth: number
@@ -88,10 +25,22 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 	const windowWidth = useWindowWidth()
 	const isMobile = useIsMobile()
 	const windowHeight = useWindowHeight()
-	const lang = useLang()
+	const [currentNoteUUID, setCurrentNoteUUID] = useState<string>("")
+	const [notes, setNotes] = useState<INote[]>([])
+	const location = useLocation()
+
+	const currentNote = useMemo(() => {
+		const note = notes.filter(note => note.uuid === currentNoteUUID)
+
+		if (note.length === 0) {
+			return undefined
+		}
+
+		return note[0]
+	}, [notes, currentNoteUUID])
 
 	const sizes: NotesSizes = useMemo(() => {
-		const notes = isMobile ? 125 : windowWidth > 1100 ? 275 : 175
+		const notes = isMobile ? 125 : windowWidth > 1100 ? 350 : 250
 		const note = windowWidth - sidebarWidth - notes
 
 		return {
@@ -100,6 +49,14 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 		}
 	}, [windowWidth, sidebarWidth, isMobile])
 
+	useEffect(() => {
+		const uuid = getCurrentParent(location.hash)
+
+		if (uuid && validate(uuid)) {
+			setCurrentNoteUUID(uuid)
+		}
+	}, [location.hash])
+
 	return (
 		<Flex flexDirection="row">
 			<Flex
@@ -107,15 +64,29 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 				height={windowHeight + "px"}
 				flexDirection="column"
 			>
-				<NotesSidebar sizes={sizes} />
+				<Sidebar
+					sizes={sizes}
+					currentNote={currentNote}
+					notes={notes}
+					setNotes={setNotes}
+				/>
 			</Flex>
 			<Flex
 				width={sizes.note + "px"}
 				height={windowHeight + "px"}
 				flexDirection="column"
 			>
-				d
+				<Content
+					sizes={sizes}
+					currentNote={currentNote}
+					setNotes={setNotes}
+				/>
 			</Flex>
+			<ContextMenus
+				currentNote={currentNote}
+				setNotes={setNotes}
+			/>
+			<HistoryModal />
 		</Flex>
 	)
 })

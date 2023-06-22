@@ -2774,3 +2774,279 @@ export const chatDelete = async (uuid: string): Promise<void> => {
 		throw new Error(response.message)
 	}
 }
+
+export type NoteType = "text" | "md" | "code" | "rich"
+
+export interface NoteParticipant {
+	userId: number
+	isOwner: boolean
+	email: string
+	avatar: string | null
+	firstName: string | null
+	lastName: string | null
+	metadata: string
+	permissionsWrite: boolean
+	addedTimestamp: number
+}
+
+export interface Note {
+	uuid: string
+	ownerId: number
+	isOwner: boolean
+	favorite: boolean
+	pinned: boolean
+	type: NoteType
+	metadata: string
+	title: string
+	preview: string
+	trash: boolean
+	archive: boolean
+	createdTimestamp: number
+	editedTimestamp: number
+	participants: NoteParticipant[]
+}
+
+export const notes = async (): Promise<Note[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/notes",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface NoteContent {
+	preview: string
+	content: string
+	editedTimestamp: number
+	editorId: number
+	type: NoteType
+}
+
+export const noteContent = async (uuid: string): Promise<NoteContent> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/content",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface CreateNote {
+	uuid: string
+	title: string
+	metadata: string
+	ownerMetadata: string
+}
+
+export const createNote = async ({ uuid, title, metadata, ownerMetadata }: CreateNote): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/create",
+		data: {
+			uuid,
+			title,
+			metadata,
+			ownerMetadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editNoteContent = async ({
+	uuid,
+	preview,
+	content,
+	type
+}: {
+	uuid: string
+	preview: string
+	content: string
+	type: NoteType
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/content/edit",
+		data: {
+			uuid,
+			preview,
+			content,
+			type
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editNoteTitle = async (uuid: string, title: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/title/edit",
+		data: {
+			uuid,
+			title
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const deleteNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const trashNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/trash",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const archiveNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/archive",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const restoreNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/restore",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteChangeType = async (uuid: string, type: NoteType): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/type/change",
+		data: {
+			uuid,
+			type
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notePinned = async (uuid: string, pinned: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/pinned",
+		data: {
+			uuid,
+			pinned
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteFavorite = async (uuid: string, favorite: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/favorite",
+		data: {
+			uuid,
+			favorite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface NoteHistory {
+	id: number
+	preview: string
+	content: string
+	editedTimestamp: number
+	editorId: number
+	type: NoteType
+}
+
+export const noteHistory = async (uuid: string): Promise<NoteHistory[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/history",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const noteHistoryRestore = async (uuid: string, id: number): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/history/restore",
+		data: {
+			uuid,
+			id
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}

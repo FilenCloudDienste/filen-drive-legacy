@@ -51,7 +51,7 @@ const colors: any = {
 	dark: {
 		textPrimary: "#ffffff",
 		textSecondary: "#959595",
-		backgroundPrimary: "#050505",
+		backgroundPrimary: "#090909",
 		backgroundSecondary: "#141414",
 		backgroundTertiary: "#1d1d1d",
 		borderPrimary: "rgba(255, 255, 255, 0.07)",

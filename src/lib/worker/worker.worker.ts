@@ -937,6 +937,12 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 }
 
 export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatMessageKey:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
 	try {
 		const key = await decryptMetadataPrivateKey(metadata, privateKey)
 
@@ -949,6 +955,8 @@ export const decryptChatMessageKey = async (metadata: string, privateKey: string
 		if (typeof parsed.key !== "string") {
 			return ""
 		}
+
+		memoryCache.set(cacheKey, parsed.key)
 
 		return parsed.key
 	} catch (e) {
@@ -990,6 +998,148 @@ export const encryptChatMessage = async (message: string, key: string): Promise<
 	return await encryptMetadata(JSON.stringify({ message }), key)
 }
 
+export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteKeyOwner:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	let key = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = await decryptMetadata(metadata, masterKeys[i])
+
+			if (obj && typeof obj.key === "string") {
+				if (obj.key.length >= 16) {
+					key = obj.key
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	if (typeof key == "string") {
+		if (key.length > 0) {
+			memoryCache.set(cacheKey, key)
+		}
+	}
+
+	return key
+}
+
+export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptNoteKeyParticipant:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	try {
+		const key = await decryptMetadataPrivateKey(metadata, privateKey)
+
+		if (typeof key !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		memoryCache.set(cacheKey, parsed.key)
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteContent = async (content: string, key: string): Promise<string> => {
+	try {
+		const decrypted = await decryptMetadata(content, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.content !== "string") {
+			return ""
+		}
+
+		return parsed.content
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	try {
+		const decrypted = await decryptMetadata(title, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.title !== "string") {
+			return ""
+		}
+
+		return parsed.title
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	try {
+		const decrypted = await decryptMetadata(preview, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.preview !== "string") {
+			return ""
+		}
+
+		return parsed.preview
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ content }), key)
+}
+
+export const encryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ title }), key)
+}
+
+export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ preview }), key)
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -1018,7 +1168,15 @@ export const api = {
 	decryptMetadataPrivateKey,
 	decryptChatMessageKey,
 	decryptChatMessage,
-	encryptChatMessage
+	encryptChatMessage,
+	decryptNoteKeyOwner,
+	decryptNoteKeyParticipant,
+	encryptNoteContent,
+	decryptNoteContent,
+	decryptNotePreview,
+	decryptNoteTitle,
+	encryptNoteTitle,
+	encryptNotePreview
 }
 
 expose(api)
