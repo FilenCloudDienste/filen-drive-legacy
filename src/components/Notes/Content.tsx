@@ -2,26 +2,19 @@ import { memo, useState, useCallback, useEffect, useRef } from "react"
 import { Flex, Skeleton } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import useLang from "../../lib/hooks/useLang"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote, noteContent, editNoteContent, NoteType } from "../../lib/api"
 import { safeAwait, randomStringUnsafe, getRandomArbitrary, Semaphore, SemaphoreProps } from "../../lib/helpers"
 import db from "../../lib/db"
-import {
-	decryptNoteContent,
-	encryptNoteContent,
-	encryptNotePreview,
-	decryptNoteKeyParticipant,
-	bufferToHash
-} from "../../lib/worker/worker.com"
+import { decryptNoteContent, encryptNoteContent, encryptNotePreview, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
 import { debounce } from "lodash"
 import { createNotePreviewFromContentText } from "./utils"
 import eventListener from "../../lib/eventListener"
 import { NotesSizes } from "./Notes"
 import Editor from "./Editor"
-import Title from "./Title"
+import Topbar from "./Topbar"
 
 export const ContentSkeleton = memo(() => {
 	const isMobile = useIsMobile()
@@ -66,14 +59,11 @@ export const Content = memo(
 		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
 	}) => {
 		const windowHeight = useWindowHeight()
-		const isMobile = useIsMobile()
-		const lang = useLang()
-		const darkMode = useDarkMode()
 		const [content, setContent] = useState<string>("")
 		const [contentType, setContentType] = useState<NoteType | undefined>(undefined)
 		const [loading, setLoading] = useState<boolean>(true)
 		const prevContent = useRef<string>("")
-		const [saving, setSaving] = useState<boolean>(false)
+		const [synced, setSynced] = useState<{ title: boolean; content: boolean }>({ title: true, content: true })
 		const lastContentFetchUUID = useRef<string>("")
 		const saveMutex = useRef<SemaphoreProps>(new Semaphore(1)).current
 		const contentRef = useRef<string>("")
@@ -97,12 +87,15 @@ export const Content = memo(
 				}
 
 				setContentType(contentRes.type)
+				setSynced({ content: true, title: true })
 
 				if (contentRes.content.length === 0) {
 					prevContent.current = ""
 
 					setContent("")
 					setLoading(false)
+
+					eventListener.emit("noteContentChanged", { note: currentNote, content: "" })
 
 					return
 				}
@@ -119,6 +112,8 @@ export const Content = memo(
 
 				setContent(contentDecrypted)
 				setLoading(false)
+
+				eventListener.emit("noteContentChanged", { note: currentNote, content: contentDecrypted })
 			},
 			[currentNote]
 		)
@@ -129,10 +124,12 @@ export const Content = memo(
 			if (!currentNote || JSON.stringify(contentRef.current) === JSON.stringify(prevContent.current)) {
 				saveMutex.release()
 
+				setSynced(prev => ({ ...prev, content: true }))
+
 				return
 			}
 
-			setSaving(true)
+			setSynced(prev => ({ ...prev, content: false }))
 
 			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
@@ -153,7 +150,7 @@ export const Content = memo(
 
 			prevContent.current = contentRef.current
 
-			setSaving(false)
+			setSynced(prev => ({ ...prev, content: true }))
 			setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, editedTimestamp: Date.now(), preview } : note)))
 
 			saveMutex.release()
@@ -164,7 +161,11 @@ export const Content = memo(
 		useEffect(() => {
 			contentRef.current = content
 
+			//setSynced(prev => ({ ...prev, content: false }))
+
 			debouncedSave()
+
+			eventListener.emit("noteContentChanged", { note: currentNote, content })
 		}, [content])
 
 		useEffect(() => {
@@ -191,51 +192,23 @@ export const Content = memo(
 				height={windowHeight + "px"}
 				flexDirection="column"
 			>
+				<Topbar
+					sizes={sizes}
+					currentNote={currentNote}
+					setNotes={setNotes}
+					synced={synced}
+					setSynced={setSynced}
+				/>
 				<Flex
 					width={sizes.note + "px"}
-					height="40px"
-					flexDirection="row"
-					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
-					alignItems="center"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
-					{currentNote ? (
-						<Title
-							currentNote={currentNote}
-							setNotes={setNotes}
-						/>
-					) : (
-						<Skeleton
-							startColor={getColor(darkMode, "backgroundSecondary")}
-							endColor={getColor(darkMode, "backgroundTertiary")}
-							borderRadius="10px"
-							height="20px"
-							boxShadow="sm"
-						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								noOfLines={1}
-								wordBreak="break-all"
-								color={getColor(darkMode, "textPrimary")}
-								fontSize={15}
-							>
-								{randomStringUnsafe(getRandomArbitrary(10, 50))}
-							</AppText>
-						</Skeleton>
-					)}
-				</Flex>
-				<Flex
-					width={sizes.note + "px"}
-					height={windowHeight - 40 + "px"}
+					height={windowHeight - 50 + "px"}
 					flexDirection="column"
 				>
 					{loading ? (
 						<Flex
 							overflow="hidden"
 							width={sizes.note + "px"}
-							height={windowHeight - 40 + "px"}
+							height={windowHeight - 50 + "px"}
 							flexDirection="column"
 							paddingLeft="15px"
 							paddingRight="15px"
@@ -257,6 +230,10 @@ export const Content = memo(
 									currentNote={currentNote}
 									type={contentType}
 									onBlur={() => save()}
+									showMarkdownPreview={true}
+									onContentChange={() => {
+										setSynced(prev => ({ ...prev, content: false }))
+									}}
 								/>
 							)}
 						</>

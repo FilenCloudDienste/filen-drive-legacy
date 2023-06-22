@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom"
 import { validate } from "uuid"
 import { getCurrentParent } from "../../lib/helpers"
 import HistoryModal from "./HistoryModal"
+import AddParticipantModal from "./AddParticipantModal"
 
 export interface NotesSizes {
 	notes: number
@@ -82,11 +83,9 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 					setNotes={setNotes}
 				/>
 			</Flex>
-			<ContextMenus
-				currentNote={currentNote}
-				setNotes={setNotes}
-			/>
+			<ContextMenus setNotes={setNotes} />
 			<HistoryModal />
+			<AddParticipantModal />
 		</Flex>
 	)
 })

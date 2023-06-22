@@ -47,6 +47,7 @@ import { chatUnread } from "../../lib/api"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
 import useDb from "../../lib/hooks/useDb"
+import { FiUsers } from "react-icons/fi"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -249,6 +250,15 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				)}
 				{type === "notes" && (
 					<IoBookOutline
+						size={20}
+						color={colors.icon}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
+				{type === "contacts" && (
+					<FiUsers
 						size={20}
 						color={colors.icon}
 						style={{
@@ -1075,6 +1085,13 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="contacts"
+				text={i18n(lang, "contacts")}
+				to="/#/contacts"
 			/>
 			<Button
 				darkMode={darkMode}

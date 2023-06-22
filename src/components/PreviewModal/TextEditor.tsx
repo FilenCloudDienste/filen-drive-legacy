@@ -582,6 +582,20 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 										) {
 											parent.children = parent.children.slice(1)
 										}
+
+										if (
+											// @ts-ignore
+											node.tagName === "a" &&
+											// @ts-ignore
+											node.properties &&
+											// @ts-ignore
+											node.properties.href &&
+											// @ts-ignore
+											node.properties.href.indexOf("#") !== -1
+										) {
+											// @ts-ignore
+											node.properties.href = window.location.hash
+										}
 									} catch (e) {
 										console.error(e)
 									}

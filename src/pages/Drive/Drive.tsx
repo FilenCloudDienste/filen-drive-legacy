@@ -70,6 +70,7 @@ import EmptryTrashModal from "../../components/EmptyTrashModal"
 import { validate } from "uuid"
 import Chats from "../../components/Chats"
 import Notes from "../../components/Notes"
+import Contacts from "../../components/Contacts"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -141,6 +142,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				window.location.hash.indexOf("account") !== -1 ||
 				window.location.hash.indexOf("chats") !== -1 ||
 				window.location.hash.indexOf("notes") !== -1 ||
+				window.location.hash.indexOf("contacts") !== -1 ||
 				document.querySelectorAll(".chakra-modal__overlay").length > 0
 			) {
 				return
@@ -491,7 +493,12 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		async (refresh: boolean = false): Promise<void> => {
 			const startingURL = window.location.href
 
-			if (startingURL.indexOf("#/") === -1 || startingURL.indexOf("chats") !== -1 || startingURL.indexOf("notes") !== -1) {
+			if (
+				startingURL.indexOf("#/") === -1 ||
+				startingURL.indexOf("chats") !== -1 ||
+				startingURL.indexOf("notes") !== -1 ||
+				startingURL.indexOf("contacts") !== -1
+			) {
 				return
 			}
 
@@ -1177,7 +1184,8 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				>
 					{location.hash.indexOf("account") === -1 &&
 						location.hash.indexOf("chats") === -1 &&
-						location.hash.indexOf("notes") === -1 && (
+						location.hash.indexOf("notes") === -1 &&
+						location.hash.indexOf("contacts") === -1 && (
 							<Topbar
 								darkMode={darkMode}
 								isMobile={isMobile}
@@ -1207,6 +1215,8 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						/>
 					) : location.hash.indexOf("notes") !== -1 ? (
 						<Notes sidebarWidth={sidebarWidth} />
+					) : location.hash.indexOf("contacts") !== -1 ? (
+						<Contacts sidebarWidth={sidebarWidth} />
 					) : (
 						<>
 							<Breadcrumbs

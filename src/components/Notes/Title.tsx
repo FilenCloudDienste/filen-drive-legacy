@@ -1,20 +1,23 @@
 import { memo, useState, useCallback, useEffect, useRef } from "react"
 import { Input } from "@chakra-ui/react"
-import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import useLang from "../../lib/hooks/useLang"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
-import AppText from "../AppText"
 import { Note as INote, editNoteTitle } from "../../lib/api"
-import { safeAwait } from "../../lib/helpers"
 import db from "../../lib/db"
-import { encryptNoteTitle, encryptNoteContent, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
-import eventListener from "../../lib/eventListener"
+import { encryptNoteTitle, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
 import { debounce } from "lodash"
 
 export const Title = memo(
-	({ currentNote, setNotes }: { currentNote: INote | undefined; setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
+	({
+		currentNote,
+		setNotes,
+		setSynced
+	}: {
+		currentNote: INote | undefined
+		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
+		setSynced: React.Dispatch<React.SetStateAction<{ title: boolean; content: boolean }>>
+	}) => {
 		const isMobile = useIsMobile()
 		const darkMode = useDarkMode()
 		const [saving, setSaving] = useState<boolean>(false)
@@ -28,6 +31,7 @@ export const Title = memo(
 			}
 
 			setSaving(true)
+			setSynced(prev => ({ ...prev, title: false }))
 
 			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
@@ -42,6 +46,7 @@ export const Title = memo(
 			startTitle.current = titleRef.current
 
 			setSaving(false)
+			setSynced(prev => ({ ...prev, title: true }))
 		}, [saving, currentNote])
 
 		const debouncedSave = useCallback(debounce(editTitle, 3000), [])
@@ -65,6 +70,7 @@ export const Title = memo(
 				value={title}
 				onChange={e => {
 					if (currentNote) {
+						setSynced(prev => ({ ...prev, title: false }))
 						setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, title: e.target.value } : note)))
 					}
 
@@ -105,7 +111,7 @@ export const Title = memo(
 					shadow: "none",
 					outline: "none"
 				}}
-				fontSize={15}
+				fontSize={16}
 				height="100%"
 			/>
 		)

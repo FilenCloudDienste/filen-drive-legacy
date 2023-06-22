@@ -2848,18 +2848,16 @@ export interface CreateNote {
 	uuid: string
 	title: string
 	metadata: string
-	ownerMetadata: string
 }
 
-export const createNote = async ({ uuid, title, metadata, ownerMetadata }: CreateNote): Promise<void> => {
+export const createNote = async ({ uuid, title, metadata }: CreateNote): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/notes/create",
 		data: {
 			uuid,
 			title,
-			metadata,
-			ownerMetadata
+			metadata
 		}
 	})
 
@@ -2966,13 +2964,25 @@ export const restoreNote = async (uuid: string): Promise<void> => {
 	}
 }
 
-export const noteChangeType = async (uuid: string, type: NoteType): Promise<void> => {
+export const noteChangeType = async ({
+	uuid,
+	type,
+	preview,
+	content
+}: {
+	uuid: string
+	type: NoteType
+	preview: string
+	content: string
+}): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/notes/type/change",
 		data: {
 			uuid,
-			type
+			type,
+			preview,
+			content
 		}
 	})
 
@@ -3043,6 +3053,154 @@ export const noteHistoryRestore = async (uuid: string, id: number): Promise<void
 		data: {
 			uuid,
 			id
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteParticipantAdd = async ({
+	uuid,
+	userId,
+	metadata,
+	permissionsWrite
+}: {
+	uuid: string
+	userId: number
+	metadata: string
+	permissionsWrite: boolean
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participant/add",
+		data: {
+			uuid,
+			userId,
+			metadata,
+			permissionsWrite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface Contact {
+	userId: number
+	email: string
+	avatar: string | null
+	firstName: string | null
+	lastName: string | null
+	timestamp: number
+}
+
+export const contacts = async (): Promise<Contact[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface ContactRequest {
+	uuid: string
+	userId: number
+	email: string
+	avatar: string | null
+	firstName: string | null
+	lastName: string | null
+	timestamp: number
+}
+
+export const contactsRequestsIn = async (): Promise<ContactRequest[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/in",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsOut = async (): Promise<ContactRequest[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/in",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsSend = async (email: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/send",
+		data: {
+			email
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsAccept = async (uuid: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/accept",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsDeny = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/deny",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const contactsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/delete",
+		data: {
+			uuid
 		}
 	})
 

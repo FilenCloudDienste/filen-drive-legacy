@@ -19,7 +19,9 @@ export const Editor = memo(
 		setContent,
 		type,
 		currentNote,
-		onBlur
+		onBlur,
+		showMarkdownPreview,
+		onContentChange
 	}: {
 		width: number
 		height: number
@@ -28,6 +30,8 @@ export const Editor = memo(
 		type: NoteType
 		currentNote: INote | undefined
 		onBlur?: React.FocusEventHandler<HTMLDivElement>
+		showMarkdownPreview: boolean
+		onContentChange?: (content: string) => void
 	}) => {
 		const darkMode = useDarkMode()
 		const lang = useLang()
@@ -69,6 +73,10 @@ export const Editor = memo(
 							lineNumbers: false
 						}}
 						onChange={value => {
+							if (typeof onContentChange === "function") {
+								onContentChange(value)
+							}
+
 							setContent(value)
 						}}
 						style={{
@@ -105,6 +113,10 @@ export const Editor = memo(
 							foldGutter: false
 						}}
 						onChange={value => {
+							if (typeof onContentChange === "function") {
+								onContentChange(value)
+							}
+
 							setContent(value)
 						}}
 						style={{
@@ -126,7 +138,7 @@ export const Editor = memo(
 								key={"md-editor-" + currentNote?.uuid}
 								ref={codeMirrorRef}
 								value={content}
-								width={Math.floor(width / 2) + "px"}
+								width={(showMarkdownPreview ? Math.floor(width / 2) : width) + "px"}
 								height={height + 10 + "px"}
 								theme={createCodeMirrorThemeNotesText(darkMode)}
 								indentWithTab={true}
@@ -143,56 +155,80 @@ export const Editor = memo(
 									lineNumbers: false
 								}}
 								onChange={value => {
+									if (typeof onContentChange === "function") {
+										onContentChange(value)
+									}
+
 									setContent(value)
 								}}
 								style={{
 									padding: "0px",
 									paddingTop: "5px",
 									paddingRight: "20px",
-									maxWidth: Math.floor(width / 2) + "px",
+									maxWidth: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
 									maxHeight: height + 10 + "px",
-									width: Math.floor(width / 2) + "px",
+									width: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
 									height: height + 10 + "px",
 									fontSize: 16
 								}}
 								extensions={[getCodeMirrorLanguageExtensionForFile(".md"), EditorView.lineWrapping]}
 							/>
 						</Flex>
-						<Flex>
-							<MarkdownPreview
-								source={content}
-								style={{
-									width: Math.floor(width / 2) + "px",
-									height: height + 10 + "px",
-									paddingLeft: "15px",
-									paddingRight: "15px",
-									paddingTop: "6px",
-									paddingBottom: "15px",
-									color: getColor(darkMode, "textPrimary"),
-									userSelect: "all"
-								}}
-								rehypeRewrite={(node, index, parent) => {
-									try {
-										if (
-											// @ts-ignore
-											node.tagName === "a" &&
-											parent &&
-											// @ts-ignore
-											/^h(1|2|3|4|5|6)/.test(parent.tagName)
-										) {
-											parent.children = parent.children.slice(1)
+						{showMarkdownPreview && (
+							<Flex>
+								<MarkdownPreview
+									source={content}
+									style={{
+										width: Math.floor(width / 2) + "px",
+										height: height + 10 + "px",
+										paddingLeft: "15px",
+										paddingRight: "15px",
+										paddingTop: "10px",
+										paddingBottom: "15px",
+										color: getColor(darkMode, "textPrimary"),
+										userSelect: "all",
+										backgroundColor: getColor(darkMode, "backgroundPrimary"),
+										borderLeft: "1px solid " + getColor(darkMode, "borderPrimary"),
+										overflowY: "auto",
+										overflowX: "hidden"
+									}}
+									rehypeRewrite={(node, index, parent) => {
+										try {
+											if (
+												// @ts-ignore
+												node.tagName === "a" &&
+												parent &&
+												// @ts-ignore
+												/^h(1|2|3|4|5|6)/.test(parent.tagName)
+											) {
+												parent.children = parent.children.slice(1)
+											}
+
+											if (
+												// @ts-ignore
+												node.tagName === "a" &&
+												// @ts-ignore
+												node.properties &&
+												// @ts-ignore
+												node.properties.href &&
+												// @ts-ignore
+												node.properties.href.indexOf("#") !== -1
+											) {
+												// @ts-ignore
+												node.properties.href = window.location.hash
+											}
+										} catch (e) {
+											console.error(e)
 										}
-									} catch (e) {
-										console.error(e)
-									}
-								}}
-								skipHtml={true}
-								linkTarget="_blank"
-								warpperElement={{
-									"data-color-mode": darkMode ? "dark" : "light"
-								}}
-							/>
-						</Flex>
+									}}
+									skipHtml={true}
+									linkTarget="_blank"
+									warpperElement={{
+										"data-color-mode": darkMode ? "dark" : "light"
+									}}
+								/>
+							</Flex>
+						)}
 					</Flex>
 				)}
 			</Flex>

@@ -54,31 +54,34 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 			justifyContent="space-between"
 		>
 			<Flex>&nbsp;</Flex>
-			{location.hash.indexOf("account") === -1 && location.hash.indexOf("chats") === -1 && location.hash.indexOf("notes") === -1 && (
-				<Flex>
-					<Input
-						darkMode={darkMode}
-						isMobile={isMobile}
-						placeholder={i18n(lang, "searchInThisFolder")}
-						width={windowWidth / 3 + "px"}
-						maxWidth="450px"
-						height="30px"
-						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						borderRadius="10px"
-						fontWeight="350"
-						fontSize={13}
-						paddingLeft="10px"
-						paddingRight="10px"
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-						color={getColor(darkMode, "textSecondary")}
-						border="none"
-						_placeholder={{
-							color: !darkMode ? "gray" : getColor(darkMode, "textSecondary")
-						}}
-					/>
-				</Flex>
-			)}
+			{location.hash.indexOf("account") === -1 &&
+				location.hash.indexOf("chats") === -1 &&
+				location.hash.indexOf("notes") === -1 &&
+				location.hash.indexOf("contacts") === -1 && (
+					<Flex>
+						<Input
+							darkMode={darkMode}
+							isMobile={isMobile}
+							placeholder={i18n(lang, "searchInThisFolder")}
+							width={windowWidth / 3 + "px"}
+							maxWidth="450px"
+							height="30px"
+							backgroundColor={getColor(darkMode, "backgroundSecondary")}
+							borderRadius="10px"
+							fontWeight="350"
+							fontSize={13}
+							paddingLeft="10px"
+							paddingRight="10px"
+							value={searchTerm}
+							onChange={e => setSearchTerm(e.target.value)}
+							color={getColor(darkMode, "textSecondary")}
+							border="none"
+							_placeholder={{
+								color: !darkMode ? "gray" : getColor(darkMode, "textSecondary")
+							}}
+						/>
+					</Flex>
+				)}
 			<Flex
 				alignItems="center"
 				width="auto"

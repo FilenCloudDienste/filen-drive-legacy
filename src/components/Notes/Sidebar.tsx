@@ -9,7 +9,7 @@ import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import { Virtuoso } from "react-virtuoso"
 import { IoIosAdd } from "react-icons/io"
-import { Note as INote, notes as getNotes, createNote } from "../../lib/api"
+import { Note as INote, notes as getNotes, createNote, noteParticipantAdd } from "../../lib/api"
 import { safeAwait, generateRandomString, getCurrentParent, simpleDate } from "../../lib/helpers"
 import db from "../../lib/db"
 import {
@@ -112,6 +112,7 @@ export const Sidebar = memo(
 			setCreating(true)
 
 			const key = generateRandomString(32)
+			const userId = await db.get("userId")
 			const publicKey = await db.get("publicKey")
 			const masterKeys = await db.get("masterKeys")
 			const metadata = await encryptMetadata(JSON.stringify({ key }), masterKeys[masterKeys.length - 1])
@@ -119,7 +120,7 @@ export const Sidebar = memo(
 			const title = await encryptNoteTitle(simpleDate(Date.now()), key)
 			const uuid = uuidv4()
 
-			const [createErr] = await safeAwait(createNote({ uuid, metadata, ownerMetadata, title }))
+			const [createErr] = await safeAwait(createNote({ uuid, metadata, title }))
 
 			if (createErr) {
 				console.error(createErr)
@@ -128,6 +129,8 @@ export const Sidebar = memo(
 
 				return
 			}
+
+			const [addErr] = await safeAwait(noteParticipantAdd({ uuid, metadata: ownerMetadata, userId, permissionsWrite: true }))
 
 			const [notesErr, notesRes] = await safeAwait(fetchNotes())
 
@@ -173,13 +176,13 @@ export const Sidebar = memo(
 			>
 				<Flex
 					width={sizes.notes + "px"}
-					height="40px"
+					height="50px"
 					flexDirection="row"
 					justifyContent="space-between"
 					alignItems="center"
 					paddingLeft="15px"
 					paddingRight="15px"
-					paddingTop="10px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 				>
 					<AppText
 						darkMode={darkMode}
@@ -240,8 +243,7 @@ export const Sidebar = memo(
 						overscan={8}
 						style={{
 							overflowX: "hidden",
-							overflowY: "auto",
-							marginTop: "10px"
+							overflowY: "auto"
 						}}
 					/>
 				)}

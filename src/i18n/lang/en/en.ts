@@ -383,6 +383,7 @@ const en: {
 	chats: "Chats",
 	chatsMessageInput: "Send a message to __NAME__",
 	notes: "Notes",
+	contacts: "Contacts",
 	chatConversations: "Conversations",
 	chatParticipants: "Participants",
 	chatNew: "New chat",
