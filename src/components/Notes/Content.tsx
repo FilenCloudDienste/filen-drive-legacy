@@ -15,6 +15,8 @@ import eventListener from "../../lib/eventListener"
 import { NotesSizes } from "./Notes"
 import Editor from "./Editor"
 import Topbar from "./Topbar"
+import { SocketEvent } from "../../lib/services/socket"
+import useDb from "../../lib/hooks/useDb"
 
 export const ContentSkeleton = memo(() => {
 	const isMobile = useIsMobile()
@@ -67,6 +69,7 @@ export const Content = memo(
 		const lastContentFetchUUID = useRef<string>("")
 		const saveMutex = useRef<SemaphoreProps>(new Semaphore(1)).current
 		const contentRef = useRef<string>("")
+		const [userId] = useDb("userId", 0)
 
 		const loadContent = useCallback(
 			async (showLoader: boolean = true) => {
@@ -181,8 +184,48 @@ export const Content = memo(
 				}
 			})
 
+			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
+				try {
+					if (data.type === "noteContentEdited" && currentNote) {
+						if (data.data.note === currentNote.uuid) {
+							const userId = await db.get("userId")
+							const privateKey = await db.get("privateKey")
+							const noteKey = await decryptNoteKeyParticipant(
+								currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
+								privateKey
+							)
+							const contentDecrypted = await decryptNoteContent(data.data.content, noteKey)
+							const preview = createNotePreviewFromContentText(contentDecrypted)
+
+							prevContent.current = contentDecrypted
+
+							setContent(contentDecrypted)
+							setContentType(data.data.type)
+
+							eventListener.emit("noteContentChanged", { note: currentNote, content: contentDecrypted })
+
+							setNotes(prev =>
+								prev.map(n =>
+									n.uuid === data.data.note
+										? {
+												...n,
+												editedTimestamp: data.data.editedTimestamp,
+												type: data.data.type,
+												preview
+										  }
+										: n
+								)
+							)
+						}
+					}
+				} catch (e) {
+					console.error(e)
+				}
+			})
+
 			return () => {
 				refreshNoteContentListener.remove()
+				socketEventListener.remove()
 			}
 		}, [currentNote])
 
@@ -234,6 +277,11 @@ export const Content = memo(
 									onContentChange={() => {
 										setSynced(prev => ({ ...prev, content: false }))
 									}}
+									canEdit={
+										currentNote.participants.filter(
+											participant => participant.userId === userId && participant.permissionsWrite
+										).length > 0
+									}
 								/>
 							)}
 						</>

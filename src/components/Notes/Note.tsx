@@ -10,6 +10,9 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { BsTextLeft, BsPin, BsFileRichtext, BsCodeSlash, BsMarkdown } from "react-icons/bs"
 import eventListener from "../../lib/eventListener"
 import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
+import striptags from "striptags"
+import useDb from "../../lib/hooks/useDb"
+import { FiUsers } from "react-icons/fi"
 
 export const Note = memo(({ note }: { note: INote }) => {
 	const isMobile = useIsMobile()
@@ -18,6 +21,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 	const navigate = useNavigate()
 	const [hovering, setHovering] = useState<boolean>(false)
 	const [preview, setPreview] = useState<string>(note.preview)
+	const [userId] = useDb("userId", 0)
 
 	const active = useMemo(() => {
 		return getCurrentParent(location.hash) === note.uuid
@@ -134,6 +138,17 @@ export const Note = memo(({ note }: { note: INote }) => {
 						/>
 					</Flex>
 				)}
+				{note.ownerId !== userId && userId !== 0 && (
+					<Flex>
+						<FiUsers
+							size={20}
+							color={getColor(darkMode, "textSecondary")}
+							style={{
+								flexShrink: 0
+							}}
+						/>
+					</Flex>
+				)}
 			</Flex>
 			<Flex
 				flexDirection="column"
@@ -161,7 +176,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 						color={getColor(darkMode, "textPrimary")}
 						fontSize={15}
 					>
-						{note.title}
+						{striptags(note.title)}
 					</AppText>
 				</Flex>
 				<AppText
@@ -172,7 +187,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 					color={getColor(darkMode, "textSecondary")}
 					fontSize={13}
 				>
-					{preview.length === 0 ? note.title : preview}
+					{striptags(preview.length === 0 ? note.title : preview)}
 				</AppText>
 				<AppText
 					darkMode={darkMode}

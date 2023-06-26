@@ -11,6 +11,7 @@ import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
+import striptags from "striptags"
 
 export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -303,7 +304,7 @@ export const Conversation = memo(
 								fontSize={15}
 							>
 								{conversationParticipantsFilteredWithoutMe
-									.map(participant => getUserNameFromParticipant(participant))
+									.map(participant => striptags(getUserNameFromParticipant(participant)))
 									.join(", ")}
 							</AppText>
 							<AppText
@@ -315,7 +316,7 @@ export const Conversation = memo(
 								marginLeft="10px"
 								fontSize={12}
 							>
-								{lastMessageInlcudingSender}
+								{striptags(lastMessageInlcudingSender)}
 							</AppText>
 						</Flex>
 					</Flex>

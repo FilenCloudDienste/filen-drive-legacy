@@ -22,8 +22,7 @@ const loadingMessages = new Array(32).fill(1).map(() => ({
 	senderId: 0,
 	senderEmail: "",
 	senderAvatar: null,
-	senderFirstName: null,
-	senderLastName: null,
+	senderNickName: "",
 	message: "",
 	sentTimestamp: 0
 })) as ChatMessage[]

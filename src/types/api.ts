@@ -93,6 +93,7 @@ export interface UserGetAccount {
 	referCount: number
 	referStorage: number
 	storage: number
+	nickName: string
 	subs: UserGetAccountSubs[]
 	subsInvoices: UserGetSubsInvoices[]
 }

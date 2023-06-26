@@ -7,6 +7,7 @@ import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline } from "react-icons/io5"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import striptags from "striptags"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -167,7 +168,7 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 						fontSize={15}
 						onClick={() => showUserModal()}
 					>
-						{getUserNameFromParticipant(user)}
+						{striptags(getUserNameFromParticipant(user))}
 					</AppText>
 				</Flex>
 				<Flex>

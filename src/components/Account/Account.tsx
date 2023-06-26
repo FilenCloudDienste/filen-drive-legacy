@@ -2221,8 +2221,8 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 	const navigate = useNavigate()
 
 	const [activeTab, activeTabIndex] = useMemo(() => {
-		const activeTab: string = location.hash.split("/").slice(1).join("/").split("?")[0]
-		const activeTabIndex: number = getTabIndex(activeTab)
+		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]
+		const activeTabIndex = getTabIndex(activeTab)
 
 		return [activeTab, activeTabIndex]
 	}, [location.hash])

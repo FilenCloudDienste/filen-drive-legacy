@@ -132,8 +132,7 @@ export const Container = memo(
 								senderId: event.data.senderId,
 								senderEmail: event.data.senderEmail,
 								senderAvatar: event.data.senderAvatar,
-								senderFirstName: event.data.senderFirstName,
-								senderLastName: event.data.senderLastName,
+								senderNickName: event.data.senderNickName,
 								message,
 								sentTimestamp: event.data.sentTimestamp
 							},

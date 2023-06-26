@@ -213,13 +213,13 @@
 		url("fonts/inter-display/InterDisplay-Regular.woff?v=3.12") format("woff");
 }
 
-body:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *) {
+body:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *) {
 	font-family: "Inter", sans-serif !important;
 	overflow-x: hidden;
 	user-select: none !important;
 }
 
-*:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *) {
+*:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *) {
 	font-family: "Inter", sans-serif !important;
 	font-weight: 500;
 	letter-spacing: -0.5px;

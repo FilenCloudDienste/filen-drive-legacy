@@ -10,6 +10,8 @@ import { EditorView } from "@codemirror/view"
 import MarkdownPreview from "@uiw/react-markdown-preview"
 import { getCodeMirrorLanguageExtensionForFile } from "../PreviewModal/TextEditor"
 import { getColor } from "../../styles/colors"
+import ReactQuill from "react-quill"
+import "react-quill/dist/quill.snow.css"
 
 export const Editor = memo(
 	({
@@ -21,7 +23,8 @@ export const Editor = memo(
 		currentNote,
 		onBlur,
 		showMarkdownPreview,
-		onContentChange
+		onContentChange,
+		canEdit
 	}: {
 		width: number
 		height: number
@@ -32,6 +35,7 @@ export const Editor = memo(
 		onBlur?: React.FocusEventHandler<HTMLDivElement>
 		showMarkdownPreview: boolean
 		onContentChange?: (content: string) => void
+		canEdit: boolean
 	}) => {
 		const darkMode = useDarkMode()
 		const lang = useLang()
@@ -72,7 +76,12 @@ export const Editor = memo(
 							foldGutter: false,
 							lineNumbers: false
 						}}
+						editable={canEdit}
 						onChange={value => {
+							if (!canEdit) {
+								return
+							}
+
 							if (typeof onContentChange === "function") {
 								onContentChange(value)
 							}
@@ -112,7 +121,12 @@ export const Editor = memo(
 							closeBracketsKeymap: false,
 							foldGutter: false
 						}}
+						editable={canEdit}
 						onChange={value => {
+							if (!canEdit) {
+								return
+							}
+
 							if (typeof onContentChange === "function") {
 								onContentChange(value)
 							}
@@ -133,53 +147,60 @@ export const Editor = memo(
 				)}
 				{type === "md" && (
 					<Flex flexDirection="row">
-						<Flex>
-							<CodeMirror
-								key={"md-editor-" + currentNote?.uuid}
-								ref={codeMirrorRef}
-								value={content}
-								width={(showMarkdownPreview ? Math.floor(width / 2) : width) + "px"}
-								height={height + 10 + "px"}
-								theme={createCodeMirrorThemeNotesText(darkMode)}
-								indentWithTab={true}
-								onBlur={onBlur}
-								autoFocus={content.length === 0}
-								basicSetup={{
-									crosshairCursor: false,
-									searchKeymap: false,
-									foldKeymap: false,
-									lintKeymap: false,
-									completionKeymap: false,
-									closeBracketsKeymap: false,
-									foldGutter: false,
-									lineNumbers: false
-								}}
-								onChange={value => {
-									if (typeof onContentChange === "function") {
-										onContentChange(value)
-									}
+						{canEdit && (
+							<Flex>
+								<CodeMirror
+									key={"md-editor-" + currentNote?.uuid}
+									ref={codeMirrorRef}
+									value={content}
+									width={(showMarkdownPreview ? Math.floor(width / 2) : width) + "px"}
+									height={height + 10 + "px"}
+									theme={createCodeMirrorThemeNotesText(darkMode)}
+									indentWithTab={true}
+									onBlur={onBlur}
+									autoFocus={content.length === 0}
+									basicSetup={{
+										crosshairCursor: false,
+										searchKeymap: false,
+										foldKeymap: false,
+										lintKeymap: false,
+										completionKeymap: false,
+										closeBracketsKeymap: false,
+										foldGutter: false,
+										lineNumbers: false
+									}}
+									editable={canEdit}
+									onChange={value => {
+										if (!canEdit) {
+											return
+										}
 
-									setContent(value)
-								}}
-								style={{
-									padding: "0px",
-									paddingTop: "5px",
-									paddingRight: "20px",
-									maxWidth: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
-									maxHeight: height + 10 + "px",
-									width: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
-									height: height + 10 + "px",
-									fontSize: 16
-								}}
-								extensions={[getCodeMirrorLanguageExtensionForFile(".md"), EditorView.lineWrapping]}
-							/>
-						</Flex>
+										if (typeof onContentChange === "function") {
+											onContentChange(value)
+										}
+
+										setContent(value)
+									}}
+									style={{
+										padding: "0px",
+										paddingTop: "5px",
+										paddingRight: "20px",
+										maxWidth: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
+										maxHeight: height + 10 + "px",
+										width: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
+										height: height + 10 + "px",
+										fontSize: 16
+									}}
+									extensions={[getCodeMirrorLanguageExtensionForFile(".md"), EditorView.lineWrapping]}
+								/>
+							</Flex>
+						)}
 						{showMarkdownPreview && (
 							<Flex>
 								<MarkdownPreview
 									source={content}
 									style={{
-										width: Math.floor(width / 2) + "px",
+										width: !canEdit ? width : Math.floor(width / 2) + "px",
 										height: height + 10 + "px",
 										paddingLeft: "15px",
 										paddingRight: "15px",
@@ -188,7 +209,7 @@ export const Editor = memo(
 										color: getColor(darkMode, "textPrimary"),
 										userSelect: "all",
 										backgroundColor: getColor(darkMode, "backgroundPrimary"),
-										borderLeft: "1px solid " + getColor(darkMode, "borderPrimary"),
+										borderLeft: !canEdit ? undefined : "1px solid " + getColor(darkMode, "borderPrimary"),
 										overflowY: "auto",
 										overflowX: "hidden"
 									}}
@@ -230,6 +251,34 @@ export const Editor = memo(
 							</Flex>
 						)}
 					</Flex>
+				)}
+				{type === "rich" && (
+					<ReactQuill
+						theme="snow"
+						value={content}
+						onBlur={() => {
+							if (typeof onBlur === "function") {
+								onBlur(undefined as any)
+							}
+						}}
+						style={{
+							width: width + "px",
+							height: height - 44 + "px",
+							border: "none"
+						}}
+						onChange={value => {
+							console.log("onchange", value)
+							if (!canEdit) {
+								return
+							}
+
+							if (typeof onContentChange === "function") {
+								onContentChange(value)
+							}
+
+							setContent(value)
+						}}
+					/>
 				)}
 			</Flex>
 		)

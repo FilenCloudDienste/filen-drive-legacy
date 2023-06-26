@@ -79,6 +79,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 						endColor={getColor(darkMode, "backgroundTertiary")}
 						height="100%"
 						width="100%"
+						borderRadius="10px"
 					>
 						<AppText
 							darkMode={darkMode}
@@ -110,6 +111,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 							startColor={getColor(darkMode, "backgroundSecondary")}
 							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
+							borderRadius="10px"
 						>
 							<AppText
 								darkMode={darkMode}
@@ -133,6 +135,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 							startColor={getColor(darkMode, "backgroundSecondary")}
 							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
+							borderRadius="10px"
 						>
 							<AppText
 								darkMode={darkMode}
@@ -155,6 +158,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 							startColor={getColor(darkMode, "backgroundSecondary")}
 							endColor={getColor(darkMode, "backgroundTertiary")}
 							height="24px"
+							borderRadius="10px"
 						>
 							<AppText
 								darkMode={darkMode}
@@ -178,6 +182,7 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 								startColor={getColor(darkMode, "backgroundSecondary")}
 								endColor={getColor(darkMode, "backgroundTertiary")}
 								height="24px"
+								borderRadius="10px"
 							>
 								<Flex
 									width="auto"

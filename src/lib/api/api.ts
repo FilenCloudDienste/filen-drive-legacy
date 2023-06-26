@@ -2573,8 +2573,7 @@ export interface ChatConversationParticipant {
 	userId: number
 	email: string
 	avatar: string | null
-	firstName: string | null
-	lastName: string | null
+	nickName: string
 	metadata: string
 	permissionsAdd: boolean
 	addedTimestamp: number
@@ -2608,8 +2607,7 @@ export interface ChatMessage {
 	senderId: number
 	senderEmail: string
 	senderAvatar: string | null
-	senderFirstName: string | null
-	senderLastName: string | null
+	senderNickName: string
 	message: string
 	sentTimestamp: number
 }
@@ -2782,8 +2780,7 @@ export interface NoteParticipant {
 	isOwner: boolean
 	email: string
 	avatar: string | null
-	firstName: string | null
-	lastName: string | null
+	nickName: string
 	metadata: string
 	permissionsWrite: boolean
 	addedTimestamp: number
@@ -3061,23 +3058,23 @@ export const noteHistoryRestore = async (uuid: string, id: number): Promise<void
 	}
 }
 
-export const noteParticipantAdd = async ({
+export const noteParticipantsAdd = async ({
 	uuid,
-	userId,
+	contactUUID,
 	metadata,
 	permissionsWrite
 }: {
 	uuid: string
-	userId: number
+	contactUUID: string
 	metadata: string
 	permissionsWrite: boolean
 }): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v3/notes/participant/add",
+		endpoint: "/v3/notes/participants/add",
 		data: {
 			uuid,
-			userId,
+			contactUUID,
 			metadata,
 			permissionsWrite
 		}
@@ -3088,12 +3085,37 @@ export const noteParticipantAdd = async ({
 	}
 }
 
+export const noteParticipantsPermissions = async ({
+	uuid,
+	userId,
+	permissionsWrite
+}: {
+	uuid: string
+	userId: number
+	permissionsWrite: boolean
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participants/permissions",
+		data: {
+			uuid,
+			userId,
+			permissionsWrite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
 export interface Contact {
+	uuid: string
 	userId: number
 	email: string
 	avatar: string | null
-	firstName: string | null
-	lastName: string | null
+	nickName: string
+	lastActive: number
 	timestamp: number
 }
 
@@ -3116,15 +3138,14 @@ export interface ContactRequest {
 	userId: number
 	email: string
 	avatar: string | null
-	firstName: string | null
-	lastName: string | null
+	nickName: string
 	timestamp: number
 }
 
 export const contactsRequestsIn = async (): Promise<ContactRequest[]> => {
 	const response = await apiRequest({
 		method: "GET",
-		endpoint: "/v3/contacts/in",
+		endpoint: "/v3/contacts/requests/in",
 		data: {}
 	})
 
@@ -3138,7 +3159,7 @@ export const contactsRequestsIn = async (): Promise<ContactRequest[]> => {
 export const contactsRequestsOut = async (): Promise<ContactRequest[]> => {
 	const response = await apiRequest({
 		method: "GET",
-		endpoint: "/v3/contacts/in",
+		endpoint: "/v3/contacts/requests/out",
 		data: {}
 	})
 
@@ -3147,6 +3168,20 @@ export const contactsRequestsOut = async (): Promise<ContactRequest[]> => {
 	}
 
 	return response.data
+}
+
+export const contactsRequestsOutDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/out/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }
 
 export const contactsRequestsSend = async (email: string): Promise<{ uuid: string }> => {
@@ -3199,6 +3234,71 @@ export const contactsDelete = async (uuid: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/contacts/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const userNickname = async (nickname: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/nickname",
+		data: {
+			nickname
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface BlockedContact {
+	uuid: string
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	timestamp: number
+}
+
+export const contactsBlocked = async (): Promise<BlockedContact[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/blocked",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsBlockedAdd = async (email: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/blocked/add",
+		data: {
+			email
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const contactsBlockedDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/blocked/delete",
 		data: {
 			uuid
 		}

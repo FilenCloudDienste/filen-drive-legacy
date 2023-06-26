@@ -38,8 +38,7 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang, curren
 								userId: event.data.senderId,
 								email: event.data.senderEmail,
 								avatar: event.data.senderAvatar,
-								firstName: event.data.senderFirstName,
-								lastName: event.data.senderLastName,
+								nickName: event.data.senderNickName,
 								metadata: "",
 								permissionsAdd: false,
 								addedTimestamp: 0
@@ -179,8 +178,7 @@ export const Input = memo(
 					senderId: currentConversationMe!.userId,
 					senderEmail: currentConversationMe!.email,
 					senderAvatar: currentConversationMe!.avatar,
-					senderFirstName: currentConversationMe!.firstName,
-					senderLastName: currentConversationMe!.lastName,
+					senderNickName: currentConversationMe!.nickName,
 					message,
 					sentTimestamp: Date.now()
 				},

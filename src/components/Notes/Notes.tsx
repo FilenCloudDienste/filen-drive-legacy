@@ -3,7 +3,7 @@ import { Flex } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import { Note as INote } from "../../lib/api"
+import { Note as INote, Contact as IContact } from "../../lib/api"
 import Sidebar from "./Sidebar"
 import Content from "./Content"
 import ContextMenus from "./ContextMenus"
@@ -11,7 +11,9 @@ import { useLocation } from "react-router-dom"
 import { validate } from "uuid"
 import { getCurrentParent } from "../../lib/helpers"
 import HistoryModal from "./HistoryModal"
-import AddParticipantModal from "./AddParticipantModal"
+import { AddParticipantModal, AddContactModal } from "./AddParticipantModal"
+import eventListener from "../../lib/eventListener"
+import { SocketEvent } from "../../lib/services/socket"
 
 export interface NotesSizes {
 	notes: number
@@ -58,6 +60,116 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 		}
 	}, [location.hash])
 
+	useEffect(() => {
+		const noteParticipantAddedFromContactsListener = eventListener.on(
+			"noteParticipantAddedFromContacts",
+			({
+				contact,
+				note,
+				metadata,
+				permissionsWrite
+			}: {
+				contact: IContact
+				note: INote
+				metadata: string
+				permissionsWrite: boolean
+			}) => {
+				setNotes(prev =>
+					prev.map(n =>
+						n.uuid === note.uuid
+							? {
+									...n,
+									participants: [
+										...n.participants,
+										...[
+											{
+												userId: contact.userId,
+												isOwner: false,
+												email: contact.email,
+												avatar: contact.avatar,
+												nickName: contact.nickName,
+												metadata,
+												permissionsWrite,
+												addedTimestamp: Date.now()
+											}
+										]
+									]
+							  }
+							: n
+					)
+				)
+			}
+		)
+
+		const noteParticipantRemovedListener = eventListener.on(
+			"noteParticipantRemoved",
+			({ note, userId }: { note: INote; userId: number }) => {
+				setNotes(prev =>
+					prev.map(n =>
+						n.uuid === note.uuid
+							? {
+									...n,
+									participants: n.participants.filter(p => p.userId !== userId)
+							  }
+							: n
+					)
+				)
+			}
+		)
+
+		const noteParticipantPermissionsChangedListener = eventListener.on(
+			"noteParticipantPermissionsChanged",
+			({ note, userId, permissionsWrite }: { note: INote; userId: number; permissionsWrite: boolean }) => {
+				setNotes(prev =>
+					prev.map(n =>
+						n.uuid === note.uuid
+							? {
+									...n,
+									participants: n.participants.map(p => (p.userId === userId ? { ...p, permissionsWrite } : p))
+							  }
+							: n
+					)
+				)
+			}
+		)
+
+		const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
+			if (data.type === "noteParticipantPermissions") {
+				setNotes(prev =>
+					prev.map(n =>
+						n.uuid === data.data.note
+							? {
+									...n,
+									participants: n.participants.map(p =>
+										p.userId === data.data.userId ? { ...p, permissionsWrite: data.data.permissionsWrite } : p
+									)
+							  }
+							: n
+					)
+				)
+			} else if (data.type === "noteRestored") {
+				setNotes(prev =>
+					prev.map(n =>
+						n.uuid === data.data.note
+							? {
+									...n,
+									trash: false,
+									archive: false
+							  }
+							: n
+					)
+				)
+			}
+		})
+
+		return () => {
+			noteParticipantAddedFromContactsListener.remove()
+			noteParticipantRemovedListener.remove()
+			noteParticipantPermissionsChangedListener.remove()
+			socketEventListener.remove()
+		}
+	}, [])
+
 	return (
 		<Flex flexDirection="row">
 			<Flex
@@ -86,6 +198,7 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 			<ContextMenus setNotes={setNotes} />
 			<HistoryModal />
 			<AddParticipantModal />
+			<AddContactModal />
 		</Flex>
 	)
 })

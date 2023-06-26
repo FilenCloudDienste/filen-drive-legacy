@@ -390,7 +390,8 @@ const en: {
 	chatNewInviteEmail: "Email address",
 	chatAddUserToConversation: "Add user",
 	add: "Add",
-	chatInput: "Send a message"
+	chatInput: "Send a message",
+	noteAddParticipant: "Add participant"
 }
 
 export default en

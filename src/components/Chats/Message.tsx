@@ -434,7 +434,7 @@ export const Message = memo(
 									color={getColor(darkMode, "textPrimary")}
 									fontSize={15}
 								>
-									{getUserNameFromMessage(message)}
+									{striptags(getUserNameFromMessage(message))}
 								</AppText>
 								{!isMobile && (
 									<MessageDate

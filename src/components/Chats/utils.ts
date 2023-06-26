@@ -2,30 +2,15 @@ import { ChatMessage, ChatConversationParticipant } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
-	return typeof message.senderFirstName === "string" &&
-		message.senderFirstName.length > 0 &&
-		typeof message.senderLastName === "string" &&
-		message.senderLastName.length > 0
-		? message.senderFirstName + " " + message.senderLastName
-		: message.senderEmail
+	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
 }
 
 export const getUserNameFromParticipant = (participant: ChatConversationParticipant): string => {
-	return typeof participant.firstName === "string" &&
-		participant.firstName.length > 0 &&
-		typeof participant.lastName === "string" &&
-		participant.lastName.length > 0
-		? participant.firstName + " " + participant.lastName
-		: participant.email
+	return participant.nickName.length > 0 ? participant.nickName : participant.email
 }
 
 export const getUserNameFromAccount = (account: UserGetAccount): string => {
-	return typeof account.personal.firstName === "string" &&
-		account.personal.firstName.length > 0 &&
-		typeof account.personal.lastName === "string" &&
-		account.personal.lastName.length > 0
-		? account.personal.firstName + " " + account.personal.lastName
-		: account.email
+	return account.nickName.length > 0 ? account.nickName : account.email
 }
 
 export const formatDate = (date: Date): string => {

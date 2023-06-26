@@ -5,8 +5,10 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import { Note as INote, editNoteTitle } from "../../lib/api"
 import db from "../../lib/db"
-import { encryptNoteTitle, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
+import { encryptNoteTitle, decryptNoteKeyParticipant, decryptNoteTitle } from "../../lib/worker/worker.com"
 import { debounce } from "lodash"
+import eventListener from "../../lib/eventListener"
+import { SocketEvent } from "../../lib/services/socket"
 
 export const Title = memo(
 	({
@@ -55,6 +57,46 @@ export const Title = memo(
 			if (currentNote) {
 				setTitle(currentNote.title)
 			}
+
+			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
+				try {
+					if (data.type === "noteTitleEdited" && currentNote) {
+						if (data.data.note === currentNote.uuid) {
+							const userId = await db.get("userId")
+							const privateKey = await db.get("privateKey")
+							const noteKey = await decryptNoteKeyParticipant(
+								currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
+								privateKey
+							)
+							const titleDecrypted = await decryptNoteTitle(data.data.title, noteKey)
+
+							setTitle(titleDecrypted)
+
+							startTitle.current = titleRef.current
+
+							eventListener.emit("noteTitleChanged", { note: currentNote, title: titleDecrypted })
+
+							setNotes(prev =>
+								prev.map(n =>
+									n.uuid === data.data.note
+										? {
+												...n,
+												editedTimestamp: Date.now(),
+												title: titleDecrypted
+										  }
+										: n
+								)
+							)
+						}
+					}
+				} catch (e) {
+					console.error(e)
+				}
+			})
+
+			return () => {
+				socketEventListener.remove()
+			}
 		}, [currentNote])
 
 		useEffect(() => {
@@ -95,6 +137,7 @@ export const Title = memo(
 				paddingRight="0px"
 				margin="0px"
 				outline="none"
+				shadow="none"
 				_hover={{
 					shadow: "none",
 					outline: "none"

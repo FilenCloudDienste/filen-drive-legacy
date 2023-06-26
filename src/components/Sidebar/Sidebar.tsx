@@ -48,6 +48,9 @@ import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
 import useDb from "../../lib/hooks/useDb"
 import { FiUsers } from "react-icons/fi"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
+import useIsMobile from "../../lib/hooks/useIsMobile"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -138,8 +141,8 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				alignItems="center"
 				paddingLeft="10px"
 				paddingRight="10px"
-				paddingTop="6px"
-				paddingBottom="6px"
+				paddingTop="7px"
+				paddingBottom="7px"
 				cursor="pointer"
 				transition="200ms"
 				justifyContent={isMobile ? "center" : "flex-start"}
@@ -147,9 +150,8 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				onMouseEnter={() => setHovering(true)}
 				onMouseLeave={() => setHovering(false)}
 				backgroundColor={hovering || active ? getColor(darkMode, "backgroundTertiary") : "transparent"}
-				border={hovering || active ? "1px solid " + getColor(darkMode, "borderPrimary") : "1px solid transparent"}
+				border={"1px solid transparent"}
 				borderRadius="10px"
-				boxShadow={hovering || active ? "sm" : undefined}
 				onClick={() => navigate(to)}
 			>
 				{type === "chats" && unreadChatMessages > 0 && window.location.href.indexOf("chats") === -1 && (
@@ -450,9 +452,8 @@ export const CloudTreeItem = memo(
 					onDrop={handleItemOnDrop}
 					onContextMenu={handleItemOnContextMenu}
 					backgroundColor={bgHover ? getColor(darkMode, "backgroundTertiary") : "transparent"}
-					border={bgHover ? "1px solid " + getColor(darkMode, "borderPrimary") : "1px solid transparent"}
+					border={"1px solid transparent"}
 					borderRadius="10px"
-					boxShadow={bgHover ? "sm" : undefined}
 				>
 					<Flex
 						height={parent.uuid === "base" ? "40px" : "30px"}
@@ -777,7 +778,10 @@ export const CloudTree = memo(
 	}
 )
 
-const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProps) => {
+const Usage = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
+	const darkMode = useDarkMode()
+	const lang = useLang()
+	const isMobile = useIsMobile()
 	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 	const [percent, setPercent] = useState<number>(0)
 	const navigate = useNavigate()
@@ -871,7 +875,7 @@ const Usage = memo(({ sidebarWidth, darkMode, isMobile, lang }: SidebarUsageProp
 									max={100}
 									marginTop="5px"
 									width="100%"
-									backgroundColor={getColor(darkMode, "backgroundPrimary")}
+									backgroundColor={getColor(darkMode, "backgroundTertiary")}
 								/>
 							</Flex>
 							<Flex
@@ -929,7 +933,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 	const navigate = useNavigate()
 
 	const treeMaxHeight: number = useMemo(() => {
-		const sidebarOtherHeight: number = 40 * 12
+		const sidebarOtherHeight: number = 40 * 14
 		const treeHeight: number = windowHeight - sidebarOtherHeight
 		const treeMaxHeight: number = treeHeight < 40 ? 40 : treeHeight
 
@@ -974,7 +978,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 			<Divider
 				darkMode={darkMode}
 				marginTop={0}
-				marginBottom={10}
+				marginBottom={0}
 			/>
 			<Flex
 				width={sidebarWidth + "px"}
@@ -984,6 +988,8 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				overflowX="hidden"
 				overflowY={treeMaxHeight > 40 ? "auto" : "hidden"}
 				userSelect="none"
+				paddingTop="10px"
+				paddingBottom="10px"
 			>
 				{!isMobile ? (
 					<CloudTree
@@ -1036,6 +1042,58 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 			</Flex>
 			<Divider
 				darkMode={darkMode}
+				marginTop={0}
+				marginBottom={10}
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="recent"
+				text={i18n(lang, "recents")}
+				to="/#/recent"
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="favorites"
+				text={i18n(lang, "favorites")}
+				to="/#/favorites"
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="trash"
+				text={i18n(lang, "trash")}
+				to="/#/trash"
+			/>
+			<Divider
+				darkMode={darkMode}
+				marginTop={10}
+				marginBottom={10}
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="notes"
+				text={i18n(lang, "notes")}
+				to="/#/notes"
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="chats"
+				text={i18n(lang, "chats")}
+				to="/#/chats"
+			/>
+			<Button
+				darkMode={darkMode}
+				isMobile={isMobile}
+				type="contacts"
+				text={i18n(lang, "contacts")}
+				to="/#/contacts/online"
+			/>
+			<Divider
+				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
 			/>
@@ -1060,59 +1118,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "links")}
 				to="/#/links"
 			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="favorites"
-				text={i18n(lang, "favorites")}
-				to="/#/favorites"
-			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="recent"
-				text={i18n(lang, "recents")}
-				to="/#/recent"
-			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="trash"
-				text={i18n(lang, "trash")}
-				to="/#/trash"
-			/>
-			<Divider
-				darkMode={darkMode}
-				marginTop={10}
-				marginBottom={10}
-			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="contacts"
-				text={i18n(lang, "contacts")}
-				to="/#/contacts"
-			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="chats"
-				text={i18n(lang, "chats")}
-				to="/#/chats"
-			/>
-			<Button
-				darkMode={darkMode}
-				isMobile={isMobile}
-				type="notes"
-				text={i18n(lang, "notes")}
-				to="/#/notes"
-			/>
-			<Usage
-				darkMode={darkMode}
-				isMobile={isMobile}
-				sidebarWidth={sidebarWidth}
-				lang={lang}
-			/>
+			<Usage sidebarWidth={sidebarWidth} />
 		</Flex>
 	)
 })

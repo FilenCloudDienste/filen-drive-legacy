@@ -9,7 +9,7 @@ import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import { Virtuoso } from "react-virtuoso"
 import { IoIosAdd } from "react-icons/io"
-import { Note as INote, notes as getNotes, createNote, noteParticipantAdd } from "../../lib/api"
+import { Note as INote, notes as getNotes, createNote, noteParticipantsAdd } from "../../lib/api"
 import { safeAwait, generateRandomString, getCurrentParent, simpleDate } from "../../lib/helpers"
 import db from "../../lib/db"
 import {
@@ -24,6 +24,8 @@ import { v4 as uuidv4, validate } from "uuid"
 import { useNavigate } from "react-router-dom"
 import { NotesSizes } from "./Notes"
 import Note from "./Note"
+import { show as showToast } from "../Toast/Toast"
+import useDb from "../../lib/hooks/useDb"
 
 export const Sidebar = memo(
 	({
@@ -45,28 +47,31 @@ export const Sidebar = memo(
 		const [loading, setLoading] = useState<boolean>(true)
 		const [creating, setCreating] = useState<boolean>(false)
 		const navigate = useNavigate()
+		const [userId] = useDb("userId", 0)
 
 		const notesSorted = useMemo(() => {
-			return notes.sort((a, b) => {
-				if (a.pinned !== b.pinned) {
-					return b.pinned ? 1 : -1
-				}
+			return notes
+				.map(note => (note.ownerId !== userId && userId !== 0 ? { ...note, pinned: false, favorite: false } : note))
+				.sort((a, b) => {
+					if (a.pinned !== b.pinned) {
+						return b.pinned ? 1 : -1
+					}
 
-				if (a.trash !== b.trash && a.archive === false) {
-					return a.trash ? 1 : -1
-				}
+					if (a.trash !== b.trash && a.archive === false) {
+						return a.trash ? 1 : -1
+					}
 
-				if (a.archive !== b.archive) {
-					return a.archive ? 1 : -1
-				}
+					if (a.archive !== b.archive) {
+						return a.archive ? 1 : -1
+					}
 
-				if (a.trash !== b.trash) {
-					return a.trash ? 1 : -1
-				}
+					if (a.trash !== b.trash) {
+						return a.trash ? 1 : -1
+					}
 
-				return b.editedTimestamp - a.editedTimestamp
-			})
-		}, [notes])
+					return b.editedTimestamp - a.editedTimestamp
+				})
+		}, [notes, userId])
 
 		const fetchNotes = useCallback(async () => {
 			const privateKey = await db.get("privateKey")
@@ -101,6 +106,8 @@ export const Sidebar = memo(
 
 				setLoading(false)
 
+				showToast("error", notesErr.message, "bottom", 5000)
+
 				return
 			}
 
@@ -112,7 +119,6 @@ export const Sidebar = memo(
 			setCreating(true)
 
 			const key = generateRandomString(32)
-			const userId = await db.get("userId")
 			const publicKey = await db.get("publicKey")
 			const masterKeys = await db.get("masterKeys")
 			const metadata = await encryptMetadata(JSON.stringify({ key }), masterKeys[masterKeys.length - 1])
@@ -127,10 +133,24 @@ export const Sidebar = memo(
 
 				setCreating(false)
 
+				showToast("error", createErr.message, "bottom", 5000)
+
 				return
 			}
 
-			const [addErr] = await safeAwait(noteParticipantAdd({ uuid, metadata: ownerMetadata, userId, permissionsWrite: true }))
+			const [addErr] = await safeAwait(
+				noteParticipantsAdd({ uuid, metadata: ownerMetadata, contactUUID: "owner", permissionsWrite: true })
+			)
+
+			if (addErr) {
+				console.error(addErr)
+
+				setCreating(false)
+
+				showToast("error", addErr.message, "bottom", 5000)
+
+				return
+			}
 
 			const [notesErr, notesRes] = await safeAwait(fetchNotes())
 
@@ -138,6 +158,8 @@ export const Sidebar = memo(
 				console.error(notesErr)
 
 				setCreating(false)
+
+				showToast("error", notesErr.message, "bottom", 5000)
 
 				return
 			}

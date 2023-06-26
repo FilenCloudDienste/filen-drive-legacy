@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { memo, useState, useEffect, useCallback, useMemo } from "react"
 import { ChatSizes } from "./Chats"
 import { getColor } from "../../styles/colors"
 import { Flex } from "@chakra-ui/react"
@@ -16,15 +16,13 @@ import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
-
-const ONLINE_TIMEOUT = 900000
+import { ONLINE_TIMEOUT } from "../../lib/constants"
 
 const loadingMembers = new Array(5).fill(1).map(() => ({
 	userId: 0,
 	email: "",
 	avatar: null,
-	firstName: null,
-	lastName: null,
+	nickName: "",
 	metadata: "",
 	permissionsAdd: false,
 	addedTimestamp: 0
@@ -196,13 +194,11 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 						onMouseLeave={() => setHoveringAdd(false)}
 						onClick={() => addUser()}
 						cursor="pointer"
-						className="do-not-unselect-items"
 					>
 						<IoIosAdd
 							size={24}
 							color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 							cursor="pointer"
-							className="do-not-unselect-items"
 							style={{
 								flexShrink: 0
 							}}

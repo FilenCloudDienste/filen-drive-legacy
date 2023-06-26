@@ -5,7 +5,7 @@ import eventListener from "../../eventListener"
 import db from "../../db"
 import cookies from "../../cookies"
 import { FolderColors } from "../../../types"
-import { ChatMessage, TypingType } from "../../api"
+import { ChatMessage, TypingType, NoteType } from "../../api"
 import memoryCache from "../../memoryCache"
 
 export interface SocketNewEvent {
@@ -133,9 +133,8 @@ export interface SocketChatTyping {
 	conversation: string
 	senderAvatar: string | null
 	senderEmail: string
-	senderFirstName: string | null
+	senderNickName: string
 	senderId: number
-	senderLastName: string | null
 	timestamp: number
 	type: TypingType
 }
@@ -148,6 +147,37 @@ export interface SocketChatConversationsNew {
 
 export interface SocketChatMessageDelete {
 	uuid: string
+}
+
+export interface SocketNoteContentEdited {
+	note: string
+	content: string
+	type: NoteType
+	editorId: number
+	editedTimestamp: number
+}
+
+export interface SocketNoteArchived {
+	note: string
+}
+
+export interface SocketNoteDeleted {
+	note: string
+}
+
+export interface SocketNoteTitleEdited {
+	note: string
+	title: string
+}
+
+export interface SocketNoteParticipantPermissions {
+	note: string
+	userId: number
+	permissionsWrite: boolean
+}
+
+export interface SocketNoteRestored {
+	note: string
 }
 
 export type SocketEvent =
@@ -225,6 +255,30 @@ export type SocketEvent =
 	| {
 			type: "chatMessageDelete"
 			data: SocketChatMessageDelete
+	  }
+	| {
+			type: "noteContentEdited"
+			data: SocketNoteContentEdited
+	  }
+	| {
+			type: "noteArchived"
+			data: SocketNoteArchived
+	  }
+	| {
+			type: "noteDeleted"
+			data: SocketNoteDeleted
+	  }
+	| {
+			type: "noteTitleEdited"
+			data: SocketNoteTitleEdited
+	  }
+	| {
+			type: "noteParticipantPermissions"
+			data: SocketNoteParticipantPermissions
+	  }
+	| {
+			type: "noteRestored"
+			data: SocketNoteRestored
 	  }
 
 const waitForLogin = () => {
@@ -417,6 +471,48 @@ export const connect = () => {
 	SOCKET_HANDLE.on("chatMessageDelete", (data: SocketChatMessageDelete) => {
 		eventListener.emit("socketEvent", {
 			type: "chatMessageDelete",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteContentEdited", (data: SocketNoteContentEdited) => {
+		eventListener.emit("socketEvent", {
+			type: "noteContentEdited",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteArchived", (data: SocketNoteArchived) => {
+		eventListener.emit("socketEvent", {
+			type: "noteArchived",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteDeleted", (data: SocketNoteDeleted) => {
+		eventListener.emit("socketEvent", {
+			type: "noteDeleted",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteTitleEdited", (data: SocketNoteTitleEdited) => {
+		eventListener.emit("socketEvent", {
+			type: "noteTitleEdited",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantPermissions", (data: SocketNoteParticipantPermissions) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantPermissions",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteRestored", (data: SocketNoteRestored) => {
+		eventListener.emit("socketEvent", {
+			type: "noteRestored",
 			data
 		} as SocketEvent)
 	})
