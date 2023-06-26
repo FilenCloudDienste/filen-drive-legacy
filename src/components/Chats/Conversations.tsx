@@ -58,7 +58,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 		<Flex
 			borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
 			alignItems="center"
-			height={isMobile ? "51px" : "62px"}
+			height={isMobile ? "40px" : "50px"}
 			flexDirection="row"
 			paddingLeft="10px"
 			paddingRight="10px"
@@ -330,13 +330,12 @@ export const Conversations = memo(
 			>
 				<Flex
 					width={sizes.conversations + "px"}
-					height="40px"
+					height="50px"
 					flexDirection="row"
 					justifyContent="space-between"
 					alignItems="center"
 					paddingLeft="15px"
 					paddingRight="15px"
-					paddingTop="10px"
 				>
 					<AppText
 						darkMode={darkMode}
@@ -376,7 +375,7 @@ export const Conversations = memo(
 				{loading ? (
 					<Flex
 						flexDirection="column"
-						height={windowHeight - 40 - (isMobile ? 51 : 62) + "px"}
+						height={windowHeight - 50 - (isMobile ? 40 : 50) + "px"}
 						width={sizes.conversations + "px"}
 						overflow="hidden"
 					>
@@ -392,14 +391,16 @@ export const Conversations = memo(
 				) : (
 					<Virtuoso
 						data={conversationsSorted}
-						height={windowHeight - 40 - (isMobile ? 51 : 62)}
+						height={windowHeight - 50 - (isMobile ? 40 : 50)}
 						width={sizes.conversations}
 						itemContent={itemContent}
 						totalCount={conversationsSorted.length}
 						overscan={8}
 						style={{
 							overflowX: "hidden",
-							overflowY: "auto"
+							overflowY: "auto",
+							height: windowHeight - 50 - (isMobile ? 40 : 50) + "px",
+							width: sizes.conversations + "px"
 						}}
 					/>
 				)}

@@ -5,7 +5,6 @@ import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { getLang, Semaphore, safeAwait } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { addItemsToStore, removeItemsFromStore } from "../metadata"
 
 const mutex = new Semaphore(1)
 
@@ -100,11 +99,6 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 				from: moved[i].from,
 				to: parent
 			})
-		}
-
-		for (let i = 0; i < moved.length; i++) {
-			removeItemsFromStore([moved[i].item], moved[i].from).catch(console.error)
-			addItemsToStore([moved[i].item], moved[i].to).catch(console.error)
 		}
 	}
 

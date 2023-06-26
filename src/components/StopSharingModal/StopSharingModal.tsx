@@ -7,7 +7,6 @@ import AppText from "../AppText"
 import { stopSharingItem } from "../../lib/api"
 import { show as showToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
-import { removeItemsFromStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopSharingModalProps) => {
@@ -97,8 +96,6 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
 				"bottom",
 				5000
 			)
-
-			removeItemsFromStore(stopSharingItems.current, "shared-out").catch(console.error)
 		}
 
 		stopSharingItems.current = []

@@ -6,7 +6,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote, noteContent, editNoteContent, NoteType } from "../../lib/api"
-import { safeAwait, randomStringUnsafe, getRandomArbitrary, Semaphore, SemaphoreProps } from "../../lib/helpers"
+import { safeAwait, randomStringUnsafe, getRandomArbitrary, Semaphore, SemaphoreProps, getCurrentParent } from "../../lib/helpers"
 import db from "../../lib/db"
 import { decryptNoteContent, encryptNoteContent, encryptNotePreview, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
 import { debounce } from "lodash"
@@ -94,6 +94,7 @@ export const Content = memo(
 
 				if (contentRes.content.length === 0) {
 					prevContent.current = ""
+					contentRef.current = ""
 
 					setContent("")
 					setLoading(false)
@@ -112,6 +113,7 @@ export const Content = memo(
 				const contentDecrypted = await decryptNoteContent(contentRes.content, noteKey)
 
 				prevContent.current = contentDecrypted
+				contentRef.current = contentDecrypted
 
 				setContent(contentDecrypted)
 				setLoading(false)
@@ -124,7 +126,11 @@ export const Content = memo(
 		const save = useCallback(async () => {
 			await saveMutex.acquire()
 
-			if (!currentNote || JSON.stringify(contentRef.current) === JSON.stringify(prevContent.current)) {
+			if (
+				!currentNote ||
+				JSON.stringify(contentRef.current) === JSON.stringify(prevContent.current) ||
+				getCurrentParent(window.location.href) !== currentNote.uuid
+			) {
 				saveMutex.release()
 
 				setSynced(prev => ({ ...prev, content: true }))
@@ -164,8 +170,6 @@ export const Content = memo(
 		useEffect(() => {
 			contentRef.current = content
 
-			//setSynced(prev => ({ ...prev, content: false }))
-
 			debouncedSave()
 
 			eventListener.emit("noteContentChanged", { note: currentNote, content })
@@ -187,7 +191,7 @@ export const Content = memo(
 			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
 				try {
 					if (data.type === "noteContentEdited" && currentNote) {
-						if (data.data.note === currentNote.uuid) {
+						if (data.data.note === currentNote.uuid && getCurrentParent(window.location.href) === data.data.note) {
 							const userId = await db.get("userId")
 							const privateKey = await db.get("privateKey")
 							const noteKey = await decryptNoteKeyParticipant(

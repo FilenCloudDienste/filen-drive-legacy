@@ -1,6 +1,5 @@
 import { memo, useMemo, useRef, useState, useEffect, useCallback } from "react"
 import "react-contexify/dist/ReactContexify.css"
-import "../../styles/contexify.css"
 import {
 	Menu as ContextMenu,
 	Item as ContextMenuItem,

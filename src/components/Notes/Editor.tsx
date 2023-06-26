@@ -65,6 +65,7 @@ export const Editor = memo(
 						width={width + "px"}
 						height={height + "px"}
 						theme={createCodeMirrorThemeNotesText(darkMode)}
+						placeholder={canEdit ? "Note content..." : undefined}
 						autoFocus={content.length === 0}
 						basicSetup={{
 							crosshairCursor: false,
@@ -109,6 +110,7 @@ export const Editor = memo(
 						value={content}
 						width={width + "px"}
 						height={height + 10 + "px"}
+						placeholder={canEdit ? "Note content..." : undefined}
 						theme={createCodeMirrorTheme(darkMode)}
 						indentWithTab={true}
 						autoFocus={content.length === 0}
@@ -155,6 +157,7 @@ export const Editor = memo(
 									value={content}
 									width={(showMarkdownPreview ? Math.floor(width / 2) : width) + "px"}
 									height={height + 10 + "px"}
+									placeholder={canEdit ? "Note content..." : undefined}
 									theme={createCodeMirrorThemeNotesText(darkMode)}
 									indentWithTab={true}
 									onBlur={onBlur}
@@ -256,18 +259,27 @@ export const Editor = memo(
 					<ReactQuill
 						theme="snow"
 						value={content}
+						placeholder={canEdit ? "Note content..." : undefined}
 						onBlur={() => {
 							if (typeof onBlur === "function") {
 								onBlur(undefined as any)
 							}
 						}}
+						modules={{
+							toolbar: [
+								[{ header: [1, 2, 3, false] }],
+								["bold", "italic", "underline"],
+								["code-block"],
+								[{ list: "ordered" }, { list: "bullet" }, { list: "check" }]
+							]
+						}}
 						style={{
 							width: width + "px",
 							height: height - 44 + "px",
-							border: "none"
+							border: "none",
+							color: getColor(darkMode, "textPrimary")
 						}}
 						onChange={value => {
-							console.log("onchange", value)
 							if (!canEdit) {
 								return
 							}

@@ -265,7 +265,9 @@ export const Sidebar = memo(
 						overscan={8}
 						style={{
 							overflowX: "hidden",
-							overflowY: "auto"
+							overflowY: "auto",
+							height: windowHeight - 50 + "px",
+							width: sizes.notes + "px"
 						}}
 					/>
 				)}

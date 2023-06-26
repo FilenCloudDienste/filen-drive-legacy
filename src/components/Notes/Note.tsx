@@ -1,5 +1,5 @@
-import { memo, useState, useMemo } from "react"
-import { Flex } from "@chakra-ui/react"
+import { memo, useState, useMemo, useEffect } from "react"
+import { Flex, Avatar, AvatarGroup } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
@@ -27,14 +27,19 @@ export const Note = memo(({ note }: { note: INote }) => {
 		return getCurrentParent(location.hash) === note.uuid
 	}, [note, location])
 
+	useEffect(() => {
+		setPreview(striptags(note.preview.length === 0 ? note.title : note.preview))
+	}, [note.preview])
+
 	return (
 		<Flex
 			flexDirection="row"
+			justifyContent="space-between"
 			paddingLeft="13px"
 			paddingRight="15px"
 			paddingBottom="10px"
 			paddingTop="10px"
-			gap="20px"
+			gap="25px"
 			marginBottom="3px"
 			borderLeft={active ? "2px solid " + getColor(darkMode, "indigo") : "2px solid transparent"}
 			backgroundColor={active || hovering ? getColor(darkMode, "backgroundSecondary") : undefined}
@@ -65,141 +70,170 @@ export const Note = memo(({ note }: { note: INote }) => {
 				})
 			}}
 		>
-			<Flex
-				flexDirection="column"
-				gap="10px"
-			>
-				<Flex>
-					{note.trash ? (
-						<IoTrashOutline
-							size={20}
-							color={getColor(darkMode, "red")}
-							style={{
-								flexShrink: 0
-							}}
-						/>
-					) : note.archive ? (
-						<IoArchiveOutline
-							size={20}
-							color={getColor(darkMode, "orange")}
-							style={{
-								flexShrink: 0
-							}}
-						/>
-					) : (
-						<>
-							{note.type === "text" && (
-								<BsTextLeft
-									size={20}
-									color={getColor(darkMode, "blue")}
-									style={{
-										flexShrink: 0
-									}}
-								/>
-							)}
-							{note.type === "rich" && (
-								<BsFileRichtext
-									size={20}
-									color={getColor(darkMode, "cyan")}
-									style={{
-										flexShrink: 0
-									}}
-								/>
-							)}
-							{note.type === "code" && (
-								<BsCodeSlash
-									size={20}
-									color={getColor(darkMode, "red")}
-									style={{
-										flexShrink: 0
-									}}
-								/>
-							)}
-							{note.type === "md" && (
-								<BsMarkdown
-									size={20}
-									color={getColor(darkMode, "indigo")}
-									style={{
-										flexShrink: 0
-									}}
-								/>
-							)}
-						</>
+			<Flex gap="15px">
+				<Flex
+					flexDirection="column"
+					gap="10px"
+				>
+					<Flex>
+						{note.trash ? (
+							<IoTrashOutline
+								size={20}
+								color={getColor(darkMode, "red")}
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						) : note.archive ? (
+							<IoArchiveOutline
+								size={20}
+								color={getColor(darkMode, "orange")}
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						) : (
+							<>
+								{note.type === "text" && (
+									<BsTextLeft
+										size={20}
+										color={getColor(darkMode, "blue")}
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								)}
+								{note.type === "rich" && (
+									<BsFileRichtext
+										size={20}
+										color={getColor(darkMode, "cyan")}
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								)}
+								{note.type === "code" && (
+									<BsCodeSlash
+										size={20}
+										color={getColor(darkMode, "red")}
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								)}
+								{note.type === "md" && (
+									<BsMarkdown
+										size={20}
+										color={getColor(darkMode, "indigo")}
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								)}
+							</>
+						)}
+					</Flex>
+					{note.pinned && (
+						<Flex>
+							<BsPin
+								size={20}
+								color={getColor(darkMode, "textSecondary")}
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						</Flex>
+					)}
+					{note.ownerId !== userId && userId !== 0 && (
+						<Flex>
+							<FiUsers
+								size={20}
+								color={getColor(darkMode, "textSecondary")}
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						</Flex>
 					)}
 				</Flex>
-				{note.pinned && (
-					<Flex>
-						<BsPin
-							size={20}
-							color={getColor(darkMode, "textSecondary")}
-							style={{
-								flexShrink: 0
-							}}
-						/>
-					</Flex>
-				)}
-				{note.ownerId !== userId && userId !== 0 && (
-					<Flex>
-						<FiUsers
-							size={20}
-							color={getColor(darkMode, "textSecondary")}
-							style={{
-								flexShrink: 0
-							}}
-						/>
-					</Flex>
-				)}
-			</Flex>
-			<Flex
-				flexDirection="column"
-				gap="3px"
-			>
 				<Flex
-					flexDirection="row"
-					gap="10px"
-					alignItems="center"
+					flexDirection="column"
+					gap="3px"
 				>
-					{note.favorite && (
-						<IoHeart
-							size={16}
+					<Flex
+						flexDirection="row"
+						gap="10px"
+						alignItems="center"
+					>
+						{note.favorite && (
+							<IoHeart
+								size={16}
+								color={getColor(darkMode, "textPrimary")}
+								style={{
+									flexShrink: 0
+								}}
+							/>
+						)}
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
 							color={getColor(darkMode, "textPrimary")}
-							style={{
-								flexShrink: 0
-							}}
-						/>
-					)}
+							fontSize={15}
+						>
+							{striptags(note.title)}
+						</AppText>
+					</Flex>
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
 						noOfLines={1}
 						wordBreak="break-all"
-						color={getColor(darkMode, "textPrimary")}
-						fontSize={15}
+						color={getColor(darkMode, "textSecondary")}
+						fontSize={13}
 					>
-						{striptags(note.title)}
+						{striptags(preview.length === 0 ? note.title : preview)}
+					</AppText>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						wordBreak="break-all"
+						color={getColor(darkMode, "textSecondary")}
+						fontSize={11}
+					>
+						{new Date(note.editedTimestamp).toLocaleString()}
 					</AppText>
 				</Flex>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					noOfLines={1}
-					wordBreak="break-all"
-					color={getColor(darkMode, "textSecondary")}
-					fontSize={13}
-				>
-					{striptags(preview.length === 0 ? note.title : preview)}
-				</AppText>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					noOfLines={1}
-					wordBreak="break-all"
-					color={getColor(darkMode, "textSecondary")}
-					fontSize={11}
-				>
-					{new Date(note.editedTimestamp).toLocaleString()}
-				</AppText>
 			</Flex>
+			{note.participants.length > 1 && !isMobile && (
+				<Flex alignItems="center">
+					<AvatarGroup>
+						{note.participants.slice(0, 2).map((participant, index) => {
+							return (
+								<Avatar
+									key={index}
+									name={
+										typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
+											? undefined
+											: participant.email.substring(0, 1)
+									}
+									src={
+										typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
+											? participant.avatar
+											: undefined
+									}
+									width="25px"
+									height="25px"
+									border="none"
+									borderRadius="full"
+								/>
+							)
+						})}
+					</AvatarGroup>
+				</Flex>
+			)}
 		</Flex>
 	)
 })

@@ -4,7 +4,6 @@ import { ChatMessage } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import useDb from "../../lib/hooks/useDb"
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
-import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import Message, { MessageSkeleton } from "./Message"
 
 export interface MessagesProps {
@@ -28,7 +27,6 @@ const loadingMessages = new Array(32).fill(1).map(() => ({
 })) as ChatMessage[]
 
 export const Messages = memo(({ darkMode, isMobile, messages, failedMessages, width, height, loading }: MessagesProps) => {
-	const windowHeight = useWindowHeight()
 	const [userId] = useDb("userId", 0)
 	const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 	const [isAtBottom, setIsAtBottom] = useState<boolean>(false)
@@ -86,7 +84,7 @@ export const Messages = memo(({ darkMode, isMobile, messages, failedMessages, wi
 		return (
 			<Flex
 				flexDirection="column-reverse"
-				height={windowHeight - 50 + "px"}
+				height={height + "px"}
 				width={width + "px"}
 				overflow="hidden"
 				transition="200ms"
@@ -120,7 +118,9 @@ export const Messages = memo(({ darkMode, isMobile, messages, failedMessages, wi
 			style={{
 				overflowX: "hidden",
 				overflowY: loading ? "hidden" : "auto",
-				transition: "200ms"
+				transition: "200ms",
+				height: height + "px",
+				width: width + "px"
 			}}
 		/>
 	)

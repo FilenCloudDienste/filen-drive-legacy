@@ -7,7 +7,6 @@ import AppText from "../AppText"
 import { removeSharedInItem } from "../../lib/api"
 import { show as showToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
-import { removeItemsFromStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: RemoveSharedInModalProps) => {
@@ -84,8 +83,6 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
 				"bottom",
 				5000
 			)
-
-			removeItemsFromStore(removed, "shared-in").catch(console.error)
 		}
 
 		removeSharedInItems.current = []

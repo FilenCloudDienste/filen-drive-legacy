@@ -5,7 +5,6 @@ import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { getLang } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { changeItemsInStore } from "../metadata"
 
 export const markAsFavorite = async (items: ItemProps[], favorite: 0 | 1): Promise<void> => {
 	const lang: string = getLang()
@@ -72,17 +71,6 @@ export const markAsFavorite = async (items: ItemProps[], favorite: 0 | 1): Promi
 				item: favorited[i],
 				favorited: favorite
 			})
-
-			changeItemsInStore(
-				[
-					{
-						...favorited[i],
-						favorited: favorite,
-						selected: false
-					}
-				],
-				favorited[i].parent
-			).catch(console.error)
 		}
 	}
 

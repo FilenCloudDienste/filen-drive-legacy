@@ -143,7 +143,9 @@ export const ContactsList = memo(
 						overscan={8}
 						style={{
 							overflowX: "hidden",
-							overflowY: "auto"
+							overflowY: "auto",
+							height: windowHeight - 190 + "px",
+							width: containerWidth + "px"
 						}}
 					/>
 				</Flex>

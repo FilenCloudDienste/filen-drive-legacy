@@ -12,7 +12,6 @@ import { folderContent, sharedInContent, sharedOutContent, recentContent, getFol
 import { orderItemsByType, getCurrentParent, Semaphore, convertTimestampToMs } from "../../helpers"
 import memoryCache from "../../memoryCache"
 import striptags from "striptags"
-import { addToSearchItems } from "../search"
 
 const addFolderNameToDbSemaphore = new Semaphore(1)
 
@@ -473,8 +472,6 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 
 		const sorted: ItemProps[] = orderItemsByType(items, sortBy[href], href)
 
-		addToSearchItems(sorted)
-
 		await db.set("loadItems:" + uuid, sorted, "metadata")
 
 		return {
@@ -614,8 +611,6 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 
 		const items: ItemProps[] = (await Promise.all(promises)).filter(item => item !== null) as ItemProps[]
 		const sorted = orderItemsByType(items, "nameAsc")
-
-		addToSearchItems(sorted)
 
 		await db.set("loadSidebarItems:" + uuid, sorted, "metadata")
 

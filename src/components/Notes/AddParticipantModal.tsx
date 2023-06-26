@@ -254,7 +254,9 @@ export const AddContactModal = memo(() => {
 								overscan={10}
 								style={{
 									overflowX: "hidden",
-									overflowY: "auto"
+									overflowY: "auto",
+									height: 300 + "px",
+									width: "100%"
 								}}
 							/>
 						</Flex>
@@ -529,7 +531,9 @@ export const AddParticipantModal = memo(() => {
 								overscan={10}
 								style={{
 									overflowX: "hidden",
-									overflowY: "auto"
+									overflowY: "auto",
+									height: containerHeight + "px",
+									width: "100%"
 								}}
 							/>
 						</Flex>

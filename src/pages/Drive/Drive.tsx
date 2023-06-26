@@ -61,7 +61,6 @@ import { SocketEvent } from "../../lib/services/socket"
 import { decryptFileMetadata, decryptFolderName } from "../../lib/worker/worker.com"
 import striptags from "striptags"
 import LogoAnimated from "../../assets/images/logo_animated.gif"
-import { addItemsToStore, removeItemsFromStore, clearItemsInStore } from "../../lib/services/metadata"
 import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
@@ -814,9 +813,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											window.location.href
 										)
 									)
-
-									addItemsToStore([newFolderItem], event.data.parent).catch(console.error)
-									removeItemsFromStore([newFolderItem], "trash").catch(console.error)
 								}
 
 								return prev
@@ -863,9 +859,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 										bucket: event.data.bucket,
 										region: event.data.region
 									}
-
-									addItemsToStore([newItem], event.data.parent).catch(console.error)
-									removeItemsFromStore([newItem], "trash").catch(console.error)
 
 									return orderItemsByType(
 										[...prev, ...[{ ...newItem, selected: false }]],
@@ -987,8 +980,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 			} else if (event.type == "trashEmpty") {
 				if (window.location.href.indexOf("trash") !== -1) {
 					setItems([])
-
-					clearItemsInStore("trash").catch(console.error)
 				}
 			}
 		})

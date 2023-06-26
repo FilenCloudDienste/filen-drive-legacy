@@ -5,7 +5,6 @@ import { changeFolderColor } from "../../api"
 import { ONE_YEAR } from "../../constants"
 import { getLang } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { changeItemsInStore } from "../metadata"
 
 export const changeColor = async (items: ItemProps[], color: FolderColors) => {
 	const lang: string = getLang()
@@ -63,17 +62,6 @@ export const changeColor = async (items: ItemProps[], color: FolderColors) => {
 				item: changed[i],
 				color
 			})
-
-			changeItemsInStore(
-				[
-					{
-						...changed[i],
-						color,
-						selected: false
-					}
-				],
-				changed[i].parent
-			).catch(console.error)
 		}
 	}
 

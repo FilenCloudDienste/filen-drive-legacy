@@ -38,7 +38,7 @@ export const Container = memo(
 		const heights = useMemo(() => {
 			const inputContainer = 85
 			const topbarContainer = 50
-			const messagesContainer = windowHeight - 50 - inputContainer - topbarContainer
+			const messagesContainer = windowHeight - inputContainer - topbarContainer
 
 			return {
 				inputContainer,

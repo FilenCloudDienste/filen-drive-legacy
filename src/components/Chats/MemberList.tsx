@@ -163,13 +163,12 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		>
 			<Flex
 				width={sizes.chatOptions + "px"}
-				height="40px"
+				height="50px"
 				flexDirection="row"
 				justifyContent="space-between"
 				alignItems="center"
 				paddingLeft="15px"
 				paddingRight="15px"
-				paddingTop="10px"
 			>
 				<AppText
 					darkMode={darkMode}
@@ -209,7 +208,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 			{!currentConversation || !currentConversationMe ? (
 				<Flex
 					flexDirection="column"
-					height={windowHeight - 40 + "px"}
+					height={windowHeight - 50 + "px"}
 					width={sizes.chatOptions + "px"}
 					overflow="hidden"
 				>
@@ -220,14 +219,16 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 			) : (
 				<Virtuoso
 					data={usersSorted}
-					height={windowHeight - 40}
+					height={windowHeight - 50}
 					width={sizes.chatOptions}
 					itemContent={itemContent}
 					totalCount={usersSorted.length}
 					overscan={8}
 					style={{
 						overflowX: "hidden",
-						overflowY: "auto"
+						overflowY: "auto",
+						height: windowHeight - 50 + "px",
+						width: sizes.chatOptions + "px"
 					}}
 				/>
 			)}

@@ -10,7 +10,6 @@ import { getFolderColor } from "../../lib/helpers"
 import db from "../../lib/db"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
-import { addItemsToStore, removeItemsFromStore } from "../../lib/services/metadata"
 import { show as showToast } from "../Toast/Toast"
 import ModalCloseButton from "../ModalCloseButton"
 
@@ -340,11 +339,6 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
 			}
 
 			await moveToParent(toMove, moveUUID)
-
-			for (let i = 0; i < toMove.length; i++) {
-				removeItemsFromStore([toMove[i]], toMove[i].parent).catch(console.error)
-				addItemsToStore([toMove[i]], moveUUID).catch(console.error)
-			}
 		} catch (e: any) {
 			console.error(e)
 

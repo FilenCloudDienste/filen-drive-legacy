@@ -28,6 +28,7 @@ import LogoDark from "./assets/images/dark_logo.svg"
 import AppText from "./components/AppText"
 import { AiOutlineTwitter } from "react-icons/ai"
 import Announcements from "./components/Announcements"
+import { helmetStyle } from "./styles/helmet"
 
 declare global {
 	interface Window {
@@ -44,11 +45,11 @@ window.visibleItems = []
 window.currentReceiverId = 0
 
 const App = memo(() => {
-	const windowWidth: number = useWindowWidth()
-	const windowHeight: number = useWindowHeight()
-	const darkMode: boolean = useDarkMode()
-	const isMobile: boolean = useIsMobile()
-	const lang: string = useLang()
+	const windowWidth = useWindowWidth()
+	const windowHeight = useWindowHeight()
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+	const lang = useLang()
 	const [loggedIn] = useCookie("loggedIn")
 	const [analytics, setAnalytics] = useState<boolean>(
 		typeof cookies.get("cookieConsent") == "string" && (cookies.get("cookieConsent") == "full" || cookies.get("cookieConsent") == "all")
@@ -110,20 +111,13 @@ const App = memo(() => {
 			width="100%"
 			height="100%"
 		>
-			<Helmet>
-				{darkMode ? (
-					<link
-						rel="stylesheet"
-						type="text/css"
-						href="/dark.css"
-					/>
-				) : (
-					<link
-						rel="stylesheet"
-						type="text/css"
-						href="/light.css"
-					/>
-				)}
+			<Helmet
+				style={[
+					{
+						cssText: helmetStyle(darkMode)
+					}
+				]}
+			>
 				<meta
 					name="theme-color"
 					content={getColor(darkMode, "backgroundPrimary")}

@@ -9,7 +9,6 @@ import db from "../../lib/db"
 import { orderItemsByType } from "../../lib/helpers"
 import { show as showToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
-import { addItemsToStore, removeItemsFromStore, DEFAULT_PARENTS } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setItems, items, lang }: DeleteModalProps) => {
@@ -74,14 +73,6 @@ const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setIt
 
 		if (deleted.length > 0) {
 			showToast("success", i18n(lang, "itemsMovedToTrash", true, ["__COUNT__"], [success.length.toString()]), "bottom", 5000)
-
-			Promise.all([
-				addItemsToStore(deleted, "trash"),
-				...deleted.map(deletedItem => removeItemsFromStore([deletedItem], deletedItem.parent)),
-				...DEFAULT_PARENTS.map(defaultParent => [
-					...deleted.map(deletedItem => removeItemsFromStore([deletedItem], defaultParent))
-				]).flat()
-			]).catch(console.error)
 		}
 
 		if (error.length > 0) {

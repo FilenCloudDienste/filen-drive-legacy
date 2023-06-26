@@ -9,6 +9,7 @@ import { encryptNoteTitle, decryptNoteKeyParticipant, decryptNoteTitle } from ".
 import { debounce } from "lodash"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
+import { getCurrentParent } from "../../lib/helpers"
 
 export const Title = memo(
 	({
@@ -28,7 +29,12 @@ export const Title = memo(
 		const startTitle = useRef<string | undefined>(undefined)
 
 		const editTitle = useCallback(async () => {
-			if (!currentNote || saving || startTitle.current === titleRef.current) {
+			if (
+				!currentNote ||
+				saving ||
+				JSON.stringify(startTitle.current) === JSON.stringify(titleRef.current) ||
+				getCurrentParent(window.location.href) !== currentNote.uuid
+			) {
 				return
 			}
 
@@ -61,7 +67,7 @@ export const Title = memo(
 			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
 				try {
 					if (data.type === "noteTitleEdited" && currentNote) {
-						if (data.data.note === currentNote.uuid) {
+						if (data.data.note === currentNote.uuid && getCurrentParent(window.location.href) === data.data.note) {
 							const userId = await db.get("userId")
 							const privateKey = await db.get("privateKey")
 							const noteKey = await decryptNoteKeyParticipant(

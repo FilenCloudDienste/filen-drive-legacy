@@ -11,7 +11,6 @@ import { useLocation } from "react-router-dom"
 import { orderItemsByType, isBetween, getCurrentParent } from "../../lib/helpers"
 import { moveToParent } from "../../lib/services/move"
 import ListEmpty from "../ListEmpty"
-import { DEFAULT_PARENTS } from "../../lib/services/metadata"
 import memoryCache from "../../lib/memoryCache"
 
 const ListBody = memo(
@@ -249,10 +248,6 @@ const List = memo(
 		const handleContextMenu = useCallback(
 			(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 				if (getCurrentParent().length < 32) {
-					return
-				}
-
-				if (DEFAULT_PARENTS.map(parent => (location.pathname.indexOf(parent) !== -1 ? 1 : 0)).filter(res => res == 1).length > 0) {
 					return
 				}
 

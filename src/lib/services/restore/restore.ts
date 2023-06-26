@@ -5,7 +5,6 @@ import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { i18n } from "../../../i18n"
 import { getLang } from "../../helpers"
-import { addItemsToStore, removeItemsFromStore } from "../metadata"
 
 export const restoreFromTrash = async (items: ItemProps[]): Promise<void> => {
 	const lang: string = getLang()
@@ -64,11 +63,6 @@ export const restoreFromTrash = async (items: ItemProps[]): Promise<void> => {
 			eventListener.emit("itemRestored", {
 				item: restored[i]
 			})
-		}
-
-		for (let i = 0; i < restored.length; i++) {
-			removeItemsFromStore([restored[i]], "trash").catch(console.error)
-			addItemsToStore([restored[i]], restored[i].parent).catch(console.error)
 		}
 	}
 

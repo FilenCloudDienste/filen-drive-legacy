@@ -11,7 +11,6 @@ import { orderItemsByType, getFileExt, fileAndFolderNameValidation } from "../..
 import { show as showToast } from "../Toast/Toast"
 import { addFolderNameToDb } from "../../lib/services/items"
 import { i18n } from "../../i18n"
-import { changeItemsInStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameModalProps) => {
@@ -84,17 +83,6 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 					window.location.href
 				)
 			)
-
-			changeItemsInStore(
-				[
-					{
-						...currentItem,
-						name: value,
-						selected: false
-					}
-				],
-				currentItem.parent
-			).catch(console.error)
 
 			showToast("success", i18n(lang, "itemRenamed"))
 

@@ -6,7 +6,6 @@ import db from "../../db"
 import eventListener from "../../eventListener"
 import { MAX_CONCURRENT_UPLOADS, MAX_UPLOAD_THREADS, UPLOAD_VERSION } from "../../constants"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
-import { addItemsToStore } from "../metadata"
 import { fetchUserInfoCached } from "../user"
 import { generateThumbnailAfterUpload } from "../thumbnails"
 import { show as showToast } from "../../../components/Toast/Toast"
@@ -330,19 +329,14 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			region
 		}
 
-		// For some reason we need to add a timeout here for the events to fire because sometimes the useTransfers() hook does not work (maybe due to a race condition?)
-		setTimeout(() => {
-			eventListener.emit("fileUploaded", {
-				item: newItem
-			})
+		eventListener.emit("fileUploaded", {
+			item: newItem
+		})
 
-			eventListener.emit("upload", {
-				type: "done",
-				data: item
-			})
-
-			addItemsToStore([newItem], newItem.parent).catch(console.error)
-		}, 250)
+		eventListener.emit("upload", {
+			type: "done",
+			data: item
+		})
 
 		resolve(newItem)
 	})
