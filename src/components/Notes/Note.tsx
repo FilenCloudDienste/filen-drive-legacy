@@ -11,8 +11,6 @@ import { BsTextLeft, BsPin, BsFileRichtext, BsCodeSlash, BsMarkdown } from "reac
 import eventListener from "../../lib/eventListener"
 import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
-import useDb from "../../lib/hooks/useDb"
-import { FiUsers } from "react-icons/fi"
 
 export const Note = memo(({ note }: { note: INote }) => {
 	const isMobile = useIsMobile()
@@ -21,7 +19,6 @@ export const Note = memo(({ note }: { note: INote }) => {
 	const navigate = useNavigate()
 	const [hovering, setHovering] = useState<boolean>(false)
 	const [preview, setPreview] = useState<string>(note.preview)
-	const [userId] = useDb("userId", 0)
 
 	const active = useMemo(() => {
 		return getCurrentParent(location.hash) === note.uuid
@@ -136,18 +133,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 					{note.pinned && (
 						<Flex>
 							<BsPin
-								size={20}
-								color={getColor(darkMode, "textSecondary")}
-								style={{
-									flexShrink: 0
-								}}
-							/>
-						</Flex>
-					)}
-					{note.ownerId !== userId && userId !== 0 && (
-						<Flex>
-							<FiUsers
-								size={20}
+								size={18}
 								color={getColor(darkMode, "textSecondary")}
 								style={{
 									flexShrink: 0
@@ -162,7 +148,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 				>
 					<Flex
 						flexDirection="row"
-						gap="10px"
+						gap="5px"
 						alignItems="center"
 					>
 						{note.favorite && (

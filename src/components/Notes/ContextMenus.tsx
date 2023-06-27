@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useRef } from "react"
+import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react"
 import "react-contexify/dist/ReactContexify.css"
 import {
 	Menu as ContextMenu,
@@ -31,6 +31,7 @@ import db from "../../lib/db"
 import { createNotePreviewFromContentText } from "./utils"
 import { Flex } from "@chakra-ui/react"
 import { useNavigate } from "react-router-dom"
+import useDb from "../../lib/hooks/useDb"
 
 const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
 	const darkMode = useDarkMode()
@@ -40,6 +41,15 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 	const [content, setContent] = useState<string>("")
 	const contentRef = useRef<string>("")
 	const navigate = useNavigate()
+	const [userId] = useDb("userId", 0)
+
+	const userHasWritePermissions = useMemo(() => {
+		if (!selectedNote) {
+			return false
+		}
+
+		return selectedNote.participants.filter(participant => participant.userId === userId && participant.permissionsWrite).length > 0
+	}, [selectedNote, userId])
 
 	const trash = useCallback(async () => {
 		if (!selectedNote) {
@@ -181,7 +191,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 				selectedNote.participants.filter(participant => participant.userId === userId)[0].metadata,
 				privateKey
 			)
-			const preview = createNotePreviewFromContentText(contentRef.current)
+			const preview = createNotePreviewFromContentText(contentRef.current, selectedNote.type)
 			const contentEncrypted = await encryptNoteContent(contentRef.current, noteKey)
 			const previewEncrypted = await encryptNotePreview(preview, noteKey)
 
@@ -273,32 +283,36 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 			>
 				{selectedNote && (
 					<>
-						<ContextMenuItem onClick={() => eventListener.emit("openNoteHistoryModal", selectedNote)}>History</ContextMenuItem>
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => eventListener.emit("openNoteAddParticipantModal", selectedNote)}>
-							<Flex
-								flexDirection="row"
-								justifyContent="space-between"
-								alignItems="center"
-								width="100%"
-								height="100%"
-								gap="25px"
-							>
-								<Flex>Add participant</Flex>
-								<Flex>Add</Flex>
-							</Flex>
-						</ContextMenuItem>
-						<ContextMenuSeparator />
-						<ContextMenuSubmenu
-							label="Type"
-							arrow={<IoChevronForward fontSize={16} />}
-						>
-							<ContextMenuItem onClick={() => changeType("text")}>Text</ContextMenuItem>
-							<ContextMenuItem onClick={() => changeType("rich")}>Rich text</ContextMenuItem>
-							<ContextMenuItem onClick={() => changeType("md")}>Markdown</ContextMenuItem>
-							<ContextMenuItem onClick={() => changeType("code")}>Code</ContextMenuItem>
-						</ContextMenuSubmenu>
-						<ContextMenuSeparator />
+						{userHasWritePermissions && (
+							<>
+								<ContextMenuItem onClick={() => eventListener.emit("openNoteHistoryModal", selectedNote)}>
+									History
+								</ContextMenuItem>
+								<ContextMenuSeparator />
+							</>
+						)}
+						{userId === selectedNote.ownerId && (
+							<>
+								<ContextMenuItem onClick={() => eventListener.emit("openNoteAddParticipantModal", selectedNote)}>
+									Participants
+								</ContextMenuItem>
+								<ContextMenuSeparator />
+							</>
+						)}
+						{userHasWritePermissions && (
+							<>
+								<ContextMenuSubmenu
+									label="Type"
+									arrow={<IoChevronForward fontSize={16} />}
+								>
+									<ContextMenuItem onClick={() => changeType("text")}>Text</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("rich")}>Rich text</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("md")}>Markdown</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("code")}>Code</ContextMenuItem>
+								</ContextMenuSubmenu>
+								<ContextMenuSeparator />
+							</>
+						)}
 						{selectedNote.pinned ? (
 							<ContextMenuItem onClick={() => pinned(false)}>Unpin</ContextMenuItem>
 						) : (
@@ -309,15 +323,17 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						) : (
 							<ContextMenuItem onClick={() => favorite(true)}>Favorite</ContextMenuItem>
 						)}
-						<ContextMenuSeparator />
-						{!selectedNote.trash && <ContextMenuItem onClick={() => trash()}>Trash</ContextMenuItem>}
-						{!selectedNote.archive && !selectedNote.trash && (
+						{userId === selectedNote.ownerId && <ContextMenuSeparator />}
+						{!selectedNote.trash && userId === selectedNote.ownerId && (
+							<ContextMenuItem onClick={() => trash()}>Trash</ContextMenuItem>
+						)}
+						{!selectedNote.archive && !selectedNote.trash && userId === selectedNote.ownerId && (
 							<ContextMenuItem onClick={() => archive()}>Archive</ContextMenuItem>
 						)}
-						{(selectedNote.trash || selectedNote.archive) && (
+						{(selectedNote.trash || selectedNote.archive) && userId === selectedNote.ownerId && (
 							<ContextMenuItem onClick={() => restore()}>Restore</ContextMenuItem>
 						)}
-						{selectedNote.trash && (
+						{selectedNote.trash && userId === selectedNote.ownerId && (
 							<>
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => del()}>Delete</ContextMenuItem>

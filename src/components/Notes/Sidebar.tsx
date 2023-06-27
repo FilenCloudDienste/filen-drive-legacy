@@ -50,27 +50,25 @@ export const Sidebar = memo(
 		const [userId] = useDb("userId", 0)
 
 		const notesSorted = useMemo(() => {
-			return notes
-				.map(note => (note.ownerId !== userId && userId !== 0 ? { ...note, pinned: false, favorite: false } : note))
-				.sort((a, b) => {
-					if (a.pinned !== b.pinned) {
-						return b.pinned ? 1 : -1
-					}
+			return notes.sort((a, b) => {
+				if (a.pinned !== b.pinned) {
+					return b.pinned ? 1 : -1
+				}
 
-					if (a.trash !== b.trash && a.archive === false) {
-						return a.trash ? 1 : -1
-					}
+				if (a.trash !== b.trash && a.archive === false) {
+					return a.trash ? 1 : -1
+				}
 
-					if (a.archive !== b.archive) {
-						return a.archive ? 1 : -1
-					}
+				if (a.archive !== b.archive) {
+					return a.archive ? 1 : -1
+				}
 
-					if (a.trash !== b.trash) {
-						return a.trash ? 1 : -1
-					}
+				if (a.trash !== b.trash) {
+					return a.trash ? 1 : -1
+				}
 
-					return b.editedTimestamp - a.editedTimestamp
-				})
+				return b.editedTimestamp - a.editedTimestamp
+			})
 		}, [notes, userId])
 
 		const fetchNotes = useCallback(async () => {

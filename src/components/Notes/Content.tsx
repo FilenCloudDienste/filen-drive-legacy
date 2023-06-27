@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useRef } from "react"
+import { memo, useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Flex, Skeleton } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
@@ -65,11 +65,20 @@ export const Content = memo(
 		const [contentType, setContentType] = useState<NoteType | undefined>(undefined)
 		const [loading, setLoading] = useState<boolean>(true)
 		const prevContent = useRef<string>("")
+		const prevContentLength = useRef<number>(0)
 		const [synced, setSynced] = useState<{ title: boolean; content: boolean }>({ title: true, content: true })
 		const lastContentFetchUUID = useRef<string>("")
 		const saveMutex = useRef<SemaphoreProps>(new Semaphore(1)).current
 		const contentRef = useRef<string>("")
 		const [userId] = useDb("userId", 0)
+
+		const userHasWritePermissions = useMemo(() => {
+			if (!currentNote) {
+				return false
+			}
+
+			return currentNote.participants.filter(participant => participant.userId === userId && participant.permissionsWrite).length > 0
+		}, [currentNote, userId])
 
 		const loadContent = useCallback(
 			async (showLoader: boolean = true) => {
@@ -95,6 +104,7 @@ export const Content = memo(
 				if (contentRes.content.length === 0) {
 					prevContent.current = ""
 					contentRef.current = ""
+					prevContentLength.current = 0
 
 					setContent("")
 					setLoading(false)
@@ -114,6 +124,7 @@ export const Content = memo(
 
 				prevContent.current = contentDecrypted
 				contentRef.current = contentDecrypted
+				prevContentLength.current = contentDecrypted.length
 
 				setContent(contentDecrypted)
 				setLoading(false)
@@ -126,9 +137,11 @@ export const Content = memo(
 		const save = useCallback(async () => {
 			await saveMutex.acquire()
 
+			const newContent = contentRef.current
+
 			if (
 				!currentNote ||
-				JSON.stringify(contentRef.current) === JSON.stringify(prevContent.current) ||
+				(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContentLength.current) ||
 				getCurrentParent(window.location.href) !== currentNote.uuid
 			) {
 				saveMutex.release()
@@ -146,8 +159,8 @@ export const Content = memo(
 				currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
 				privateKey
 			)
-			const preview = createNotePreviewFromContentText(contentRef.current)
-			const contentEncrypted = await encryptNoteContent(contentRef.current, noteKey)
+			const preview = createNotePreviewFromContentText(newContent, currentNote.type)
+			const contentEncrypted = await encryptNoteContent(newContent, noteKey)
 			const previewEncrypted = await encryptNotePreview(preview, noteKey)
 
 			await editNoteContent({
@@ -157,7 +170,8 @@ export const Content = memo(
 				type: currentNote.type
 			})
 
-			prevContent.current = contentRef.current
+			prevContent.current = newContent
+			prevContentLength.current = newContent.length
 
 			setSynced(prev => ({ ...prev, content: true }))
 			setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, editedTimestamp: Date.now(), preview } : note)))
@@ -191,15 +205,20 @@ export const Content = memo(
 			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
 				try {
 					if (data.type === "noteContentEdited" && currentNote) {
-						if (data.data.note === currentNote.uuid && getCurrentParent(window.location.href) === data.data.note) {
-							const userId = await db.get("userId")
+						const userId = await db.get("userId")
+
+						if (
+							data.data.note === currentNote.uuid &&
+							getCurrentParent(window.location.href) === data.data.note &&
+							userId !== data.data.editorId
+						) {
 							const privateKey = await db.get("privateKey")
 							const noteKey = await decryptNoteKeyParticipant(
 								currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
 								privateKey
 							)
 							const contentDecrypted = await decryptNoteContent(data.data.content, noteKey)
-							const preview = createNotePreviewFromContentText(contentDecrypted)
+							const preview = createNotePreviewFromContentText(contentDecrypted, currentNote.type)
 
 							prevContent.current = contentDecrypted
 
@@ -271,7 +290,7 @@ export const Content = memo(
 							{currentNote && contentType && (
 								<Editor
 									width={sizes.note}
-									height={windowHeight - 50}
+									height={windowHeight - 60}
 									content={content}
 									setContent={setContent}
 									currentNote={currentNote}
@@ -281,11 +300,7 @@ export const Content = memo(
 									onContentChange={() => {
 										setSynced(prev => ({ ...prev, content: false }))
 									}}
-									canEdit={
-										currentNote.participants.filter(
-											participant => participant.userId === userId && participant.permissionsWrite
-										).length > 0
-									}
+									canEdit={userHasWritePermissions}
 								/>
 							)}
 						</>

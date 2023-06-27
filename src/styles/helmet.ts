@@ -177,12 +177,20 @@ export const quillStyle = (darkMode: boolean) => {
 	return `
         .ql-container {
             font-size: 16px;
+            font-family: "Inconsolata";
+            font-weight: 400;
+        }
+
+        .ql-editor {
+            user-select: text;
         }
 
         .ql-toolbar.ql-snow {
             border: none;
             border-bottom: 1px solid ${getColor(darkMode, "borderPrimary")};
             font-size: 16px;
+            font-family: "Inter", sans-serif;
+            font-weight: 400;
         }
 
         .ql-snow .ql-picker {
@@ -191,7 +199,14 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-snow .ql-picker-options {
             background-color: ${getColor(darkMode, "backgroundSecondary")};
-            border-radius: 10px;
+            border-radius: 5px;
+            padding: 10px;
+            padding-top: 0px;
+            padding-bottom: 5px;
+        }
+
+        .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+            margin-top: 5px;
         }
 
         .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
@@ -208,13 +223,18 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-snow .ql-tooltip {
             background-color: ${getColor(darkMode, "backgroundSecondary")};
-            border-radius: 10px;
+            border-radius: 5px;
             border: 1px solid ${getColor(darkMode, "borderPrimary")};
             color: ${getColor(darkMode, "textSecondary")};
             box-shadow: none;
             padding: 5px 12px;
             white-space: nowrap;
             font-size: 16px;
+            font-family: "Inter", sans-serif;
+        }
+
+        .ql-snow .ql-editor blockquote {
+            border-left: 4px solid ${getColor(darkMode, "backgroundTertiary")};
         }
 
         .ql-snow .ql-tooltip input[type=text] {
@@ -313,9 +333,15 @@ export const quillStyle = (darkMode: boolean) => {
             stroke: ${getColor(darkMode, "purple")};
         }
 
+        .ql-toolbar.ql-snow .ql-picker-label {
+            border-color: ${getColor(darkMode, "borderPrimary")};
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
         .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
             border-color: ${getColor(darkMode, "borderPrimary")};
-            borde-radius: 5px;
+            border-radius: 5px;
         }
 
         .ql-snow .ql-tooltip[data-mode=link]::before {
@@ -338,8 +364,8 @@ export const quillStyle = (darkMode: boolean) => {
             content: '\\2713';
             color: transparent;
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border: 1px solid ${getColor(darkMode, "textPrimary")};
             border-radius: 50%;
             margin-right: 0.5em;
@@ -350,16 +376,36 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-editor ul[data-checked=true] > li::before {
             content: '\\2714';
-            color: ${getColor(darkMode, "green")};
+            color: white;
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 1px solid ${getColor(darkMode, "green")};
+            width: 18px;
+            height: 18px;
+            border: 1px solid ${getColor(darkMode, "purple")};
             border-radius: 50%;
             margin-right: 0.5em;
             text-align: center;
             line-height: 16px;
-            background-color: transparent;
+            background-color: ${getColor(darkMode, "purple")};
+        }
+
+        .ql-editor ul[data-checked=false] > li {
+            margin-top: 8px;
+        }
+
+        .ql-editor ul[data-checked=true] > li {
+            margin-top: 8px;
+        }
+
+        .ql-snow .ql-editor pre.ql-syntax {
+            background-color: ${getColor(darkMode, "backgroundSecondary")};
+            color: ${getColor(darkMode, "textPrimary")};
+            overflow: visible;
+            border-radius: 5px;
+        }
+
+        .ql-snow.ql-toolbar button, .ql-snow .ql-toolbar button {
+            height: 28px;
+            width: 28px;
         }
     `
 }

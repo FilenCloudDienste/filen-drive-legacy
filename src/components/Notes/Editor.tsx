@@ -1,4 +1,4 @@
-import { memo, useRef, useMemo } from "react"
+import { memo, useRef, useMemo, useEffect, useState } from "react"
 import { Flex } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
@@ -41,6 +41,7 @@ export const Editor = memo(
 		const lang = useLang()
 		const isMobile = useIsMobile()
 		const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
+		const quillRef = useRef<ReactQuill>(null)
 
 		const codeExt = useMemo(() => {
 			if (!currentNote) {
@@ -49,6 +50,10 @@ export const Editor = memo(
 
 			return currentNote.title
 		}, [currentNote])
+
+		useEffect(() => {
+			quillRef.current?.editor?.root.setAttribute("spellcheck", "false")
+		}, [type])
 
 		return (
 			<Flex
@@ -93,10 +98,12 @@ export const Editor = memo(
 							padding: "0px",
 							paddingTop: "5px",
 							paddingRight: "20px",
-							maxWidth: width + "px",
-							maxHeight: height + "px",
 							width: width + "px",
 							height: height + "px",
+							minWidth: width + "px",
+							minHeight: height + "px",
+							maxWidth: width + "px",
+							maxHeight: height + "px",
 							fontSize: 16
 						}}
 						extensions={[EditorView.lineWrapping]}
@@ -138,10 +145,12 @@ export const Editor = memo(
 						style={{
 							padding: "0px",
 							paddingRight: "20px",
-							maxWidth: width + "px",
-							maxHeight: height + 10 + "px",
 							width: width + "px",
-							height: height + 10 + "px",
+							height: height + "px",
+							minWidth: width + "px",
+							minHeight: height + "px",
+							maxWidth: width + "px",
+							maxHeight: height + "px",
 							fontSize: 16
 						}}
 						extensions={[getCodeMirrorLanguageExtensionForFile(codeExt), EditorView.lineWrapping]}
@@ -189,9 +198,11 @@ export const Editor = memo(
 										paddingTop: "5px",
 										paddingRight: "20px",
 										maxWidth: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
-										maxHeight: height + 10 + "px",
+										maxHeight: height + "px",
 										width: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
-										height: height + 10 + "px",
+										height: height + "px",
+										minWidth: (showMarkdownPreview ? Math.floor(width / 2) : width) + "px",
+										minHeight: height + "px",
 										fontSize: 16
 									}}
 									extensions={[getCodeMirrorLanguageExtensionForFile(".md"), EditorView.lineWrapping]}
@@ -201,10 +212,11 @@ export const Editor = memo(
 						{showMarkdownPreview && (
 							<Flex>
 								<MarkdownPreview
+									key={"md-preview-" + currentNote?.uuid}
 									source={content}
 									style={{
 										width: !canEdit ? width : Math.floor(width / 2) + "px",
-										height: height + 10 + "px",
+										height: height + "px",
 										paddingLeft: "15px",
 										paddingRight: "15px",
 										paddingTop: "10px",
@@ -257,25 +269,50 @@ export const Editor = memo(
 				)}
 				{type === "rich" && (
 					<ReactQuill
+						key={"rich-editor-" + currentNote?.uuid}
 						theme="snow"
 						value={content}
 						placeholder={canEdit ? "Note content..." : undefined}
+						ref={quillRef}
 						onBlur={() => {
 							if (typeof onBlur === "function") {
 								onBlur(undefined as any)
 							}
 						}}
+						readOnly={!canEdit}
+						preserveWhitespace={true}
 						modules={{
 							toolbar: [
-								[{ header: [1, 2, 3, false] }],
+								[{ header: [1, 2, 3, 4, 5, 6, false] }],
 								["bold", "italic", "underline"],
-								["code-block"],
-								[{ list: "ordered" }, { list: "bullet" }, { list: "check" }]
+								["code-block", "link", "blockquote"],
+								[{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+								[{ indent: "-1" }, { indent: "+1" }],
+								[{ script: "sub" }, { script: "super" }],
+								[{ direction: "rtl" }],
+								["clean"]
 							]
 						}}
+						formats={[
+							"bold",
+							"code",
+							"italic",
+							"link",
+							"size",
+							"strike",
+							"script",
+							"underline",
+							"blockquote",
+							"header",
+							"indent",
+							"list",
+							"align",
+							"direction",
+							"code-block"
+						]}
 						style={{
 							width: width + "px",
-							height: height - 44 + "px",
+							height: height - 35 + "px",
 							border: "none",
 							color: getColor(darkMode, "textPrimary")
 						}}
