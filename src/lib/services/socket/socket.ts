@@ -5,7 +5,7 @@ import eventListener from "../../eventListener"
 import db from "../../db"
 import cookies from "../../cookies"
 import { FolderColors } from "../../../types"
-import { ChatMessage, TypingType, NoteType } from "../../api"
+import { ChatMessage, TypingType, NoteType, NoteParticipant } from "../../api"
 import memoryCache from "../../memoryCache"
 
 export interface SocketNewEvent {
@@ -180,6 +180,19 @@ export interface SocketNoteRestored {
 	note: string
 }
 
+export interface SocketNoteParticipantRemoved {
+	note: string
+	userId: number
+}
+
+export interface SocketNoteParticipantNew extends NoteParticipant {
+	note: string
+}
+
+export interface SocketNoteNew {
+	note: string
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -279,6 +292,18 @@ export type SocketEvent =
 	| {
 			type: "noteRestored"
 			data: SocketNoteRestored
+	  }
+	| {
+			type: "noteParticipantRemoved"
+			data: SocketNoteParticipantRemoved
+	  }
+	| {
+			type: "noteParticipantNew"
+			data: SocketNoteParticipantNew
+	  }
+	| {
+			type: "noteNew"
+			data: SocketNoteNew
 	  }
 
 const waitForLogin = () => {
@@ -513,6 +538,27 @@ export const connect = () => {
 	SOCKET_HANDLE.on("noteRestored", (data: SocketNoteRestored) => {
 		eventListener.emit("socketEvent", {
 			type: "noteRestored",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantRemoved", (data: SocketNoteParticipantRemoved) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantRemoved",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantNew", (data: SocketNoteParticipantNew) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantNew",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteNew", (data: SocketNoteNew) => {
+		eventListener.emit("socketEvent", {
+			type: "noteNew",
 			data
 		} as SocketEvent)
 	})

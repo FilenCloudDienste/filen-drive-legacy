@@ -24,14 +24,14 @@ import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import eventListener from "../../lib/eventListener"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
-import { safeAwait } from "../../lib/helpers"
+import { safeAwait, downloadObjectAsTextWithExt, downloadObjectAsTextWithoutExt, getFileExt } from "../../lib/helpers"
 import { IoChevronForward } from "react-icons/io5"
 import { decryptNoteKeyParticipant, encryptNotePreview, encryptNoteContent } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
 import { createNotePreviewFromContentText } from "./utils"
-import { Flex } from "@chakra-ui/react"
 import { useNavigate } from "react-router-dom"
 import useDb from "../../lib/hooks/useDb"
+import striptags from "striptags"
 
 const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
 	const darkMode = useDarkMode()
@@ -243,6 +243,57 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		navigate("#/notes")
 	}, [selectedNote])
 
+	const exportText = useCallback(() => {
+		if (!selectedNote || contentRef.current.length === 0) {
+			return
+		}
+
+		let exportString = `${contentRef.current}`
+		const ext = getFileExt(selectedNote.title)
+
+		try {
+			if (selectedNote.type === "rich") {
+				exportString = striptags(exportString.split("<p><br></p>").join("\n"))
+			}
+
+			if (selectedNote.type === "checklist") {
+				let list: string[] = []
+				const ex = exportString
+					.split('<ul data-checked="false">')
+					.join("")
+					.split('<ul data-checked="true">')
+					.join("")
+					.split("\n")
+					.join("")
+					.split("<li>")
+
+				for (const listPoint of ex) {
+					const listPointEx = listPoint.split("</li>")
+
+					if (listPointEx[0].trim().length > 0) {
+						list.push(listPointEx[0].trim())
+					}
+				}
+
+				exportString = list.join("\n")
+			}
+
+			if (ext.length === 0) {
+				downloadObjectAsTextWithExt(exportString, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
+			} else {
+				downloadObjectAsTextWithoutExt(exportString, selectedNote.title.slice(0, 64))
+			}
+		} catch (e) {
+			console.error(e)
+
+			if (ext.length === 0) {
+				downloadObjectAsTextWithExt(contentRef.current, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
+			} else {
+				downloadObjectAsTextWithoutExt(contentRef.current, selectedNote.title.slice(0, 64))
+			}
+		}
+	}, [selectedNote])
+
 	useEffect(() => {
 		contentRef.current = content
 	}, [content])
@@ -307,6 +358,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 								>
 									<ContextMenuItem onClick={() => changeType("text")}>Text</ContextMenuItem>
 									<ContextMenuItem onClick={() => changeType("rich")}>Rich text</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("checklist")}>Checklist</ContextMenuItem>
 									<ContextMenuItem onClick={() => changeType("md")}>Markdown</ContextMenuItem>
 									<ContextMenuItem onClick={() => changeType("code")}>Code</ContextMenuItem>
 								</ContextMenuSubmenu>
@@ -323,6 +375,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						) : (
 							<ContextMenuItem onClick={() => favorite(true)}>Favorite</ContextMenuItem>
 						)}
+						<ContextMenuItem onClick={() => exportText()}>Export</ContextMenuItem>
 						{userId === selectedNote.ownerId && <ContextMenuSeparator />}
 						{!selectedNote.trash && userId === selectedNote.ownerId && (
 							<ContextMenuItem onClick={() => trash()}>Trash</ContextMenuItem>

@@ -26,6 +26,8 @@ import { NotesSizes } from "./Notes"
 import Note from "./Note"
 import { show as showToast } from "../Toast/Toast"
 import useDb from "../../lib/hooks/useDb"
+import eventListener from "../../lib/eventListener"
+import { SocketEvent } from "../../lib/services/socket"
 
 export const Sidebar = memo(
 	({
@@ -178,6 +180,18 @@ export const Sidebar = memo(
 
 		useEffect(() => {
 			loadNotes()
+		}, [])
+
+		useEffect(() => {
+			const socketEventListener = eventListener.on("socketEvent", (data: SocketEvent) => {
+				if (data.type === "noteNew") {
+					loadNotes(false)
+				}
+			})
+
+			return () => {
+				socketEventListener.remove()
+			}
 		}, [])
 
 		useEffect(() => {

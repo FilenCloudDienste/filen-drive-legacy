@@ -11,6 +11,7 @@ import { BsTextLeft, BsPin, BsFileRichtext, BsCodeSlash, BsMarkdown } from "reac
 import eventListener from "../../lib/eventListener"
 import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
+import { MdChecklist } from "react-icons/md"
 
 export const Note = memo(({ note }: { note: INote }) => {
 	const isMobile = useIsMobile()
@@ -122,6 +123,15 @@ export const Note = memo(({ note }: { note: INote }) => {
 									<BsMarkdown
 										size={20}
 										color={getColor(darkMode, "indigo")}
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								)}
+								{note.type === "checklist" && (
+									<MdChecklist
+										size={20}
+										color={getColor(darkMode, "purple")}
 										style={{
 											flexShrink: 0
 										}}

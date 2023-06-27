@@ -2773,7 +2773,7 @@ export const chatDelete = async (uuid: string): Promise<void> => {
 	}
 }
 
-export type NoteType = "text" | "md" | "code" | "rich"
+export type NoteType = "text" | "md" | "code" | "rich" | "checklist"
 
 export interface NoteParticipant {
 	userId: number
@@ -3077,6 +3077,21 @@ export const noteParticipantsAdd = async ({
 			contactUUID,
 			metadata,
 			permissionsWrite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteParticipantsRemove = async ({ uuid, userId }: { uuid: string; userId: number }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participants/remove",
+		data: {
+			uuid,
+			userId
 		}
 	})
 

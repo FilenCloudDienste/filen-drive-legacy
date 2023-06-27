@@ -329,6 +329,55 @@ export const Editor = memo(
 						}}
 					/>
 				)}
+				{type === "checklist" && (
+					<Flex
+						flexDirection="column"
+						overflow="hidden"
+						width={width + "px"}
+						height={height + "px"}
+					>
+						<ReactQuill
+							key={"checklist-editor-" + currentNote?.uuid}
+							theme="snow"
+							value={content}
+							ref={quillRef}
+							onBlur={() => {
+								if (typeof onBlur === "function") {
+									onBlur(undefined as any)
+								}
+							}}
+							readOnly={!canEdit}
+							preserveWhitespace={true}
+							modules={{
+								toolbar: []
+							}}
+							formats={["list"]}
+							style={{
+								width: width + "px",
+								height: height + 10 + "px",
+								border: "none",
+								color: getColor(darkMode, "textPrimary"),
+								marginTop: "-47px",
+								marginLeft: "-21px"
+							}}
+							onChange={value => {
+								if (!canEdit) {
+									return
+								}
+
+								if (value === "" || value.indexOf("<ul data-checked") === -1 || value === "<p><br></p>") {
+									value = '<ul data-checked="false"><li><br></li></ul>'
+								}
+
+								if (typeof onContentChange === "function") {
+									onContentChange(value)
+								}
+
+								setContent(value)
+							}}
+						/>
+					</Flex>
+				)}
 			</Flex>
 		)
 	}

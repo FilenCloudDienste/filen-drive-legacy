@@ -65,12 +65,12 @@ export const Content = memo(
 		const [contentType, setContentType] = useState<NoteType | undefined>(undefined)
 		const [loading, setLoading] = useState<boolean>(true)
 		const prevContent = useRef<string>("")
-		const prevContentLength = useRef<number>(0)
 		const [synced, setSynced] = useState<{ title: boolean; content: boolean }>({ title: true, content: true })
 		const lastContentFetchUUID = useRef<string>("")
 		const saveMutex = useRef<SemaphoreProps>(new Semaphore(1)).current
 		const contentRef = useRef<string>("")
 		const [userId] = useDb("userId", 0)
+		const currentNoteRef = useRef<INote | undefined>(currentNote)
 
 		const userHasWritePermissions = useMemo(() => {
 			if (!currentNote) {
@@ -80,69 +80,83 @@ export const Content = memo(
 			return currentNote.participants.filter(participant => participant.userId === userId && participant.permissionsWrite).length > 0
 		}, [currentNote, userId])
 
-		const loadContent = useCallback(
-			async (showLoader: boolean = true) => {
-				if (!currentNote) {
-					return
-				}
+		const loadContent = useCallback(async (showLoader: boolean = true) => {
+			if (!currentNoteRef.current) {
+				return
+			}
 
-				setLoading(showLoader)
+			setLoading(showLoader)
 
-				const [contentErr, contentRes] = await safeAwait(noteContent(currentNote.uuid))
+			const [contentErr, contentRes] = await safeAwait(noteContent(currentNoteRef.current.uuid))
 
-				if (contentErr) {
-					console.error(contentErr)
+			if (contentErr) {
+				console.error(contentErr)
 
-					setLoading(false)
-
-					return
-				}
-
-				setContentType(contentRes.type)
-				setSynced({ content: true, title: true })
-
-				if (contentRes.content.length === 0) {
-					prevContent.current = ""
-					contentRef.current = ""
-					prevContentLength.current = 0
-
-					setContent("")
-					setLoading(false)
-
-					eventListener.emit("noteContentChanged", { note: currentNote, content: "" })
-
-					return
-				}
-
-				const userId = await db.get("userId")
-				const privateKey = await db.get("privateKey")
-				const noteKey = await decryptNoteKeyParticipant(
-					currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
-					privateKey
-				)
-				const contentDecrypted = await decryptNoteContent(contentRes.content, noteKey)
-
-				prevContent.current = contentDecrypted
-				contentRef.current = contentDecrypted
-				prevContentLength.current = contentDecrypted.length
-
-				setContent(contentDecrypted)
 				setLoading(false)
 
-				eventListener.emit("noteContentChanged", { note: currentNote, content: contentDecrypted })
-			},
-			[currentNote]
-		)
+				return
+			}
 
-		const save = useCallback(async () => {
-			await saveMutex.acquire()
+			setContentType(contentRes.type)
+			setSynced({ content: true, title: true })
 
-			const newContent = contentRef.current
+			if (contentRes.content.length === 0) {
+				if (currentNoteRef.current.type === "checklist") {
+					prevContent.current = '<ul data-checked="false"><li><br></li></ul>'
+					contentRef.current = '<ul data-checked="false"><li><br></li></ul>'
+
+					setContent('<ul data-checked="false"><li><br></li></ul>')
+				} else {
+					prevContent.current = ""
+					contentRef.current = ""
+
+					setContent("")
+				}
+
+				setLoading(false)
+
+				eventListener.emit("noteContentChanged", { note: currentNoteRef.current, content: "" })
+
+				return
+			}
+
+			const userId = await db.get("userId")
+			const privateKey = await db.get("privateKey")
+			const noteKey = await decryptNoteKeyParticipant(
+				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
+				privateKey
+			)
+			const contentDecrypted = await decryptNoteContent(contentRes.content, noteKey)
 
 			if (
-				!currentNote ||
-				(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContentLength.current) ||
-				getCurrentParent(window.location.href) !== currentNote.uuid
+				currentNoteRef.current.type === "checklist" &&
+				(contentDecrypted === "" || contentDecrypted.indexOf("<ul data-checked") === -1 || contentDecrypted === "<p><br></p>")
+			) {
+				prevContent.current = '<ul data-checked="false"><li><br></li></ul>'
+				contentRef.current = '<ul data-checked="false"><li><br></li></ul>'
+
+				setContent('<ul data-checked="false"><li><br></li></ul>')
+			} else {
+				prevContent.current = contentDecrypted
+				contentRef.current = contentDecrypted
+
+				setContent(contentDecrypted)
+			}
+
+			setLoading(false)
+
+			eventListener.emit("noteContentChanged", { note: currentNoteRef.current, content: contentDecrypted })
+		}, [])
+
+		const save = useCallback(async () => {
+			const newContent = `${contentRef.current}`
+
+			await saveMutex.acquire()
+
+			if (
+				!currentNoteRef.current ||
+				getCurrentParent(window.location.href) !== currentNoteRef.current.uuid ||
+				(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContent.current.length)
 			) {
 				saveMutex.release()
 
@@ -156,30 +170,39 @@ export const Content = memo(
 			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
 			const noteKey = await decryptNoteKeyParticipant(
-				currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
+				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
 				privateKey
 			)
-			const preview = createNotePreviewFromContentText(newContent, currentNote.type)
+			const preview = createNotePreviewFromContentText(newContent, currentNoteRef.current.type)
 			const contentEncrypted = await encryptNoteContent(newContent, noteKey)
 			const previewEncrypted = await encryptNotePreview(preview, noteKey)
 
 			await editNoteContent({
-				uuid: currentNote.uuid,
+				uuid: currentNoteRef.current.uuid,
 				preview: previewEncrypted,
 				content: contentEncrypted,
-				type: currentNote.type
+				type: currentNoteRef.current.type
 			})
 
 			prevContent.current = newContent
-			prevContentLength.current = newContent.length
 
 			setSynced(prev => ({ ...prev, content: true }))
-			setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, editedTimestamp: Date.now(), preview } : note)))
+			setNotes(prev =>
+				prev.map(note =>
+					currentNoteRef.current && note.uuid === currentNoteRef.current.uuid
+						? { ...note, editedTimestamp: Date.now(), preview }
+						: note
+				)
+			)
 
 			saveMutex.release()
-		}, [currentNote])
+		}, [])
 
 		const debouncedSave = useCallback(debounce(save, 3000), [])
+
+		useEffect(() => {
+			currentNoteRef.current = currentNote
+		}, [currentNote])
 
 		useEffect(() => {
 			contentRef.current = content

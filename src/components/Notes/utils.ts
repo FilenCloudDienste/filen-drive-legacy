@@ -14,5 +14,26 @@ export const createNotePreviewFromContentText = (content: string, type: NoteType
 		return striptags(content.split("<p><br></p>")[0]).slice(0, 128)
 	}
 
+	if (type === "checklist") {
+		const ex = content
+			.split('<ul data-checked="false">')
+			.join("")
+			.split('<ul data-checked="true">')
+			.join("")
+			.split("\n")
+			.join("")
+			.split("<li>")
+
+		for (const listPoint of ex) {
+			const listPointEx = listPoint.split("</li>")
+
+			if (listPointEx[0].trim().length > 0) {
+				return striptags(listPointEx[0].trim())
+			}
+		}
+
+		return ""
+	}
+
 	return striptags(content.split("\n")[0]).slice(0, 128)
 }

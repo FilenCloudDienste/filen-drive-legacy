@@ -14,6 +14,8 @@ import HistoryModal from "./HistoryModal"
 import { AddParticipantModal, AddContactModal } from "./AddParticipantModal"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
+import db from "../../lib/db"
+import { useNavigate } from "react-router-dom"
 
 export interface NotesSizes {
 	notes: number
@@ -31,6 +33,7 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 	const [currentNoteUUID, setCurrentNoteUUID] = useState<string>("")
 	const [notes, setNotes] = useState<INote[]>([])
 	const location = useLocation()
+	const navigate = useNavigate()
 
 	const currentNote = useMemo(() => {
 		const note = notes.filter(note => note.uuid === currentNoteUUID)
@@ -134,31 +137,87 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 		)
 
 		const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
-			if (data.type === "noteParticipantPermissions") {
-				setNotes(prev =>
-					prev.map(n =>
-						n.uuid === data.data.note
-							? {
-									...n,
-									participants: n.participants.map(p =>
-										p.userId === data.data.userId ? { ...p, permissionsWrite: data.data.permissionsWrite } : p
-									)
-							  }
-							: n
+			try {
+				if (data.type === "noteParticipantPermissions") {
+					setNotes(prev =>
+						prev.map(n =>
+							n.uuid === data.data.note
+								? {
+										...n,
+										participants: n.participants.map(p =>
+											p.userId === data.data.userId ? { ...p, permissionsWrite: data.data.permissionsWrite } : p
+										)
+								  }
+								: n
+						)
 					)
-				)
-			} else if (data.type === "noteRestored") {
-				setNotes(prev =>
-					prev.map(n =>
-						n.uuid === data.data.note
-							? {
-									...n,
-									trash: false,
-									archive: false
-							  }
-							: n
+				} else if (data.type === "noteRestored") {
+					setNotes(prev =>
+						prev.map(n =>
+							n.uuid === data.data.note
+								? {
+										...n,
+										trash: false,
+										archive: false
+								  }
+								: n
+						)
 					)
-				)
+				} else if (data.type === "noteParticipantRemoved") {
+					const userId = await db.get("userId")
+
+					if (userId === data.data.userId) {
+						setNotes(prev => prev.filter(n => n.uuid !== data.data.note))
+
+						if (getCurrentParent(window.location.href) === data.data.note) {
+							navigate("/#/notes")
+						}
+					} else {
+						setNotes(prev =>
+							prev.map(n =>
+								n.uuid === data.data.note
+									? {
+											...n,
+											participants: n.participants.filter(p => p.userId !== data.data.userId)
+									  }
+									: n
+							)
+						)
+					}
+				} else if (data.type === "noteParticipantNew") {
+					setNotes(prev =>
+						prev.map(n =>
+							n.uuid === data.data.note
+								? {
+										...n,
+										participants: [
+											...n.participants.filter(p => p.userId !== data.data.userId),
+											...[
+												{
+													userId: data.data.userId,
+													isOwner: data.data.isOwner,
+													email: data.data.email,
+													avatar: data.data.avatar,
+													nickName: data.data.nickName,
+													metadata: data.data.metadata,
+													permissionsWrite: data.data.permissionsWrite,
+													addedTimestamp: data.data.addedTimestamp
+												}
+											]
+										]
+								  }
+								: n
+						)
+					)
+				} else if (data.type === "noteDeleted") {
+					setNotes(prev => prev.filter(n => n.uuid !== data.data.note))
+
+					if (getCurrentParent(window.location.href) === data.data.note) {
+						navigate("/#/notes")
+					}
+				}
+			} catch (e) {
+				console.error(e)
 			}
 		})
 

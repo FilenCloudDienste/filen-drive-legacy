@@ -96,6 +96,8 @@ const App = memo(() => {
 				overflow="hidden"
 				justifyContent="center"
 				alignItems="center"
+				width={windowWidth + "px"}
+				height={windowHeight + "px"}
 			>
 				<Image
 					src={LogoAnimated}

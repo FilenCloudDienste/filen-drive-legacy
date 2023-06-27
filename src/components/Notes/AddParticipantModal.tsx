@@ -2,7 +2,6 @@ import { memo, useState, useEffect, useCallback, useMemo } from "react"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Flex, Avatar, Badge, Tooltip } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
-import { i18n } from "../../i18n"
 import ModalCloseButton from "../ModalCloseButton"
 import {
 	Note as INote,
@@ -11,7 +10,8 @@ import {
 	NoteParticipant,
 	noteParticipantsPermissions,
 	noteParticipantsAdd,
-	getPublicKeyFromEmail
+	getPublicKeyFromEmail,
+	noteParticipantsRemove
 } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
@@ -24,6 +24,8 @@ import striptags from "striptags"
 import { AiOutlineEdit, AiOutlineEye } from "react-icons/ai"
 import { decryptNoteKeyParticipant, encryptMetadataPublicKey } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
+import { IoPersonRemoveOutline } from "react-icons/io5"
+import useDb from "../../lib/hooks/useDb"
 
 export const Contact = memo(({ contact, note }: { contact: IContact; note: INote | undefined }) => {
 	const darkMode = useDarkMode()
@@ -271,8 +273,10 @@ export const AddContactModal = memo(() => {
 export const Participant = memo(({ participant, note }: { participant: NoteParticipant; note: INote | undefined }) => {
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
-	const [hoveringSettings, setHoveringSettings] = useState<boolean>(false)
+	const [hoveringPermissions, setHoveringPermissions] = useState<boolean>(false)
+	const [hoveringRemove, setHoveringRemove] = useState<boolean>(false)
 	const [permissions, setPermissions] = useState<{ write: boolean }>({ write: participant.permissionsWrite })
+	const [userId] = useDb("userId", 0)
 
 	const changePermissions = useCallback(
 		async (permissionsWrite: boolean) => {
@@ -312,6 +316,38 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 		},
 		[participant, note]
 	)
+
+	const remove = useCallback(async () => {
+		if (!note) {
+			return
+		}
+
+		const loadingToast = showToast("loading", "Removing participant", "bottom", 864000000)
+
+		const [err] = await safeAwait(
+			noteParticipantsRemove({
+				uuid: note.uuid,
+				userId: participant.userId
+			})
+		)
+
+		if (err) {
+			console.error(err)
+
+			dismissToast(loadingToast)
+
+			showToast("error", err.message, "bottom", 5000)
+
+			return
+		}
+
+		dismissToast(loadingToast)
+
+		eventListener.emit("noteParticipantRemoved", {
+			note,
+			userId: participant.userId
+		})
+	}, [participant, note])
 
 	return (
 		<Flex
@@ -372,79 +408,131 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 			<Flex
 				flexDirection="row"
 				alignItems="center"
+				gap="10px"
 			>
-				{permissions.write ? (
-					<Tooltip
-						label="User has write permissions, click to change"
-						placement="top"
-						borderRadius="5px"
-						backgroundColor={getColor(darkMode, "backgroundTertiary")}
-						boxShadow="md"
-						color={getColor(darkMode, "textSecondary")}
-						border={"1px solid " + getColor(darkMode, "borderPrimary")}
-						hasArrow={true}
-					>
-						<Flex
-							backgroundColor={
-								hoveringSettings ? getColor(darkMode, "backgroundSecondary") : getColor(darkMode, "backgroundTertiary")
-							}
-							width="30px"
-							height="30px"
-							padding="4px"
-							borderRadius="full"
-							justifyContent="center"
-							alignItems="center"
-							onMouseEnter={() => setHoveringSettings(true)}
-							onMouseLeave={() => setHoveringSettings(false)}
-							onClick={() => changePermissions(false)}
-							cursor="pointer"
-						>
-							<AiOutlineEdit
-								size={20}
-								color={hoveringSettings ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-								cursor="pointer"
-								style={{
-									flexShrink: 0
-								}}
-							/>
-						</Flex>
-					</Tooltip>
-				) : (
-					<Tooltip
-						label="User has read permissions, click to change"
-						placement="top"
-						borderRadius="5px"
-						backgroundColor={getColor(darkMode, "backgroundTertiary")}
-						boxShadow="md"
-						color={getColor(darkMode, "textSecondary")}
-						border={"1px solid " + getColor(darkMode, "borderPrimary")}
-						hasArrow={true}
-					>
-						<Flex
-							backgroundColor={
-								hoveringSettings ? getColor(darkMode, "backgroundSecondary") : getColor(darkMode, "backgroundTertiary")
-							}
-							width="30px"
-							height="30px"
-							padding="4px"
-							borderRadius="full"
-							justifyContent="center"
-							alignItems="center"
-							onMouseEnter={() => setHoveringSettings(true)}
-							onMouseLeave={() => setHoveringSettings(false)}
-							onClick={() => changePermissions(true)}
-							cursor="pointer"
-						>
-							<AiOutlineEye
-								size={20}
-								color={hoveringSettings ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-								cursor="pointer"
-								style={{
-									flexShrink: 0
-								}}
-							/>
-						</Flex>
-					</Tooltip>
+				{note && note.ownerId === userId && (
+					<>
+						{participant.userId !== userId && !participant.isOwner && (
+							<Tooltip
+								label="Remove user"
+								placement="top"
+								borderRadius="5px"
+								backgroundColor={getColor(darkMode, "backgroundTertiary")}
+								boxShadow="md"
+								color={getColor(darkMode, "textSecondary")}
+								border={"1px solid " + getColor(darkMode, "borderPrimary")}
+								hasArrow={true}
+							>
+								<Flex
+									backgroundColor={
+										hoveringRemove
+											? getColor(darkMode, "backgroundSecondary")
+											: getColor(darkMode, "backgroundTertiary")
+									}
+									width="30px"
+									height="30px"
+									padding="4px"
+									borderRadius="full"
+									justifyContent="center"
+									alignItems="center"
+									onMouseEnter={() => setHoveringRemove(true)}
+									onMouseLeave={() => setHoveringRemove(false)}
+									onClick={() => remove()}
+									cursor="pointer"
+								>
+									<IoPersonRemoveOutline
+										size={20}
+										color={hoveringRemove ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+										cursor="pointer"
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								</Flex>
+							</Tooltip>
+						)}
+						{permissions.write ? (
+							<Tooltip
+								label="User has write permissions, click to change"
+								placement="top"
+								borderRadius="5px"
+								backgroundColor={getColor(darkMode, "backgroundTertiary")}
+								boxShadow="md"
+								color={getColor(darkMode, "textSecondary")}
+								border={"1px solid " + getColor(darkMode, "borderPrimary")}
+								hasArrow={true}
+							>
+								<Flex
+									backgroundColor={
+										hoveringPermissions
+											? getColor(darkMode, "backgroundSecondary")
+											: getColor(darkMode, "backgroundTertiary")
+									}
+									width="30px"
+									height="30px"
+									padding="4px"
+									borderRadius="full"
+									justifyContent="center"
+									alignItems="center"
+									onMouseEnter={() => setHoveringPermissions(true)}
+									onMouseLeave={() => setHoveringPermissions(false)}
+									onClick={() => changePermissions(false)}
+									cursor="pointer"
+								>
+									<AiOutlineEdit
+										size={20}
+										color={
+											hoveringPermissions ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+										}
+										cursor="pointer"
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								</Flex>
+							</Tooltip>
+						) : (
+							<Tooltip
+								label="User has read permissions, click to change"
+								placement="top"
+								borderRadius="5px"
+								backgroundColor={getColor(darkMode, "backgroundTertiary")}
+								boxShadow="md"
+								color={getColor(darkMode, "textSecondary")}
+								border={"1px solid " + getColor(darkMode, "borderPrimary")}
+								hasArrow={true}
+							>
+								<Flex
+									backgroundColor={
+										hoveringPermissions
+											? getColor(darkMode, "backgroundSecondary")
+											: getColor(darkMode, "backgroundTertiary")
+									}
+									width="30px"
+									height="30px"
+									padding="4px"
+									borderRadius="full"
+									justifyContent="center"
+									alignItems="center"
+									onMouseEnter={() => setHoveringPermissions(true)}
+									onMouseLeave={() => setHoveringPermissions(false)}
+									onClick={() => changePermissions(true)}
+									cursor="pointer"
+								>
+									<AiOutlineEye
+										size={20}
+										color={
+											hoveringPermissions ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+										}
+										cursor="pointer"
+										style={{
+											flexShrink: 0
+										}}
+									/>
+								</Flex>
+							</Tooltip>
+						)}
+					</>
 				)}
 			</Flex>
 		</Flex>
@@ -459,8 +547,8 @@ export const AddParticipantModal = memo(() => {
 	const [note, setNote] = useState<INote | undefined>(undefined)
 
 	const containerHeight = useMemo(() => {
-		const itemHeight = 43
-		const max = 40
+		const itemHeight = 45
+		const max = 400
 
 		if (!note) {
 			return itemHeight
@@ -487,6 +575,69 @@ export const AddParticipantModal = memo(() => {
 		},
 		[note]
 	)
+
+	useEffect(() => {
+		const noteParticipantRemovedListener = eventListener.on(
+			"noteParticipantRemoved",
+			({ note: n, userId }: { note: INote; userId: number }) => {
+				if (note && n.uuid === note.uuid) {
+					setNote(prev =>
+						prev
+							? {
+									...prev,
+									participants: prev.participants.filter(participant => participant.userId !== userId)
+							  }
+							: prev
+					)
+				}
+			}
+		)
+
+		const noteParticipantAddedFromContactsListener = eventListener.on(
+			"noteParticipantAddedFromContacts",
+			({
+				contact,
+				note: n,
+				metadata,
+				permissionsWrite
+			}: {
+				contact: IContact
+				note: INote
+				metadata: string
+				permissionsWrite: boolean
+			}) => {
+				if (note && note.uuid === n.uuid) {
+					setNote(prev =>
+						prev
+							? {
+									...prev,
+									participants: [
+										...prev.participants,
+										...[
+											{
+												userId: contact.userId,
+												isOwner: false,
+												email: contact.email,
+												avatar: contact.avatar,
+												nickName: contact.nickName,
+												metadata,
+												permissionsWrite,
+												addedTimestamp: Date.now()
+											}
+										]
+									]
+							  }
+							: prev
+					)
+				}
+			}
+		)
+
+		return () => {
+			noteParticipantRemovedListener.remove()
+			noteParticipantAddedFromContactsListener.remove()
+		}
+	}, [note])
 
 	useEffect(() => {
 		const openNoteAddParticipantModalListener = eventListener.on("openNoteAddParticipantModal", (selectedNote: INote) => {
