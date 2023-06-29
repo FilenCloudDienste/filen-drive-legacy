@@ -50,6 +50,7 @@ const DocXViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 				justifyContent="space-between"
 				paddingLeft="15px"
 				paddingRight="15px"
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText

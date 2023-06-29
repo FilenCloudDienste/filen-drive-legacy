@@ -23,7 +23,7 @@ import {
 import { v4 as uuidv4, validate } from "uuid"
 import { useNavigate } from "react-router-dom"
 import { NotesSizes } from "./Notes"
-import Note from "./Note"
+import { Note, NoteSkeleton } from "./Note"
 import { show as showToast } from "../Toast/Toast"
 import useDb from "../../lib/hooks/useDb"
 import eventListener from "../../lib/eventListener"
@@ -266,7 +266,21 @@ export const Sidebar = memo(
 					</Flex>
 				</Flex>
 				{loading ? (
-					<></>
+					<Flex
+						height={windowHeight - 50 + "px"}
+						width={sizes.notes + "px"}
+						flexDirection="column"
+						overflow="hidden"
+					>
+						{new Array(5).fill(1).map((_, index) => {
+							return (
+								<NoteSkeleton
+									index={index}
+									key={index}
+								/>
+							)
+						})}
+					</Flex>
 				) : (
 					<Virtuoso
 						data={notesSorted}

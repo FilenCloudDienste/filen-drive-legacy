@@ -153,8 +153,12 @@ export const Content = memo(
 
 			await saveMutex.acquire()
 
+			const userId = await db.get("userId")
+
 			if (
 				!currentNoteRef.current ||
+				currentNoteRef.current.participants.filter(participant => participant.userId === userId && participant.permissionsWrite)
+					.length === 0 ||
 				getCurrentParent(window.location.href) !== currentNoteRef.current.uuid ||
 				(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContent.current.length)
 			) {
@@ -167,7 +171,6 @@ export const Content = memo(
 
 			setSynced(prev => ({ ...prev, content: false }))
 
-			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
 			const noteKey = await decryptNoteKeyParticipant(
 				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
@@ -198,7 +201,25 @@ export const Content = memo(
 			saveMutex.release()
 		}, [])
 
-		const debouncedSave = useCallback(debounce(save, 3000), [])
+		const debouncedSave = useCallback(debounce(save, 1000), [])
+
+		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
+			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault()
+
+				setSynced(prev => ({ ...prev, content: false }))
+
+				save()
+			}
+		}, [])
+
+		useEffect(() => {
+			window.addEventListener("keydown", windowOnKeyDownListener)
+
+			return () => {
+				window.removeEventListener("keydown", windowOnKeyDownListener)
+			}
+		}, [])
 
 		useEffect(() => {
 			currentNoteRef.current = currentNote

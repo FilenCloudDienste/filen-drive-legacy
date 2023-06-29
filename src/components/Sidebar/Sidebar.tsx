@@ -953,7 +953,6 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 		>
 			<Flex
 				width={sidebarWidth + "px"}
-				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				height="49px"
 				alignItems="center"
 				paddingLeft="15px"

@@ -659,7 +659,10 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	const toggleVersioning = useCallback(async (enable: boolean) => {
 		try {
 			await versioning(enable)
-			await fetchSettings()
+
+			const settings = await fetchUserSettings()
+
+			setUserSettings(settings)
 		} catch (e: any) {
 			console.error(e)
 
@@ -670,7 +673,10 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	const toggleLoginAlerts = useCallback(async (enable: boolean) => {
 		try {
 			await loginAlerts(enable)
-			await fetchSettings()
+
+			const settings = await fetchUserSettings()
+
+			setUserSettings(settings)
 		} catch (e: any) {
 			console.error(e)
 
@@ -691,6 +697,10 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	if (typeof userSettings == "undefined") {
 		return (
 			<>
+				<Skeletons
+					count={2}
+					darkMode={darkMode}
+				/>
 				<Skeletons
 					count={2}
 					darkMode={darkMode}
@@ -791,7 +801,7 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						)}
 					</Flex>
 				</Flex>
-				{/*<Flex
+				<Flex
 					alignItems="center"
 					justifyContent="space-between"
 					height="60px"
@@ -808,19 +818,14 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						</AppText>
 					</Flex>
 					<Flex>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textSecondary")}
-							marginLeft="20px"
-							textDecoration="underline"
-							fontWeight="bold"
-							cursor="pointer"
-							noOfLines={1}
-							onClick={() => toggleVersioning(!userSettings.versioningEnabled)}
-						>
-							{userSettings.versioningEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
-						</AppText>
+						<Switch
+							size="lg"
+							colorScheme={CHAKRA_COLOR_SCHEME}
+							isChecked={userSettings.versioningEnabled}
+							onChange={e => {
+								toggleVersioning(!userSettings.versioningEnabled)
+							}}
+						/>
 					</Flex>
 				</Flex>
 				<Flex
@@ -839,21 +844,16 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						</AppText>
 					</Flex>
 					<Flex>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textSecondary")}
-							marginLeft="20px"
-							textDecoration="underline"
-							fontWeight="bold"
-							cursor="pointer"
-							noOfLines={1}
-							onClick={() => toggleLoginAlerts(!userSettings.loginAlertsEnabled)}
-						>
-							{userSettings.loginAlertsEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
-						</AppText>
+						<Switch
+							size="lg"
+							colorScheme={CHAKRA_COLOR_SCHEME}
+							isChecked={userSettings.loginAlertsEnabled}
+							onChange={e => {
+								toggleLoginAlerts(!userSettings.loginAlertsEnabled)
+							}}
+						/>
 					</Flex>
-						</Flex>*/}
+				</Flex>
 				<Flex
 					alignItems="center"
 					justifyContent="space-between"

@@ -194,7 +194,7 @@ const TransfersToast = memo(({}) => {
 		<Flex
 			width="500px"
 			height="auto"
-			backgroundColor={getColor(darkMode, "backgroundPrimary")}
+			backgroundColor={getColor(darkMode, "backgroundSecondary")}
 			borderRadius="5px"
 			border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			flexDirection="column"
@@ -211,10 +211,10 @@ const TransfersToast = memo(({}) => {
 			}}
 		>
 			<Flex
-				paddingTop="6px"
-				paddingLeft="10px"
-				paddingRight="10px"
-				paddingBottom={percent > 0 ? "8px" : "6px"}
+				paddingTop="10px"
+				paddingLeft="15px"
+				paddingRight="15px"
+				paddingBottom={percent > 0 ? "12px" : "10px"}
 				alignItems="center"
 				justifyContent="space-between"
 				width="100%"
@@ -307,7 +307,7 @@ const TransfersToast = memo(({}) => {
 					height="3px"
 					borderRadius="5px"
 					width="500px"
-					backgroundColor={getColor(darkMode, "backgroundPrimary")}
+					backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				/>
 			)}
 		</Flex>
@@ -319,13 +319,13 @@ const LoadingToast = memo(({ message }: { message: string }) => {
 
 	return (
 		<Flex
-			backgroundColor={getColor(darkMode, "backgroundPrimary")}
+			backgroundColor={getColor(darkMode, "backgroundSecondary")}
 			border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			width="auto"
-			paddingTop="6px"
-			paddingLeft="10px"
-			paddingRight="10px"
-			paddingBottom="6px"
+			paddingTop="10px"
+			paddingLeft="15px"
+			paddingRight="15px"
+			paddingBottom="10px"
 			borderRadius="5px"
 			zIndex={1000001}
 			alignItems="center"

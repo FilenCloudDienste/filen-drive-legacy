@@ -17,21 +17,44 @@ import {
 	notePinned,
 	noteChangeType,
 	NoteType,
-	deleteNote
+	deleteNote,
+	noteParticipantsAdd,
+	createNote,
+	notes as getNotes,
+	editNoteContent
 } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import eventListener from "../../lib/eventListener"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
-import { safeAwait, downloadObjectAsTextWithExt, downloadObjectAsTextWithoutExt, getFileExt } from "../../lib/helpers"
+import {
+	safeAwait,
+	downloadObjectAsTextWithExt,
+	downloadObjectAsTextWithoutExt,
+	getFileExt,
+	generateRandomString,
+	simpleDate
+} from "../../lib/helpers"
 import { IoChevronForward } from "react-icons/io5"
-import { decryptNoteKeyParticipant, encryptNotePreview, encryptNoteContent } from "../../lib/worker/worker.com"
+import {
+	decryptNoteKeyParticipant,
+	encryptNotePreview,
+	encryptNoteContent,
+	decryptNoteTitle,
+	decryptNotePreview,
+	encryptMetadata,
+	encryptMetadataPublicKey,
+	encryptNoteTitle
+} from "../../lib/worker/worker.com"
 import db from "../../lib/db"
 import { createNotePreviewFromContentText } from "./utils"
 import { useNavigate } from "react-router-dom"
 import useDb from "../../lib/hooks/useDb"
 import striptags from "striptags"
+import { Flex, Spinner } from "@chakra-ui/react"
+import { v4 as uuidv4 } from "uuid"
+import { getColor } from "../../styles/colors"
 
 const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
 	const darkMode = useDarkMode()
@@ -42,6 +65,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 	const contentRef = useRef<string>("")
 	const navigate = useNavigate()
 	const [userId] = useDb("userId", 0)
+	const [dupliating, setDuplicating] = useState<boolean>(false)
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!selectedNote) {
@@ -294,6 +318,124 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		}
 	}, [selectedNote])
 
+	const fetchNotes = useCallback(async () => {
+		const privateKey = await db.get("privateKey")
+		const userId = await db.get("userId")
+		const notesRes = await getNotes()
+		const notes: INote[] = []
+
+		for (const note of notesRes) {
+			const noteKey = await decryptNoteKeyParticipant(
+				note.participants.filter(participant => participant.userId === userId)[0].metadata,
+				privateKey
+			)
+			const title = await decryptNoteTitle(note.title, noteKey)
+
+			notes.push({
+				...note,
+				title,
+				preview: note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)
+			})
+		}
+
+		return notes
+	}, [])
+
+	const duplicate = useCallback(async () => {
+		if (!selectedNote) {
+			return
+		}
+
+		setDuplicating(true)
+
+		const key = generateRandomString(32)
+		const publicKey = await db.get("publicKey")
+		const masterKeys = await db.get("masterKeys")
+		const metadata = await encryptMetadata(JSON.stringify({ key }), masterKeys[masterKeys.length - 1])
+		const ownerMetadata = await encryptMetadataPublicKey(JSON.stringify({ key }), publicKey)
+		const title = await encryptNoteTitle(selectedNote.title, key)
+		const uuid = uuidv4()
+
+		const [createErr] = await safeAwait(createNote({ uuid, metadata, title }))
+
+		if (createErr) {
+			console.error(createErr)
+
+			setDuplicating(false)
+
+			showToast("error", createErr.message, "bottom", 5000)
+
+			return
+		}
+
+		const [addErr] = await safeAwait(
+			noteParticipantsAdd({ uuid, metadata: ownerMetadata, contactUUID: "owner", permissionsWrite: true })
+		)
+
+		if (addErr) {
+			console.error(addErr)
+
+			setDuplicating(false)
+
+			showToast("error", addErr.message, "bottom", 5000)
+
+			return
+		}
+
+		const preview = createNotePreviewFromContentText(contentRef.current, selectedNote.type)
+		const contentEncrypted = await encryptNoteContent(contentRef.current, key)
+		const previewEncrypted = await encryptNotePreview(preview, key)
+
+		const [changeTypeErr] = await safeAwait(
+			noteChangeType({ uuid, type: selectedNote.type, content: contentEncrypted, preview: previewEncrypted })
+		)
+
+		if (changeTypeErr) {
+			console.error(changeTypeErr)
+
+			setDuplicating(false)
+
+			showToast("error", changeTypeErr.message, "bottom", 5000)
+
+			return
+		}
+
+		const [editErr] = await safeAwait(
+			editNoteContent({
+				uuid,
+				preview: previewEncrypted,
+				content: contentEncrypted,
+				type: selectedNote.type
+			})
+		)
+
+		if (editErr) {
+			console.error(editErr)
+
+			setDuplicating(false)
+
+			showToast("error", editErr.message, "bottom", 5000)
+
+			return
+		}
+
+		const [notesErr, notesRes] = await safeAwait(fetchNotes())
+
+		if (notesErr) {
+			console.error(notesErr)
+
+			setDuplicating(false)
+
+			showToast("error", notesErr.message, "bottom", 5000)
+
+			return
+		}
+
+		setNotes(notesRes)
+		navigate("#/notes/" + uuid)
+		setDuplicating(false)
+	}, [selectedNote])
+
 	useEffect(() => {
 		contentRef.current = content
 	}, [content])
@@ -375,6 +517,25 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						) : (
 							<ContextMenuItem onClick={() => favorite(true)}>Favorite</ContextMenuItem>
 						)}
+						<ContextMenuItem onClick={() => duplicate()}>
+							<Flex
+								flexDirection="row"
+								justifyContent="space-between"
+								gap="25px"
+								alignItems="center"
+							>
+								<Flex>Duplicate</Flex>
+								{dupliating && (
+									<Flex>
+										<Spinner
+											width="16px"
+											height="16px"
+											color={getColor(darkMode, "textPrimary")}
+										/>
+									</Flex>
+								)}
+							</Flex>
+						</ContextMenuItem>
 						<ContextMenuItem onClick={() => exportText()}>Export</ContextMenuItem>
 						{userId === selectedNote.ownerId && <ContextMenuSeparator />}
 						{!selectedNote.trash && userId === selectedNote.ownerId && (

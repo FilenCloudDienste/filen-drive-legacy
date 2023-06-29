@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useRef } from "react"
+import { memo, useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Input } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -9,7 +9,8 @@ import { encryptNoteTitle, decryptNoteKeyParticipant, decryptNoteTitle } from ".
 import { debounce } from "lodash"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, Semaphore, SemaphoreProps } from "../../lib/helpers"
+import useDb from "../../lib/hooks/useDb"
 
 export const Title = memo(
 	({
@@ -23,41 +24,79 @@ export const Title = memo(
 	}) => {
 		const isMobile = useIsMobile()
 		const darkMode = useDarkMode()
-		const [saving, setSaving] = useState<boolean>(false)
 		const [title, setTitle] = useState<string>("")
 		const titleRef = useRef<string>("")
 		const startTitle = useRef<string | undefined>(undefined)
+		const [userId] = useDb("userId", 0)
+		const currentNoteRef = useRef<INote | undefined>(currentNote)
+		const editMutex = useRef<SemaphoreProps>(new Semaphore(1)).current
+
+		const userHasWritePermissions = useMemo(() => {
+			if (!currentNote) {
+				return false
+			}
+
+			return currentNote.participants.filter(participant => participant.userId === userId && participant.permissionsWrite).length > 0
+		}, [currentNote, userId])
 
 		const editTitle = useCallback(async () => {
+			await editMutex.acquire()
+
+			const userId = await db.get("userId")
+
 			if (
-				!currentNote ||
-				saving ||
+				!currentNoteRef.current ||
 				JSON.stringify(startTitle.current) === JSON.stringify(titleRef.current) ||
-				getCurrentParent(window.location.href) !== currentNote.uuid
+				getCurrentParent(window.location.href) !== currentNoteRef.current.uuid
 			) {
+				editMutex.release()
+
+				setSynced(prev => ({ ...prev, title: true }))
+
 				return
 			}
 
-			setSaving(true)
 			setSynced(prev => ({ ...prev, title: false }))
 
-			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
 			const noteKey = await decryptNoteKeyParticipant(
-				currentNote.participants.filter(participant => participant.userId === userId)[0].metadata,
+				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
 				privateKey
 			)
 			const titleEncrypted = await encryptNoteTitle(titleRef.current, noteKey)
 
-			await editNoteTitle(currentNote.uuid, titleEncrypted)
+			await editNoteTitle(currentNoteRef.current.uuid, titleEncrypted)
 
 			startTitle.current = titleRef.current
 
-			setSaving(false)
 			setSynced(prev => ({ ...prev, title: true }))
-		}, [saving, currentNote])
 
-		const debouncedSave = useCallback(debounce(editTitle, 3000), [])
+			editMutex.release()
+		}, [])
+
+		const debouncedSave = useCallback(debounce(editTitle, 1000), [])
+
+		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
+			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault()
+
+				setSynced(prev => ({ ...prev, title: false }))
+
+				editTitle()
+			}
+		}, [])
+
+		useEffect(() => {
+			window.addEventListener("keydown", windowOnKeyDownListener)
+
+			return () => {
+				window.removeEventListener("keydown", windowOnKeyDownListener)
+			}
+		}, [])
+
+		useEffect(() => {
+			currentNoteRef.current = currentNote
+		}, [currentNote])
 
 		useEffect(() => {
 			if (currentNote) {
@@ -117,6 +156,10 @@ export const Title = memo(
 			<Input
 				value={title}
 				onChange={e => {
+					if (!userHasWritePermissions) {
+						return
+					}
+
 					if (currentNote) {
 						setSynced(prev => ({ ...prev, title: false }))
 						setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, title: e.target.value } : note)))
@@ -124,12 +167,20 @@ export const Title = memo(
 
 					debouncedSave()
 				}}
-				onBlur={() => editTitle()}
+				onBlur={() => {
+					if (!userHasWritePermissions) {
+						return
+					}
+
+					editTitle()
+				}}
 				onKeyDown={e => {
-					if (e.key === "Enter") {
+					if (e.key === "Enter" && userHasWritePermissions) {
 						editTitle()
 					}
 				}}
+				disabled={!userHasWritePermissions}
+				cursor={userHasWritePermissions ? "text" : "default"}
 				autoFocus={false}
 				spellCheck={false}
 				border="none"
@@ -144,6 +195,9 @@ export const Title = memo(
 				margin="0px"
 				outline="none"
 				shadow="none"
+				_disabled={{
+					color: getColor(darkMode, "textPrimary")
+				}}
 				_hover={{
 					shadow: "none",
 					outline: "none"

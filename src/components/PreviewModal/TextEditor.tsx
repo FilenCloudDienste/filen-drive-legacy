@@ -492,6 +492,7 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 					alignItems="center"
 					paddingLeft="15px"
 					paddingRight="15px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 				>
 					{window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
 						<Flex>
@@ -545,10 +546,11 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 						style={{
 							paddingLeft: "5px",
 							paddingRight: "5px",
-							maxWidth: textEditorWidth + "px",
+							maxWidth: textEditorWidth + 4 + "px",
 							maxHeight: windowHeight - 50 + "px",
-							width: textEditorWidth + "px",
-							height: windowHeight - 50 + "px"
+							width: textEditorWidth + 4 + "px",
+							height: windowHeight - 50 + "px",
+							marginLeft: "-5px"
 						}}
 						extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
 					/>
@@ -557,7 +559,9 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 							width={textEditorWidth + "px"}
 							height={windowHeight - 50 + "px"}
 							overflowY="auto"
-							backgroundColor={darkMode ? "#0D1117" : "white"}
+							overflowX="hidden"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							borderLeft={"2px solid " + getColor(darkMode, "borderPrimary")}
 						>
 							<MarkdownPreview
 								source={textEdited}
@@ -569,7 +573,8 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 									paddingTop: "6px",
 									paddingBottom: "15px",
 									color: getColor(darkMode, "textPrimary"),
-									userSelect: "all"
+									userSelect: "all",
+									backgroundColor: getColor(darkMode, "backgroundPrimary")
 								}}
 								rehypeRewrite={(node, index, parent) => {
 									try {

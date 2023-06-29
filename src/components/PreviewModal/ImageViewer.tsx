@@ -32,6 +32,7 @@ const ImageViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				position="absolute"
 				zIndex={100001}
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText

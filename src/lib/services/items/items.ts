@@ -41,8 +41,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 	const uuid = getCurrentParent(href)
 
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
-		let [apiKey, masterKeys, privateKey, userId, userEmail, sortBy] = await Promise.all([
-			db.get("apiKey"),
+		let [masterKeys, privateKey, userId, userEmail, sortBy] = await Promise.all([
 			db.get("masterKeys"),
 			db.get("privateKey"),
 			db.get("userId"),

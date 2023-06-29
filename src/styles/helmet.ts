@@ -370,7 +370,7 @@ export const quillStyle = (darkMode: boolean) => {
             border-radius: 50%;
             margin-right: 0.5em;
             text-align: center;
-            line-height: 16px;
+            line-height: 15px;
             background-color: transparent;
         }
 
@@ -384,7 +384,7 @@ export const quillStyle = (darkMode: boolean) => {
             border-radius: 50%;
             margin-right: 0.5em;
             text-align: center;
-            line-height: 16px;
+            line-height: 15px;
             background-color: ${getColor(darkMode, "purple")};
         }
 

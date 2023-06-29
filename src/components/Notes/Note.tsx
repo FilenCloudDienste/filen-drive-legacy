@@ -1,17 +1,116 @@
 import { memo, useState, useMemo, useEffect } from "react"
-import { Flex, Avatar, AvatarGroup } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarGroup, Skeleton } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote } from "../../lib/api"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, randomStringUnsafe, getRandomArbitrary } from "../../lib/helpers"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BsTextLeft, BsPin, BsFileRichtext, BsCodeSlash, BsMarkdown } from "react-icons/bs"
 import eventListener from "../../lib/eventListener"
 import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
 import { MdChecklist } from "react-icons/md"
+
+export const NoteSkeleton = memo(({ index }: { index: number }) => {
+	const darkMode = useDarkMode()
+	const isMobile = useIsMobile()
+
+	return (
+		<Flex
+			padding="10px"
+			paddingTop={index <= 0 ? "5px" : "0px"}
+			paddingBottom="0px"
+		>
+			<Flex
+				flexDirection="row"
+				alignItems="center"
+				justifyContent="space-between"
+				padding="10px"
+				cursor="pointer"
+				borderRadius="10px"
+				width="100%"
+			>
+				<Flex flexDirection="row">
+					<Flex>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							width="30px"
+							height="30px"
+							borderRadius="10px"
+						>
+							<Avatar
+								name={Math.random().toString()}
+								width="30px"
+								height="30px"
+								borderRadius="full"
+							/>
+						</Skeleton>
+					</Flex>
+					<Flex
+						flexDirection="column"
+						paddingLeft="10px"
+					>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								marginLeft="10px"
+								fontSize={15}
+							>
+								{randomStringUnsafe(getRandomArbitrary(16, 32))}
+							</AppText>
+						</Skeleton>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+							marginTop="5px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textSecondary")}
+								marginLeft="10px"
+								fontSize={12}
+							>
+								{randomStringUnsafe(getRandomArbitrary(16, 32))}
+							</AppText>
+						</Skeleton>
+						<Skeleton
+							startColor={getColor(darkMode, "backgroundSecondary")}
+							endColor={getColor(darkMode, "backgroundTertiary")}
+							borderRadius="10px"
+							marginTop="5px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textSecondary")}
+								marginLeft="10px"
+								fontSize={9}
+							>
+								{randomStringUnsafe(getRandomArbitrary(16, 32))}
+							</AppText>
+						</Skeleton>
+					</Flex>
+				</Flex>
+			</Flex>
+		</Flex>
+	)
+})
 
 export const Note = memo(({ note }: { note: INote }) => {
 	const isMobile = useIsMobile()

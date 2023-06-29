@@ -1085,6 +1085,12 @@ export const decryptNoteContent = async (content: string, key: string): Promise<
 }
 
 export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNoteTitle:" + title
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
 	try {
 		const decrypted = await decryptMetadata(title, key)
 
@@ -1098,6 +1104,8 @@ export const decryptNoteTitle = async (title: string, key: string): Promise<stri
 			return ""
 		}
 
+		memoryCache.set(cacheKey, parsed.title)
+
 		return parsed.title
 	} catch (e) {
 		console.error(e)
@@ -1107,6 +1115,12 @@ export const decryptNoteTitle = async (title: string, key: string): Promise<stri
 }
 
 export const decryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNotePreview:" + preview
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
 	try {
 		const decrypted = await decryptMetadata(preview, key)
 
@@ -1119,6 +1133,8 @@ export const decryptNotePreview = async (preview: string, key: string): Promise<
 		if (typeof parsed.preview !== "string") {
 			return ""
 		}
+
+		memoryCache.set(cacheKey, parsed.preview)
 
 		return parsed.preview
 	} catch (e) {
