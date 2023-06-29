@@ -70,6 +70,7 @@ import { validate } from "uuid"
 import Chats from "../../components/Chats"
 import Notes from "../../components/Notes"
 import Contacts from "../../components/Contacts"
+import { i18n } from "../../i18n"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -277,51 +278,54 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		}
 	}, [])
 
-	const readDroppedFiles = useCallback(async (e: DragEvent): Promise<void> => {
-		if (
-			window.location.hash.indexOf("shared-in") !== -1 ||
-			window.location.hash.indexOf("trash") !== -1 ||
-			window.location.hash.indexOf("links") !== -1 ||
-			window.location.hash.indexOf("favorites") !== -1 ||
-			window.location.hash.indexOf("recent") !== -1 ||
-			window.location.hash.indexOf("account") !== -1
-		) {
-			return
-		}
-
-		const items = e.dataTransfer?.items
-
-		if (!items) {
-			return
-		}
-
-		const preparingToast = showToast("loading", "Preparing files..", "bottom", 8640000)
-
-		try {
-			const files = await readLocalDroppedDirectory(items)
-
-			if (files.filter(file => typeof (file as any).uuid !== "undefined").length > 0) {
-				dismissToast(preparingToast)
-
+	const readDroppedFiles = useCallback(
+		async (e: DragEvent): Promise<void> => {
+			if (
+				window.location.hash.indexOf("shared-in") !== -1 ||
+				window.location.hash.indexOf("trash") !== -1 ||
+				window.location.hash.indexOf("links") !== -1 ||
+				window.location.hash.indexOf("favorites") !== -1 ||
+				window.location.hash.indexOf("recent") !== -1 ||
+				window.location.hash.indexOf("account") !== -1
+			) {
 				return
 			}
 
-			const filteredFiles = files.filter(file => file.size > 0)
+			const items = e.dataTransfer?.items
 
-			if (filteredFiles.length > 0) {
-				eventListener.emit("openUploadModal", {
-					files: filteredFiles,
-					openModal: filteredFiles.length > 0
-				})
+			if (!items) {
+				return
 			}
-		} catch (e: any) {
-			console.error(e)
 
-			showToast("error", e.toString(), "bottom", 5000)
-		}
+			const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"), "bottom", 8640000)
 
-		dismissToast(preparingToast)
-	}, [])
+			try {
+				const files = await readLocalDroppedDirectory(items)
+
+				if (files.filter(file => typeof (file as any).uuid !== "undefined").length > 0) {
+					dismissToast(preparingToast)
+
+					return
+				}
+
+				const filteredFiles = files.filter(file => file.size > 0)
+
+				if (filteredFiles.length > 0) {
+					eventListener.emit("openUploadModal", {
+						files: filteredFiles,
+						openModal: filteredFiles.length > 0
+					})
+				}
+			} catch (e: any) {
+				console.error(e)
+
+				showToast("error", e.toString(), "bottom", 5000)
+			}
+
+			dismissToast(preparingToast)
+		},
+		[lang]
+	)
 
 	const bodyOnDropListener = useCallback((e: DragEvent): void => {
 		setShowDragAndDropModal(false)
@@ -1080,7 +1084,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						return
 					}
 
-					const preparingToast = showToast("loading", "Preparing files..")
+					const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
 
 					const files = e.target.files
 					const toUpload = []
@@ -1126,7 +1130,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						return
 					}
 
-					const preparingToast = showToast("loading", "Preparing files..")
+					const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
 
 					const files = e.target.files
 					const toUpload = []

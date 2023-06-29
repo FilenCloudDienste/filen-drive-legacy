@@ -28,14 +28,7 @@ import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import eventListener from "../../lib/eventListener"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
-import {
-	safeAwait,
-	downloadObjectAsTextWithExt,
-	downloadObjectAsTextWithoutExt,
-	getFileExt,
-	generateRandomString,
-	simpleDate
-} from "../../lib/helpers"
+import { safeAwait, downloadObjectAsTextWithExt, downloadObjectAsTextWithoutExt, getFileExt, generateRandomString } from "../../lib/helpers"
 import { IoChevronForward } from "react-icons/io5"
 import {
 	decryptNoteKeyParticipant,
@@ -55,6 +48,7 @@ import striptags from "striptags"
 import { Flex, Spinner } from "@chakra-ui/react"
 import { v4 as uuidv4 } from "uuid"
 import { getColor } from "../../styles/colors"
+import { i18n } from "../../i18n"
 
 const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
 	const darkMode = useDarkMode()
@@ -80,7 +74,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 			return
 		}
 
-		const loadingToast = showToast("loading", "Moving note to trash", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(trashNote(selectedNote.uuid))
 
@@ -97,14 +91,14 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		dismissToast(loadingToast)
 
 		setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, trash: true, archive: false } : note)))
-	}, [selectedNote])
+	}, [selectedNote, lang])
 
 	const archive = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
-		const loadingToast = showToast("loading", "Archiving note", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(archiveNote(selectedNote.uuid))
 
@@ -121,14 +115,14 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		dismissToast(loadingToast)
 
 		setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, archive: true, trash: false } : note)))
-	}, [selectedNote])
+	}, [selectedNote, lang])
 
 	const restore = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
-		const loadingToast = showToast("loading", "Restoring note", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(restoreNote(selectedNote.uuid))
 
@@ -145,7 +139,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		dismissToast(loadingToast)
 
 		setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, archive: false, trash: false } : note)))
-	}, [selectedNote])
+	}, [selectedNote, lang])
 
 	const favorite = useCallback(
 		async (favorite: boolean) => {
@@ -153,7 +147,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 				return
 			}
 
-			const loadingToast = showToast("loading", "Favoriting note", "bottom", 864000000)
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 			const [err] = await safeAwait(noteFavorite(selectedNote.uuid, favorite))
 
@@ -171,7 +165,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 
 			setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, favorite } : note)))
 		},
-		[selectedNote]
+		[selectedNote, lang]
 	)
 
 	const pinned = useCallback(
@@ -180,7 +174,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 				return
 			}
 
-			const loadingToast = showToast("loading", "Pinning note", "bottom", 864000000)
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 			const [err] = await safeAwait(notePinned(selectedNote.uuid, pinned))
 
@@ -198,7 +192,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 
 			setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, pinned } : note)))
 		},
-		[selectedNote]
+		[selectedNote, lang]
 	)
 
 	const changeType = useCallback(
@@ -207,7 +201,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 				return
 			}
 
-			const loadingToast = showToast("loading", "Changing type", "bottom", 864000000)
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 			const userId = await db.get("userId")
 			const privateKey = await db.get("privateKey")
@@ -239,7 +233,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 
 			eventListener.emit("refreshNoteContent", selectedNote.uuid)
 		},
-		[selectedNote]
+		[selectedNote, lang]
 	)
 
 	const del = useCallback(async () => {
@@ -247,7 +241,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 			return
 		}
 
-		const loadingToast = showToast("loading", "Deleting note", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(deleteNote(selectedNote.uuid))
 
@@ -265,7 +259,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 
 		setNotes(prev => prev.filter(note => note.uuid !== selectedNote.uuid))
 		navigate("#/notes")
-	}, [selectedNote])
+	}, [selectedNote, lang])
 
 	const exportText = useCallback(() => {
 		if (!selectedNote || contentRef.current.length === 0) {
@@ -479,7 +473,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						{userHasWritePermissions && (
 							<>
 								<ContextMenuItem onClick={() => eventListener.emit("openNoteHistoryModal", selectedNote)}>
-									History
+									{i18n(lang, "noteHistory")}
 								</ContextMenuItem>
 								<ContextMenuSeparator />
 							</>
@@ -487,7 +481,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						{userId === selectedNote.ownerId && (
 							<>
 								<ContextMenuItem onClick={() => eventListener.emit("openNoteAddParticipantModal", selectedNote)}>
-									Participants
+									{i18n(lang, "participants")}
 								</ContextMenuItem>
 								<ContextMenuSeparator />
 							</>
@@ -498,24 +492,26 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 									label="Type"
 									arrow={<IoChevronForward fontSize={16} />}
 								>
-									<ContextMenuItem onClick={() => changeType("text")}>Text</ContextMenuItem>
-									<ContextMenuItem onClick={() => changeType("rich")}>Rich text</ContextMenuItem>
-									<ContextMenuItem onClick={() => changeType("checklist")}>Checklist</ContextMenuItem>
-									<ContextMenuItem onClick={() => changeType("md")}>Markdown</ContextMenuItem>
-									<ContextMenuItem onClick={() => changeType("code")}>Code</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("text")}>{i18n(lang, "noteTypeText")}</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("rich")}>{i18n(lang, "noteTypeRich")}</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("checklist")}>
+										{i18n(lang, "noteTypeChecklist")}
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("md")}>{i18n(lang, "noteTypeMd")}</ContextMenuItem>
+									<ContextMenuItem onClick={() => changeType("code")}>{i18n(lang, "noteTypeCode")}</ContextMenuItem>
 								</ContextMenuSubmenu>
 								<ContextMenuSeparator />
 							</>
 						)}
 						{selectedNote.pinned ? (
-							<ContextMenuItem onClick={() => pinned(false)}>Unpin</ContextMenuItem>
+							<ContextMenuItem onClick={() => pinned(false)}>{i18n(lang, "noteUnpin")}</ContextMenuItem>
 						) : (
-							<ContextMenuItem onClick={() => pinned(true)}>Pin</ContextMenuItem>
+							<ContextMenuItem onClick={() => pinned(true)}>{i18n(lang, "notePin")}</ContextMenuItem>
 						)}
 						{selectedNote.favorite ? (
-							<ContextMenuItem onClick={() => favorite(false)}>Unfavorite</ContextMenuItem>
+							<ContextMenuItem onClick={() => favorite(false)}>{i18n(lang, "noteUnfavorite")}</ContextMenuItem>
 						) : (
-							<ContextMenuItem onClick={() => favorite(true)}>Favorite</ContextMenuItem>
+							<ContextMenuItem onClick={() => favorite(true)}>{i18n(lang, "noteFavorite")}</ContextMenuItem>
 						)}
 						<ContextMenuItem onClick={() => duplicate()}>
 							<Flex
@@ -524,7 +520,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 								gap="25px"
 								alignItems="center"
 							>
-								<Flex>Duplicate</Flex>
+								<Flex>{i18n(lang, "noteDuplicate")}</Flex>
 								{dupliating && (
 									<Flex>
 										<Spinner
@@ -536,21 +532,21 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 								)}
 							</Flex>
 						</ContextMenuItem>
-						<ContextMenuItem onClick={() => exportText()}>Export</ContextMenuItem>
+						<ContextMenuItem onClick={() => exportText()}>{i18n(lang, "noteExport")}</ContextMenuItem>
 						{userId === selectedNote.ownerId && <ContextMenuSeparator />}
 						{!selectedNote.trash && userId === selectedNote.ownerId && (
-							<ContextMenuItem onClick={() => trash()}>Trash</ContextMenuItem>
+							<ContextMenuItem onClick={() => trash()}>{i18n(lang, "noteTrash")}</ContextMenuItem>
 						)}
 						{!selectedNote.archive && !selectedNote.trash && userId === selectedNote.ownerId && (
-							<ContextMenuItem onClick={() => archive()}>Archive</ContextMenuItem>
+							<ContextMenuItem onClick={() => archive()}>{i18n(lang, "noteArchive")}</ContextMenuItem>
 						)}
 						{(selectedNote.trash || selectedNote.archive) && userId === selectedNote.ownerId && (
-							<ContextMenuItem onClick={() => restore()}>Restore</ContextMenuItem>
+							<ContextMenuItem onClick={() => restore()}>{i18n(lang, "noteRestore")}</ContextMenuItem>
 						)}
 						{selectedNote.trash && userId === selectedNote.ownerId && (
 							<>
 								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => del()}>Delete</ContextMenuItem>
+								<ContextMenuItem onClick={() => del()}>{i18n(lang, "noteDelete")}</ContextMenuItem>
 							</>
 						)}
 					</>

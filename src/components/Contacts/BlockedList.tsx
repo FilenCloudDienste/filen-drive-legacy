@@ -10,6 +10,9 @@ import { safeAwait } from "../../lib/helpers"
 import { contactsBlocked, BlockedContact } from "../../lib/api"
 import { show as showToast } from "../Toast/Toast"
 import Blocked from "./Blocked"
+import { i18n } from "../../i18n"
+import useLang from "../../lib/hooks/useLang"
+import { ContactSkeleton } from "./Contact"
 
 export const BlockedList = memo(
 	({
@@ -17,18 +20,21 @@ export const BlockedList = memo(
 		blocked,
 		setBlocked,
 		search,
-		setSearch
+		setSearch,
+		loadingContacts
 	}: {
 		containerWidth: number
 		blocked: BlockedContact[]
 		setBlocked: React.Dispatch<React.SetStateAction<BlockedContact[]>>
 		search: string
 		setSearch: React.Dispatch<React.SetStateAction<string>>
+		loadingContacts: boolean
 	}) => {
 		const darkMode = useDarkMode()
 		const isMobile = useIsMobile()
 		const windowHeight = useWindowHeight()
 		const [loading, setLoading] = useState<boolean>(false)
+		const lang = useLang()
 
 		const loadBlocked = useCallback(async (showLoader: boolean = true) => {
 			setLoading(showLoader)
@@ -121,7 +127,7 @@ export const BlockedList = memo(
 						fontSize={13}
 						textTransform="uppercase"
 					>
-						Blocked users
+						{i18n(lang, "blockedUsers")}
 					</AppText>
 					<AppText
 						darkMode={darkMode}
@@ -152,20 +158,28 @@ export const BlockedList = memo(
 					width={containerWidth + "px"}
 					height={windowHeight - 190 + "px"}
 				>
-					<Virtuoso
-						data={blocked}
-						height={windowHeight - 190}
-						width={containerWidth}
-						itemContent={itemContent}
-						totalCount={blocked.length}
-						overscan={8}
-						style={{
-							overflowX: "hidden",
-							overflowY: "auto",
-							height: windowHeight - 190 + "px",
-							width: containerWidth + "px"
-						}}
-					/>
+					{loadingContacts ? (
+						<>
+							{new Array(8).fill(1).map((_, index) => {
+								return <ContactSkeleton key={index} />
+							})}
+						</>
+					) : (
+						<Virtuoso
+							data={blocked}
+							height={windowHeight - 190}
+							width={containerWidth}
+							itemContent={itemContent}
+							totalCount={blocked.length}
+							overscan={8}
+							style={{
+								overflowX: "hidden",
+								overflowY: "auto",
+								height: windowHeight - 190 + "px",
+								width: containerWidth + "px"
+							}}
+						/>
+					)}
 				</Flex>
 			</>
 		)

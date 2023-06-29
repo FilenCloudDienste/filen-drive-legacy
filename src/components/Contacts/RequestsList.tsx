@@ -8,6 +8,9 @@ import { ContactRequest } from "../../lib/api"
 import AppText from "../AppText"
 import { Virtuoso } from "react-virtuoso"
 import Request from "./Request"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
+import { ContactSkeleton } from "./Contact"
 
 export const RequestsList = memo(
 	({
@@ -15,17 +18,20 @@ export const RequestsList = memo(
 		setSearch,
 		requests,
 		activeTab,
-		containerWidth
+		containerWidth,
+		loadingContacts
 	}: {
 		search: string
 		setSearch: React.Dispatch<React.SetStateAction<string>>
 		requests: ContactRequest[]
 		activeTab: string
 		containerWidth: number
+		loadingContacts: boolean
 	}) => {
 		const darkMode = useDarkMode()
 		const isMobile = useIsMobile()
 		const windowHeight = useWindowHeight()
+		const lang = useLang()
 
 		const itemContent = useCallback(
 			(index: number, request: ContactRequest) => {
@@ -99,7 +105,7 @@ export const RequestsList = memo(
 						fontSize={13}
 						textTransform="uppercase"
 					>
-						{activeTab === "contacts/requests" ? "Incoming requests" : "Outgoing requests"}
+						{activeTab === "contacts/requests" ? i18n(lang, "contactsIcomingRequests") : i18n(lang, "contactsOutgoingRequests")}
 					</AppText>
 					<AppText
 						darkMode={darkMode}
@@ -130,20 +136,28 @@ export const RequestsList = memo(
 					width={containerWidth + "px"}
 					height={windowHeight - 190 + "px"}
 				>
-					<Virtuoso
-						data={requests}
-						height={windowHeight - 190}
-						width={containerWidth}
-						itemContent={itemContent}
-						totalCount={requests.length}
-						overscan={8}
-						style={{
-							overflowX: "hidden",
-							overflowY: "auto",
-							height: windowHeight - 190 + "px",
-							width: containerWidth + "px"
-						}}
-					/>
+					{loadingContacts ? (
+						<>
+							{new Array(8).fill(1).map((_, index) => {
+								return <ContactSkeleton key={index} />
+							})}
+						</>
+					) : (
+						<Virtuoso
+							data={requests}
+							height={windowHeight - 190}
+							width={containerWidth}
+							itemContent={itemContent}
+							totalCount={requests.length}
+							overscan={8}
+							style={{
+								overflowX: "hidden",
+								overflowY: "auto",
+								height: windowHeight - 190 + "px",
+								width: containerWidth + "px"
+							}}
+						/>
+					)}
 				</Flex>
 			</>
 		)

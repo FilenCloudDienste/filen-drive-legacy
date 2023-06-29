@@ -1,7 +1,5 @@
-import { memo, useRef, useMemo, useEffect, useState } from "react"
+import { memo, useRef, useMemo, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
-import useIsMobile from "../../lib/hooks/useIsMobile"
-import useLang from "../../lib/hooks/useLang"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { Note as INote, NoteType } from "../../lib/api"
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror"
@@ -38,8 +36,6 @@ export const Editor = memo(
 		canEdit: boolean
 	}) => {
 		const darkMode = useDarkMode()
-		const lang = useLang()
-		const isMobile = useIsMobile()
 		const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
 		const quillRef = useRef<ReactQuill>(null)
 

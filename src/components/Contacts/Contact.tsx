@@ -1,5 +1,5 @@
 import { memo, useState } from "react"
-import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import { getColor } from "../../styles/colors"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -9,6 +9,23 @@ import AppText from "../AppText"
 import { IoEllipsisVertical } from "react-icons/io5"
 import striptags from "striptags"
 import eventListener from "../../lib/eventListener"
+
+export const ContactSkeleton = memo(() => {
+	const darkMode = useDarkMode()
+
+	return (
+		<Skeleton
+			startColor={getColor(darkMode, "backgroundSecondary")}
+			endColor={getColor(darkMode, "backgroundTertiary")}
+			height="75px"
+			width="100%"
+			marginBottom="5px"
+			borderRadius="10px"
+		>
+			&nbsp;
+		</Skeleton>
+	)
+})
 
 export const Contact = memo(({ contact }: { contact: IContact }) => {
 	const darkMode = useDarkMode()

@@ -674,6 +674,8 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 				height={windowHeight / 2 + "px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "upload")}</ModalHeader>

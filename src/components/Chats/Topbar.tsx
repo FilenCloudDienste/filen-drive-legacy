@@ -1,9 +1,10 @@
-import { memo, useMemo, useRef, useEffect } from "react"
+import { memo, useMemo } from "react"
 import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import AppText from "../AppText"
+import { getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
 
 export interface TopbarProps {
 	darkMode: boolean
@@ -47,7 +48,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 						borderRadius="full"
 					>
 						<Avatar
-							name={Math.random().toString()}
+							name="skeleton"
 							width="25px"
 							height="25px"
 							borderRadius="full"
@@ -70,7 +71,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 							marginLeft="10px"
 							fontWeight="bold"
 						>
-							{Math.random().toString()}
+							{randomStringUnsafe(getRandomArbitrary(10, 32))}
 						</AppText>
 					</Skeleton>
 				</Flex>

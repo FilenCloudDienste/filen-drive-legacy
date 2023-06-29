@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useRef } from "react"
+import { memo, useState, useCallback } from "react"
 import { getColor } from "../../styles/colors"
 import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import { ChatConversation, ChatConversationParticipant, ChatConversationsOnline } from "../../lib/api"
@@ -8,6 +8,7 @@ import { IoCloseOutline } from "react-icons/io5"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import striptags from "striptags"
+import { randomStringUnsafe, getRandomArbitrary } from "../../lib/helpers"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -49,7 +50,7 @@ export const MemberSkeleton = memo(() => {
 						borderRadius="full"
 					>
 						<Avatar
-							name={Math.random().toString()}
+							name="skeleton"
 							width="30px"
 							height="30px"
 							borderRadius="full"
@@ -71,7 +72,7 @@ export const MemberSkeleton = memo(() => {
 							marginLeft="10px"
 							fontSize={15}
 						>
-							{Math.random().toString()}
+							{randomStringUnsafe(getRandomArbitrary(8, 16))}
 						</AppText>
 					</Skeleton>
 				</Flex>

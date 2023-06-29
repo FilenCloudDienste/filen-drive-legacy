@@ -298,7 +298,8 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "fileHasBeenChanged")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

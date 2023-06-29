@@ -137,9 +137,10 @@ export const HistoryModal = memo(() => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "notesHistory")}</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "noteHistory")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					width={windowWidth + "px"}

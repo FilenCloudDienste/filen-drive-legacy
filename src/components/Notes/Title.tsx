@@ -1,6 +1,5 @@
 import { memo, useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Input } from "@chakra-ui/react"
-import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import { Note as INote, editNoteTitle } from "../../lib/api"
@@ -22,7 +21,6 @@ export const Title = memo(
 		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
 		setSynced: React.Dispatch<React.SetStateAction<{ title: boolean; content: boolean }>>
 	}) => {
-		const isMobile = useIsMobile()
 		const darkMode = useDarkMode()
 		const [title, setTitle] = useState<string>("")
 		const titleRef = useRef<string>("")

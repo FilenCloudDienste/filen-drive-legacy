@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useEffect, useCallback } from "react"
-import { Flex, Tabs, TabList, TabPanel, TabPanels, Tab } from "@chakra-ui/react"
+import { Flex, Tabs, TabList, TabPanel, TabPanels, Tab, Badge } from "@chakra-ui/react"
 import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import { getColor } from "../../styles/colors"
@@ -24,6 +24,9 @@ import ContextMenus from "./ContextMenus"
 import RequestsList from "./RequestsList"
 import eventListener from "../../lib/eventListener"
 import BlockedList from "./BlockedList"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
+import AppText from "../AppText"
 
 export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const windowWidth = useWindowWidth()
@@ -37,6 +40,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const [blocked, setBlocked] = useState<BlockedContact[]>([])
 	const location = useLocation()
 	const navigate = useNavigate()
+	const lang = useLang()
 
 	const [activeTab, activeTabIndex] = useMemo(() => {
 		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]
@@ -154,7 +158,6 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 		setOutgoingRequests(res[1])
 		setIncomingRequests(res[2])
 		setBlocked(res[3])
-
 		setLoadingContacts(false)
 	}, [])
 
@@ -204,7 +207,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						}}
 						onClick={() => navigate("/#/contacts/online")}
 					>
-						Online
+						{i18n(lang, "contactsOnline")}
 					</Tab>
 					<Tab
 						_hover={{
@@ -212,7 +215,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						}}
 						onClick={() => navigate("/#/contacts/all")}
 					>
-						All
+						{i18n(lang, "contactsAll")}
 					</Tab>
 					<Tab
 						_hover={{
@@ -220,7 +223,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						}}
 						onClick={() => navigate("/#/contacts/offline")}
 					>
-						Offline
+						{i18n(lang, "contactsOffline")}
 					</Tab>
 					<Tab
 						_hover={{
@@ -228,7 +231,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						}}
 						onClick={() => navigate("/#/contacts/pending")}
 					>
-						Pending
+						{i18n(lang, "contactsPending")}
 					</Tab>
 					<Tab
 						_hover={{
@@ -239,7 +242,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						alignItems="center"
 						gap="10px"
 					>
-						<Flex>Requests</Flex>
+						<Flex>{i18n(lang, "contactsRequests")}</Flex>
 						{incomingRequests.length > 0 && (
 							<Flex
 								width="20px"
@@ -263,8 +266,37 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						}}
 						onClick={() => navigate("/#/contacts/blocked")}
 					>
-						Blocked
+						{i18n(lang, "contactsBlocked")}
 					</Tab>
+					<Flex
+						paddingLeft="15px"
+						paddingRight="15px"
+						justifyContent="center"
+						alignItems="center"
+					>
+						<Badge
+							cursor="pointer"
+							onClick={() => eventListener.emit("openAddContactModal")}
+							backgroundColor={getColor(darkMode, "green")}
+							borderRadius="5px"
+							paddingLeft="8px"
+							paddingRight="8px"
+							paddingTop="2px"
+							paddingBottom="2px"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								noOfLines={1}
+								wordBreak="break-all"
+								color="white"
+								fontWeight="600 !important"
+								fontSize={14}
+							>
+								{i18n(lang, "addContactSmall")}
+							</AppText>
+						</Badge>
+					</Flex>
 				</TabList>
 				<TabPanels zIndex={101}>
 					<TabPanel
@@ -275,8 +307,9 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							search={search}
 							setSearch={setSearch}
 							contacts={contactsSorted}
-							activeTab={activeTab}
+							activeTab="contacts/online"
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 					<TabPanel
@@ -287,8 +320,9 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							search={search}
 							setSearch={setSearch}
 							contacts={contactsSorted}
-							activeTab={activeTab}
+							activeTab="contacts/all"
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 					<TabPanel
@@ -299,8 +333,9 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							search={search}
 							setSearch={setSearch}
 							contacts={contactsSorted}
-							activeTab={activeTab}
+							activeTab="contacts/offline"
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 					<TabPanel
@@ -311,8 +346,9 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							search={search}
 							setSearch={setSearch}
 							requests={outgoingRequestsSorted}
-							activeTab={activeTab}
+							activeTab="contacts/pending"
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 					<TabPanel
@@ -323,8 +359,9 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							search={search}
 							setSearch={setSearch}
 							requests={incomingRequestsSorted}
-							activeTab={activeTab}
+							activeTab="contacts/requests"
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 					<TabPanel
@@ -337,6 +374,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							blocked={blockedSorted}
 							setBlocked={setBlocked}
 							containerWidth={containerWidth}
+							loadingContacts={loadingContacts}
 						/>
 					</TabPanel>
 				</TabPanels>

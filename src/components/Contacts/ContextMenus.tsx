@@ -11,14 +11,13 @@ import {
 import { Contact as IContact, contactsDelete, contactsBlockedAdd } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import useIsMobile from "../../lib/hooks/useIsMobile"
 import eventListener from "../../lib/eventListener"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import { safeAwait } from "../../lib/helpers"
+import { i18n } from "../../i18n"
 
 const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.SetStateAction<IContact[]>> }) => {
 	const darkMode = useDarkMode()
-	const isMobile = useIsMobile()
 	const lang = useLang()
 	const [selectedContact, setSelectedContact] = useState<IContact | undefined>(undefined)
 
@@ -27,7 +26,7 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 			return
 		}
 
-		const loadingToast = showToast("loading", "Deleting contact", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(contactsDelete(selectedContact.uuid))
 
@@ -44,14 +43,14 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 		dismissToast(loadingToast)
 
 		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContact.uuid))
-	}, [selectedContact])
+	}, [selectedContact, lang])
 
 	const block = useCallback(async () => {
 		if (!selectedContact) {
 			return
 		}
 
-		const loadingToast = showToast("loading", "Blocking contact", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(contactsBlockedAdd(selectedContact.email))
 
@@ -68,7 +67,7 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 		dismissToast(loadingToast)
 
 		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContact.uuid))
-	}, [selectedContact])
+	}, [selectedContact, lang])
 
 	useEffect(() => {
 		const openContactContextMenuListener = eventListener.on(
@@ -101,8 +100,8 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 			>
 				{selectedContact && (
 					<>
-						<ContextMenuItem onClick={() => del()}>Remove</ContextMenuItem>
-						<ContextMenuItem onClick={() => block()}>Block</ContextMenuItem>
+						<ContextMenuItem onClick={() => del()}>{i18n(lang, "removeUser")}</ContextMenuItem>
+						<ContextMenuItem onClick={() => block()}>{i18n(lang, "blockUser")}</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>

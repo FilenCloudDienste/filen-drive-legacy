@@ -43,8 +43,8 @@ export const AddContactModal = memo(() => {
 			return
 		}
 
-		showToast("success", "Contact request sent", "bottom", 5000)
-	}, [email])
+		showToast("success", i18n(lang, "contactRequestSent"), "bottom", 5000)
+	}, [email, lang])
 
 	useEffect(() => {
 		const openAddContactModalListener = eventListener.on("openAddContactModal", () => {
@@ -69,9 +69,10 @@ export const AddContactModal = memo(() => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "chatNew")}</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "addContact")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody
 					height="100%"
@@ -83,7 +84,7 @@ export const AddContactModal = memo(() => {
 						darkMode={darkMode}
 						isMobile={isMobile}
 						value={email}
-						placeholder={i18n(lang, "chatNewInviteEmail")}
+						placeholder={i18n(lang, "addContactEmail")}
 						autoFocus={true}
 						onChange={e => setEmail(e.target.value)}
 						color={getColor(darkMode, "textSecondary")}

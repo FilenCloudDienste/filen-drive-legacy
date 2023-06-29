@@ -12,6 +12,8 @@ import { AiOutlineSync, AiOutlineCheckCircle } from "react-icons/ai"
 import { IoEllipsisVertical } from "react-icons/io5"
 import { useNavigate } from "react-router-dom"
 import eventListener from "../../lib/eventListener"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
 
 export const Topbar = memo(
 	({
@@ -31,6 +33,7 @@ export const Topbar = memo(
 		const isMobile = useIsMobile()
 		const [hoveringEllipsis, setHoveringEllipsis] = useState<boolean>(false)
 		const navigate = useNavigate()
+		const lang = useLang()
 
 		return (
 			<Flex
@@ -53,7 +56,7 @@ export const Topbar = memo(
 				>
 					<Flex>
 						<Tooltip
-							label={synced.content && synced.title ? "Note synced" : "Syncing note..."}
+							label={synced.content && synced.title ? i18n(lang, "noteSynced") : i18n(lang, "syncingNote")}
 							placement="bottom"
 							borderRadius="5px"
 							backgroundColor={getColor(darkMode, "backgroundSecondary")}

@@ -26,6 +26,7 @@ import { decryptNoteKeyParticipant, encryptMetadataPublicKey } from "../../lib/w
 import db from "../../lib/db"
 import { IoPersonRemoveOutline } from "react-icons/io5"
 import useDb from "../../lib/hooks/useDb"
+import { i18n } from "../../i18n"
 
 export const Contact = memo(({ contact, note }: { contact: IContact; note: INote | undefined }) => {
 	const darkMode = useDarkMode()
@@ -38,7 +39,7 @@ export const Contact = memo(({ contact, note }: { contact: IContact; note: INote
 			return
 		}
 
-		const loadingToast = showToast("loading", "Adding contact", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [publicKeyErr, publicKeyRes] = await safeAwait(getPublicKeyFromEmail(contact.email))
 
@@ -89,7 +90,7 @@ export const Contact = memo(({ contact, note }: { contact: IContact; note: INote
 			metadata,
 			permissionsWrite: true
 		})
-	}, [note, contact])
+	}, [note, contact, lang])
 
 	const remove = useCallback(async () => {}, [])
 
@@ -160,7 +161,7 @@ export const Contact = memo(({ contact, note }: { contact: IContact; note: INote
 						textDecoration: "underline"
 					}}
 				>
-					{added ? "Remove" : "Add"}
+					{added ? i18n(lang, "remove") : i18n(lang, "add")}
 				</AppText>
 			</Flex>
 		</Flex>
@@ -235,10 +236,10 @@ export const AddContactModal = memo(() => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "10px"}
-				border={isMobile ? undefined : "1px solid " + getColor(darkMode, "borderPrimary")}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>Participants</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "participants")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody>
 					{note && (
@@ -277,6 +278,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 	const [hoveringRemove, setHoveringRemove] = useState<boolean>(false)
 	const [permissions, setPermissions] = useState<{ write: boolean }>({ write: participant.permissionsWrite })
 	const [userId] = useDb("userId", 0)
+	const lang = useLang()
 
 	const changePermissions = useCallback(
 		async (permissionsWrite: boolean) => {
@@ -284,7 +286,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 				return
 			}
 
-			const loadingToast = showToast("loading", "Changing permissions", "bottom", 864000000)
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 			const [err] = await safeAwait(
 				noteParticipantsPermissions({
@@ -314,7 +316,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 				permissionsWrite
 			})
 		},
-		[participant, note]
+		[participant, note, lang]
 	)
 
 	const remove = useCallback(async () => {
@@ -322,7 +324,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 			return
 		}
 
-		const loadingToast = showToast("loading", "Removing participant", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(
 			noteParticipantsRemove({
@@ -347,7 +349,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 			note,
 			userId: participant.userId
 		})
-	}, [participant, note])
+	}, [participant, note, lang])
 
 	return (
 		<Flex
@@ -401,7 +403,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 						backgroundColor={getColor(darkMode, "purple")}
 						color="white"
 					>
-						Owner
+						{i18n(lang, "owner")}
 					</Badge>
 				)}
 			</Flex>
@@ -414,7 +416,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 					<>
 						{participant.userId !== userId && !participant.isOwner && (
 							<Tooltip
-								label="Remove user"
+								label={i18n(lang, "removeParticipantNote")}
 								placement="top"
 								borderRadius="5px"
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
@@ -453,7 +455,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 						)}
 						{permissions.write ? (
 							<Tooltip
-								label="User has write permissions, click to change"
+								label={i18n(lang, "toggleParticipantWritePermissions")}
 								placement="top"
 								borderRadius="5px"
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
@@ -493,7 +495,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 							</Tooltip>
 						) : (
 							<Tooltip
-								label="User has read permissions, click to change"
+								label={i18n(lang, "toggleParticipantReadPermissionsClick")}
 								placement="top"
 								borderRadius="5px"
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
@@ -661,10 +663,10 @@ export const AddParticipantModal = memo(() => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "10px"}
-				border={isMobile ? undefined : "1px solid " + getColor(darkMode, "borderPrimary")}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>Participants</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "participants")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody>
 					{note && (
@@ -704,7 +706,7 @@ export const AddParticipantModal = memo(() => {
 								textDecoration: "underline"
 							}}
 						>
-							Add new participant
+							{i18n(lang, "addNewParticipant")}
 						</AppText>
 					)}
 				</ModalFooter>

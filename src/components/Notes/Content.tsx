@@ -325,7 +325,7 @@ export const Content = memo(
 							paddingBottom="15px"
 							paddingTop="15px"
 						>
-							{new Array(getRandomArbitrary(15, 30)).fill(1).map((_, index) => {
+							{new Array(20).fill(1).map((_, index) => {
 								return <ContentSkeleton key={index} />
 							})}
 						</Flex>

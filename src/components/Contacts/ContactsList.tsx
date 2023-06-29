@@ -7,8 +7,9 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { Contact as IContact } from "../../lib/api"
 import AppText from "../AppText"
 import { Virtuoso } from "react-virtuoso"
-import Contact from "./Contact"
-import eventListener from "../../lib/eventListener"
+import { Contact, ContactSkeleton } from "./Contact"
+import { i18n } from "../../i18n"
+import useLang from "../../lib/hooks/useLang"
 
 export const ContactsList = memo(
 	({
@@ -16,17 +17,20 @@ export const ContactsList = memo(
 		setSearch,
 		contacts,
 		activeTab,
-		containerWidth
+		containerWidth,
+		loadingContacts
 	}: {
 		search: string
 		setSearch: React.Dispatch<React.SetStateAction<string>>
 		contacts: IContact[]
 		activeTab: string
 		containerWidth: number
+		loadingContacts: boolean
 	}) => {
 		const darkMode = useDarkMode()
 		const isMobile = useIsMobile()
 		const windowHeight = useWindowHeight()
+		const lang = useLang()
 
 		const itemContent = useCallback((index: number, contact: IContact) => {
 			return (
@@ -81,13 +85,6 @@ export const ContactsList = memo(
 						}}
 						fontSize={15}
 					/>
-					<Button
-						width="35px"
-						borderRadius="10px"
-						onClick={() => eventListener.emit("openAddContactModal")}
-					>
-						Add
-					</Button>
 				</Flex>
 				<Flex
 					flexDirection="row"
@@ -103,7 +100,11 @@ export const ContactsList = memo(
 						fontSize={13}
 						textTransform="uppercase"
 					>
-						{activeTab === "contacts/online" ? "Online" : activeTab === "contacts/offline" ? "Offline" : "All"}
+						{activeTab === "contacts/online"
+							? i18n(lang, "contactsOnline")
+							: activeTab === "contacts/offline"
+							? i18n(lang, "contactsOffline")
+							: i18n(lang, "contactsAll")}
 					</AppText>
 					<AppText
 						darkMode={darkMode}
@@ -134,20 +135,28 @@ export const ContactsList = memo(
 					width={containerWidth + "px"}
 					height={windowHeight - 190 + "px"}
 				>
-					<Virtuoso
-						data={contacts}
-						height={windowHeight - 190}
-						width={containerWidth}
-						itemContent={itemContent}
-						totalCount={contacts.length}
-						overscan={8}
-						style={{
-							overflowX: "hidden",
-							overflowY: "auto",
-							height: windowHeight - 190 + "px",
-							width: containerWidth + "px"
-						}}
-					/>
+					{loadingContacts ? (
+						<>
+							{new Array(8).fill(1).map((_, index) => {
+								return <ContactSkeleton key={index} />
+							})}
+						</>
+					) : (
+						<Virtuoso
+							data={contacts}
+							height={windowHeight - 190}
+							width={containerWidth}
+							itemContent={itemContent}
+							totalCount={contacts.length}
+							overscan={8}
+							style={{
+								overflowX: "hidden",
+								overflowY: "auto",
+								height: windowHeight - 190 + "px",
+								width: containerWidth + "px"
+							}}
+						/>
+					)}
 				</Flex>
 			</>
 		)

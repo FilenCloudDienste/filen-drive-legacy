@@ -9,15 +9,18 @@ import { IoCloseOutline } from "react-icons/io5"
 import striptags from "striptags"
 import { safeAwait } from "../../lib/helpers"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
+import { i18n } from "../../i18n"
+import useLang from "../../lib/hooks/useLang"
 
 export const Blocked = memo(
 	({ block, setBlocked }: { block: BlockedContact; setBlocked: React.Dispatch<React.SetStateAction<BlockedContact[]>> }) => {
 		const darkMode = useDarkMode()
 		const isMobile = useIsMobile()
 		const [hovering, setHovering] = useState<boolean>(false)
+		const lang = useLang()
 
 		const del = useCallback(async () => {
-			const loadingToast = showToast("loading", "Deleting block", "bottom", 864000000)
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 			const [err] = await safeAwait(contactsBlockedDelete(block.uuid))
 
@@ -34,7 +37,7 @@ export const Blocked = memo(
 			dismissToast(loadingToast)
 
 			setBlocked(prev => prev.filter(b => b.uuid !== block.uuid))
-		}, [block])
+		}, [block, lang])
 
 		return (
 			<Flex

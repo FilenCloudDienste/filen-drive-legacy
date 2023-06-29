@@ -389,7 +389,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 		>
 			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
 			<ModalContent
-				backgroundColor={getColor(darkMode, "backgroundPrimary")}
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
 				borderRadius="0px"
 				padding="0px"

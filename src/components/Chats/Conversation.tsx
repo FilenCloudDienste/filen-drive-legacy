@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import AppText from "../AppText"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
 import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -45,7 +45,7 @@ export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 							borderRadius="full"
 						>
 							<Avatar
-								name={Math.random().toString()}
+								name="skeleton"
 								width="30px"
 								height="30px"
 								borderRadius="full"
@@ -69,7 +69,7 @@ export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 								marginLeft="10px"
 								fontSize={15}
 							>
-								{Math.random().toString()}
+								{randomStringUnsafe(getRandomArbitrary(8, 16))}
 							</AppText>
 						</Skeleton>
 						<Skeleton
@@ -87,7 +87,7 @@ export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 								marginLeft="10px"
 								fontSize={12}
 							>
-								{Math.random().toString()}
+								{randomStringUnsafe(getRandomArbitrary(16, 32))}
 							</AppText>
 						</Skeleton>
 					</Flex>

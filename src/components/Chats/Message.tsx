@@ -10,6 +10,8 @@ import eventListener from "../../lib/eventListener"
 import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
 
 export const MessageSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -38,7 +40,7 @@ export const MessageSkeleton = memo(({ index }: { index: number }) => {
 						borderRadius="full"
 					>
 						<Avatar
-							name={Math.random().toString()}
+							name="skeleton"
 							width="32px"
 							height="32px"
 							borderRadius="full"
@@ -170,6 +172,7 @@ export const OuterMessage = memo(
 		setHoveringMessage: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
 		const [hoveringPopover, setHoveringPopover] = useState<boolean>(false)
+		const lang = useLang()
 
 		const deleteMessage = useCallback(async () => {
 			const [err] = await safeAwait(chatDelete(message.uuid))
@@ -219,7 +222,7 @@ export const OuterMessage = memo(
 								flexDirection="row"
 							>
 								<Tooltip
-									label="Delete"
+									label={i18n(lang, "delete")}
 									placement="top"
 									borderRadius="5px"
 									backgroundColor={getColor(darkMode, "backgroundSecondary")}

@@ -11,14 +11,17 @@ import striptags from "striptags"
 import { safeAwait } from "../../lib/helpers"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import eventListener from "../../lib/eventListener"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
 
 export const Request = memo(({ request, activeTab }: { request: ContactRequest; activeTab: string }) => {
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
 	const [hovering, setHovering] = useState<boolean>(false)
+	const lang = useLang()
 
 	const del = useCallback(async () => {
-		const loadingToast = showToast("loading", "Deleting request", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(
 			activeTab === "contacts/pending" ? contactsRequestsOutDelete(request.uuid) : contactsRequestsDeny(request.uuid)
@@ -37,10 +40,10 @@ export const Request = memo(({ request, activeTab }: { request: ContactRequest; 
 		dismissToast(loadingToast)
 
 		eventListener.emit("removeContactRequest", request.uuid)
-	}, [request, activeTab])
+	}, [request, activeTab, lang])
 
 	const accept = useCallback(async () => {
-		const loadingToast = showToast("loading", "Accepting request", "bottom", 864000000)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
 		const [err] = await safeAwait(contactsRequestsAccept(request.uuid))
 
@@ -57,7 +60,7 @@ export const Request = memo(({ request, activeTab }: { request: ContactRequest; 
 		dismissToast(loadingToast)
 
 		eventListener.emit("removeContactRequest", request.uuid)
-	}, [request])
+	}, [request, lang])
 
 	return (
 		<Flex

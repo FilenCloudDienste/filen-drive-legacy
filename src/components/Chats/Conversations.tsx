@@ -359,13 +359,11 @@ export const Conversations = memo(
 						onMouseLeave={() => setHoveringAdd(false)}
 						onClick={() => eventListener.emit("openNewConversationModal")}
 						cursor="pointer"
-						className="do-not-unselect-items"
 					>
 						<IoIosAdd
 							size={24}
 							color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
 							cursor="pointer"
-							className="do-not-unselect-items"
 							style={{
 								flexShrink: 0
 							}}
