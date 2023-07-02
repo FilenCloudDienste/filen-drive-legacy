@@ -76,6 +76,8 @@ export const isItemVisible = (item: ItemProps): boolean => {
 export const generateThumbnailAfterUpload = async (file: File, uuid: string, name: string) => {
 	isGeneratingThumbnailForUUID[uuid] = true
 
+	await thumbnailSemaphore.acquire()
+
 	try {
 		const type = getFilePreviewType(getFileExt(name))
 
@@ -127,6 +129,8 @@ export const generateThumbnailAfterUpload = async (file: File, uuid: string, nam
 	} catch (e) {
 		console.error(e)
 	}
+
+	thumbnailSemaphore.release()
 
 	isGeneratingThumbnailForUUID[uuid] = false
 }

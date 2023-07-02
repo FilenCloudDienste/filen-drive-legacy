@@ -1,7 +1,7 @@
 import { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
 import { generateRandomString, Semaphore, getUploadV3Server, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
-import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
+import { encryptMetadata, hashFn, encryptAndUploadFileChunk } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
 import { MAX_CONCURRENT_UPLOADS, MAX_UPLOAD_THREADS, UPLOAD_VERSION } from "../../constants"
@@ -10,7 +10,6 @@ import { fetchUserInfoCached } from "../user"
 import { generateThumbnailAfterUpload } from "../thumbnails"
 import { show as showToast } from "../../../components/Toast/Toast"
 import { i18n } from "../../../i18n"
-import memoryCache from "../../memoryCache"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
@@ -250,8 +249,6 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			}
 		}
 
-		memoryCache.set("suppressFileNewSocketEvent:" + uuid, uuid)
-
 		try {
 			const done = await markUploadAsDone({
 				uuid,
@@ -292,13 +289,18 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			return reject(e)
 		}
 
-		/*try {
+		try {
 			if (canCompressThumbnail(getFileExt(name))) {
 				await generateThumbnailAfterUpload(item.file, uuid, name)
 			}
 		} catch (e) {
 			console.error(e)
-		}*/
+		}
+
+		eventListener.emit("upload", {
+			type: "done",
+			data: item
+		})
 
 		cleanup()
 
@@ -331,11 +333,6 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 
 		eventListener.emit("fileUploaded", {
 			item: newItem
-		})
-
-		eventListener.emit("upload", {
-			type: "done",
-			data: item
 		})
 
 		resolve(newItem)
