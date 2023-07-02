@@ -8,6 +8,8 @@ const mutex = new Semaphore(1)
 export const DEFAULT_PARENTS: string[] = ["shared-in", "shared-out", "favorites", "recent", "trash", "links"]
 
 export const addItemsToStore = async (items: ItemProps[], parent: string): Promise<void> => {
+	return
+
 	await mutex.acquire()
 
 	try {
@@ -84,6 +86,8 @@ export const addItemsToStore = async (items: ItemProps[], parent: string): Promi
 }
 
 export const removeItemsFromStore = async (items: ItemProps[], parent: string): Promise<void> => {
+	return
+
 	await mutex.acquire()
 
 	try {
@@ -150,6 +154,8 @@ export const removeItemsFromStore = async (items: ItemProps[], parent: string): 
 }
 
 export const changeItemsInStore = async (items: ItemProps[], parent: string): Promise<void> => {
+	return
+
 	await mutex.acquire()
 
 	try {
@@ -237,12 +243,9 @@ export const changeItemsInStore = async (items: ItemProps[], parent: string): Pr
 
 export type ChangeItemInStorePropTypes = "name" | "color"
 
-export const changeItemInStore = async (
-	uuid: string,
-	parent: string,
-	prop: ChangeItemInStorePropTypes,
-	value: any
-): Promise<void> => {
+export const changeItemInStore = async (uuid: string, parent: string, prop: ChangeItemInStorePropTypes, value: any): Promise<void> => {
+	return
+
 	await mutex.acquire()
 
 	try {
@@ -331,13 +334,12 @@ export const changeItemInStore = async (
 }
 
 export const clearItemsInStore = async (parent: string): Promise<void> => {
+	return
+
 	await mutex.acquire()
 
 	try {
-		await Promise.all([
-			db.set("loadItems:" + parent, [], "metadata"),
-			db.set("loadSidebarItems:" + parent, [], "metadata")
-		])
+		await Promise.all([db.set("loadItems:" + parent, [], "metadata"), db.set("loadSidebarItems:" + parent, [], "metadata")])
 	} catch (e) {
 		mutex.release()
 

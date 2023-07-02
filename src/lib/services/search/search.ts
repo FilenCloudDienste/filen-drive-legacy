@@ -7,6 +7,8 @@ const addedToDb: { [key: string]: boolean } = {}
 let inDb: ItemProps[] = []
 
 export const addToSearchItems = async (items: ItemProps[]): Promise<boolean> => {
+	return true
+
 	await addSemaphore.acquire()
 
 	const toAdd: ItemProps[] = []
@@ -58,6 +60,8 @@ export const addToSearchItems = async (items: ItemProps[]): Promise<boolean> => 
 }
 
 export const searchByName = async (name: string): Promise<ItemProps[]> => {
+	return []
+
 	try {
 		let searchItems: ItemProps[] = await db.get("searchItems", "metadata")
 
