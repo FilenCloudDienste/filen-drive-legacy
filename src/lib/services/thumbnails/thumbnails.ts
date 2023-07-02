@@ -3,12 +3,7 @@ import imageCompression from "browser-image-compression"
 import { downloadFile } from "../download"
 import db from "../../db"
 import memoryCache from "../../memoryCache"
-import {
-	MAX_THUMBNAIL_TRIES,
-	MAX_CONCURRENT_THUMBNAIL_GENERATIONS,
-	THUMBNAIL_DIMENSIONS,
-	THUMBNAIL_VERSION
-} from "../../constants"
+import { MAX_THUMBNAIL_TRIES, MAX_CONCURRENT_THUMBNAIL_GENERATIONS, THUMBNAIL_DIMENSIONS, THUMBNAIL_VERSION } from "../../constants"
 import { Semaphore, getFileExt, getFilePreviewType } from "../../helpers"
 import { convertHeic } from "../../worker/worker.com"
 import eventListener from "../../eventListener"
@@ -81,6 +76,8 @@ export const isItemVisible = (item: ItemProps): boolean => {
 export const generateThumbnailAfterUpload = async (file: File, uuid: string, name: string) => {
 	isGeneratingThumbnailForUUID[uuid] = true
 
+	await thumbnailSemaphore.acquire()
+
 	try {
 		const type = getFilePreviewType(getFileExt(name))
 
@@ -125,8 +122,6 @@ export const generateThumbnailAfterUpload = async (file: File, uuid: string, nam
 
 		memoryCache.set(cacheKey, url)
 
-		thumbnailSemaphore.release()
-
 		eventListener.emit("thumbnailGenerated", {
 			uuid: uuid,
 			url
@@ -134,6 +129,8 @@ export const generateThumbnailAfterUpload = async (file: File, uuid: string, nam
 	} catch (e) {
 		console.error(e)
 	}
+
+	thumbnailSemaphore.release()
 
 	isGeneratingThumbnailForUUID[uuid] = false
 }

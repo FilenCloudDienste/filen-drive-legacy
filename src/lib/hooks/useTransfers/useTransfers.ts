@@ -23,13 +23,9 @@ const useTransfers = ({
 
 	useEffect(() => {
 		const uploadListener = eventListener.on("upload", (data: Upload) => {
-			if (memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
-				return
-			}
+			const now = Date.now()
 
-			const now: number = Date.now()
-
-			if (data.type == "start") {
+			if (data.type === "start" && !memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
 				if (typeof onUploadStart == "function") {
 					onUploadStart(data)
 				}
@@ -47,7 +43,9 @@ const useTransfers = ({
 						timestamp: now
 					}
 				}))
-			} else if (data.type == "started") {
+			}
+
+			if (data.type == "started" && !memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
 				if (typeof onUploadStarted == "function") {
 					onUploadStarted(data)
 				}
@@ -65,7 +63,9 @@ const useTransfers = ({
 						timestamp: now
 					}
 				}))
-			} else if (data.type == "done") {
+			}
+
+			if (data.type == "done") {
 				if (typeof onUploadDone == "function") {
 					onUploadDone(data)
 				}
@@ -75,7 +75,9 @@ const useTransfers = ({
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 				)
-			} else if (data.type == "err") {
+			}
+
+			if (data.type == "err") {
 				if (typeof onUploadError == "function") {
 					onUploadError(data)
 				}
@@ -89,13 +91,9 @@ const useTransfers = ({
 		})
 
 		const downloadListener = eventListener.on("download", (data: Download) => {
-			if (memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
-				return
-			}
+			const now = Date.now()
 
-			const now: number = Date.now()
-
-			if (data.type == "start") {
+			if (data.type == "start" && !memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
 				if (typeof onDownloadStart == "function") {
 					onDownloadStart(data)
 				}
@@ -114,7 +112,9 @@ const useTransfers = ({
 						timestamp: now
 					}
 				}))
-			} else if (data.type == "started") {
+			}
+
+			if (data.type == "started") {
 				if (typeof onDownloadStarted == "function") {
 					onDownloadStarted(data)
 				}
@@ -133,7 +133,9 @@ const useTransfers = ({
 						timestamp: now
 					}
 				}))
-			} else if (data.type == "done") {
+			}
+
+			if (data.type == "done") {
 				if (typeof onDownloadDone == "function") {
 					onDownloadDone(data)
 				}
@@ -143,7 +145,9 @@ const useTransfers = ({
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 				)
-			} else if (data.type == "err") {
+			}
+
+			if (data.type == "err") {
 				if (typeof onDownloadError == "function") {
 					onDownloadError(data)
 				}
@@ -161,7 +165,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = Date.now()
+			const now = Date.now()
 
 			if (typeof onUploadProgress == "function") {
 				onUploadProgress(data)
@@ -196,7 +200,7 @@ const useTransfers = ({
 				return
 			}
 
-			const now: number = Date.now()
+			const now = Date.now()
 
 			if (typeof onDownloadProgress == "function") {
 				onDownloadProgress(data)
@@ -227,10 +231,6 @@ const useTransfers = ({
 		})
 
 		const stopTransferListener = eventListener.on("stopTransfer", (uuid: string) => {
-			if (memoryCache.has("hideTransferProgress:" + uuid)) {
-				return
-			}
-
 			if (typeof onTransferStopped == "function") {
 				onTransferStopped(uuid)
 			}
