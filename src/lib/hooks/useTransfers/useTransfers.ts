@@ -113,7 +113,7 @@ const useTransfers = ({
 				}))
 			}
 
-			if (data.type == "started") {
+			if (data.type == "started" && !memoryCache.has("hideTransferProgress:" + data.data.uuid)) {
 				if (typeof onDownloadStarted == "function") {
 					onDownloadStarted(data)
 				}
