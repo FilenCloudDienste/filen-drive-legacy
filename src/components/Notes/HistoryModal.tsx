@@ -4,19 +4,17 @@ import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import ModalCloseButton from "../ModalCloseButton"
-import { noteHistory, noteHistoryRestore, Note as INote, NoteHistory } from "../../lib/api"
-import { decryptNoteKeyParticipant, decryptNoteContent } from "../../lib/worker/worker.com"
+import { noteHistoryRestore, Note as INote, NoteHistory } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
-import Input from "../Input"
 import eventListener from "../../lib/eventListener"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
-import { show as showToast } from "../Toast/Toast"
+import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import Editor from "./Editor"
-import db from "../../lib/db"
+import { AutoSizer } from "react-virtualized"
 
 export const HistoryNote = memo(
 	({
@@ -66,60 +64,54 @@ export const HistoryModal = memo(() => {
 	const isMobile = useIsMobile()
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
-	const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
 	const [history, setHistory] = useState<NoteHistory[]>([])
-	const windowHeight = useWindowHeight()
-	const windowWidth = useWindowWidth()
 	const [selectedIndex, setSelectedIndex] = useState<number>(0)
 	const [selectedNote, setSelectedNote] = useState<INote | undefined>(undefined)
-	const selectedNoteRef = useRef<INote | undefined>(undefined)
+	const windowHeight = useWindowHeight()
 
-	const loadHistory = useCallback(async () => {
-		if (!selectedNoteRef.current) {
+	const restore = useCallback(async () => {
+		if (!selectedNote) {
 			return
 		}
 
-		setLoadingHistory(true)
+		const version = history[selectedIndex]
 
-		const [historyErr, historyRes] = await safeAwait(noteHistory(selectedNoteRef.current.uuid))
+		if (!version) {
+			return
+		}
 
-		if (historyErr) {
-			console.error(historyErr)
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
 
-			showToast("error", historyErr.toString(), "bottom", 5000)
+		const [err] = await safeAwait(noteHistoryRestore(selectedNote.uuid, version.id))
+
+		if (err) {
+			console.error(err)
+
+			dismissToast(loadingToast)
+
+			showToast("error", err.message, "bottom", 5000)
 
 			return
 		}
 
-		const privateKey = await db.get("privateKey")
-		const userId = await db.get("userId")
+		dismissToast(loadingToast)
 
-		for (let i = 0; i < historyRes.length; i++) {
-			const noteKey = await decryptNoteKeyParticipant(
-				selectedNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
-				privateKey
-			)
-			const contentDecrypted = await decryptNoteContent(historyRes[i].content, noteKey)
+		eventListener.emit("refreshNoteContent", selectedNote.uuid)
+		eventListener.emit("refreshNotes")
 
-			historyRes[i].content = contentDecrypted
-		}
-
-		setHistory(historyRes.sort((a, b) => b.editedTimestamp - a.editedTimestamp))
-		setLoadingHistory(false)
-	}, [])
+		setOpen(false)
+	}, [selectedNote, selectedIndex, history, lang])
 
 	useEffect(() => {
-		const openNoteHistoryModalListener = eventListener.on("openNoteHistoryModal", (note: INote) => {
-			selectedNoteRef.current = note
-
-			setSelectedNote(note)
-			setHistory([])
-			setLoadingHistory(true)
-			setOpen(true)
-			setSelectedIndex(0)
-
-			loadHistory()
-		})
+		const openNoteHistoryModalListener = eventListener.on(
+			"openNoteHistoryModal",
+			({ note, history }: { note: INote; history: NoteHistory[] }) => {
+				setSelectedNote(note)
+				setSelectedIndex(0)
+				setHistory(history)
+				setOpen(true)
+			}
+		)
 
 		return () => {
 			openNoteHistoryModalListener.remove()
@@ -131,66 +123,96 @@ export const HistoryModal = memo(() => {
 			onClose={() => setOpen(false)}
 			isOpen={open}
 			isCentered={true}
-			size={history.length > 0 ? "full" : isMobile ? "xl" : "md"}
+			size={isMobile ? "full" : "6xl"}
 		>
 			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius="10px"
-				border={"1px solid " + getColor(darkMode, "borderPrimary")}
+				borderRadius={isMobile ? "0px" : "10px"}
+				border={isMobile ? undefined : "1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "noteHistory")}</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "noteHistoryModal")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
-				<ModalBody
-					width={windowWidth + "px"}
-					height={windowHeight + "px"}
-				>
-					<Flex
-						flexDirection="row"
-						gap="15px"
+				<ModalBody>
+					<div
+						style={{
+							width: "100%",
+							height: Math.floor(windowHeight * 0.75) + "px"
+						}}
 					>
-						<Flex
-							flexDirection="column"
-							height={windowHeight - 150 + "px"}
-							width="300px"
-							overflowX="hidden"
-							overflowY="auto"
-						>
-							{history.map((note, index) => {
+						<AutoSizer>
+							{({ width, height }) => {
 								return (
-									<HistoryNote
-										key={note.id}
-										note={note}
-										index={index}
-										setSelectedIndex={setSelectedIndex}
-									/>
+									<Flex
+										flexDirection="row"
+										gap="15px"
+										height={height + "px"}
+										width={width + "px"}
+									>
+										<Flex
+											flexDirection="column"
+											width="300px"
+											height={height + "px"}
+											overflowX="hidden"
+											overflowY="auto"
+										>
+											{history.map((note, index) => {
+												return (
+													<HistoryNote
+														key={note.id}
+														note={note}
+														index={index}
+														setSelectedIndex={setSelectedIndex}
+													/>
+												)
+											})}
+										</Flex>
+										<Flex
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											borderRadius="10px"
+											height={height + "px"}
+											width={width - 300 + "px"}
+										>
+											{history.length > 0 && selectedNote && selectedIndex >= 0 && (
+												<Editor
+													height={height}
+													width={width - 300}
+													content={history[selectedIndex].content}
+													setContent={() => {}}
+													currentNote={selectedNote}
+													type={history[0].type}
+													onBlur={() => {}}
+													showMarkdownPreview={true}
+													onContentChange={() => {}}
+													canEdit={false}
+												/>
+											)}
+										</Flex>
+									</Flex>
 								)
-							})}
-						</Flex>
-						<Flex
-							backgroundColor={getColor(darkMode, "backgroundPrimary")}
-							height={windowHeight - 150 + "px"}
-							width={windowWidth - 350 + "px"}
-							borderRadius="10px"
-						>
-							{history.length > 0 && selectedNote && (
-								<Editor
-									height={windowHeight - 150}
-									width={windowWidth - 350}
-									content={history[selectedIndex].content}
-									setContent={() => {}}
-									currentNote={selectedNote}
-									type={history[0].type}
-									onBlur={() => {}}
-									showMarkdownPreview={true}
-									onContentChange={() => {}}
-									canEdit={false}
-								/>
-							)}
-						</Flex>
-					</Flex>
+							}}
+						</AutoSizer>
+					</div>
 				</ModalBody>
+				{history.length > 0 && selectedNote && selectedIndex >= 0 && (
+					<ModalFooter>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "linkPrimary")}
+							cursor="pointer"
+							onClick={() => restore()}
+							_hover={{
+								textDecoration: "underline"
+							}}
+						>
+							{i18n(lang, "noteHistoryRestore")}
+						</AppText>
+					</ModalFooter>
+				)}
 			</ModalContent>
 		</Modal>
 	)

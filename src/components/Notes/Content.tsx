@@ -201,7 +201,7 @@ export const Content = memo(
 			saveMutex.release()
 		}, [])
 
-		const debouncedSave = useCallback(debounce(save, 1000), [])
+		const debouncedSave = useCallback(debounce(save, 3000), [])
 
 		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
 			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {
@@ -241,7 +241,7 @@ export const Content = memo(
 			}
 
 			const refreshNoteContentListener = eventListener.on("refreshNoteContent", (uuid: string) => {
-				if (currentNote && uuid === currentNote.uuid) {
+				if (currentNote && uuid === currentNote.uuid && getCurrentParent(window.location.href) === uuid) {
 					loadContent()
 				}
 			})

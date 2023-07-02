@@ -72,7 +72,7 @@ export const Title = memo(
 			editMutex.release()
 		}, [])
 
-		const debouncedSave = useCallback(debounce(editTitle, 1000), [])
+		const debouncedSave = useCallback(debounce(editTitle, 3000), [])
 
 		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
 			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {

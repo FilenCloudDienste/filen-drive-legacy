@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
 import { i18n } from "../../i18n"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, generateAvatarColorCode } from "../../lib/helpers"
 
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
@@ -105,6 +105,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						width="28px"
 						height="28px"
 						src={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
+						bg={generateAvatarColorCode(userInfo.email, darkMode)}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}
 					/>

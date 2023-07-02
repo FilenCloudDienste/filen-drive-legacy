@@ -4,6 +4,7 @@ import { ItemProps, UploadQueueItemFile } from "../../types"
 import { DOWNLOAD_DOMAINS, API_V3_DOMAINS, UPLOAD_V3_DOMAINS } from "../constants"
 import { wrap, memoize, debounce } from "lodash"
 import DOMPurify from "dompurify"
+import { getColor } from "../../styles/colors"
 
 export const getAPIV3Server = (): string => {
 	return API_V3_DOMAINS[getRandomArbitrary(0, API_V3_DOMAINS.length - 1)]
@@ -535,13 +536,9 @@ export const canCompressThumbnail = (ext: string) => {
 		case "svg":
 		case "mp4":
 		case "webm":
-			//case "heif":
-			//case "heic":
 			return true
-			break
 		default:
 			return false
-			break
 	}
 }
 
@@ -554,13 +551,9 @@ export const canShowThumbnail = (ext: string) => {
 		case "svg":
 		case "mp4":
 		case "webm":
-			//case "heif":
-			//case "heic":
 			return true
-			break
 		default:
 			return false
-			break
 	}
 }
 
@@ -576,18 +569,15 @@ export const getFilePreviewType = (ext: string) => {
 		case "heic":
 		case "heif":
 			return "image"
-			break
 		case "mp3":
 		case "wav":
 		case "ogg":
 			return "audio"
-			break
 		case "mp4":
 		case "mov":
 		case "webm":
 		case "ogv":
 			return "video"
-			break
 		case "json":
 		case "swift":
 		case "m":
@@ -624,17 +614,13 @@ export const getFilePreviewType = (ext: string) => {
 		case "ts":
 		case "tsx":
 			return "text"
-			break
 		case "txt":
 		case "rtf":
 			return "text"
-			break
 		case "pdf":
 			return "pdf"
-			break
 		case "docx":
 			return "docx"
-			break
 		case "doc":
 		case "csv":
 		case "ppt":
@@ -643,12 +629,9 @@ export const getFilePreviewType = (ext: string) => {
 		case "xlsx":
 		case "bmp":
 		case "tiff":
-			//return "doc"
 			return "none"
-			break
 		default:
 			return "none"
-			break
 	}
 }
 
@@ -859,85 +842,58 @@ export const getImageForFileByExt = (ext: string) => {
 	switch (ext) {
 		case "pdf":
 			return require("../../assets/files/pdf.png")
-			break
 		case "doc":
 		case "docx":
 			return require("../../assets/files/doc.png")
-			break
 		case "exe":
 			return require("../../assets/files/exe.png")
-			break
 		case "mp3":
 			return require("../../assets/files/mp3.png")
-			break
 		case "json":
 			return require("../../assets/files/json-file.png")
-			break
 		case "png":
 			return require("../../assets/files/png.png")
-			break
-		//case "ico":
-		//  return require("../../assets/files/ico.png")
-		//break
 		case "txt":
 			return require("../../assets/files/txt.png")
-			break
 		case "jpg":
 		case "jpeg":
 			return require("../../assets/files/jpg.png")
-			break
 		case "iso":
 			return require("../../assets/files/iso.png")
-			break
 		case "js":
 			return require("../../assets/files/javascript.png")
-			break
 		case "html":
 			return require("../../assets/files/html.png")
-			break
 		case "css":
 			return require("../../assets/files/css.png")
-			break
 		case "csv":
 			return require("../../assets/files/csv.png")
-			break
 		case "avi":
 			return require("../../assets/files/avi.png")
-			break
 		case "mp4":
 			return require("../../assets/files/mp4.png")
-			break
 		case "ppt":
 			return require("../../assets/files/ppt.png")
-			break
 		case "zip":
 			return require("../../assets/files/zip.png")
-			break
 		case "rar":
 		case "tar":
 		case "tgz":
 		case "gz":
 		case "gzip":
 			return require("../../assets/files/zip-1.png")
-			break
 		case "svg":
 			return require("../../assets/files/svg.png")
-			break
 		case "xml":
 			return require("../../assets/files/xml.png")
-			break
 		case "dwg":
 			return require("../../assets/files/dwg.png")
-			break
 		case "fla":
 			return require("../../assets/files/fla.png")
-			break
 		case "ai":
 			return require("../../assets/files/ai.png")
-			break
 		default:
 			return require("../../assets/files/file.png")
-			break
 	}
 }
 
@@ -1264,4 +1220,65 @@ export const parseURLParams = (url: string) => {
 	})
 
 	return params
+}
+
+export const generateAvatarColorCode = memoize(
+	(input: string, darkMode: boolean): string => {
+		const colorCodes: string[] = [
+			getColor(darkMode, "pink"),
+			getColor(darkMode, "green"),
+			getColor(darkMode, "red"),
+			getColor(darkMode, "indigo"),
+			getColor(darkMode, "purple"),
+			getColor(darkMode, "cyan"),
+			getColor(darkMode, "blue"),
+			getColor(darkMode, "brown"),
+			getColor(darkMode, "mint"),
+			getColor(darkMode, "orange"),
+			getColor(darkMode, "teal"),
+			getColor(darkMode, "yellow")
+		]
+
+		const index = Math.abs(hashCode(input)) % colorCodes.length
+
+		if (index < colorCodes.length) {
+			return colorCodes[index]
+		}
+
+		const hash = hashCode(input)
+		const color = intToRGB(hash)
+
+		return color
+	},
+	(input: string, darkMode: boolean) => input + "" + darkMode
+)
+
+export function hashCode(input: string): number {
+	let hash = 0
+
+	if (input.length === 0) {
+		return hash
+	}
+
+	for (let i = 0; i < input.length; i++) {
+		const char = input.charCodeAt(i)
+		hash = (hash << 5) - hash + char
+		hash = hash & hash
+	}
+
+	return hash
+}
+
+export function intToRGB(value: number): string {
+	const r = (value & 0xff0000) >> 16
+	const g = (value & 0x00ff00) >> 8
+	const b = value & 0x0000ff
+
+	return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`
+}
+
+export function componentToHex(value: number): string {
+	const hex = value.toString(16)
+
+	return hex.length === 1 ? "0" + hex : hex
 }

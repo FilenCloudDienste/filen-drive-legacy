@@ -34,6 +34,7 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 	const [notes, setNotes] = useState<INote[]>([])
 	const location = useLocation()
 	const navigate = useNavigate()
+	const [search, setSearch] = useState<string>("")
 
 	const currentNote = useMemo(() => {
 		const note = notes.filter(note => note.uuid === currentNoteUUID)
@@ -241,6 +242,8 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 					currentNote={currentNote}
 					notes={notes}
 					setNotes={setNotes}
+					search={search}
+					setSearch={setSearch}
 				/>
 			</Flex>
 			<Flex

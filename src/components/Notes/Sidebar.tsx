@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useCallback, useEffect } from "react"
-import { Flex, Spinner } from "@chakra-ui/react"
+import { Flex, Spinner, Input } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
@@ -34,12 +34,16 @@ export const Sidebar = memo(
 		sizes,
 		currentNote,
 		notes,
-		setNotes
+		setNotes,
+		search,
+		setSearch
 	}: {
 		sizes: NotesSizes
 		currentNote: INote | undefined
 		notes: INote[]
 		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
+		search: string
+		setSearch: React.Dispatch<React.SetStateAction<string>>
 	}) => {
 		const isMobile = useIsMobile()
 		const windowHeight = useWindowHeight()
@@ -52,26 +56,42 @@ export const Sidebar = memo(
 		const [userId] = useDb("userId", 0)
 
 		const notesSorted = useMemo(() => {
-			return notes.sort((a, b) => {
-				if (a.pinned !== b.pinned) {
-					return b.pinned ? 1 : -1
-				}
+			return notes
+				.sort((a, b) => {
+					if (a.pinned !== b.pinned) {
+						return b.pinned ? 1 : -1
+					}
 
-				if (a.trash !== b.trash && a.archive === false) {
-					return a.trash ? 1 : -1
-				}
+					if (a.trash !== b.trash && a.archive === false) {
+						return a.trash ? 1 : -1
+					}
 
-				if (a.archive !== b.archive) {
-					return a.archive ? 1 : -1
-				}
+					if (a.archive !== b.archive) {
+						return a.archive ? 1 : -1
+					}
 
-				if (a.trash !== b.trash) {
-					return a.trash ? 1 : -1
-				}
+					if (a.trash !== b.trash) {
+						return a.trash ? 1 : -1
+					}
 
-				return b.editedTimestamp - a.editedTimestamp
-			})
-		}, [notes, userId])
+					return b.editedTimestamp - a.editedTimestamp
+				})
+				.filter(note => {
+					if (search.length === 0) {
+						return true
+					}
+
+					if (note.title.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
+						return true
+					}
+
+					if (note.preview.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
+						return true
+					}
+
+					return false
+				})
+		}, [notes, userId, search])
 
 		const fetchNotes = useCallback(async () => {
 			const privateKey = await db.get("privateKey")
@@ -189,8 +209,13 @@ export const Sidebar = memo(
 				}
 			})
 
+			const refreshNotesListener = eventListener.on("refreshNotes", () => {
+				loadNotes(false)
+			})
+
 			return () => {
 				socketEventListener.remove()
+				refreshNotesListener.remove()
 			}
 		}, [])
 
@@ -216,7 +241,6 @@ export const Sidebar = memo(
 					alignItems="center"
 					paddingLeft="15px"
 					paddingRight="15px"
-					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 				>
 					<AppText
 						darkMode={darkMode}
@@ -265,9 +289,54 @@ export const Sidebar = memo(
 						)}
 					</Flex>
 				</Flex>
+				<Flex
+					width={sizes.notes + "px"}
+					height="50px"
+					flexDirection="row"
+					justifyContent="space-between"
+					alignItems="center"
+					paddingLeft="15px"
+					paddingRight="15px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
+				>
+					<Input
+						backgroundColor={getColor(darkMode, "backgroundSecondary")}
+						borderRadius="15px"
+						height="30px"
+						border="none"
+						outline="none"
+						shadow="none"
+						marginTop="-10px"
+						spellCheck={false}
+						color={getColor(darkMode, "textPrimary")}
+						placeholder={i18n(lang, "searchInput")}
+						value={search}
+						onChange={e => setSearch(e.target.value)}
+						fontSize={14}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
+						}}
+					/>
+				</Flex>
 				{loading ? (
 					<Flex
-						height={windowHeight - 50 + "px"}
+						height={windowHeight - 100 + "px"}
 						width={sizes.notes + "px"}
 						flexDirection="column"
 						overflow="hidden"
@@ -284,7 +353,7 @@ export const Sidebar = memo(
 				) : (
 					<Virtuoso
 						data={notesSorted}
-						height={windowHeight - 50}
+						height={windowHeight - 100}
 						width={sizes.notes}
 						itemContent={itemContent}
 						totalCount={notesSorted.length}
@@ -292,7 +361,7 @@ export const Sidebar = memo(
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",
-							height: windowHeight - 50 + "px",
+							height: windowHeight - 100 + "px",
 							width: sizes.notes + "px"
 						}}
 					/>

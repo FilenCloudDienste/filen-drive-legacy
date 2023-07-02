@@ -432,7 +432,10 @@ const en: {
 	blockUser: "Block",
 	removeUser: "Remove",
 	contactsIcomingRequests: "Incoming requests",
-	contactsOutgoingRequests: "Outgoing requests"
+	contactsOutgoingRequests: "Outgoing requests",
+	noteHistoryModal: "Note history",
+	noteHistoryRestore: "Restore this version",
+	searchInput: "Search..."
 }
 
 export default en

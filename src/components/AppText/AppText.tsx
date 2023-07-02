@@ -18,6 +18,4 @@ const AppText = memo((props: AppTextProps) => {
 	)
 })
 
-AppText.displayName = "AppText"
-
 export default AppText

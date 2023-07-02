@@ -27,6 +27,7 @@ import db from "../../lib/db"
 import { IoPersonRemoveOutline } from "react-icons/io5"
 import useDb from "../../lib/hooks/useDb"
 import { i18n } from "../../i18n"
+import { generateAvatarColorCode } from "../../lib/helpers"
 
 export const Contact = memo(({ contact, note }: { contact: IContact; note: INote | undefined }) => {
 	const darkMode = useDarkMode()
@@ -115,12 +116,9 @@ export const Contact = memo(({ contact, note }: { contact: IContact; note: INote
 				alignItems="center"
 			>
 				<Avatar
-					name={
-						typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1
-							? undefined
-							: contact.email.substring(0, 1)
-					}
+					name={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? undefined : contact.email}
 					src={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? contact.avatar : undefined}
+					bg={generateAvatarColorCode(contact.email, darkMode)}
 					width="25px"
 					height="25px"
 					borderRadius="full"
@@ -375,13 +373,14 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 					name={
 						typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
 							? undefined
-							: participant.email.substring(0, 1)
+							: participant.email
 					}
 					src={
 						typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
 							? participant.avatar
 							: undefined
 					}
+					bg={generateAvatarColorCode(participant.email, darkMode)}
 					width="25px"
 					height="25px"
 					borderRadius="full"

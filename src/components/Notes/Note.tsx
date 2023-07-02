@@ -5,7 +5,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote } from "../../lib/api"
-import { getCurrentParent, randomStringUnsafe, getRandomArbitrary } from "../../lib/helpers"
+import { getCurrentParent, randomStringUnsafe, getRandomArbitrary, generateAvatarColorCode } from "../../lib/helpers"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BsTextLeft, BsPin, BsFileRichtext, BsCodeSlash, BsMarkdown } from "react-icons/bs"
 import eventListener from "../../lib/eventListener"
@@ -42,7 +42,7 @@ export const NoteSkeleton = memo(({ index }: { index: number }) => {
 							borderRadius="10px"
 						>
 							<Avatar
-								name={Math.random().toString()}
+								name="skeleton"
 								width="30px"
 								height="30px"
 								borderRadius="full"
@@ -138,7 +138,7 @@ export const Note = memo(({ note }: { note: INote }) => {
 			paddingTop="10px"
 			gap="25px"
 			marginBottom="3px"
-			borderLeft={active ? "2px solid " + getColor(darkMode, "indigo") : "2px solid transparent"}
+			borderLeft={active ? "2px solid " + getColor(darkMode, "purple") : "2px solid transparent"}
 			backgroundColor={active || hovering ? getColor(darkMode, "backgroundSecondary") : undefined}
 			cursor="pointer"
 			onMouseEnter={() => setHovering(true)}
@@ -312,13 +312,14 @@ export const Note = memo(({ note }: { note: INote }) => {
 									name={
 										typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
 											? undefined
-											: participant.email.substring(0, 1)
+											: participant.email
 									}
 									src={
 										typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1
 											? participant.avatar
 											: undefined
 									}
+									bg={generateAvatarColorCode(participant.email, darkMode)}
 									width="25px"
 									height="25px"
 									border="none"

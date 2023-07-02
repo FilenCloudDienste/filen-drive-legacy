@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import AppText from "../AppText"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
-import { getCurrentParent, getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
+import { getCurrentParent, getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import { getUserNameFromParticipant } from "./utils"
 import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -232,6 +232,8 @@ export const Conversation = memo(
 									width="30px"
 									height="30px"
 									borderRadius="full"
+									color="white"
+									bg={generateAvatarColorCode(conversation.participants.length + "@" + conversation.uuid, darkMode)}
 								>
 									{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
 										unreadConversationsMessages[conversation.uuid] > 0 && (
@@ -257,7 +259,7 @@ export const Conversation = memo(
 										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
 										conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
 											? undefined
-											: conversationParticipantsFilteredWithoutMe[0].email.substring(0, 1)
+											: conversationParticipantsFilteredWithoutMe[0].email
 									}
 									src={
 										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
@@ -265,6 +267,7 @@ export const Conversation = memo(
 											? conversationParticipantsFilteredWithoutMe[0].avatar
 											: undefined
 									}
+									bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0].email, darkMode)}
 									width="30px"
 									height="30px"
 									borderRadius="full"

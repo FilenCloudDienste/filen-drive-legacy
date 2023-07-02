@@ -3171,6 +3171,20 @@ export const contactsRequestsIn = async (): Promise<ContactRequest[]> => {
 	return response.data
 }
 
+export const contactsRequestsInCount = async (): Promise<number> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/requests/in/count",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
 export const contactsRequestsOut = async (): Promise<ContactRequest[]> => {
 	const response = await apiRequest({
 		method: "GET",

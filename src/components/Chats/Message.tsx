@@ -5,7 +5,7 @@ import { ChatMessage, chatDelete } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
 import { IoTrash } from "react-icons/io5"
-import { safeAwait, getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
+import { safeAwait, getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -403,13 +403,14 @@ export const Message = memo(
 								name={
 									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
 										? undefined
-										: message.senderEmail.substring(0, 1)
+										: message.senderEmail
 								}
 								src={
 									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
 										? message.senderAvatar
 										: undefined
 								}
+								bg={generateAvatarColorCode(message.senderEmail, darkMode)}
 								width="32px"
 								height="32px"
 								borderRadius="full"

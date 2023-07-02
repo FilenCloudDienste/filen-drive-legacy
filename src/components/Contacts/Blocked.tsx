@@ -11,6 +11,7 @@ import { safeAwait } from "../../lib/helpers"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
+import { generateAvatarColorCode } from "../../lib/helpers"
 
 export const Blocked = memo(
 	({ block, setBlocked }: { block: BlockedContact; setBlocked: React.Dispatch<React.SetStateAction<BlockedContact[]>> }) => {
@@ -60,12 +61,9 @@ export const Blocked = memo(
 				>
 					<Flex>
 						<Avatar
-							name={
-								typeof block.avatar === "string" && block.avatar.indexOf("https://") !== -1
-									? undefined
-									: block.email.substring(0, 1)
-							}
+							name={typeof block.avatar === "string" && block.avatar.indexOf("https://") !== -1 ? undefined : block.email}
 							src={typeof block.avatar === "string" && block.avatar.indexOf("https://") !== -1 ? block.avatar : undefined}
+							bg={generateAvatarColorCode(block.email, darkMode)}
 							width="35px"
 							height="35px"
 							borderRadius="full"

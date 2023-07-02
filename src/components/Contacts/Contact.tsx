@@ -9,6 +9,7 @@ import AppText from "../AppText"
 import { IoEllipsisVertical } from "react-icons/io5"
 import striptags from "striptags"
 import eventListener from "../../lib/eventListener"
+import { generateAvatarColorCode } from "../../lib/helpers"
 
 export const ContactSkeleton = memo(() => {
 	const darkMode = useDarkMode()
@@ -65,12 +66,9 @@ export const Contact = memo(({ contact }: { contact: IContact }) => {
 			>
 				<Flex>
 					<Avatar
-						name={
-							typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1
-								? undefined
-								: contact.email.substring(0, 1)
-						}
+						name={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? undefined : contact.email}
 						src={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? contact.avatar : undefined}
+						bg={generateAvatarColorCode(contact.email, darkMode)}
 						width="35px"
 						height="35px"
 						borderRadius="full"

@@ -279,10 +279,10 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 							onClick={() => eventListener.emit("openAddContactModal")}
 							backgroundColor={getColor(darkMode, "green")}
 							borderRadius="5px"
-							paddingLeft="8px"
-							paddingRight="8px"
-							paddingTop="2px"
-							paddingBottom="2px"
+							paddingLeft="6px"
+							paddingRight="6px"
+							paddingTop="1px"
+							paddingBottom="1px"
 						>
 							<AppText
 								darkMode={darkMode}

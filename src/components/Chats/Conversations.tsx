@@ -8,7 +8,7 @@ import {
 	chatConversationsUnread,
 	chatConversationsRead
 } from "../../lib/api"
-import { safeAwait, getCurrentParent, Semaphore } from "../../lib/helpers"
+import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
 import { validate } from "uuid"
@@ -79,6 +79,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 							? userAccount.avatarURL
 							: undefined
 					}
+					bg={generateAvatarColorCode(userAccount.email, darkMode)}
 					width="30px"
 					height="30px"
 					borderRadius="full"

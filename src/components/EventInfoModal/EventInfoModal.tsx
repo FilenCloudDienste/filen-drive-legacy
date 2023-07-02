@@ -243,22 +243,7 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
 						</Flex>
 					)}
 				</ModalBody>
-				<ModalFooter>
-					<AppText
-						darkMode={darkMode}
-						isMobile={isMobile}
-						noOfLines={1}
-						wordBreak="break-all"
-						color={getColor(darkMode, "textSecondary")}
-						cursor="pointer"
-						onClick={() => setOpen(false)}
-						_hover={{
-							color: getColor(darkMode, "textPrimary")
-						}}
-					>
-						{i18n(lang, "close")}
-					</AppText>
-				</ModalFooter>
+				<ModalFooter />
 			</ModalContent>
 		</Modal>
 	)

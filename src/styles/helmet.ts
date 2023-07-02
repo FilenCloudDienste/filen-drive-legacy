@@ -183,6 +183,7 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-editor {
             user-select: text;
+            font-family: "Inter", sans-serif;
         }
 
         .ql-toolbar.ql-snow {
@@ -370,7 +371,7 @@ export const quillStyle = (darkMode: boolean) => {
             border-radius: 50%;
             margin-right: 0.5em;
             text-align: center;
-            line-height: 15px;
+            line-height: 17px;
             background-color: transparent;
         }
 
@@ -384,7 +385,7 @@ export const quillStyle = (darkMode: boolean) => {
             border-radius: 50%;
             margin-right: 0.5em;
             text-align: center;
-            line-height: 15px;
+            line-height: 17px;
             background-color: ${getColor(darkMode, "purple")};
         }
 

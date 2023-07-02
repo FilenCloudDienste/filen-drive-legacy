@@ -21,11 +21,11 @@ import {
 	noteParticipantsAdd,
 	createNote,
 	notes as getNotes,
-	editNoteContent
+	editNoteContent,
+	noteHistory
 } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import useIsMobile from "../../lib/hooks/useIsMobile"
 import eventListener from "../../lib/eventListener"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import { safeAwait, downloadObjectAsTextWithExt, downloadObjectAsTextWithoutExt, getFileExt, generateRandomString } from "../../lib/helpers"
@@ -38,7 +38,8 @@ import {
 	decryptNotePreview,
 	encryptMetadata,
 	encryptMetadataPublicKey,
-	encryptNoteTitle
+	encryptNoteTitle,
+	decryptNoteContent
 } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
 import { createNotePreviewFromContentText } from "./utils"
@@ -52,7 +53,6 @@ import { i18n } from "../../i18n"
 
 const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
 	const darkMode = useDarkMode()
-	const isMobile = useIsMobile()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<INote | undefined>(undefined)
 	const [content, setContent] = useState<string>("")
@@ -60,6 +60,7 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 	const navigate = useNavigate()
 	const [userId] = useDb("userId", 0)
 	const [dupliating, setDuplicating] = useState<boolean>(false)
+	const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!selectedNote) {
@@ -428,6 +429,48 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		setNotes(notesRes)
 		navigate("#/notes/" + uuid)
 		setDuplicating(false)
+
+		contextMenu.hideAll()
+	}, [selectedNote])
+
+	const loadHistory = useCallback(async () => {
+		if (!selectedNote) {
+			return
+		}
+
+		setLoadingHistory(true)
+
+		const [historyErr, historyRes] = await safeAwait(noteHistory(selectedNote.uuid))
+
+		if (historyErr) {
+			console.error(historyErr)
+
+			showToast("error", historyErr.toString(), "bottom", 5000)
+
+			return
+		}
+
+		const privateKey = await db.get("privateKey")
+		const userId = await db.get("userId")
+
+		for (let i = 0; i < historyRes.length; i++) {
+			const noteKey = await decryptNoteKeyParticipant(
+				selectedNote.participants.filter(participant => participant.userId === userId)[0].metadata,
+				privateKey
+			)
+			const contentDecrypted = await decryptNoteContent(historyRes[i].content, noteKey)
+
+			historyRes[i].content = contentDecrypted
+		}
+
+		setLoadingHistory(false)
+
+		contextMenu.hideAll()
+
+		eventListener.emit("openNoteHistoryModal", {
+			note: selectedNote,
+			history: historyRes.sort((a, b) => b.editedTimestamp - a.editedTimestamp)
+		})
 	}, [selectedNote])
 
 	useEffect(() => {
@@ -472,8 +515,32 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 					<>
 						{userHasWritePermissions && (
 							<>
-								<ContextMenuItem onClick={() => eventListener.emit("openNoteHistoryModal", selectedNote)}>
-									{i18n(lang, "noteHistory")}
+								<ContextMenuItem
+									onClick={params => {
+										params.event.preventDefault()
+										params.event.stopPropagation()
+
+										loadHistory()
+									}}
+								>
+									<Flex
+										flexDirection="row"
+										justifyContent="space-between"
+										gap="25px"
+										alignItems="center"
+										width="100%"
+									>
+										<Flex>{i18n(lang, "noteHistory")}</Flex>
+										{loadingHistory && (
+											<Flex>
+												<Spinner
+													width="16px"
+													height="16px"
+													color={getColor(darkMode, "textPrimary")}
+												/>
+											</Flex>
+										)}
+									</Flex>
 								</ContextMenuItem>
 								<ContextMenuSeparator />
 							</>
@@ -513,12 +580,20 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						) : (
 							<ContextMenuItem onClick={() => favorite(true)}>{i18n(lang, "noteFavorite")}</ContextMenuItem>
 						)}
-						<ContextMenuItem onClick={() => duplicate()}>
+						<ContextMenuItem
+							onClick={params => {
+								params.event.preventDefault()
+								params.event.stopPropagation()
+
+								duplicate()
+							}}
+						>
 							<Flex
 								flexDirection="row"
 								justifyContent="space-between"
 								gap="25px"
 								alignItems="center"
+								width="100%"
 							>
 								<Flex>{i18n(lang, "noteDuplicate")}</Flex>
 								{dupliating && (

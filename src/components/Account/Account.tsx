@@ -8,7 +8,15 @@ import AppText from "../AppText"
 import { fetchUserInfo, fetchUserSettings, fetchUserAccount } from "../../lib/services/user"
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
-import { formatBytes, downloadObjectAsJson, simpleDate, convertTimestampToMs, downloadPDF, firstToLowerCase } from "../../lib/helpers"
+import {
+	formatBytes,
+	downloadObjectAsJson,
+	simpleDate,
+	convertTimestampToMs,
+	downloadPDF,
+	firstToLowerCase,
+	generateAvatarColorCode
+} from "../../lib/helpers"
 import { userGDPR, uploadAvatar, fetchEvents, generateInvoice, versioning, loginAlerts } from "../../lib/api"
 import * as Modals from "./Modals"
 import { show as showToast } from "../Toast/Toast"
@@ -352,6 +360,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 									name={
 										typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email
 									}
+									bg={generateAvatarColorCode(userInfo.email, darkMode)}
 									width="32px"
 									height="32px"
 									src={
@@ -1580,6 +1589,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 								name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 								width="22px"
 								height="22px"
+								bg={generateAvatarColorCode(userInfo.email, darkMode)}
 								src={
 									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}

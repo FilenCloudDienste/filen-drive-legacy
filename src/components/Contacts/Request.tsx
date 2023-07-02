@@ -8,7 +8,7 @@ import AppText from "../AppText"
 import { IoCloseOutline } from "react-icons/io5"
 import { AiOutlineCheck } from "react-icons/ai"
 import striptags from "striptags"
-import { safeAwait } from "../../lib/helpers"
+import { safeAwait, generateAvatarColorCode } from "../../lib/helpers"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import eventListener from "../../lib/eventListener"
 import useLang from "../../lib/hooks/useLang"
@@ -83,12 +83,9 @@ export const Request = memo(({ request, activeTab }: { request: ContactRequest; 
 			>
 				<Flex>
 					<Avatar
-						name={
-							typeof request.avatar === "string" && request.avatar.indexOf("https://") !== -1
-								? undefined
-								: request.email.substring(0, 1)
-						}
+						name={typeof request.avatar === "string" && request.avatar.indexOf("https://") !== -1 ? undefined : request.email}
 						src={typeof request.avatar === "string" && request.avatar.indexOf("https://") !== -1 ? request.avatar : undefined}
+						bg={generateAvatarColorCode(request.email, darkMode)}
 						width="35px"
 						height="35px"
 						borderRadius="full"

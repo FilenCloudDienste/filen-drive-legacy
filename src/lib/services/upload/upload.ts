@@ -292,13 +292,13 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			return reject(e)
 		}
 
-		try {
+		/*try {
 			if (canCompressThumbnail(getFileExt(name))) {
 				await generateThumbnailAfterUpload(item.file, uuid, name)
 			}
 		} catch (e) {
 			console.error(e)
-		}
+		}*/
 
 		cleanup()
 

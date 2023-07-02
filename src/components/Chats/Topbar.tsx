@@ -4,7 +4,7 @@ import { getColor } from "../../styles/colors"
 import { ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import AppText from "../AppText"
-import { getRandomArbitrary, randomStringUnsafe } from "../../lib/helpers"
+import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 
 export interface TopbarProps {
 	darkMode: boolean
@@ -97,6 +97,8 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 				{conversationParticipantsFilteredWithoutMe.length > 1 ? (
 					<Avatar
 						name={currentConversation?.participants.length + "@" + currentConversation?.uuid}
+						color="white"
+						bg={generateAvatarColorCode(currentConversation?.participants.length + "@" + currentConversation?.uuid, darkMode)}
 						width="25px"
 						height="25px"
 						borderRadius="full"
@@ -108,7 +110,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 							typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
 							conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
 								? undefined
-								: conversationParticipantsFilteredWithoutMe[0].email.substring(0, 1)
+								: conversationParticipantsFilteredWithoutMe[0].email
 						}
 						src={
 							typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
@@ -116,6 +118,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 								? conversationParticipantsFilteredWithoutMe[0].avatar
 								: undefined
 						}
+						bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0].email, darkMode)}
 						width="25px"
 						height="25px"
 						borderRadius="full"

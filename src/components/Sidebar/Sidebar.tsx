@@ -43,7 +43,7 @@ import { i18n } from "../../i18n"
 import { contextMenu } from "react-contexify"
 import { SocketEvent } from "../../lib/services/socket"
 import memoryCache from "../../lib/memoryCache"
-import { chatUnread } from "../../lib/api"
+import { chatUnread, contactsRequestsInCount } from "../../lib/api"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
 import useDb from "../../lib/hooks/useDb"
@@ -71,6 +71,7 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	const [hovering, setHovering] = useState<boolean>(false)
 	const location = useLocation()
 	const [unreadChatMessages, setUnreadChatMessages] = useState<number>(0)
+	const [contactRequestsIn, setContactRequestsIn] = useState<number>(0)
 
 	const active = useMemo(() => {
 		return "/" + location.hash == to || location.hash.indexOf(type) !== -1
@@ -84,10 +85,6 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	}, [darkMode, hovering, active])
 
 	const updateChatUnread = useCallback(async () => {
-		if (window.location.href.indexOf("chats") !== -1) {
-			return
-		}
-
 		const [unreadErr, unreadRes] = await safeAwait(chatUnread())
 
 		if (unreadErr) {
@@ -99,31 +96,43 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 		setUnreadChatMessages(unreadRes)
 	}, [])
 
+	const updateContactRequestsIn = useCallback(async () => {
+		const [inErr, inRes] = await safeAwait(contactsRequestsInCount())
+
+		if (inErr) {
+			console.error(inErr)
+
+			return
+		}
+
+		setContactRequestsIn(inRes)
+	}, [])
+
 	useEffect(() => {
 		let refreshTimer: ReturnType<typeof setInterval>
-		let updateChatUnreadListener: ReturnType<typeof eventListener.on>
-		let updateChatUnreadNumberListener: ReturnType<typeof eventListener.on>
 
-		if (type === "chats") {
-			updateChatUnread()
+		if (type === "chats" || type === "contacts") {
+			if (type === "chats") {
+				updateChatUnread()
+			}
 
-			refreshTimer = setInterval(updateChatUnread, 5000)
-			updateChatUnreadListener = eventListener.on("updateChatUnread", updateChatUnread)
-			updateChatUnreadNumberListener = eventListener.on("updateChatUnreadNumber", (number: number) => setUnreadChatMessages(number))
+			if (type === "contacts") {
+				updateContactRequestsIn()
+			}
+
+			refreshTimer = setInterval(() => {
+				if (type === "chats") {
+					updateChatUnread()
+				}
+
+				if (type === "contacts") {
+					updateContactRequestsIn()
+				}
+			}, 5000)
 		}
 
 		return () => {
-			if (refreshTimer) {
-				clearInterval(refreshTimer)
-			}
-
-			if (updateChatUnreadListener) {
-				updateChatUnreadListener.remove()
-			}
-
-			if (updateChatUnreadNumberListener) {
-				updateChatUnreadNumberListener.remove()
-			}
+			clearInterval(refreshTimer)
 		}
 	}, [])
 
@@ -154,7 +163,7 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 				borderRadius="10px"
 				onClick={() => navigate(to)}
 			>
-				{type === "chats" && unreadChatMessages > 0 && window.location.href.indexOf("chats") === -1 && (
+				{type === "chats" && unreadChatMessages > 0 && (
 					<Flex
 						position="absolute"
 						width="16px"
@@ -175,6 +184,30 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 							color="white"
 						>
 							{unreadChatMessages}
+						</AppText>
+					</Flex>
+				)}
+				{type === "contacts" && contactRequestsIn > 0 && (
+					<Flex
+						position="absolute"
+						width="16px"
+						height="16px"
+						backgroundColor={getColor(darkMode, "red")}
+						borderRadius="full"
+						justifyContent="center"
+						alignItems="center"
+						marginTop="-16px"
+						marginLeft="11px"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							fontSize={13}
+							fontWeight="bold"
+							color="white"
+						>
+							{contactRequestsIn}
 						</AppText>
 					</Flex>
 				)}

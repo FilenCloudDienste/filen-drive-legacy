@@ -8,7 +8,7 @@ import { IoCloseOutline } from "react-icons/io5"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import striptags from "striptags"
-import { randomStringUnsafe, getRandomArbitrary } from "../../lib/helpers"
+import { randomStringUnsafe, getRandomArbitrary, generateAvatarColorCode } from "../../lib/helpers"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -133,12 +133,9 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 					flexDirection="row"
 				>
 					<Avatar
-						name={
-							typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1
-								? undefined
-								: user.email.substring(0, 1)
-						}
+						name={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? undefined : user.email}
 						src={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? user.avatar : undefined}
+						bg={generateAvatarColorCode(user.email, darkMode)}
 						width="30px"
 						height="30px"
 						borderRadius="full"
