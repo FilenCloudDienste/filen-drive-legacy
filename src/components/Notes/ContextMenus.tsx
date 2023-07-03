@@ -22,7 +22,10 @@ import {
 	createNote,
 	notes as getNotes,
 	editNoteContent,
-	noteHistory
+	noteHistory,
+	NoteTag,
+	notesTag,
+	notesUntag
 } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
@@ -51,7 +54,7 @@ import { v4 as uuidv4 } from "uuid"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 
-const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>> }) => {
+const ContextMenus = memo(({ setNotes, tags }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>>; tags: NoteTag[] }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<INote | undefined>(undefined)
@@ -473,6 +476,43 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 		})
 	}, [selectedNote])
 
+	const tagNote = useCallback(
+		async (tag: NoteTag) => {
+			if (!selectedNote) {
+				return
+			}
+
+			const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
+
+			const included = selectedNote.tags.map(t => t.uuid).includes(tag.uuid)
+
+			const [err] = await safeAwait(included ? notesUntag(selectedNote.uuid, tag.uuid) : notesTag(selectedNote.uuid, tag.uuid))
+
+			if (err) {
+				console.error(err)
+
+				dismissToast(loadingToast)
+
+				showToast("error", err.message, "bottom", 5000)
+
+				return
+			}
+
+			dismissToast(loadingToast)
+
+			if (included) {
+				setNotes(prev =>
+					prev.map(note =>
+						note.uuid === selectedNote.uuid ? { ...note, tags: note.tags.filter(t => t.uuid !== tag.uuid) } : note
+					)
+				)
+			} else {
+				setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, tags: [...note.tags, tag] } : note)))
+			}
+		},
+		[selectedNote, lang]
+	)
+
 	useEffect(() => {
 		contentRef.current = content
 	}, [content])
@@ -580,6 +620,22 @@ const ContextMenus = memo(({ setNotes }: { setNotes: React.Dispatch<React.SetSta
 						) : (
 							<ContextMenuItem onClick={() => favorite(true)}>{i18n(lang, "noteFavorite")}</ContextMenuItem>
 						)}
+						<ContextMenuSubmenu
+							label="Tags"
+							arrow={<IoChevronForward fontSize={16} />}
+						>
+							{tags.map(tag => {
+								return (
+									<ContextMenuItem
+										onClick={() => tagNote(tag)}
+										key={tag.uuid}
+									>
+										{tag.name}
+									</ContextMenuItem>
+								)
+							})}
+						</ContextMenuSubmenu>
+						<ContextMenuSeparator />
 						<ContextMenuItem
 							onClick={params => {
 								params.event.preventDefault()

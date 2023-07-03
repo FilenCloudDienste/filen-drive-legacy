@@ -2792,6 +2792,7 @@ export interface Note {
 	isOwner: boolean
 	favorite: boolean
 	pinned: boolean
+	tags: NoteTag[]
 	type: NoteType
 	metadata: string
 	title: string
@@ -3330,6 +3331,117 @@ export const contactsBlockedDelete = async (uuid: string): Promise<void> => {
 		endpoint: "/v3/contacts/blocked/delete",
 		data: {
 			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface NoteTag {
+	uuid: string
+	name: string
+	favorite: boolean
+	createdTimestamp: number
+}
+
+export const notesTags = async (): Promise<NoteTag[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/notes/tags",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const notesTagsCreate = async (name: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/create",
+		data: {
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const notesTagsRename = async (uuid: string, name: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/rename",
+		data: {
+			uuid,
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTagsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTagsFavorite = async (uuid: string, favorite: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/favorite",
+		data: {
+			uuid,
+			favorite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTag = async (uuid: string, tag: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tag",
+		data: {
+			uuid,
+			tag
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesUntag = async (uuid: string, tag: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/untag",
+		data: {
+			uuid,
+			tag
 		}
 	})
 

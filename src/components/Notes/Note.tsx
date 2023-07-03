@@ -12,6 +12,7 @@ import eventListener from "../../lib/eventListener"
 import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
 import { MdChecklist } from "react-icons/md"
+import { NoteSidebarTag } from "./Tag"
 
 export const NoteSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -300,6 +301,23 @@ export const Note = memo(({ note }: { note: INote }) => {
 					>
 						{new Date(note.editedTimestamp).toLocaleString()}
 					</AppText>
+					{note.tags.length > 0 && (
+						<Flex
+							flexDirection="row"
+							flexFlow="wrap"
+							gap="5px"
+							marginTop="3px"
+						>
+							{note.tags.map(tag => {
+								return (
+									<NoteSidebarTag
+										tag={tag}
+										key={tag.uuid}
+									/>
+								)
+							})}
+						</Flex>
+					)}
 				</Flex>
 			</Flex>
 			{note.participants.length > 1 && !isMobile && (

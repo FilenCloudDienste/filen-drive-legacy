@@ -232,3 +232,11 @@ export const encryptNoteTitle = async (title: string, key: string): Promise<stri
 export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
 	return await getWorkerAPI().encryptNotePreview(preview, key)
 }
+
+export const encryptNoteTagName = async (name: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteTagName(name, key)
+}
+
+export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	return await getWorkerAPI().decryptNoteTagName(name, masterKeys)
+}

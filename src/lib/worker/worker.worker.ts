@@ -1156,6 +1156,44 @@ export const encryptNotePreview = async (preview: string, key: string): Promise<
 	return await encryptMetadata(JSON.stringify({ preview }), key)
 }
 
+export const encryptNoteTagName = async (name: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
+export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteTagName:" + name
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	let decryptedName = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = JSON.parse(await decryptMetadata(name, masterKeys[i]))
+
+			if (obj && typeof obj.name === "string") {
+				if (obj.name.length > 0) {
+					decryptedName = obj.name
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	if (typeof decryptedName == "string") {
+		if (decryptedName.length > 0) {
+			memoryCache.set(cacheKey, decryptedName)
+		}
+	}
+
+	return decryptedName
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -1192,7 +1230,9 @@ export const api = {
 	decryptNotePreview,
 	decryptNoteTitle,
 	encryptNoteTitle,
-	encryptNotePreview
+	encryptNotePreview,
+	encryptNoteTagName,
+	decryptNoteTagName
 }
 
 expose(api)

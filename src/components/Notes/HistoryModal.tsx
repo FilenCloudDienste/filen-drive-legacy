@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useRef } from "react"
+import { memo, useState, useEffect, useCallback } from "react"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
@@ -12,7 +12,6 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
-import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import Editor from "./Editor"
 import { AutoSizer } from "react-virtualized"
 
@@ -20,10 +19,12 @@ export const HistoryNote = memo(
 	({
 		note,
 		index,
+		selectedIndex,
 		setSelectedIndex
 	}: {
 		note: NoteHistory
 		index: number
+		selectedIndex: number
 		setSelectedIndex: React.Dispatch<React.SetStateAction<number>>
 	}) => {
 		const darkMode = useDarkMode()
@@ -45,6 +46,7 @@ export const HistoryNote = memo(
 						wordBreak="break-all"
 						color={getColor(darkMode, "linkPrimary")}
 						fontSize={15}
+						textDecoration={selectedIndex === index ? "underline" : "none"}
 						cursor="pointer"
 						_hover={{
 							textDecoration: "underline"
@@ -138,7 +140,7 @@ export const HistoryModal = memo(() => {
 					<div
 						style={{
 							width: "100%",
-							height: Math.floor(windowHeight * 0.75) + "px"
+							height: Math.floor(windowHeight * 0.7) + "px"
 						}}
 					>
 						<AutoSizer>
@@ -163,6 +165,7 @@ export const HistoryModal = memo(() => {
 														key={note.id}
 														note={note}
 														index={index}
+														selectedIndex={selectedIndex}
 														setSelectedIndex={setSelectedIndex}
 													/>
 												)

@@ -3,7 +3,7 @@ import { Flex } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import useIsMobile from "../../lib/hooks/useIsMobile"
-import { Note as INote, Contact as IContact } from "../../lib/api"
+import { Note as INote, Contact as IContact, NoteTag } from "../../lib/api"
 import Sidebar from "./Sidebar"
 import Content from "./Content"
 import ContextMenus from "./ContextMenus"
@@ -16,6 +16,7 @@ import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import db from "../../lib/db"
 import { useNavigate } from "react-router-dom"
+import CreateTagModal from "./CreateTagModal"
 
 export interface NotesSizes {
 	notes: number
@@ -35,6 +36,7 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 	const location = useLocation()
 	const navigate = useNavigate()
 	const [search, setSearch] = useState<string>("")
+	const [tags, setTags] = useState<NoteTag[]>([])
 
 	const currentNote = useMemo(() => {
 		const note = notes.filter(note => note.uuid === currentNoteUUID)
@@ -244,6 +246,8 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 					setNotes={setNotes}
 					search={search}
 					setSearch={setSearch}
+					tags={tags}
+					setTags={setTags}
 				/>
 			</Flex>
 			<Flex
@@ -257,10 +261,14 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 					setNotes={setNotes}
 				/>
 			</Flex>
-			<ContextMenus setNotes={setNotes} />
+			<ContextMenus
+				setNotes={setNotes}
+				tags={tags}
+			/>
 			<HistoryModal />
 			<AddParticipantModal />
 			<AddContactModal />
+			<CreateTagModal />
 		</Flex>
 	)
 })

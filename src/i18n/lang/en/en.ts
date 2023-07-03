@@ -435,7 +435,9 @@ const en: {
 	contactsOutgoingRequests: "Outgoing requests",
 	noteHistoryModal: "Note history",
 	noteHistoryRestore: "Restore this version",
-	searchInput: "Search..."
+	searchInput: "Search...",
+	notesTagsNameExists: "A tag with this name already exists",
+	notesTagsCreate: "Create tag"
 }
 
 export default en

@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useCallback, useEffect } from "react"
-import { Flex, Spinner, Input } from "@chakra-ui/react"
+import { Flex, Spinner, Input, Badge } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
@@ -9,7 +9,7 @@ import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import { Virtuoso } from "react-virtuoso"
 import { IoIosAdd } from "react-icons/io"
-import { Note as INote, notes as getNotes, createNote, noteParticipantsAdd } from "../../lib/api"
+import { Note as INote, notes as getNotes, createNote, noteParticipantsAdd, notesTags, NoteTag } from "../../lib/api"
 import { safeAwait, generateRandomString, getCurrentParent, simpleDate } from "../../lib/helpers"
 import db from "../../lib/db"
 import {
@@ -18,7 +18,8 @@ import {
 	decryptNotePreview,
 	decryptNoteTitle,
 	encryptNoteTitle,
-	decryptNoteKeyParticipant
+	decryptNoteKeyParticipant,
+	decryptNoteTagName
 } from "../../lib/worker/worker.com"
 import { v4 as uuidv4, validate } from "uuid"
 import { useNavigate } from "react-router-dom"
@@ -28,6 +29,9 @@ import { show as showToast } from "../Toast/Toast"
 import useDb from "../../lib/hooks/useDb"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
+import useMeasure from "react-use-measure"
+import Tag from "./Tag"
+import striptags from "striptags"
 
 export const Sidebar = memo(
 	({
@@ -36,7 +40,9 @@ export const Sidebar = memo(
 		notes,
 		setNotes,
 		search,
-		setSearch
+		setSearch,
+		tags,
+		setTags
 	}: {
 		sizes: NotesSizes
 		currentNote: INote | undefined
@@ -44,6 +50,8 @@ export const Sidebar = memo(
 		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
 		search: string
 		setSearch: React.Dispatch<React.SetStateAction<string>>
+		tags: NoteTag[]
+		setTags: React.Dispatch<React.SetStateAction<NoteTag[]>>
 	}) => {
 		const isMobile = useIsMobile()
 		const windowHeight = useWindowHeight()
@@ -54,9 +62,11 @@ export const Sidebar = memo(
 		const [creating, setCreating] = useState<boolean>(false)
 		const navigate = useNavigate()
 		const [userId] = useDb("userId", 0)
+		const [tagsContainerRef, tagsContainerBounds] = useMeasure()
+		const [activeTag, setActiveTag] = useState<string>("")
 
 		const notesSorted = useMemo(() => {
-			return notes
+			const filtered = notes
 				.sort((a, b) => {
 					if (a.pinned !== b.pinned) {
 						return b.pinned ? 1 : -1
@@ -91,13 +101,31 @@ export const Sidebar = memo(
 
 					return false
 				})
-		}, [notes, userId, search])
+
+			if (activeTag.length > 0) {
+				return filtered.filter(note => note.tags.map(t => t.uuid).includes(activeTag))
+			}
+
+			return filtered
+		}, [notes, userId, search, activeTag])
+
+		const tagsSorted = useMemo(() => {
+			return tags.sort((a, b) => {
+				if (a.favorite !== b.favorite) {
+					return b.favorite ? 1 : -1
+				}
+
+				return b.createdTimestamp - a.createdTimestamp
+			})
+		}, [tags])
 
 		const fetchNotes = useCallback(async () => {
 			const privateKey = await db.get("privateKey")
 			const userId = await db.get("userId")
-			const notesRes = await getNotes()
+			const masterKeys = await db.get("masterKeys")
+			const [notesRes, tagsRes] = await Promise.all([getNotes(), notesTags()])
 			const notes: INote[] = []
+			const tags: NoteTag[] = []
 
 			for (const note of notesRes) {
 				const noteKey = await decryptNoteKeyParticipant(
@@ -105,15 +133,42 @@ export const Sidebar = memo(
 					privateKey
 				)
 				const title = await decryptNoteTitle(note.title, noteKey)
+				const tags: NoteTag[] = []
 
-				notes.push({
-					...note,
-					title,
-					preview: note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)
-				})
+				for (const tag of note.tags) {
+					const tagName = await decryptNoteTagName(tag.name, masterKeys)
+
+					tags.push({
+						...tag,
+						name: tagName
+					})
+				}
+
+				if (title.length > 0) {
+					notes.push({
+						...note,
+						title: striptags(title),
+						preview: striptags(note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)),
+						tags
+					})
+				}
 			}
 
-			return notes
+			for (const tag of tagsRes) {
+				const name = await decryptNoteTagName(tag.name, masterKeys)
+
+				if (name.length > 0) {
+					tags.push({
+						...tag,
+						name: striptags(name)
+					})
+				}
+			}
+
+			return {
+				notes,
+				tags
+			}
 		}, [])
 
 		const loadNotes = useCallback(async (showLoader: boolean = true) => {
@@ -131,7 +186,8 @@ export const Sidebar = memo(
 				return
 			}
 
-			setNotes(notesRes)
+			setNotes(notesRes.notes)
+			setTags(notesRes.tags)
 			setLoading(false)
 		}, [])
 
@@ -184,7 +240,8 @@ export const Sidebar = memo(
 				return
 			}
 
-			setNotes(notesRes)
+			setNotes(notesRes.notes)
+			setTags(notesRes.tags)
 			navigate("#/notes/" + uuid)
 			setCreating(false)
 		}, [])
@@ -263,13 +320,13 @@ export const Sidebar = memo(
 						onMouseEnter={() => setHoveringAdd(true)}
 						onMouseLeave={() => setHoveringAdd(false)}
 						onClick={() => {
-							if (creating) {
+							if (creating || loading) {
 								return
 							}
 
 							create()
 						}}
-						cursor="pointer"
+						cursor={loading ? "not-allowed" : "pointer"}
 					>
 						{creating ? (
 							<Spinner
@@ -289,82 +346,125 @@ export const Sidebar = memo(
 						)}
 					</Flex>
 				</Flex>
-				<Flex
-					width={sizes.notes + "px"}
-					height="50px"
-					flexDirection="row"
-					justifyContent="space-between"
-					alignItems="center"
-					paddingLeft="15px"
-					paddingRight="15px"
-					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
-				>
-					<Input
-						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						borderRadius="15px"
-						height="30px"
-						border="none"
-						outline="none"
-						shadow="none"
-						marginTop="-10px"
-						spellCheck={false}
-						color={getColor(darkMode, "textPrimary")}
-						placeholder={i18n(lang, "searchInput")}
-						value={search}
-						onChange={e => setSearch(e.target.value)}
-						fontSize={14}
-						_placeholder={{
-							color: getColor(darkMode, "textSecondary")
-						}}
-						_hover={{
-							shadow: "none",
-							outline: "none"
-						}}
-						_active={{
-							shadow: "none",
-							outline: "none"
-						}}
-						_focus={{
-							shadow: "none",
-							outline: "none"
-						}}
-						_highlighted={{
-							shadow: "none",
-							outline: "none"
-						}}
-					/>
-				</Flex>
 				{loading ? (
-					<Flex
-						height={windowHeight - 100 + "px"}
-						width={sizes.notes + "px"}
-						flexDirection="column"
-						overflow="hidden"
-					>
-						{new Array(5).fill(1).map((_, index) => {
-							return (
-								<NoteSkeleton
-									index={index}
-									key={index}
-								/>
-							)
-						})}
-					</Flex>
+					<>
+						<Flex
+							height={windowHeight - 50 + "px"}
+							width={sizes.notes + "px"}
+							flexDirection="column"
+							overflow="hidden"
+						>
+							{new Array(5).fill(1).map((_, index) => {
+								return (
+									<NoteSkeleton
+										index={index}
+										key={index}
+									/>
+								)
+							})}
+						</Flex>
+					</>
 				) : (
-					<Virtuoso
-						data={notesSorted}
-						height={windowHeight - 100}
-						width={sizes.notes}
-						itemContent={itemContent}
-						totalCount={notesSorted.length}
-						overscan={8}
-						style={{
-							overflowX: "hidden",
-							overflowY: "auto",
-							height: windowHeight - 100 + "px",
-							width: sizes.notes + "px"
-						}}
-					/>
+					<>
+						<Flex
+							width={sizes.notes + "px"}
+							height="50px"
+							flexDirection="row"
+							justifyContent="space-between"
+							alignItems="center"
+							paddingLeft="15px"
+							paddingRight="15px"
+						>
+							<Input
+								backgroundColor={getColor(darkMode, "backgroundSecondary")}
+								borderRadius="15px"
+								height="30px"
+								border="none"
+								outline="none"
+								shadow="none"
+								marginTop="-10px"
+								spellCheck={false}
+								color={getColor(darkMode, "textPrimary")}
+								placeholder={i18n(lang, "searchInput")}
+								value={search}
+								onChange={e => setSearch(e.target.value)}
+								fontSize={14}
+								_placeholder={{
+									color: getColor(darkMode, "textSecondary")
+								}}
+								_hover={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_active={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_focus={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_highlighted={{
+									shadow: "none",
+									outline: "none"
+								}}
+							/>
+						</Flex>
+						<Flex
+							width={sizes.notes + "px"}
+							maxWidth={sizes.notes + "px"}
+							flexDirection="row"
+							flexFlow="wrap"
+							gap="5px"
+							paddingLeft="15px"
+							paddingRight="15px"
+							paddingBottom="10px"
+							borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
+							ref={tagsContainerRef}
+						>
+							<Tag
+								all={true}
+								index={0}
+								activeTag={activeTag}
+								setActiveTag={setActiveTag}
+							/>
+							{tagsSorted.map((tag, index) => (
+								<Tag
+									tag={tag}
+									key={tag.uuid}
+									index={index + 1}
+									activeTag={activeTag}
+									setActiveTag={setActiveTag}
+								/>
+							))}
+							<Tag
+								add={true}
+								index={Number.MAX_SAFE_INTEGER}
+								activeTag={activeTag}
+								setActiveTag={setActiveTag}
+							/>
+						</Flex>
+						<Flex
+							flexDirection="column"
+							height={windowHeight - 100 - tagsContainerBounds.height + "px"}
+							width={sizes.notes}
+						>
+							<Virtuoso
+								data={notesSorted}
+								height={windowHeight - 100 - tagsContainerBounds.height}
+								width={sizes.notes}
+								itemContent={itemContent}
+								totalCount={notesSorted.length}
+								overscan={8}
+								style={{
+									overflowX: "hidden",
+									overflowY: "auto",
+									height: windowHeight - 100 - tagsContainerBounds.height + "px",
+									width: sizes.notes + "px"
+								}}
+							/>
+						</Flex>
+					</>
 				)}
 			</Flex>
 		)
