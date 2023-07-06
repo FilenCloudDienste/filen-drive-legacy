@@ -17,6 +17,9 @@ import { SocketEvent } from "../../lib/services/socket"
 import db from "../../lib/db"
 import { useNavigate } from "react-router-dom"
 import CreateTagModal from "./CreateTagModal"
+import DeleteTagModal from "./DeleteTagModal"
+import RenameTagModal from "./RenameTagModal"
+import DeleteNoteModal from "./DeleteNoteModal"
 
 export interface NotesSizes {
 	notes: number
@@ -49,7 +52,7 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 	}, [notes, currentNoteUUID])
 
 	const sizes: NotesSizes = useMemo(() => {
-		const notes = isMobile ? 125 : windowWidth > 1100 ? 350 : 250
+		const notes = isMobile ? 125 : windowWidth > 1100 ? 400 : 250
 		const note = windowWidth - sidebarWidth - notes
 
 		return {
@@ -255,20 +258,32 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 				height={windowHeight + "px"}
 				flexDirection="column"
 			>
-				<Content
-					sizes={sizes}
-					currentNote={currentNote}
-					setNotes={setNotes}
-				/>
+				{currentNote && (
+					<Content
+						sizes={sizes}
+						currentNote={currentNote}
+						setNotes={setNotes}
+					/>
+				)}
 			</Flex>
 			<ContextMenus
 				setNotes={setNotes}
 				tags={tags}
+				setTags={setTags}
 			/>
 			<HistoryModal />
 			<AddParticipantModal />
 			<AddContactModal />
-			<CreateTagModal />
+			<CreateTagModal setTags={setTags} />
+			<DeleteTagModal
+				setTags={setTags}
+				setNotes={setNotes}
+			/>
+			<RenameTagModal setTags={setTags} />
+			<DeleteNoteModal
+				setNotes={setNotes}
+				notes={notes}
+			/>
 		</Flex>
 	)
 })

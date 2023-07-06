@@ -93,7 +93,39 @@ export const Contact = memo(({ contact, note }: { contact: IContact; note: INote
 		})
 	}, [note, contact, lang])
 
-	const remove = useCallback(async () => {}, [])
+	const remove = useCallback(async () => {
+		if (!note) {
+			return
+		}
+
+		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
+
+		const [err] = await safeAwait(
+			noteParticipantsRemove({
+				uuid: note.uuid,
+				userId: contact.userId
+			})
+		)
+
+		if (err) {
+			console.error(err)
+
+			dismissToast(loadingToast)
+
+			showToast("error", err.message, "bottom", 5000)
+
+			return
+		}
+
+		dismissToast(loadingToast)
+
+		setAdded(false)
+
+		eventListener.emit("noteParticipantRemoved", {
+			note,
+			userId: contact.userId
+		})
+	}, [contact, note, lang])
 
 	return (
 		<Flex
@@ -421,7 +453,6 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
 								boxShadow="md"
 								color={getColor(darkMode, "textSecondary")}
-								border={"1px solid " + getColor(darkMode, "borderPrimary")}
 								hasArrow={true}
 							>
 								<Flex
@@ -460,7 +491,6 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
 								boxShadow="md"
 								color={getColor(darkMode, "textSecondary")}
-								border={"1px solid " + getColor(darkMode, "borderPrimary")}
 								hasArrow={true}
 							>
 								<Flex
@@ -500,7 +530,6 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 								backgroundColor={getColor(darkMode, "backgroundTertiary")}
 								boxShadow="md"
 								color={getColor(darkMode, "textSecondary")}
-								border={"1px solid " + getColor(darkMode, "borderPrimary")}
 								hasArrow={true}
 							>
 								<Flex

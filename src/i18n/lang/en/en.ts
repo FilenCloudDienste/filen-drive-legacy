@@ -437,7 +437,14 @@ const en: {
 	noteHistoryRestore: "Restore this version",
 	searchInput: "Search...",
 	notesTagsNameExists: "A tag with this name already exists",
-	notesTagsCreate: "Create tag"
+	notesTagsCreate: "Create tag",
+	newNote: "New note",
+	notesNoNotesFoundUnderTag: "No notes found.",
+	notesCreate: "Create one",
+	notesCreateInfo: "You have no notes yet.",
+	notesDeleteWarning: "Are you sure you want to delete this note? This action cannot be undone!",
+	notesTagDeleteWarning: "Are you sure you want to delete this tag? This action cannot be undone!",
+	notesTagsDelete: "Delete tag"
 }
 
 export default en

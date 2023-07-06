@@ -1,11 +1,15 @@
 import { memo, useState, useMemo } from "react"
-import { Flex } from "@chakra-ui/react"
+import { Flex, Tooltip } from "@chakra-ui/react"
 import { NoteTag } from "../../lib/api"
 import { getColor } from "../../styles/colors"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import useIsMobile from "../../lib/hooks/useIsMobile"
+import { IoIosAdd } from "react-icons/io"
+import { IoHeart } from "react-icons/io5"
+import { i18n } from "../../i18n"
+import useLang from "../../lib/hooks/useLang"
 
 export const NoteSidebarTag = memo(({ tag }: { tag: NoteTag }) => {
 	const darkMode = useDarkMode()
@@ -69,10 +73,50 @@ export const Tag = memo(
 		const darkMode = useDarkMode()
 		const isMobile = useIsMobile()
 		const [hovering, setHovering] = useState<boolean>(false)
+		const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
+		const lang = useLang()
 
 		const active = useMemo(() => {
-			return hovering || (activeTag.length === 0 && typeof all === "boolean" && all === true) || activeTag === tag?.uuid
+			return hovering || (activeTag.length === 0 && all) || activeTag === tag?.uuid
 		}, [hovering, activeTag, tag, all, add])
+
+		if (typeof add === "boolean" && add === true) {
+			return (
+				<Tooltip
+					label={i18n(lang, "notesTagsCreate")}
+					placement="right"
+					borderRadius="5px"
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					boxShadow="md"
+					color={getColor(darkMode, "textSecondary")}
+					hasArrow={true}
+					openDelay={300}
+				>
+					<Flex
+						backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundSecondary")}
+						width="28px"
+						height="28px"
+						padding="4px"
+						borderRadius="5px"
+						justifyContent="center"
+						alignItems="center"
+						onMouseEnter={() => setHoveringAdd(true)}
+						onMouseLeave={() => setHoveringAdd(false)}
+						onClick={() => eventListener.emit("openCreateNoteTagModal")}
+						cursor="pointer"
+					>
+						<IoIosAdd
+							size={22}
+							color={getColor(darkMode, "purple")}
+							cursor="pointer"
+							style={{
+								flexShrink: 0
+							}}
+						/>
+					</Flex>
+				</Tooltip>
+			)
+		}
 
 		return (
 			<Flex
@@ -89,15 +133,25 @@ export const Tag = memo(
 				onMouseEnter={() => setHovering(true)}
 				onMouseLeave={() => setHovering(false)}
 				cursor="pointer"
-				gap="5px"
-				onClick={() => {
-					if (typeof add === "boolean" && add === true) {
-						eventListener.emit("openCreateNoteTagModal")
-
+				gap="3px"
+				onContextMenu={e => {
+					if (!tag) {
 						return
 					}
 
-					if (typeof all === "boolean" && all === true) {
+					e.preventDefault()
+
+					eventListener.emit("openNoteTagContextMenu", {
+						tag,
+						event: e,
+						position: {
+							x: e.nativeEvent.clientX,
+							y: e.nativeEvent.clientY
+						}
+					})
+				}}
+				onClick={() => {
+					if (all) {
 						setActiveTag("")
 
 						return
@@ -108,6 +162,15 @@ export const Tag = memo(
 					}
 				}}
 			>
+				{tag && tag.favorite && (
+					<IoHeart
+						fontSize={13}
+						color={getColor(darkMode, "textPrimary")}
+						style={{
+							flexShrink: 0
+						}}
+					/>
+				)}
 				<AppText
 					darkMode={darkMode}
 					isMobile={isMobile}
@@ -116,13 +179,7 @@ export const Tag = memo(
 					color={getColor(darkMode, "textSecondary")}
 					fontSize={14}
 				>
-					{typeof all === "boolean" && all === true ? (
-						<>All</>
-					) : typeof add === "boolean" && add === true ? (
-						<>+</>
-					) : typeof tag !== "undefined" ? (
-						<>{tag?.name}</>
-					) : null}
+					{all ? <>All</> : tag ? <>{tag?.name}</> : null}
 				</AppText>
 			</Flex>
 		)

@@ -3,7 +3,7 @@ import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader,
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import ModalCloseButton from "../ModalCloseButton"
-import { notesTags, notesTagsCreate, NoteTag } from "../../lib/api"
+import { notesTags, NoteTag, notesTagsRename } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import db from "../../lib/db"
 import { decryptNoteTagName, encryptNoteTagName } from "../../lib/worker/worker.com"
@@ -15,16 +15,17 @@ import { i18n } from "../../i18n"
 import { show as showToast } from "../Toast/Toast"
 import striptags from "striptags"
 
-export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React.SetStateAction<NoteTag[]>> }) => {
+export const RenameTagModal = memo(({ setTags }: { setTags: React.Dispatch<React.SetStateAction<NoteTag[]>> }) => {
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
 	const [tag, setTag] = useState<string>("")
-	const [creating, setCreating] = useState<boolean>(false)
+	const [renaming, setRenaming] = useState<boolean>(false)
+	const [selectedTag, setSelectedTag] = useState<NoteTag | undefined>(undefined)
 
-	const create = useCallback(async () => {
-		if (creating) {
+	const rename = useCallback(async () => {
+		if (renaming || !selectedTag) {
 			return
 		}
 
@@ -34,14 +35,14 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 			return
 		}
 
-		setCreating(true)
+		setRenaming(true)
 
 		const [tagsErr, tagsRes] = await safeAwait(notesTags())
 
 		if (tagsErr) {
 			console.error(tagsErr)
 
-			setCreating(false)
+			setRenaming(false)
 
 			showToast("error", tagsErr.message, "bottom", 5000)
 
@@ -60,7 +61,7 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 		}
 
 		if (existingNames.includes(name)) {
-			setCreating(false)
+			setRenaming(false)
 
 			showToast("error", i18n(lang, "notesTagsNameExists"), "bottom", 5000)
 
@@ -69,35 +70,34 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 
 		const nameEncrypted = await encryptNoteTagName(name, masterKeys[masterKeys.length - 1])
 
-		const [createErr, createRes] = await safeAwait(notesTagsCreate(nameEncrypted))
+		const [renameErr] = await safeAwait(notesTagsRename(selectedTag.uuid, nameEncrypted))
 
-		if (createErr) {
-			console.error(createErr)
+		if (renameErr) {
+			console.error(renameErr)
 
-			setCreating(false)
+			setRenaming(false)
 
-			showToast("error", createErr.message, "bottom", 5000)
+			showToast("error", renameErr.message, "bottom", 5000)
 
 			return
 		}
 
-		setTags(prev => [
-			...prev,
-			{ uuid: createRes.uuid, name, favorite: false, editedTimestamp: Date.now(), createdTimestamp: Date.now() }
-		])
-		setCreating(false)
+		setTags(prev => prev.map(t => (t.uuid === selectedTag.uuid ? { ...t, name, editedTimestamp: Date.now() } : t)))
+		setRenaming(false)
 		setOpen(false)
 		setTag("")
-	}, [creating, lang, tag])
+		setSelectedTag(undefined)
+	}, [renaming, lang, tag, selectedTag])
 
 	useEffect(() => {
-		const openCreateNoteTagModalListener = eventListener.on("openCreateNoteTagModal", () => {
-			setTag("")
+		const openRenameNotesTagModalListener = eventListener.on("openRenameNotesTagModal", (t: NoteTag) => {
+			setTag(t.name)
+			setSelectedTag(t)
 			setOpen(true)
 		})
 
 		return () => {
-			openCreateNoteTagModalListener.remove()
+			openRenameNotesTagModalListener.remove()
 		}
 	}, [])
 
@@ -123,13 +123,13 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 						onChange={e => setTag(e.target.value)}
 						onKeyDown={e => {
 							if (e.key === "Enter") {
-								create()
+								rename()
 							}
 						}}
 					/>
 				</ModalBody>
 				<ModalFooter>
-					{creating ? (
+					{renaming ? (
 						<Spinner
 							width="16px"
 							height="16px"
@@ -146,9 +146,9 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 							_hover={{
 								textDecoration: "underline"
 							}}
-							onClick={() => create()}
+							onClick={() => rename()}
 						>
-							{i18n(lang, "create")}
+							{i18n(lang, "rename")}
 						</AppText>
 					)}
 				</ModalFooter>
@@ -157,4 +157,4 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 	)
 })
 
-export default CreateTagModal
+export default RenameTagModal

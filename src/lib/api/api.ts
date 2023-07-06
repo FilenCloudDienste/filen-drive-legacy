@@ -3343,6 +3343,7 @@ export interface NoteTag {
 	uuid: string
 	name: string
 	favorite: boolean
+	editedTimestamp: number
 	createdTimestamp: number
 }
 

@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useCallback, useEffect } from "react"
-import { Flex, Spinner, Input, Badge } from "@chakra-ui/react"
+import { Flex, Spinner, Input, Tooltip } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
@@ -9,18 +9,10 @@ import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import { Virtuoso } from "react-virtuoso"
 import { IoIosAdd } from "react-icons/io"
-import { Note as INote, notes as getNotes, createNote, noteParticipantsAdd, notesTags, NoteTag } from "../../lib/api"
+import { Note as INote, createNote, noteParticipantsAdd, NoteTag } from "../../lib/api"
 import { safeAwait, generateRandomString, getCurrentParent, simpleDate } from "../../lib/helpers"
 import db from "../../lib/db"
-import {
-	encryptMetadata,
-	encryptMetadataPublicKey,
-	decryptNotePreview,
-	decryptNoteTitle,
-	encryptNoteTitle,
-	decryptNoteKeyParticipant,
-	decryptNoteTagName
-} from "../../lib/worker/worker.com"
+import { encryptMetadata, encryptMetadataPublicKey, encryptNoteTitle } from "../../lib/worker/worker.com"
 import { v4 as uuidv4, validate } from "uuid"
 import { useNavigate } from "react-router-dom"
 import { NotesSizes } from "./Notes"
@@ -31,7 +23,8 @@ import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import useMeasure from "react-use-measure"
 import Tag from "./Tag"
-import striptags from "striptags"
+import { useLocalStorage } from "react-use"
+import { fetchNotesAndTags, sortAndFilterNotes, sortAndFilterTags } from "./utils"
 
 export const Sidebar = memo(
 	({
@@ -61,134 +54,54 @@ export const Sidebar = memo(
 		const [loading, setLoading] = useState<boolean>(true)
 		const [creating, setCreating] = useState<boolean>(false)
 		const navigate = useNavigate()
-		const [userId] = useDb("userId", 0)
 		const [tagsContainerRef, tagsContainerBounds] = useMeasure()
-		const [activeTag, setActiveTag] = useState<string>("")
+		const [activeTag, setActiveTag] = useDb("notesActiveTag", "")
+		const [notesTagsContainerHeight, setNotesTagsContainerHeight] = useLocalStorage<number>(
+			"notesTagsContainerHeight",
+			tagsContainerBounds.height
+		)
 
 		const notesSorted = useMemo(() => {
-			const filtered = notes
-				.sort((a, b) => {
-					if (a.pinned !== b.pinned) {
-						return b.pinned ? 1 : -1
-					}
-
-					if (a.trash !== b.trash && a.archive === false) {
-						return a.trash ? 1 : -1
-					}
-
-					if (a.archive !== b.archive) {
-						return a.archive ? 1 : -1
-					}
-
-					if (a.trash !== b.trash) {
-						return a.trash ? 1 : -1
-					}
-
-					return b.editedTimestamp - a.editedTimestamp
-				})
-				.filter(note => {
-					if (search.length === 0) {
-						return true
-					}
-
-					if (note.title.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
-						return true
-					}
-
-					if (note.preview.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
-						return true
-					}
-
-					return false
-				})
-
-			if (activeTag.length > 0) {
-				return filtered.filter(note => note.tags.map(t => t.uuid).includes(activeTag))
-			}
-
-			return filtered
-		}, [notes, userId, search, activeTag])
+			return sortAndFilterNotes(notes, search, activeTag)
+		}, [notes, search, activeTag])
 
 		const tagsSorted = useMemo(() => {
-			return tags.sort((a, b) => {
-				if (a.favorite !== b.favorite) {
-					return b.favorite ? 1 : -1
-				}
-
-				return b.createdTimestamp - a.createdTimestamp
-			})
+			return sortAndFilterTags(tags)
 		}, [tags])
 
-		const fetchNotes = useCallback(async () => {
-			const privateKey = await db.get("privateKey")
-			const userId = await db.get("userId")
-			const masterKeys = await db.get("masterKeys")
-			const [notesRes, tagsRes] = await Promise.all([getNotes(), notesTags()])
-			const notes: INote[] = []
-			const tags: NoteTag[] = []
+		const loadNotesAndTags = useCallback(async (refresh: boolean = false) => {
+			const getItemsInDb = await db.get("notesAndTags", "notes")
+			const hasItemsInDb =
+				typeof getItemsInDb.notes !== "undefined" &&
+				getItemsInDb.tags !== "undefined" &&
+				Array.isArray(getItemsInDb.notes) &&
+				Array.isArray(getItemsInDb.tags)
 
-			for (const note of notesRes) {
-				const noteKey = await decryptNoteKeyParticipant(
-					note.participants.filter(participant => participant.userId === userId)[0].metadata,
-					privateKey
-				)
-				const title = await decryptNoteTitle(note.title, noteKey)
-				const tags: NoteTag[] = []
-
-				for (const tag of note.tags) {
-					const tagName = await decryptNoteTagName(tag.name, masterKeys)
-
-					tags.push({
-						...tag,
-						name: tagName
-					})
-				}
-
-				if (title.length > 0) {
-					notes.push({
-						...note,
-						title: striptags(title),
-						preview: striptags(note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)),
-						tags
-					})
-				}
+			if (!hasItemsInDb) {
+				setLoading(true)
+				setNotes([])
+				setTags([])
 			}
 
-			for (const tag of tagsRes) {
-				const name = await decryptNoteTagName(tag.name, masterKeys)
+			const [err, res] = await safeAwait(fetchNotesAndTags(refresh))
 
-				if (name.length > 0) {
-					tags.push({
-						...tag,
-						name: striptags(name)
-					})
-				}
-			}
-
-			return {
-				notes,
-				tags
-			}
-		}, [])
-
-		const loadNotes = useCallback(async (showLoader: boolean = true) => {
-			setLoading(showLoader)
-
-			const [notesErr, notesRes] = await safeAwait(fetchNotes())
-
-			if (notesErr) {
-				console.error(notesErr)
+			if (err) {
+				console.error(err)
 
 				setLoading(false)
 
-				showToast("error", notesErr.message, "bottom", 5000)
+				showToast("error", err.message, "bottom", 5000)
 
 				return
 			}
 
-			setNotes(notesRes.notes)
-			setTags(notesRes.tags)
+			setNotes(res.notes)
+			setTags(res.tags)
 			setLoading(false)
+
+			if (res.cache) {
+				loadNotesAndTags(true)
+			}
 		}, [])
 
 		const create = useCallback(async () => {
@@ -228,20 +141,20 @@ export const Sidebar = memo(
 				return
 			}
 
-			const [notesErr, notesRes] = await safeAwait(fetchNotes())
+			const [notesAndTagsErr, notesAndTagsRes] = await safeAwait(fetchNotesAndTags(true))
 
-			if (notesErr) {
-				console.error(notesErr)
+			if (notesAndTagsErr) {
+				console.error(notesAndTagsErr)
 
 				setCreating(false)
 
-				showToast("error", notesErr.message, "bottom", 5000)
+				showToast("error", notesAndTagsErr.message, "bottom", 5000)
 
 				return
 			}
 
-			setNotes(notesRes.notes)
-			setTags(notesRes.tags)
+			setNotes(notesAndTagsRes.notes)
+			setTags(notesAndTagsRes.tags)
 			navigate("#/notes/" + uuid)
 			setCreating(false)
 		}, [])
@@ -256,18 +169,35 @@ export const Sidebar = memo(
 		}, [])
 
 		useEffect(() => {
-			loadNotes()
+			db.set(
+				"notesAndTags",
+				{
+					notes: sortAndFilterNotes(notesSorted, "", ""),
+					tags: sortAndFilterTags(tagsSorted)
+				},
+				"notes"
+			).catch(console.error)
+		}, [notesSorted, tagsSorted])
+
+		useEffect(() => {
+			if (tagsContainerBounds.height > 0) {
+				setNotesTagsContainerHeight(tagsContainerBounds.height)
+			}
+		}, [tagsContainerBounds.height])
+
+		useEffect(() => {
+			loadNotesAndTags()
 		}, [])
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", (data: SocketEvent) => {
 				if (data.type === "noteNew") {
-					loadNotes(false)
+					loadNotesAndTags(true)
 				}
 			})
 
 			const refreshNotesListener = eventListener.on("refreshNotes", () => {
-				loadNotes(false)
+				loadNotesAndTags(true)
 			})
 
 			return () => {
@@ -309,42 +239,53 @@ export const Sidebar = memo(
 					>
 						{i18n(lang, "notes")}
 					</AppText>
-					<Flex
-						backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
-						width="32px"
-						height="32px"
-						padding="4px"
-						borderRadius="full"
-						justifyContent="center"
-						alignItems="center"
-						onMouseEnter={() => setHoveringAdd(true)}
-						onMouseLeave={() => setHoveringAdd(false)}
-						onClick={() => {
-							if (creating || loading) {
-								return
-							}
-
-							create()
-						}}
-						cursor={loading ? "not-allowed" : "pointer"}
+					<Tooltip
+						label={i18n(lang, "newNote")}
+						placement="left"
+						borderRadius="5px"
+						backgroundColor={getColor(darkMode, "backgroundSecondary")}
+						boxShadow="md"
+						color={getColor(darkMode, "textSecondary")}
+						hasArrow={true}
+						openDelay={300}
 					>
-						{creating ? (
-							<Spinner
-								width="16px"
-								height="16px"
-								color={getColor(darkMode, "textSecondary")}
-							/>
-						) : (
-							<IoIosAdd
-								size={24}
-								color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
-								cursor="pointer"
-								style={{
-									flexShrink: 0
-								}}
-							/>
-						)}
-					</Flex>
+						<Flex
+							backgroundColor={hoveringAdd ? getColor(darkMode, "backgroundSecondary") : undefined}
+							width="32px"
+							height="32px"
+							padding="4px"
+							borderRadius="full"
+							justifyContent="center"
+							alignItems="center"
+							onMouseEnter={() => setHoveringAdd(true)}
+							onMouseLeave={() => setHoveringAdd(false)}
+							onClick={() => {
+								if (creating || loading) {
+									return
+								}
+
+								create()
+							}}
+							cursor={loading ? "not-allowed" : "pointer"}
+						>
+							{creating ? (
+								<Spinner
+									width="16px"
+									height="16px"
+									color={getColor(darkMode, "textSecondary")}
+								/>
+							) : (
+								<IoIosAdd
+									size={24}
+									color={hoveringAdd ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")}
+									cursor="pointer"
+									style={{
+										flexShrink: 0
+									}}
+								/>
+							)}
+						</Flex>
+					</Tooltip>
 				</Flex>
 				{loading ? (
 					<>
@@ -377,12 +318,12 @@ export const Sidebar = memo(
 						>
 							<Input
 								backgroundColor={getColor(darkMode, "backgroundSecondary")}
-								borderRadius="15px"
+								borderRadius="10px"
 								height="30px"
 								border="none"
 								outline="none"
 								shadow="none"
-								marginTop="-10px"
+								marginTop="-12px"
 								spellCheck={false}
 								color={getColor(darkMode, "textPrimary")}
 								placeholder={i18n(lang, "searchInput")}
@@ -413,12 +354,15 @@ export const Sidebar = memo(
 						<Flex
 							width={sizes.notes + "px"}
 							maxWidth={sizes.notes + "px"}
+							maxHeight={Math.round(windowHeight / 2) + "px"}
+							overflowX="hidden"
+							overflowY="auto"
 							flexDirection="row"
 							flexFlow="wrap"
 							gap="5px"
 							paddingLeft="15px"
 							paddingRight="15px"
-							paddingBottom="10px"
+							paddingBottom="15px"
 							borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 							ref={tagsContainerRef}
 						>
@@ -446,23 +390,83 @@ export const Sidebar = memo(
 						</Flex>
 						<Flex
 							flexDirection="column"
-							height={windowHeight - 100 - tagsContainerBounds.height + "px"}
+							height={windowHeight - 100 - (notesTagsContainerHeight || 0) + "px"}
 							width={sizes.notes}
 						>
-							<Virtuoso
-								data={notesSorted}
-								height={windowHeight - 100 - tagsContainerBounds.height}
-								width={sizes.notes}
-								itemContent={itemContent}
-								totalCount={notesSorted.length}
-								overscan={8}
-								style={{
-									overflowX: "hidden",
-									overflowY: "auto",
-									height: windowHeight - 100 - tagsContainerBounds.height + "px",
-									width: sizes.notes + "px"
-								}}
-							/>
+							{notesSorted.length > 0 ? (
+								<Virtuoso
+									data={notesSorted}
+									height={windowHeight - 100 - (notesTagsContainerHeight || 0)}
+									width={sizes.notes}
+									itemContent={itemContent}
+									totalCount={notesSorted.length}
+									overscan={8}
+									style={{
+										overflowX: "hidden",
+										overflowY: "auto",
+										height: windowHeight - 100 - (notesTagsContainerHeight || 0) + "px",
+										width: sizes.notes + "px"
+									}}
+								/>
+							) : (
+								<Flex
+									justifyContent="center"
+									alignItems="center"
+									height={windowHeight - 100 - (notesTagsContainerHeight || 0) + "px"}
+									width={sizes.notes}
+									flexDirection="column"
+								>
+									{activeTag.length === 0 ? (
+										<>
+											<AppText
+												darkMode={darkMode}
+												isMobile={isMobile}
+												noOfLines={1}
+												wordBreak="break-all"
+												color={getColor(darkMode, "textSecondary")}
+												fontSize={16}
+											>
+												{i18n(lang, "notesCreateInfo")}
+											</AppText>
+											{creating ? (
+												<Spinner
+													width="16px"
+													height="16px"
+													color={getColor(darkMode, "textPrimary")}
+													marginTop="4px"
+												/>
+											) : (
+												<AppText
+													darkMode={darkMode}
+													isMobile={isMobile}
+													noOfLines={1}
+													wordBreak="break-all"
+													color={getColor(darkMode, "linkPrimary")}
+													fontSize={14}
+													cursor="pointer"
+													_hover={{
+														textDecoration: "underline"
+													}}
+													onClick={() => create()}
+												>
+													{i18n(lang, "notesCreate")}
+												</AppText>
+											)}
+										</>
+									) : (
+										<AppText
+											darkMode={darkMode}
+											isMobile={isMobile}
+											noOfLines={1}
+											wordBreak="break-all"
+											color={getColor(darkMode, "textSecondary")}
+											fontSize={16}
+										>
+											{i18n(lang, "notesNoNotesFoundUnderTag")}
+										</AppText>
+									)}
+								</Flex>
+							)}
 						</Flex>
 					</>
 				)}

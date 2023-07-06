@@ -62,7 +62,6 @@ export const Topbar = memo(
 							backgroundColor={getColor(darkMode, "backgroundSecondary")}
 							boxShadow="md"
 							color={getColor(darkMode, "textSecondary")}
-							border={"1px solid " + getColor(darkMode, "borderPrimary")}
 							hasArrow={true}
 						>
 							<Flex>

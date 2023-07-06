@@ -354,7 +354,7 @@ export const Editor = memo(
 								border: "none",
 								color: getColor(darkMode, "textPrimary"),
 								marginTop: "-47px",
-								marginLeft: "-21px",
+								marginLeft: "-23px",
 								fontFamily: '"Inter", sans-serif'
 							}}
 							onChange={value => {

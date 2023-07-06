@@ -497,11 +497,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 
 export const loadSidebarItems = async (uuid: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
-		const [apiKey, masterKeys, defaultDriveUUID] = await Promise.all([
-			db.get("apiKey"),
-			db.get("masterKeys"),
-			db.get("defaultDriveUUID")
-		])
+		const [masterKeys, defaultDriveUUID] = await Promise.all([db.get("masterKeys"), db.get("defaultDriveUUID")])
 
 		const promises: Promise<ItemProps | null>[] = []
 

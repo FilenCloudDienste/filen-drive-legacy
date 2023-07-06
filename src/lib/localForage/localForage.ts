@@ -32,3 +32,23 @@ export const metadataStore = localForage.createInstance({
 
 metadataStore.defineDriver(memoryStorageDriver).catch(console.error)
 metadataStore.setDriver([metadataStore.INDEXEDDB, memoryStorageDriver._driver]).catch(console.error)
+
+export const notesStore = localForage.createInstance({
+	name: "Filen_Notes",
+	version: 1.0,
+	storeName: "filen_v" + DB_VERSION,
+	size: 1024 * 1024 * 128
+})
+
+notesStore.defineDriver(memoryStorageDriver).catch(console.error)
+notesStore.setDriver([notesStore.INDEXEDDB, memoryStorageDriver._driver]).catch(console.error)
+
+export const chatsStore = localForage.createInstance({
+	name: "Filen_Notes",
+	version: 1.0,
+	storeName: "filen_v" + DB_VERSION,
+	size: 1024 * 1024 * 128
+})
+
+chatsStore.defineDriver(memoryStorageDriver).catch(console.error)
+chatsStore.setDriver([chatsStore.INDEXEDDB, memoryStorageDriver._driver]).catch(console.error)

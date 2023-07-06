@@ -1,16 +1,20 @@
 import { USE_MEMORY_CACHE } from "../constants"
 import eventListener from "../eventListener"
 import memoryCache from "../memoryCache"
-import { normalStore, metadataStore, thumbnailStore } from "../localForage/localForage"
+import { normalStore, metadataStore, thumbnailStore, notesStore, chatsStore } from "../localForage/localForage"
 
-export type StoreTypes = "normal" | "thumbnails" | "metadata"
+export type StoreTypes = "normal" | "thumbnails" | "metadata" | "notes" | "chats"
 export const DB_PREFIX = "db:"
 
 const getStore = (type: StoreTypes): LocalForage => {
-	if (type == "thumbnails") {
+	if (type === "thumbnails") {
 		return thumbnailStore
-	} else if (type == "metadata") {
+	} else if (type === "metadata") {
 		return metadataStore
+	} else if (type === "notes") {
+		return notesStore
+	} else if (type === "chats") {
+		return chatsStore
 	}
 
 	return normalStore

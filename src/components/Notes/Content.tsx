@@ -5,12 +5,12 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
-import { Note as INote, noteContent, editNoteContent, NoteType } from "../../lib/api"
+import { Note as INote, editNoteContent, NoteType } from "../../lib/api"
 import { safeAwait, randomStringUnsafe, getRandomArbitrary, Semaphore, SemaphoreProps, getCurrentParent } from "../../lib/helpers"
 import db from "../../lib/db"
 import { decryptNoteContent, encryptNoteContent, encryptNotePreview, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
 import { debounce } from "lodash"
-import { createNotePreviewFromContentText } from "./utils"
+import { createNotePreviewFromContentText, fetchNoteContent } from "./utils"
 import eventListener from "../../lib/eventListener"
 import { NotesSizes } from "./Notes"
 import Editor from "./Editor"
@@ -80,14 +80,25 @@ export const Content = memo(
 			return currentNote.participants.filter(participant => participant.userId === userId && participant.permissionsWrite).length > 0
 		}, [currentNote, userId])
 
-		const loadContent = useCallback(async (showLoader: boolean = true) => {
+		const loadNoteContent = useCallback(async (refresh: boolean = false) => {
 			if (!currentNoteRef.current) {
 				return
 			}
 
-			setLoading(showLoader)
+			const [cache, type] = await Promise.all([
+				db.get("noteContent:" + currentNoteRef.current.uuid, "notes"),
+				db.get("noteType:" + currentNoteRef.current.uuid, "notes")
+			])
+			const hasCache = cache && type && typeof cache === "string" && typeof type === "string"
 
-			const [contentErr, contentRes] = await safeAwait(noteContent(currentNoteRef.current.uuid))
+			if (!hasCache) {
+				setLoading(true)
+				setContent("")
+				setContentType("text")
+				setSynced(prev => ({ ...prev, content: false, title: false }))
+			}
+
+			const [contentErr, contentRes] = await safeAwait(fetchNoteContent(currentNoteRef.current, refresh))
 
 			if (contentErr) {
 				console.error(contentErr)
@@ -97,55 +108,18 @@ export const Content = memo(
 				return
 			}
 
+			prevContent.current = contentRes.content
+
 			setContentType(contentRes.type)
-			setSynced({ content: true, title: true })
-
-			if (contentRes.content.length === 0) {
-				if (currentNoteRef.current.type === "checklist") {
-					prevContent.current = '<ul data-checked="false"><li><br></li></ul>'
-					contentRef.current = '<ul data-checked="false"><li><br></li></ul>'
-
-					setContent('<ul data-checked="false"><li><br></li></ul>')
-				} else {
-					prevContent.current = ""
-					contentRef.current = ""
-
-					setContent("")
-				}
-
-				setLoading(false)
-
-				eventListener.emit("noteContentChanged", { note: currentNoteRef.current, content: "" })
-
-				return
-			}
-
-			const userId = await db.get("userId")
-			const privateKey = await db.get("privateKey")
-			const noteKey = await decryptNoteKeyParticipant(
-				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
-				privateKey
-			)
-			const contentDecrypted = await decryptNoteContent(contentRes.content, noteKey)
-
-			if (
-				currentNoteRef.current.type === "checklist" &&
-				(contentDecrypted === "" || contentDecrypted.indexOf("<ul data-checked") === -1 || contentDecrypted === "<p><br></p>")
-			) {
-				prevContent.current = '<ul data-checked="false"><li><br></li></ul>'
-				contentRef.current = '<ul data-checked="false"><li><br></li></ul>'
-
-				setContent('<ul data-checked="false"><li><br></li></ul>')
-			} else {
-				prevContent.current = contentDecrypted
-				contentRef.current = contentDecrypted
-
-				setContent(contentDecrypted)
-			}
-
+			setContent(contentRes.content)
+			setSynced(prev => ({ ...prev, content: true, title: true }))
 			setLoading(false)
 
-			eventListener.emit("noteContentChanged", { note: currentNoteRef.current, content: contentDecrypted })
+			eventListener.emit("noteContentChanged", { note: currentNoteRef.current, content: contentRes.content })
+
+			if (contentRes.cache) {
+				loadNoteContent(true)
+			}
 		}, [])
 
 		const save = useCallback(async () => {
@@ -198,6 +172,11 @@ export const Content = memo(
 				)
 			)
 
+			await Promise.all([
+				db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes"),
+				db.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type, "notes")
+			])
+
 			saveMutex.release()
 		}, [])
 
@@ -237,12 +216,12 @@ export const Content = memo(
 			if (currentNote && lastContentFetchUUID.current !== currentNote.uuid) {
 				lastContentFetchUUID.current = currentNote.uuid
 
-				loadContent()
+				loadNoteContent()
 			}
 
 			const refreshNoteContentListener = eventListener.on("refreshNoteContent", (uuid: string) => {
 				if (currentNote && uuid === currentNote.uuid && getCurrentParent(window.location.href) === uuid) {
-					loadContent()
+					loadNoteContent(true)
 				}
 			})
 

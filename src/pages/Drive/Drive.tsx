@@ -556,13 +556,19 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		populateList(true)
 	}, [searchTerm])
 
+	const unduplicatedItems = useMemo(() => {
+		return items.filter((value, index, self) => {
+			return self.findIndex(v => v.uuid === value.uuid) === index
+		})
+	}, [items])
+
 	const filteredSearchItems = useMemo(() => {
 		if (searchTerm.length <= 0) {
-			return items
+			return unduplicatedItems
 		}
 
-		return items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
-	}, [items, searchTerm])
+		return unduplicatedItems.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
+	}, [unduplicatedItems, searchTerm])
 
 	useEffect(() => {
 		if (initDone && location.hash.split("/").length < 2) {
