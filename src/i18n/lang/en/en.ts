@@ -444,7 +444,11 @@ const en: {
 	notesCreateInfo: "You have no notes yet.",
 	notesDeleteWarning: "Are you sure you want to delete this note? This action cannot be undone!",
 	notesTagDeleteWarning: "Are you sure you want to delete this tag? This action cannot be undone!",
-	notesTagsDelete: "Delete tag"
+	notesTagsDelete: "Delete tag",
+	toggleParticipantWritePermissions: "Participant has write permissions, click to change",
+	toggleParticipantReadPermissions: "Participant has read permissions, click to change",
+	notesTagsRename: "Rename tag",
+	notesTagsCreateRenamePlaceholder: "Tag name"
 }
 
 export default en

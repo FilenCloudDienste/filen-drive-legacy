@@ -126,6 +126,33 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 								create()
 							}
 						}}
+						color={getColor(darkMode, "textPrimary")}
+						border={"1px solid " + getColor(darkMode, "borderPrimary") + " !important"}
+						placeholder={i18n(lang, "notesTagsCreateRenamePlaceholder")}
+						shadow="none"
+						outline="none"
+						borderRadius="10px"
+						_placeholder={{
+							color: "gray",
+							shadow: "none",
+							outline: "none"
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
+						}}
 					/>
 				</ModalBody>
 				<ModalFooter>

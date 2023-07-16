@@ -279,7 +279,10 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 				setTags={setTags}
 				setNotes={setNotes}
 			/>
-			<RenameTagModal setTags={setTags} />
+			<RenameTagModal
+				setTags={setTags}
+				setNotes={setNotes}
+			/>
 			<DeleteNoteModal
 				setNotes={setNotes}
 				notes={notes}
