@@ -3,7 +3,7 @@ import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader,
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import ModalCloseButton from "../ModalCloseButton"
-import { Note as INote, deleteNote } from "../../lib/api"
+import { Note as INote, noteParticipantsRemove } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -13,40 +13,42 @@ import { i18n } from "../../i18n"
 import { show as showToast } from "../Toast/Toast"
 import { useNavigate } from "react-router-dom"
 import { sortAndFilterNotes } from "./utils"
+import db from "../../lib/db"
 
-export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>>; notes: INote[] }) => {
+export const LeaveNoteModal = memo(({ setNotes, notes }: { setNotes: React.Dispatch<React.SetStateAction<INote[]>>; notes: INote[] }) => {
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
-	const [deleting, setDeleting] = useState<boolean>(false)
+	const [removing, setRemoving] = useState<boolean>(false)
 	const [selectedNote, setSelectedNote] = useState<INote | undefined>(undefined)
 	const navigate = useNavigate()
 	const openRef = useRef<boolean>(false)
 	const selectedNoteRef = useRef<INote | undefined>(undefined)
 	const notesRef = useRef<INote[]>([])
 
-	const del = useCallback(async () => {
+	const remove = useCallback(async () => {
 		if (!selectedNoteRef.current) {
 			return
 		}
 
-		setDeleting(true)
+		setRemoving(true)
 
-		const [deleteErr] = await safeAwait(deleteNote(selectedNoteRef.current.uuid))
+		const userId = await db.get("userId")
+		const [removeErr] = await safeAwait(noteParticipantsRemove({ uuid: selectedNoteRef.current.uuid, userId }))
 
-		if (deleteErr) {
-			console.error(deleteErr)
+		if (removeErr) {
+			console.error(removeErr)
 
-			setDeleting(false)
+			setRemoving(false)
 
-			showToast("error", deleteErr.message, "bottom", 5000)
+			showToast("error", removeErr.message, "bottom", 5000)
 
 			return
 		}
 
 		setNotes(prev => prev.filter(n => n.uuid !== selectedNoteRef.current!.uuid))
-		setDeleting(false)
+		setRemoving(false)
 		setOpen(false)
 
 		if (notesRef.current.length > 0) {
@@ -58,7 +60,7 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 
 	const windowKeyDownListener = useCallback((e: KeyboardEvent) => {
 		if (openRef.current && e.which === 13) {
-			del()
+			remove()
 		}
 	}, [])
 
@@ -77,7 +79,7 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 	useEffect(() => {
 		window.addEventListener("keydown", windowKeyDownListener)
 
-		const openDeleteNoteModalListener = eventListener.on("openDeleteNoteModal", (n: INote) => {
+		const openLeaveNoteModalListener = eventListener.on("openLeaveNoteModal", (n: INote) => {
 			setSelectedNote(n)
 			setOpen(true)
 
@@ -87,7 +89,7 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 		return () => {
 			window.removeEventListener("keydown", windowKeyDownListener)
 
-			openDeleteNoteModalListener.remove()
+			openLeaveNoteModalListener.remove()
 		}
 	}, [])
 
@@ -105,7 +107,7 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 				borderRadius="10px"
 				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
-				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "deleteNote")}</ModalHeader>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "leaveNote")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
 				<ModalBody>
 					<AppText
@@ -113,11 +115,11 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 						isMobile={isMobile}
 						color={getColor(darkMode, "textPrimary")}
 					>
-						{i18n(lang, "notesDeleteWarning")}
+						{i18n(lang, "leaveNoteWarning")}
 					</AppText>
 				</ModalBody>
 				<ModalFooter>
-					{deleting ? (
+					{removing ? (
 						<Spinner
 							width="16px"
 							height="16px"
@@ -134,9 +136,9 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 							_hover={{
 								textDecoration: "underline"
 							}}
-							onClick={() => del()}
+							onClick={() => remove()}
 						>
-							{i18n(lang, "delete")}
+							{i18n(lang, "leaveNote")}
 						</AppText>
 					)}
 				</ModalFooter>
@@ -145,4 +147,4 @@ export const DeleteNoteModal = memo(({ setNotes, notes }: { setNotes: React.Disp
 	)
 })
 
-export default DeleteNoteModal
+export default LeaveNoteModal

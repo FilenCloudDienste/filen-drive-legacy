@@ -737,9 +737,11 @@ const ContextMenus = memo(
 								</Flex>
 							</ContextMenuItem>
 							<ContextMenuItem onClick={() => exportText()}>{i18n(lang, "noteExport")}</ContextMenuItem>
-							{userId === selectedNote.ownerId && <ContextMenuSeparator />}
 							{!selectedNote.archive && !selectedNote.trash && userId === selectedNote.ownerId && (
-								<ContextMenuItem onClick={() => archive()}>{i18n(lang, "noteArchive")}</ContextMenuItem>
+								<>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => archive()}>{i18n(lang, "noteArchive")}</ContextMenuItem>
+								</>
 							)}
 							{!selectedNote.trash && userId === selectedNote.ownerId && (
 								<>
@@ -748,13 +750,24 @@ const ContextMenus = memo(
 								</>
 							)}
 							{(selectedNote.trash || selectedNote.archive) && userId === selectedNote.ownerId && (
-								<ContextMenuItem onClick={() => restore()}>{i18n(lang, "noteRestore")}</ContextMenuItem>
+								<>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => restore()}>{i18n(lang, "noteRestore")}</ContextMenuItem>
+								</>
 							)}
 							{selectedNote.trash && userId === selectedNote.ownerId && (
 								<>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => eventListener.emit("openDeleteNoteModal", selectedNote)}>
 										{i18n(lang, "noteDelete")}
+									</ContextMenuItem>
+								</>
+							)}
+							{userId !== selectedNote.ownerId && (
+								<>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => eventListener.emit("openLeaveNoteModal", selectedNote)}>
+										{i18n(lang, "leave")}
 									</ContextMenuItem>
 								</>
 							)}

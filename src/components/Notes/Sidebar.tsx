@@ -60,6 +60,7 @@ export const Sidebar = memo(
 			"notesTagsContainerHeight",
 			tagsContainerBounds.height
 		)
+		const [userId] = useDb("userId", 0)
 
 		const notesSorted = useMemo(() => {
 			return sortAndFilterNotes(notes, search, activeTag)
@@ -72,6 +73,7 @@ export const Sidebar = memo(
 		const loadNotesAndTags = useCallback(async (refresh: boolean = false) => {
 			const getItemsInDb = await db.get("notesAndTags", "notes")
 			const hasItemsInDb =
+				typeof getItemsInDb !== "undefined" &&
 				typeof getItemsInDb.notes !== "undefined" &&
 				getItemsInDb.tags !== "undefined" &&
 				Array.isArray(getItemsInDb.notes) &&
@@ -159,14 +161,18 @@ export const Sidebar = memo(
 			setCreating(false)
 		}, [])
 
-		const itemContent = useCallback((index: number, note: INote) => {
-			return (
-				<Note
-					key={note.uuid}
-					note={note}
-				/>
-			)
-		}, [])
+		const itemContent = useCallback(
+			(index: number, note: INote) => {
+				return (
+					<Note
+						key={note.uuid}
+						note={note}
+						userId={userId}
+					/>
+				)
+			},
+			[userId]
+		)
 
 		useEffect(() => {
 			db.set(

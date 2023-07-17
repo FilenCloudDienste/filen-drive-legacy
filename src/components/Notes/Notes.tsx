@@ -20,6 +20,8 @@ import CreateTagModal from "./CreateTagModal"
 import DeleteTagModal from "./DeleteTagModal"
 import RenameTagModal from "./RenameTagModal"
 import DeleteNoteModal from "./DeleteNoteModal"
+import LeaveNoteModal from "./LeaveNoteModal"
+import RemoveParticipantModal from "./RemoveParticipantModal"
 
 export interface NotesSizes {
 	notes: number
@@ -287,6 +289,11 @@ export const Notes = memo(({ sidebarWidth }: NotesProps) => {
 				setNotes={setNotes}
 				notes={notes}
 			/>
+			<LeaveNoteModal
+				setNotes={setNotes}
+				notes={notes}
+			/>
+			<RemoveParticipantModal />
 		</Flex>
 	)
 })

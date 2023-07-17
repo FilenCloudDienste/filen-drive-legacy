@@ -445,10 +445,18 @@ const en: {
 	notesDeleteWarning: "Are you sure you want to delete this note? This action cannot be undone!",
 	notesTagDeleteWarning: "Are you sure you want to delete this tag? This action cannot be undone!",
 	notesTagsDelete: "Delete tag",
+	deleteNote: "Delete note",
 	toggleParticipantWritePermissions: "Participant has write permissions, click to change",
 	toggleParticipantReadPermissions: "Participant has read permissions, click to change",
 	notesTagsRename: "Rename tag",
-	notesTagsCreateRenamePlaceholder: "Tag name"
+	notesTagsCreateRenamePlaceholder: "Tag name",
+	noContactsFound: "No contacts found.",
+	noParticipantsFound: "No participants founds.",
+	leave: "Leave",
+	leaveNote: "Leave note",
+	leaveNoteWarning: "Are you sure you want to leave this note? This action cannot be undone!",
+	noteRemoveParticipant: "Remove participant",
+	noteRemoveParticipantWarning: "Are you sure you want to remove this participant from this note? This action cannot be undone!"
 }
 
 export default en

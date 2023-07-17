@@ -62,7 +62,7 @@ export const ContactsList = memo(
 						_placeholder={{
 							color: getColor(darkMode, "textSecondary")
 						}}
-						placeholder="Search..."
+						placeholder={i18n(lang, "searchInput")}
 						paddingLeft="10px"
 						paddingRight="10px"
 						shadow="none"

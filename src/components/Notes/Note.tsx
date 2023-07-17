@@ -13,6 +13,7 @@ import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
 import { MdChecklist } from "react-icons/md"
 import { NoteSidebarTag } from "./Tag"
+import useDb from "../../lib/hooks/useDb"
 
 export const NoteSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -113,13 +114,17 @@ export const NoteSkeleton = memo(({ index }: { index: number }) => {
 	)
 })
 
-export const Note = memo(({ note }: { note: INote }) => {
+export const Note = memo(({ note, userId }: { note: INote; userId: number }) => {
 	const isMobile = useIsMobile()
 	const darkMode = useDarkMode()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const [hovering, setHovering] = useState<boolean>(false)
 	const [preview, setPreview] = useState<string>(note.preview)
+
+	const participantsFiltered = useMemo(() => {
+		return note.participants.filter(participant => participant.userId !== userId).sort((a, b) => a.email.localeCompare(b.email))
+	}, [note, userId])
 
 	const active = useMemo(() => {
 		return getCurrentParent(location.hash) === note.uuid
@@ -320,10 +325,10 @@ export const Note = memo(({ note }: { note: INote }) => {
 					)}
 				</Flex>
 			</Flex>
-			{note.participants.length > 1 && !isMobile && (
+			{participantsFiltered.length > 0 && !isMobile && (
 				<Flex alignItems="center">
 					<AvatarGroup>
-						{note.participants.slice(0, 2).map((participant, index) => {
+						{participantsFiltered.slice(0, 2).map((participant, index) => {
 							return (
 								<Avatar
 									key={index}
