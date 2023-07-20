@@ -47,7 +47,7 @@ export const Container = memo(
 			const exists: Record<string, boolean> = {}
 
 			return messages
-				.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
+				.sort((a, b) => b.sentTimestamp - a.sentTimestamp)
 				.filter(message => {
 					if (!exists[message.uuid]) {
 						exists[message.uuid] = true
@@ -191,16 +191,24 @@ export const Container = memo(
 						currentConversationMe={currentConversationMe}
 					/>
 				</Flex>
-				<Messages
-					darkMode={darkMode}
-					isMobile={isMobile}
-					failedMessages={failedMessages}
-					messages={sortedMessages}
-					width={sizes.chatContainer}
-					height={heights.messagesContainer}
-					loading={loading}
-					conversationUUID={currentConversation?.uuid || uuidv4()}
-				/>
+				<Flex
+					height={heights.messagesContainer + "px"}
+					width={sizes.chatContainer + "px"}
+					flexDirection="column"
+					overflowY="auto"
+					overflowX="hidden"
+				>
+					<Messages
+						darkMode={darkMode}
+						isMobile={isMobile}
+						failedMessages={failedMessages}
+						messages={sortedMessages}
+						width={sizes.chatContainer}
+						height={heights.messagesContainer}
+						loading={loading}
+						conversationUUID={currentConversation?.uuid || uuidv4()}
+					/>
+				</Flex>
 				<Flex
 					flexDirection="column"
 					justifyContent="center"

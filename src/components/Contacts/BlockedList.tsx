@@ -170,8 +170,6 @@ export const BlockedList = memo(
 							height={windowHeight - 190}
 							width={containerWidth}
 							itemContent={itemContent}
-							totalCount={blocked.length}
-							overscan={8}
 							style={{
 								overflowX: "hidden",
 								overflowY: "auto",

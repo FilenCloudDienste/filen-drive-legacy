@@ -2,7 +2,7 @@ import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatConversation, chatConversationsUnread, chatConversationsRead } from "../../lib/api"
+import { ChatConversation, chatConversationsUnread, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
 import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
@@ -19,6 +19,7 @@ import { Virtuoso } from "react-virtuoso"
 import { i18n } from "../../i18n"
 import { IoIosAdd } from "react-icons/io"
 import db from "../../lib/db"
+import { decryptChatMessageKey } from "../../lib/worker/worker.com"
 
 export interface MeProps {
 	darkMode: boolean
@@ -140,10 +141,22 @@ export interface ConversationsProps {
 	conversations: ChatConversation[]
 	setConversations: React.Dispatch<React.SetStateAction<ChatConversation[]>>
 	lang: string
+	currentConversation: ChatConversation | undefined
+	currentConversationMe: ChatConversationParticipant | undefined
 }
 
 export const Conversations = memo(
-	({ darkMode, isMobile, windowHeight, sizes, setConversations, lang, conversations }: ConversationsProps) => {
+	({
+		darkMode,
+		isMobile,
+		windowHeight,
+		sizes,
+		setConversations,
+		lang,
+		conversations,
+		currentConversation,
+		currentConversationMe
+	}: ConversationsProps) => {
 		const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
 		const [loading, setLoading] = useState<boolean>(false)
 		const [userId] = useDb("userId", 0)
@@ -156,7 +169,11 @@ export const Conversations = memo(
 		const conversationsSorted = useMemo(() => {
 			return conversations
 				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
-				.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+				.sort(
+					(a, b) =>
+						(b.lastMessageTimestamp === 0 ? b.ownerId : b.lastMessageTimestamp) -
+						(a.lastMessageTimestamp === 0 ? a.ownerId : a.lastMessageTimestamp)
+				)
 		}, [conversations])
 
 		const fetchConversations = useCallback(async (refresh: boolean = false) => {
@@ -218,6 +235,22 @@ export const Conversations = memo(
 			}
 		}, [])
 
+		const openNewConversationModal = useCallback(async () => {
+			if (!currentConversation || !currentConversationMe) {
+				return
+			}
+
+			const privateKey = await db.get("privateKey")
+			const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
+
+			eventListener.emit("openChatAddModal", {
+				uuid: currentConversation.uuid,
+				key,
+				mode: "new",
+				conversation: currentConversation
+			})
+		}, [currentConversation, currentConversationMe])
+
 		const onFocus = useCallback(async () => {
 			windowFocused.current = true
 
@@ -232,7 +265,7 @@ export const Conversations = memo(
 				await safeAwait(chatConversationsRead(currentConversationUUID))
 			}
 
-			safeAwait(fetchConversations(false))
+			safeAwait(fetchConversations(true))
 		}, [])
 
 		const onBlur = useCallback(() => {
@@ -304,16 +337,16 @@ export const Conversations = memo(
 						}))
 					}
 				} else if (event.type === "chatConversationsNew") {
-					fetchConversations(false)
+					fetchConversations(true)
 				}
 			})
 
 			const updateChatConversationsListener = eventListener.on("updateChatConversations", () => {
-				fetchConversations(false)
+				fetchConversations(true)
 			})
 
 			const socketAuthedListener = eventListener.on("socketAuthed", () => {
-				fetchConversations(false)
+				fetchConversations(true)
 			})
 
 			return () => {
@@ -364,7 +397,7 @@ export const Conversations = memo(
 						alignItems="center"
 						onMouseEnter={() => setHoveringAdd(true)}
 						onMouseLeave={() => setHoveringAdd(false)}
-						onClick={() => eventListener.emit("openNewConversationModal")}
+						onClick={() => openNewConversationModal()}
 						cursor="pointer"
 					>
 						<IoIosAdd
@@ -399,8 +432,6 @@ export const Conversations = memo(
 						height={windowHeight - 50 - (isMobile ? 40 : 50)}
 						width={sizes.conversations}
 						itemContent={itemContent}
-						totalCount={conversationsSorted.length}
-						overscan={8}
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",

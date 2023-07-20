@@ -4,12 +4,11 @@ import ChatContainer from "./Container"
 import { Flex } from "@chakra-ui/react"
 import { ChatConversation } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
-import NewConversationModal from "./NewConversationModal"
 import MemberList from "./MemberList"
-import AddUserConversationModal from "./AddUserToConversationModal"
 import { useLocation } from "react-router-dom"
 import { validate } from "uuid"
 import { getCurrentParent } from "../../lib/helpers"
+import AddModal from "./AddModal"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -89,6 +88,8 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 					conversations={conversations}
 					setConversations={setConversations}
 					lang={lang}
+					currentConversation={currentConversation}
+					currentConversationMe={currentConversationMe}
 				/>
 			</Flex>
 			<Flex
@@ -117,16 +118,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 					currentConversationMe={currentConversationMe}
 				/>
 			</Flex>
-			<NewConversationModal
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-			/>
-			<AddUserConversationModal
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-			/>
+			<AddModal />
 		</Flex>
 	)
 })

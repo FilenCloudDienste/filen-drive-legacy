@@ -405,8 +405,6 @@ export const Sidebar = memo(
 									height={windowHeight - 100 - (notesTagsContainerHeight || 0)}
 									width={sizes.notes}
 									itemContent={itemContent}
-									totalCount={notesSorted.length}
-									overscan={8}
 									style={{
 										overflowX: "hidden",
 										overflowY: "auto",

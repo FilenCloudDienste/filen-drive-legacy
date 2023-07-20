@@ -109,9 +109,11 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		const privateKey = await db.get("privateKey")
 		const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
 
-		eventListener.emit("openAddUserToConversationModal", {
+		eventListener.emit("openChatAddModal", {
 			uuid: currentConversation.uuid,
-			key
+			key,
+			mode: "add",
+			conversation: currentConversation
 		})
 	}, [currentConversation, currentConversationMe])
 
@@ -222,8 +224,6 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 					height={windowHeight - 50}
 					width={sizes.chatOptions}
 					itemContent={itemContent}
-					totalCount={usersSorted.length}
-					overscan={8}
 					style={{
 						overflowX: "hidden",
 						overflowY: "auto",

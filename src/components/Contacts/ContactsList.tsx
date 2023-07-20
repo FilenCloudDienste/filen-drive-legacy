@@ -147,8 +147,6 @@ export const ContactsList = memo(
 							height={windowHeight - 190}
 							width={containerWidth}
 							itemContent={itemContent}
-							totalCount={contacts.length}
-							overscan={8}
 							style={{
 								overflowX: "hidden",
 								overflowY: "auto",

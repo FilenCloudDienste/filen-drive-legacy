@@ -148,8 +148,6 @@ export const RequestsList = memo(
 							height={windowHeight - 190}
 							width={containerWidth}
 							itemContent={itemContent}
-							totalCount={requests.length}
-							overscan={8}
 							style={{
 								overflowX: "hidden",
 								overflowY: "auto",

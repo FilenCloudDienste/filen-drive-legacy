@@ -23,8 +23,7 @@ import {
 	NoteParticipant,
 	noteParticipantsPermissions,
 	noteParticipantsAdd,
-	getPublicKeyFromEmail,
-	noteParticipantsRemove
+	getPublicKeyFromEmail
 } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
@@ -239,6 +238,23 @@ export const AddContactModal = memo(() => {
 			.sort((a, b) => a.email.localeCompare(b.email))
 	}, [contacts, addedContactsIds, search])
 
+	const containerHeight = useMemo(() => {
+		const itemHeight = 45
+		const max = 400
+
+		if (!note) {
+			return itemHeight
+		}
+
+		const calced = Math.round(itemHeight * contactsFiltered.length)
+
+		if (calced > max) {
+			return max
+		}
+
+		return calced
+	}, [note, contactsFiltered])
+
 	const itemContent = useCallback(
 		(index: number, contact: IContact) => {
 			return (
@@ -344,21 +360,19 @@ export const AddContactModal = memo(() => {
 					{note && (
 						<Flex
 							width="100%"
-							height="300px"
+							height="auto"
 							flexDirection="column"
 						>
 							{contactsFiltered.length > 0 ? (
 								<Virtuoso
 									data={contactsFiltered}
-									height={300}
+									height={containerHeight}
 									width="100%"
 									itemContent={itemContent}
-									totalCount={contactsFiltered.length}
-									overscan={10}
 									style={{
 										overflowX: "hidden",
 										overflowY: "auto",
-										height: 300 + "px",
+										height: containerHeight + "px",
 										width: "100%"
 									}}
 								/>
@@ -367,7 +381,7 @@ export const AddContactModal = memo(() => {
 									justifyContent="center"
 									alignItems="center"
 									width="100%"
-									height="300px"
+									height="50px"
 									color={getColor(darkMode, "textSecondary")}
 								>
 									{i18n(lang, "noContactsFound")}
@@ -626,36 +640,6 @@ export const AddParticipantModal = memo(() => {
 	const [search, setSearch] = useState<string>("")
 	const [userId] = useDb("userId", 0)
 
-	const containerHeight = useMemo(() => {
-		const itemHeight = 45
-		const max = 400
-
-		if (!note) {
-			return itemHeight
-		}
-
-		const calced = Math.round(itemHeight * note.participants.length)
-
-		if (calced > max) {
-			return max
-		}
-
-		return calced
-	}, [note])
-
-	const itemContent = useCallback(
-		(index: number, participant: NoteParticipant) => {
-			return (
-				<Participant
-					key={participant.userId}
-					participant={participant}
-					note={note}
-				/>
-			)
-		},
-		[note]
-	)
-
 	const noteParticipantsFiltered = useMemo(() => {
 		if (!note) {
 			return []
@@ -679,6 +663,36 @@ export const AddParticipantModal = memo(() => {
 			})
 			.sort((a, b) => a.email.localeCompare(b.email))
 	}, [note, userId, search])
+
+	const containerHeight = useMemo(() => {
+		const itemHeight = 45
+		const max = 400
+
+		if (!note) {
+			return itemHeight
+		}
+
+		const calced = Math.round(itemHeight * noteParticipantsFiltered.length)
+
+		if (calced > max) {
+			return max
+		}
+
+		return calced
+	}, [note, noteParticipantsFiltered])
+
+	const itemContent = useCallback(
+		(index: number, participant: NoteParticipant) => {
+			return (
+				<Participant
+					key={participant.userId}
+					participant={participant}
+					note={note}
+				/>
+			)
+		},
+		[note]
+	)
 
 	useEffect(() => {
 		const noteParticipantRemovedListener = eventListener.on(
@@ -746,6 +760,7 @@ export const AddParticipantModal = memo(() => {
 	useEffect(() => {
 		const openNoteAddParticipantModalListener = eventListener.on("openNoteAddParticipantModal", (selectedNote: INote) => {
 			setNote(selectedNote)
+			setSearch("")
 			setOpen(true)
 		})
 
@@ -815,7 +830,7 @@ export const AddParticipantModal = memo(() => {
 					{note && (
 						<Flex
 							width="100%"
-							height={containerHeight + "px"}
+							height="auto"
 							flexDirection="column"
 						>
 							{noteParticipantsFiltered.length > 0 ? (
@@ -824,8 +839,6 @@ export const AddParticipantModal = memo(() => {
 									height={containerHeight}
 									width="100%"
 									itemContent={itemContent}
-									totalCount={noteParticipantsFiltered.length}
-									overscan={10}
 									style={{
 										overflowX: "hidden",
 										overflowY: "auto",
@@ -836,7 +849,7 @@ export const AddParticipantModal = memo(() => {
 							) : (
 								<Flex
 									width="100%"
-									height={containerHeight + "px"}
+									height="50px"
 									flexDirection="column"
 									justifyContent="center"
 									alignItems="center"

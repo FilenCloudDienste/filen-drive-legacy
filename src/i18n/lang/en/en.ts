@@ -386,7 +386,7 @@ const en: {
 	contacts: "Contacts",
 	chatConversations: "Conversations",
 	chatParticipants: "Participants",
-	chatNew: "New chat",
+	chatNew: "New conversation",
 	chatNewInviteEmail: "Email address",
 	chatAddUserToConversation: "Add user",
 	add: "Add",

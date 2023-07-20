@@ -39,6 +39,8 @@ export const Messages = memo(
 
 		const followOutput = useCallback(
 			(atBottom: boolean) => {
+				return false
+
 				if (loading) {
 					return false
 				}
@@ -118,25 +120,24 @@ export const Messages = memo(
 			)
 		}
 
+		console.log(messages.length - 1)
+
 		return (
 			<Virtuoso
-				key={"messages-" + conversationUUID + "-" + firstLoadMessageUUID}
+				key={"messages-" + conversationUUID + "-" + (messages.length - 1)}
 				data={messages}
 				ref={virtuosoRef}
 				height={height}
 				atBottomStateChange={atBottomStateChange}
 				isScrolling={setIsScrollingChat}
 				width={width}
-				followOutput={followOutput}
+				followOutput={false}
 				itemContent={itemContent}
-				totalCount={messages.length}
-				initialTopMostItemIndex={99999}
+				initialTopMostItemIndex={messages.length - 1}
 				atTopStateChange={atTopStateChange}
-				overscan={8}
 				style={{
 					overflowX: "hidden",
-					overflowY: loading ? "hidden" : "auto",
-					transition: "200ms",
+					overflowY: "auto",
 					height: height + "px",
 					width: width + "px"
 				}}
