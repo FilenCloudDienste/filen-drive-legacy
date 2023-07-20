@@ -2,24 +2,26 @@ import { useEffect, useState } from "react"
 import eventListener from "../../eventListener"
 import Cookies from "../../cookies"
 
+const getInitialValue = (): boolean => {
+	const value = Cookies.get("colorMode")
+
+	if (typeof value === "string") {
+		if (value === "dark") {
+			return true
+		}
+
+		return false
+	}
+
+	if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+		return true
+	}
+
+	return false
+}
+
 const useDarkMode = (): boolean => {
-	const [darkMode, setDarkMode] = useState<boolean>(
-		((): boolean => {
-			if (typeof Cookies.get("colorMode") == "string") {
-				if (Cookies.get("colorMode") == "dark") {
-					return true
-				}
-
-				return false
-			}
-
-			if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-				return true
-			}
-
-			return false
-		})()
-	)
+	const [darkMode, setDarkMode] = useState<boolean>(getInitialValue())
 
 	useEffect(() => {
 		const matchListener = (e: MediaQueryListEvent): void => setDarkMode(e.matches)

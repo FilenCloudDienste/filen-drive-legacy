@@ -130,7 +130,8 @@ const loadingConversations = new Array(5).fill(1).map(() => ({
 	lastMessage: null,
 	lastMessageTimestamp: 0,
 	ownerId: 0,
-	participants: []
+	participants: [],
+	createdTimestamp: 0
 })) as ChatConversation[]
 
 export interface ConversationsProps {
@@ -171,8 +172,8 @@ export const Conversations = memo(
 				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
 				.sort(
 					(a, b) =>
-						(b.lastMessageTimestamp === 0 ? b.ownerId : b.lastMessageTimestamp) -
-						(a.lastMessageTimestamp === 0 ? a.ownerId : a.lastMessageTimestamp)
+						(b.lastMessageTimestamp === 0 ? b.createdTimestamp : b.lastMessageTimestamp) -
+						(a.lastMessageTimestamp === 0 ? a.createdTimestamp : a.lastMessageTimestamp)
 				)
 		}, [conversations])
 
@@ -277,17 +278,14 @@ export const Conversations = memo(
 				return (
 					<Conversation
 						index={index}
-						isMobile={isMobile}
-						darkMode={darkMode}
 						conversation={convo}
 						userId={userId}
 						unreadConversationsMessages={unreadConversationsMessages}
 						setUnreadConversationsMessages={setUnreadConversationsMessages}
-						lang={lang}
 					/>
 				)
 			},
-			[darkMode, isMobile, lang, userId, unreadConversationsMessages]
+			[userId, unreadConversationsMessages]
 		)
 
 		useEffect(() => {

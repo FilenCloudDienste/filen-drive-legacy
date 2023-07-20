@@ -47,7 +47,7 @@ export const Container = memo(
 			const exists: Record<string, boolean> = {}
 
 			return messages
-				.sort((a, b) => b.sentTimestamp - a.sentTimestamp)
+				.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
 				.filter(message => {
 					if (!exists[message.uuid]) {
 						exists[message.uuid] = true

@@ -459,7 +459,9 @@ const en: {
 	noteRemoveParticipantWarning: "Are you sure you want to remove this participant from this note? This action cannot be undone!",
 	block: "Block",
 	blockUserWarning: "Are you sure you want to block __NAME__?",
-	removeUserWarning: "Are you sure you want to remove __NAME__ from your contact list?"
+	removeUserWarning: "Are you sure you want to remove __NAME__ from your contact list?",
+	chatYou: "You",
+	chatNoMessagesYet: "No messages yet"
 }
 
 export default en

@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, useMemo, useCallback } from "react"
+import { memo, useEffect, useState, useMemo } from "react"
 import { ChatConversation } from "../../lib/api"
 import { getColor } from "../../styles/colors"
 import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
@@ -13,6 +13,8 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import striptags from "striptags"
 import eventListener from "../../lib/eventListener"
+import { i18n } from "../../i18n"
+import useLang from "../../lib/hooks/useLang"
 
 export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -99,27 +101,18 @@ export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 })
 
 export interface ConversationProps {
-	darkMode: boolean
-	isMobile: boolean
 	conversation: ChatConversation
 	userId: number
 	unreadConversationsMessages: Record<string, number>
 	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 	index: number
-	lang: string
 }
 
 export const Conversation = memo(
-	({
-		darkMode,
-		isMobile,
-		conversation,
-		userId,
-		unreadConversationsMessages,
-		setUnreadConversationsMessages,
-		index,
-		lang
-	}: ConversationProps) => {
+	({ conversation, userId, unreadConversationsMessages, setUnreadConversationsMessages, index }: ConversationProps) => {
+		const isMobile = useIsMobile()
+		const darkMode = useDarkMode()
+		const lang = useLang()
 		const navigate = useNavigate()
 		const [lastMessageDecrypted, setLastMessageDecrypted] = useState<string>("")
 		const [hovering, setHovering] = useState<boolean>(false)
@@ -139,11 +132,11 @@ export const Conversation = memo(
 			return filtered[0]
 		}, [conversation.participants, userId])
 
-		const lastMessageInlcudingSender = useMemo(() => {
+		const lastMessageIncludingSender = useMemo(() => {
 			let message = ""
 
 			if (conversation.lastMessageSender === userId) {
-				message = "You: "
+				message = i18n(lang, "chatYou") + ": "
 			} else {
 				const senderFromList = conversationParticipantsFilteredWithoutMe.filter(
 					participant => participant.userId === conversation.lastMessageSender
@@ -157,7 +150,7 @@ export const Conversation = memo(
 			if (typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && lastMessageDecrypted.length > 0) {
 				message = message + lastMessageDecrypted
 			} else {
-				message = message + "No messages yet"
+				message = message + i18n(lang, "chatNoMessagesYet")
 			}
 
 			return message
@@ -312,7 +305,7 @@ export const Conversation = memo(
 								marginLeft="10px"
 								fontSize={12}
 							>
-								{striptags(lastMessageInlcudingSender)}
+								{striptags(lastMessageIncludingSender)}
 							</AppText>
 						</Flex>
 					</Flex>
@@ -341,7 +334,7 @@ export const Conversation = memo(
 										style={{
 											marginRight: "3px"
 										}}
-										onClick={() => eventListener.emit("openDeleteChatConversationModal", conversation)}
+										onClick={() => eventListener.emit("openLeaveChatConversationModal", conversation)}
 									/>
 								)}
 							</>

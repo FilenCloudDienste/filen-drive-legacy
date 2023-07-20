@@ -34,13 +34,13 @@ export const Messages = memo(
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 		const [isAtBottom, setIsAtBottom] = useState<boolean>(false)
 		const virtuosoRef = useRef<VirtuosoHandle>(null)
-		const [firstLoadMessageUUID, setFirstLoadMessageUUID] = useState<string>("")
-		const firstLoadConvoUUID = useRef<string>("")
+		const [firstLoadMessageUUID, setFirstLoadMessageUUID] = useState<string>(
+			messages.length > 0 ? messages[messages.length - 1].uuid : ""
+		)
+		const firstLoadConvoUUID = useRef<string>(conversationUUID)
 
 		const followOutput = useCallback(
 			(atBottom: boolean) => {
-				return false
-
 				if (loading) {
 					return false
 				}
@@ -99,7 +99,7 @@ export const Messages = memo(
 			}
 		}, [conversationUUID, messages])
 
-		if (loading) {
+		if (loading || firstLoadMessageUUID.length === 0) {
 			return (
 				<Flex
 					flexDirection="column-reverse"
@@ -113,6 +113,8 @@ export const Messages = memo(
 							<MessageSkeleton
 								key={index}
 								index={index}
+								darkMode={darkMode}
+								isMobile={isMobile}
 							/>
 						)
 					})}
@@ -120,21 +122,20 @@ export const Messages = memo(
 			)
 		}
 
-		console.log(messages.length - 1)
-
 		return (
 			<Virtuoso
-				key={"messages-" + conversationUUID + "-" + (messages.length - 1)}
+				key={"messages-" + firstLoadMessageUUID}
 				data={messages}
 				ref={virtuosoRef}
 				height={height}
 				atBottomStateChange={atBottomStateChange}
 				isScrolling={setIsScrollingChat}
 				width={width}
-				followOutput={false}
+				followOutput={followOutput}
 				itemContent={itemContent}
 				initialTopMostItemIndex={messages.length - 1}
 				atTopStateChange={atTopStateChange}
+				defaultItemHeight={40}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",

@@ -13,10 +13,7 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 
-export const MessageSkeleton = memo(({ index }: { index: number }) => {
-	const darkMode = useDarkMode()
-	const isMobile = useIsMobile()
-
+export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
 		<Flex
 			flexDirection="column"

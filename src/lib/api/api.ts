@@ -2586,6 +2586,7 @@ export interface ChatConversation {
 	lastMessageTimestamp: number
 	ownerId: number
 	participants: ChatConversationParticipant[]
+	createdTimestamp: number
 }
 
 export const chatConversations = async (timestamp: number): Promise<ChatConversation[]> => {
