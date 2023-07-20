@@ -1,13 +1,7 @@
 import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex } from "@chakra-ui/react"
-import {
-	chatMessages as fetchChatMessages,
-	ChatMessage,
-	ChatConversation,
-	chatConversationsRead,
-	ChatConversationParticipant
-} from "../../lib/api"
+import { ChatMessage, ChatConversation, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import db from "../../lib/db"
 import eventListener from "../../lib/eventListener"
@@ -16,6 +10,8 @@ import Messages from "./Messages"
 import Input from "./Input"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import Topbar from "./Topbar"
+import { fetchChatMessages } from "./utils"
+import { v4 as uuidv4 } from "uuid"
 
 export interface ContainerProps {
 	darkMode: boolean
@@ -30,7 +26,7 @@ export interface ContainerProps {
 export const Container = memo(
 	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe }: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
-		const [loading, setLoading] = useState<boolean>(true)
+		const [loading, setLoading] = useState<boolean>(false)
 		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
 		const [failedMessages, setFailedMessages] = useState<string[]>([])
 		const windowFocused = useRef<boolean>(true)
@@ -48,18 +44,38 @@ export const Container = memo(
 		}, [windowHeight])
 
 		const sortedMessages = useMemo(() => {
-			return messages.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
+			const exists: Record<string, boolean> = {}
+
+			return messages
+				.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
+				.filter(message => {
+					if (!exists[message.uuid]) {
+						exists[message.uuid] = true
+
+						return true
+					}
+
+					return false
+				})
 		}, [messages])
 
 		const fetchMessages = useCallback(
-			async (showLoader = true) => {
+			async (refresh: boolean = false) => {
 				if (!currentConversation || !currentConversationMe) {
 					return
 				}
 
-				setLoading(showLoader)
+				const cache = await db.get("chatMessages:" + currentConversation.uuid, "chats")
+				const hasCache = cache && Array.isArray(cache)
 
-				const [messagesErr, messagesRes] = await safeAwait(fetchChatMessages(currentConversation.uuid, messagesTimestamp.current))
+				if (!hasCache) {
+					setLoading(true)
+					setMessages([])
+				}
+
+				const [messagesErr, messagesRes] = await safeAwait(
+					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, messagesTimestamp.current, refresh)
+				)
 
 				if (messagesErr) {
 					console.error(messagesErr)
@@ -69,25 +85,13 @@ export const Container = memo(
 					return
 				}
 
-				const messagesDecrypted: ChatMessage[] = []
-				const privateKey = await db.get("privateKey")
-
-				for (const message of messagesRes) {
-					const messageDecrypted = await decryptChatMessage(message.message, currentConversationMe.metadata, privateKey)
-
-					if (messageDecrypted.length === 0) {
-						continue
-					}
-
-					messagesDecrypted.push({
-						...message,
-						message: messageDecrypted
-					})
-				}
-
-				setMessages(messagesDecrypted)
+				setMessages(messagesRes.messages)
 				setLoading(false)
 				safeAwait(chatConversationsRead(currentConversation.uuid))
+
+				if (messagesRes.cache) {
+					fetchMessages(true)
+				}
 			},
 			[currentConversation, currentConversationMe]
 		)
@@ -97,7 +101,7 @@ export const Container = memo(
 
 			if (currentConversation) {
 				safeAwait(chatConversationsRead(currentConversation.uuid))
-				safeAwait(fetchMessages(false))
+				safeAwait(fetchMessages())
 			}
 		}, [currentConversation])
 
@@ -145,7 +149,7 @@ export const Container = memo(
 			})
 
 			const socketAuthedListener = eventListener.on("socketAuthed", () => {
-				fetchMessages(false)
+				fetchMessages()
 			})
 
 			const chatMessageDeleteListener = eventListener.on("chatMessageDelete", (uuid: string) => {
@@ -195,6 +199,7 @@ export const Container = memo(
 					width={sizes.chatContainer}
 					height={heights.messagesContainer}
 					loading={loading}
+					conversationUUID={currentConversation?.uuid || uuidv4()}
 				/>
 				<Flex
 					flexDirection="column"

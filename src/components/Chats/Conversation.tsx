@@ -12,6 +12,7 @@ import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import striptags from "striptags"
+import eventListener from "../../lib/eventListener"
 
 export const ConversationSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()
@@ -161,14 +162,6 @@ export const Conversation = memo(
 
 			return message
 		}, [lang, conversationParticipantsFilteredWithoutMe, lastMessageDecrypted])
-
-		const deleteConversation = useCallback(async () => {
-			console.log("delete convo")
-		}, [conversation])
-
-		const leaveConversation = useCallback(async () => {
-			console.log("leave convo")
-		}, [conversation])
 
 		useEffect(() => {
 			;(async () => {
@@ -336,7 +329,7 @@ export const Conversation = memo(
 										style={{
 											marginRight: "3px"
 										}}
-										onClick={() => deleteConversation()}
+										onClick={() => eventListener.emit("openDeleteChatConversationModal", conversation)}
 									/>
 								) : (
 									<IoCloseOutline
@@ -348,7 +341,7 @@ export const Conversation = memo(
 										style={{
 											marginRight: "3px"
 										}}
-										onClick={() => leaveConversation()}
+										onClick={() => eventListener.emit("openDeleteChatConversationModal", conversation)}
 									/>
 								)}
 							</>

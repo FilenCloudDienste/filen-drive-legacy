@@ -18,7 +18,7 @@ import { show as showToast } from "../Toast/Toast"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
 import AddContactModal from "./AddContactModal"
 import { useLocation, useNavigate } from "react-router-dom"
-import { getTabIndex } from "./utils"
+import { getTabIndex, fetchContacts } from "./utils"
 import ContactsList from "./ContactsList"
 import ContextMenus from "./ContextMenus"
 import RequestsList from "./RequestsList"
@@ -27,6 +27,9 @@ import BlockedList from "./BlockedList"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import AppText from "../AppText"
+import db from "../../lib/db"
+import BlockModal from "./BlockModal"
+import RemoveModal from "./RemoveModal"
 
 export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const windowWidth = useWindowWidth()
@@ -42,11 +45,11 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const navigate = useNavigate()
 	const lang = useLang()
 
-	const [activeTab, activeTabIndex] = useMemo(() => {
+	const activeTabIndex = useMemo(() => {
 		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]
 		const activeTabIndex = getTabIndex(activeTab)
 
-		return [activeTab, activeTabIndex]
+		return activeTabIndex
 	}, [location.hash])
 
 	const containerWidth = useMemo(() => {
@@ -95,11 +98,16 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 				return false
 			})
 
-		const online = sorted.filter(contact => contact.lastActive > Date.now() - ONLINE_TIMEOUT)
-		const offline = sorted.filter(contact => contact.lastActive < Date.now() - ONLINE_TIMEOUT)
+		return sorted
+	}, [contacts, search])
 
-		return activeTab === "contacts/online" ? online : activeTab === "contacts/offline" ? offline : sorted
-	}, [contacts, search, activeTab])
+	const onlineContacts = useMemo(() => {
+		return contactsSorted.filter(contact => contact.lastActive > Date.now() - ONLINE_TIMEOUT)
+	}, [contactsSorted])
+
+	const offlineContacts = useMemo(() => {
+		return contactsSorted.filter(contact => contact.lastActive < Date.now() - ONLINE_TIMEOUT)
+	}, [contactsSorted])
 
 	const incomingRequestsSorted = useMemo(() => {
 		return incomingRequests
@@ -139,10 +147,28 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 			})
 	}, [outgoingRequests, search])
 
-	const loadContacts = useCallback(async (showLoader: boolean = true) => {
-		setLoadingContacts(showLoader)
+	const loadContacts = useCallback(async (refresh: boolean = false) => {
+		const cache = await db.get("contacts", "contacts")
+		const hasCache =
+			cache &&
+			cache.contacts &&
+			Array.isArray(cache.contacts) &&
+			cache.requestsOut &&
+			Array.isArray(cache.requestsOut) &&
+			cache.requestsOut &&
+			Array.isArray(cache.requestsOut) &&
+			cache.blocked &&
+			Array.isArray(cache.blocked)
 
-		const [err, res] = await safeAwait(Promise.all([getContacts(), contactsRequestsOut(), contactsRequestsIn(), contactsBlocked()]))
+		if (!hasCache) {
+			setLoadingContacts(true)
+			setContacts([])
+			setOutgoingRequests([])
+			setIncomingRequests([])
+			setBlocked([])
+		}
+
+		const [err, res] = await safeAwait(fetchContacts(refresh))
 
 		if (err) {
 			console.error(err)
@@ -154,11 +180,15 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 			return
 		}
 
-		setContacts(res[0])
-		setOutgoingRequests(res[1])
-		setIncomingRequests(res[2])
-		setBlocked(res[3])
+		setContacts(res.contacts)
+		setOutgoingRequests(res.requestsOut)
+		setIncomingRequests(res.requestsIn)
+		setBlocked(res.blocked)
 		setLoadingContacts(false)
+
+		if (res.cache) {
+			loadContacts(true)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -171,8 +201,14 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 			setOutgoingRequests(prev => prev.filter(request => request.uuid !== uuid))
 		})
 
+		const updateInterval = setInterval(() => {
+			loadContacts(true)
+		}, 5000)
+
 		return () => {
 			removeContactRequestListener.remove()
+
+			clearInterval(updateInterval)
 		}
 	}, [])
 
@@ -187,7 +223,8 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 				borderColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
 				defaultIndex={activeTabIndex}
-				isLazy={true}
+				isLazy={false}
+				lazyBehavior="keepMounted"
 				width={containerWidth + "px"}
 				display="flex"
 				flexDirection="column"
@@ -306,7 +343,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						<ContactsList
 							search={search}
 							setSearch={setSearch}
-							contacts={contactsSorted}
+							contacts={onlineContacts}
 							activeTab="contacts/online"
 							containerWidth={containerWidth}
 							loadingContacts={loadingContacts}
@@ -332,7 +369,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 						<ContactsList
 							search={search}
 							setSearch={setSearch}
-							contacts={contactsSorted}
+							contacts={offlineContacts}
 							activeTab="contacts/offline"
 							containerWidth={containerWidth}
 							loadingContacts={loadingContacts}
@@ -381,6 +418,8 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 			</Tabs>
 			<AddContactModal />
 			<ContextMenus setContacts={setContacts} />
+			<BlockModal setContacts={setContacts} />
+			<RemoveModal setContacts={setContacts} />
 		</Flex>
 	)
 })

@@ -456,7 +456,10 @@ const en: {
 	leaveNote: "Leave note",
 	leaveNoteWarning: "Are you sure you want to leave this note? This action cannot be undone!",
 	noteRemoveParticipant: "Remove participant",
-	noteRemoveParticipantWarning: "Are you sure you want to remove this participant from this note? This action cannot be undone!"
+	noteRemoveParticipantWarning: "Are you sure you want to remove this participant from this note? This action cannot be undone!",
+	block: "Block",
+	blockUserWarning: "Are you sure you want to block __NAME__?",
+	removeUserWarning: "Are you sure you want to remove __NAME__ from your contact list?"
 }
 
 export default en

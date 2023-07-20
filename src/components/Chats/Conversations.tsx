@@ -2,12 +2,7 @@ import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import {
-	chatConversations as fetchChatConversations,
-	ChatConversation,
-	chatConversationsUnread,
-	chatConversationsRead
-} from "../../lib/api"
+import { ChatConversation, chatConversationsUnread, chatConversationsRead } from "../../lib/api"
 import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
@@ -17,12 +12,13 @@ import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import { fetchUserAccount } from "../../lib/services/user"
 import { UserGetAccount } from "../../types"
-import { getUserNameFromAccount } from "./utils"
+import { getUserNameFromAccount, fetchChatConversations } from "./utils"
 import AppText from "../AppText"
 import { HiCog } from "react-icons/hi"
 import { Virtuoso } from "react-virtuoso"
 import { i18n } from "../../i18n"
 import { IoIosAdd } from "react-icons/io"
+import db from "../../lib/db"
 
 export interface MeProps {
 	darkMode: boolean
@@ -149,7 +145,7 @@ export interface ConversationsProps {
 export const Conversations = memo(
 	({ darkMode, isMobile, windowHeight, sizes, setConversations, lang, conversations }: ConversationsProps) => {
 		const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
-		const [loading, setLoading] = useState<boolean>(true)
+		const [loading, setLoading] = useState<boolean>(false)
 		const [userId] = useDb("userId", 0)
 		const navigate = useNavigate()
 		const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
@@ -163,10 +159,16 @@ export const Conversations = memo(
 				.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
 		}, [conversations])
 
-		const fetchConversations = useCallback(async (showLoader = true) => {
-			setLoading(showLoader)
+		const fetchConversations = useCallback(async (refresh: boolean = false) => {
+			const cache = await db.get("chatConversations", "chats")
+			const hasCache = cache && cache.conversations && Array.isArray(cache.conversations)
 
-			const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(conversationsTimestamp.current))
+			if (hasCache) {
+				setLoading(true)
+				setConversations([])
+			}
+
+			const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(conversationsTimestamp.current, refresh))
 
 			if (conversationsErr) {
 				setLoading(false)
@@ -179,7 +181,7 @@ export const Conversations = memo(
 			const promises: Promise<void>[] = []
 			const semaphore = new Semaphore(32)
 
-			for (const conversation of conversationsRes) {
+			for (const conversation of conversationsRes.conversations) {
 				promises.push(
 					new Promise<void>(async resolve => {
 						await semaphore.acquire()
@@ -206,10 +208,14 @@ export const Conversations = memo(
 				)
 			}
 
-			await Promise.all(promises)
+			Promise.all(promises).catch(console.error)
 
 			setLoading(false)
-			setConversations(conversationsRes)
+			setConversations(conversationsRes.conversations)
+
+			if (conversationsRes.cache) {
+				fetchConversations(true)
+			}
 		}, [])
 
 		const onFocus = useCallback(async () => {

@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback } from "react"
+import { memo, useState, useEffect } from "react"
 import "react-contexify/dist/ReactContexify.css"
 import {
 	Menu as ContextMenu,
@@ -8,66 +8,16 @@ import {
 	contextMenu,
 	animation
 } from "react-contexify"
-import { Contact as IContact, contactsDelete, contactsBlockedAdd } from "../../lib/api"
+import { Contact as IContact } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
-import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
-import { safeAwait } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 
 const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.SetStateAction<IContact[]>> }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [selectedContact, setSelectedContact] = useState<IContact | undefined>(undefined)
-
-	const del = useCallback(async () => {
-		if (!selectedContact) {
-			return
-		}
-
-		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
-
-		const [err] = await safeAwait(contactsDelete(selectedContact.uuid))
-
-		if (err) {
-			console.error(err)
-
-			dismissToast(loadingToast)
-
-			showToast("error", err.message, "bottom", 5000)
-
-			return
-		}
-
-		dismissToast(loadingToast)
-
-		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContact.uuid))
-	}, [selectedContact, lang])
-
-	const block = useCallback(async () => {
-		if (!selectedContact) {
-			return
-		}
-
-		const loadingToast = showToast("loading", i18n(lang, "loadingDots"), "bottom", 864000000)
-
-		const [err] = await safeAwait(contactsBlockedAdd(selectedContact.email))
-
-		if (err) {
-			console.error(err)
-
-			dismissToast(loadingToast)
-
-			showToast("error", err.message, "bottom", 5000)
-
-			return
-		}
-
-		dismissToast(loadingToast)
-
-		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContact.uuid))
-	}, [selectedContact, lang])
 
 	useEffect(() => {
 		const openContactContextMenuListener = eventListener.on(
@@ -100,8 +50,12 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 			>
 				{selectedContact && (
 					<>
-						<ContextMenuItem onClick={() => del()}>{i18n(lang, "removeUser")}</ContextMenuItem>
-						<ContextMenuItem onClick={() => block()}>{i18n(lang, "blockUser")}</ContextMenuItem>
+						<ContextMenuItem onClick={() => eventListener.emit("openContactsRemoveModal", selectedContact)}>
+							{i18n(lang, "removeUser")}
+						</ContextMenuItem>
+						<ContextMenuItem onClick={() => eventListener.emit("openContactsBlockModal", selectedContact)}>
+							{i18n(lang, "blockUser")}
+						</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>

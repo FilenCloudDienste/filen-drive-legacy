@@ -73,9 +73,9 @@ export const Sidebar = memo(
 		const loadNotesAndTags = useCallback(async (refresh: boolean = false) => {
 			const getItemsInDb = await db.get("notesAndTags", "notes")
 			const hasItemsInDb =
-				typeof getItemsInDb !== "undefined" &&
-				typeof getItemsInDb.notes !== "undefined" &&
-				getItemsInDb.tags !== "undefined" &&
+				getItemsInDb &&
+				getItemsInDb.notes &&
+				getItemsInDb.tags &&
 				Array.isArray(getItemsInDb.notes) &&
 				Array.isArray(getItemsInDb.tags)
 
