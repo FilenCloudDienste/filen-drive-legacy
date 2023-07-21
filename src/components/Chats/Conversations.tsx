@@ -170,11 +170,7 @@ export const Conversations = memo(
 		const conversationsSorted = useMemo(() => {
 			return conversations
 				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
-				.sort(
-					(a, b) =>
-						(b.lastMessageTimestamp === 0 ? b.createdTimestamp : b.lastMessageTimestamp) -
-						(a.lastMessageTimestamp === 0 ? a.createdTimestamp : a.lastMessageTimestamp)
-				)
+				.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
 		}, [conversations])
 
 		const fetchConversations = useCallback(async (refresh: boolean = false) => {
@@ -430,6 +426,7 @@ export const Conversations = memo(
 						height={windowHeight - 50 - (isMobile ? 40 : 50)}
 						width={sizes.conversations}
 						itemContent={itemContent}
+						defaultItemHeight={65}
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",

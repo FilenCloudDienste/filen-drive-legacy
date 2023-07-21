@@ -131,7 +131,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 					noOfLines={1}
 					wordBreak="break-all"
 					color={getColor(darkMode, "textPrimary")}
-					fontSize={14}
+					fontSize={15}
 					marginLeft="10px"
 					fontWeight="bold"
 				>

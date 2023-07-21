@@ -1,5 +1,17 @@
 import { memo, useMemo, useState, useEffect, useCallback } from "react"
-import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody, Skeleton } from "@chakra-ui/react"
+import {
+	Flex,
+	Avatar,
+	Popover,
+	PopoverTrigger,
+	Portal,
+	Tooltip,
+	PopoverContent,
+	PopoverBody,
+	Skeleton,
+	Link,
+	Image
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, chatDelete } from "../../lib/api"
 import AppText from "../AppText"
@@ -12,6 +24,8 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
+import Linkify from "react-linkify"
+import axios from "axios"
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -195,10 +209,6 @@ export const OuterMessage = memo(
 							marginBottom="-20px"
 							marginRight="15px"
 							onMouseEnter={() => {
-								if (isScrollingChat) {
-									return
-								}
-
 								setHoveringMessage(true)
 								setHoveringPopover(true)
 							}}
@@ -261,6 +271,7 @@ export interface MessageProps {
 export const Message = memo(
 	({ darkMode, isMobile, message, failedMessages, prevMessage, nextMessage, userId, isScrollingChat, index }: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
+		const [displayMessageAsImage, setDisplayMessageAsImage] = useState<boolean>(false)
 
 		const groupWithPrevMessage = useMemo(() => {
 			if (!prevMessage) {
@@ -303,9 +314,35 @@ export const Message = memo(
 			return isTimestampSameDay(prevMessage.sentTimestamp, message.sentTimestamp)
 		}, [prevMessage, message])
 
+		const isMessageImageLink = useMemo(() => {
+			const trimmed = message.message.trim()
+
+			return trimmed.startsWith("https://") && trimmed.endsWith(".png")
+		}, [message.message])
+
+		useEffect(() => {
+			if (isMessageImageLink) {
+				;(async () => {
+					const response = await axios.head(message.message)
+
+					if (response.headers["content-type"] && response.headers["content-type"] === "image/png") {
+						setDisplayMessageAsImage(true)
+					}
+				})()
+			}
+		}, [isMessageImageLink, message.message])
+
 		if (groupWithPrevMessage) {
 			return (
 				<>
+					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
+						<Flex
+							flexDirection="row"
+							width="100%"
+							height="15px"
+							backgroundColor="transparent"
+						/>
+					)}
 					<OuterMessage
 						darkMode={darkMode}
 						isScrollingChat={isScrollingChat}
@@ -315,6 +352,7 @@ export const Message = memo(
 						setHoveringMessage={setHoveringMessage}
 					>
 						<Flex
+							transform="rotate(180deg) scaleX(-1)"
 							flexDirection="column"
 							paddingTop="2px"
 							paddingBottom="2px"
@@ -323,10 +361,6 @@ export const Message = memo(
 							className="user-select-text"
 							userSelect="text"
 							onMouseEnter={() => {
-								if (isScrollingChat) {
-									return
-								}
-
 								setHoveringMessage(true)
 							}}
 							onMouseLeave={() => {
@@ -351,19 +385,31 @@ export const Message = memo(
 									className="user-select-text"
 									userSelect="text"
 								>
-									{striptags(message.message)}
+									<Linkify
+										componentDecorator={(decoratedHref, decoratedText, key) => {
+											return (
+												<Link
+													key={key}
+													color={getColor(darkMode, "linkPrimary")}
+													cursor="pointer"
+													href={decoratedHref}
+													target="_blank"
+													rel="noreferrer"
+													_hover={{
+														textDecoration: "underline"
+													}}
+												>
+													{decoratedText}
+												</Link>
+											)
+										}}
+									>
+										{striptags(message.message)}
+									</Linkify>
 								</AppText>
 							</Flex>
 						</Flex>
 					</OuterMessage>
-					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
-						<Flex
-							flexDirection="row"
-							width="100%"
-							height="15px"
-							backgroundColor="transparent"
-						/>
-					)}
 				</>
 			)
 		}
@@ -372,6 +418,7 @@ export const Message = memo(
 			<Flex
 				flexDirection="column"
 				width="100%"
+				transform="rotate(180deg) scaleX(-1)"
 			>
 				{!prevMessageSameDay && <DateDivider timestamp={message.sentTimestamp} />}
 				<OuterMessage
@@ -384,14 +431,14 @@ export const Message = memo(
 				>
 					<Flex
 						flexDirection="row"
-						paddingTop={index === 0 ? "10px" : "2px"}
+						paddingTop={!prevMessage ? "10px" : "2px"}
 						paddingBottom="2px"
 						paddingRight="15px"
 						paddingLeft="15px"
 						width="100%"
 						onMouseEnter={() => setHoveringMessage(true)}
 						onMouseLeave={() => setHoveringMessage(false)}
-						backgroundColor={hoveringMessage ? getColor(darkMode, "backgroundSecondary") : "transparent"}
+						backgroundColor={hoveringMessage && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 						className="user-select-text"
 						userSelect="text"
 					>
@@ -450,22 +497,46 @@ export const Message = memo(
 								className="user-select-text"
 								userSelect="text"
 							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									color={
-										failedMessages.includes(message.uuid)
-											? getColor(darkMode, "red")
-											: getColor(darkMode, "textSecondary")
-									}
-									fontSize={14}
-									wordBreak="break-word"
-									marginTop="2px"
-									className="user-select-text"
-									userSelect="text"
-								>
-									{striptags(message.message)}
-								</AppText>
+								{displayMessageAsImage ? (
+									<Image src={message.message} />
+								) : (
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
+										color={
+											failedMessages.includes(message.uuid)
+												? getColor(darkMode, "red")
+												: getColor(darkMode, "textSecondary")
+										}
+										fontSize={14}
+										wordBreak="break-word"
+										marginTop="2px"
+										className="user-select-text"
+										userSelect="text"
+									>
+										<Linkify
+											componentDecorator={(decoratedHref, decoratedText, key) => {
+												return (
+													<Link
+														key={key}
+														color={getColor(darkMode, "linkPrimary")}
+														cursor="pointer"
+														href={decoratedHref}
+														target="_blank"
+														rel="noreferrer"
+														_hover={{
+															textDecoration: "underline"
+														}}
+													>
+														{decoratedText}
+													</Link>
+												)
+											}}
+										>
+											{striptags(message.message)}
+										</Linkify>
+									</AppText>
+								)}
 							</Flex>
 						</Flex>
 					</Flex>

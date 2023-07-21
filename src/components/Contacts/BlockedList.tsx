@@ -170,6 +170,7 @@ export const BlockedList = memo(
 							height={windowHeight - 190}
 							width={containerWidth}
 							itemContent={itemContent}
+							defaultItemHeight={75}
 							style={{
 								overflowX: "hidden",
 								overflowY: "auto",

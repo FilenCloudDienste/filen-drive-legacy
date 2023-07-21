@@ -34,10 +34,8 @@ export const Messages = memo(
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 		const [isAtBottom, setIsAtBottom] = useState<boolean>(false)
 		const virtuosoRef = useRef<VirtuosoHandle>(null)
-		const [firstLoadMessageUUID, setFirstLoadMessageUUID] = useState<string>(
-			messages.length > 0 ? messages[messages.length - 1].uuid : ""
-		)
-		const firstLoadConvoUUID = useRef<string>(conversationUUID)
+		const [scrollerRef, setScrollerRef] = useState<HTMLElement | Window | null>(null)
+		const isScrollingChatTimeout = useRef<NodeJS.Timeout | number | undefined>()
 
 		const followOutput = useCallback(
 			(atBottom: boolean) => {
@@ -76,8 +74,8 @@ export const Messages = memo(
 						isMobile={isMobile}
 						failedMessages={failedMessages}
 						message={message}
-						prevMessage={messages[index - 1]}
-						nextMessage={messages[index + 1]}
+						prevMessage={messages[index + 1]}
+						nextMessage={messages[index - 1]}
 						userId={userId}
 						isScrollingChat={isScrollingChat}
 						index={index}
@@ -88,18 +86,34 @@ export const Messages = memo(
 		)
 
 		useEffect(() => {
-			if (conversationUUID !== firstLoadConvoUUID.current && messages.length > 0) {
-				firstLoadConvoUUID.current = conversationUUID
+			const scroller = scrollerRef as HTMLElement
 
-				setFirstLoadMessageUUID(messages[messages.length - 1].uuid)
+			const handleScroll = (e: WheelEvent) => {
+				e.preventDefault()
+
+				const currentTarget = e.currentTarget as HTMLElement
+
+				if (currentTarget) {
+					currentTarget.scrollTop -= e.deltaY
+				}
 			}
 
+			scroller?.addEventListener("wheel", handleScroll, {
+				passive: false
+			})
+
+			return () => {
+				scroller?.removeEventListener("wheel", handleScroll)
+			}
+		}, [scrollerRef])
+
+		useEffect(() => {
 			if (messages.length > 0) {
 				db.set("chatMessages:" + conversationUUID, messages.slice(-100), "chats").catch(console.error)
 			}
 		}, [conversationUUID, messages])
 
-		if (loading || firstLoadMessageUUID.length === 0) {
+		if (loading) {
 			return (
 				<Flex
 					flexDirection="column-reverse"
@@ -124,23 +138,36 @@ export const Messages = memo(
 
 		return (
 			<Virtuoso
-				key={"messages-" + firstLoadMessageUUID}
 				data={messages}
 				ref={virtuosoRef}
+				scrollerRef={setScrollerRef}
 				height={height}
 				atBottomStateChange={atBottomStateChange}
-				isScrolling={setIsScrollingChat}
+				isScrolling={scrolling => {
+					clearTimeout(isScrollingChatTimeout.current)
+
+					if (!scrolling) {
+						isScrollingChatTimeout.current = setTimeout(() => {
+							setIsScrollingChat(false)
+						}, 250)
+
+						return
+					}
+
+					setIsScrollingChat(true)
+				}}
 				width={width}
-				followOutput={followOutput}
+				followOutput={false}
 				itemContent={itemContent}
-				initialTopMostItemIndex={messages.length - 1}
+				initialTopMostItemIndex={0}
 				atTopStateChange={atTopStateChange}
 				defaultItemHeight={40}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",
 					height: height + "px",
-					width: width + "px"
+					width: width + "px",
+					transform: "rotate(180deg) scaleX(-1)"
 				}}
 			/>
 		)

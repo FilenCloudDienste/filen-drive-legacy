@@ -30,39 +30,29 @@ export const formatMessageDate = (timestamp: number, lang: string = "en"): strin
 
 	if (seconds <= 0) {
 		return "now"
-	}
-
-	if (seconds < 60) {
+	} else if (seconds < 60) {
 		return `${seconds} seconds ago`
-	}
-
-	if (seconds < 3600) {
+	} else if (seconds < 3600) {
 		const minutes = Math.floor(seconds / 60)
 
 		return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
-	}
-
-	if (seconds < 86400 / 2) {
+	} else if (seconds < 86400 / 2) {
 		const hours = Math.floor(seconds / 3600)
 
 		return `${hours} hour${hours > 1 ? "s" : ""} ago`
-	}
-
-	if (seconds < 86400) {
+	} else if (seconds < 86400) {
 		const date = new Date(timestamp)
 
 		return `Today at ${formatTime(date)}`
-	}
-
-	if (seconds < 86400 * 2) {
+	} else if (seconds > 86400 && seconds < 86400 * 2) {
 		const date = new Date(timestamp)
 
 		return `Yesterday at ${formatTime(date)}`
+	} else {
+		const date = new Date(timestamp)
+
+		return `${formatDate(date)} ${formatTime(date)}`
 	}
-
-	const date = new Date(timestamp)
-
-	return `${formatDate(date)} ${formatTime(date)}`
 }
 
 export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
