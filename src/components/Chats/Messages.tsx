@@ -52,7 +52,7 @@ export const Messages = memo(
 			count: messages.length,
 			getScrollElement: () => parentRef.current,
 			estimateSize: () => 40,
-			overscan: 10,
+			overscan: 25,
 			getItemKey: index => messages[index].uuid,
 			onChange: instance => {
 				clearTimeout(isScrollingChatTimeout.current)

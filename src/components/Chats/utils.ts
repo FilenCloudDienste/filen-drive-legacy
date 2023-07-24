@@ -2,6 +2,7 @@ import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConver
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
+import { validate } from "uuid"
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -165,4 +166,15 @@ export const parseYouTubeVideoId = (url: string): string | null => {
 	}
 
 	return null
+}
+
+export const parseFilenPublicLink = (url: string) => {
+	const ex = url.split("/")
+	const uuid = ex.map(part => part.split("#")[0].trim()).filter(part => validate(part))
+	const keyEx = url.split("#")
+
+	return {
+		uuid: uuid.length > 0 ? uuid[0] : "",
+		key: url.indexOf("#") !== -1 ? keyEx[1].trim() : ""
+	}
 }

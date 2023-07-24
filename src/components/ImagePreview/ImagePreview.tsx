@@ -15,6 +15,10 @@ const ImagePreview = memo(({ image, maxWidth, maxHeight }: { image: string; maxW
 			alignItems="center"
 			justifyContent="center"
 			onWheel={e => {
+				if (window.location.href.indexOf("?embed") !== -1) {
+					return
+				}
+
 				if (e.deltaY > 0) {
 					setImageZoom(prev => {
 						const newZoom = prev + ZOOM_SPEED
@@ -44,7 +48,7 @@ const ImagePreview = memo(({ image, maxWidth, maxHeight }: { image: string; maxW
 				position="relative"
 				transform={"scale(" + imageZoom + ") translate(" + imagePosition.x + "px, " + imagePosition.y + "px)"}
 				draggable={false}
-				cursor="zoom-in"
+				cursor={window.location.href.indexOf("?embed") !== -1 ? "auto" : "zoom-in"}
 				onDoubleClick={() => {
 					if (imageZoom <= 1) {
 						setImagePosition({

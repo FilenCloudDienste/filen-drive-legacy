@@ -12,17 +12,37 @@ import { MdVisibilityOff } from "react-icons/md"
 import Button from "../Button"
 import useCookie from "../../lib/hooks/useCookie"
 import { toggleColorMode } from "../../lib/helpers"
+import { decode as decodeBase64 } from "js-base64"
 
 export interface PublicLinkContainerProps extends AppBaseProps {
 	children?: React.ReactNode
 }
 
 const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, children }: PublicLinkContainerProps) => {
-	const [loggedIn, setLoggedIn] = useCookie("loggedIn")
+	const [loggedIn] = useCookie("loggedIn")
 
 	const sidebarWidth: number = useMemo(() => {
 		return isMobile ? 0 : 400
 	}, [isMobile])
+
+	if (window.location.href.indexOf("?embed") !== -1) {
+		const urlParams = new URLSearchParams(window.location.href)
+
+		return (
+			<Flex
+				className="full-viewport"
+				flexDirection="row"
+				backgroundColor={
+					typeof urlParams.get("bgColor") === "string"
+						? decodeBase64(urlParams.get("bgColor")!.split("#")[0].trim())
+						: getColor(darkMode, "backgroundPrimary")
+				}
+				overflow="hidden"
+			>
+				{children}
+			</Flex>
+		)
+	}
 
 	return (
 		<Flex
@@ -39,6 +59,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
 					backgroundColor={getColor(darkMode, "backgroundSecondary")}
 					justifyContent="center"
 					paddingTop="50px"
+					borderRight={"1px solid " + getColor(darkMode, "borderPrimary")}
 				>
 					<Image
 						src={darkMode ? LightLogo : DarkLogo}

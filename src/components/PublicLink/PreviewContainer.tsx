@@ -38,6 +38,10 @@ const PreviewContainer = memo(
 			return null
 		}
 
+		if (window.location.href.indexOf("?embed") !== -1) {
+			return <>{children}</>
+		}
+
 		return (
 			<>
 				<Flex

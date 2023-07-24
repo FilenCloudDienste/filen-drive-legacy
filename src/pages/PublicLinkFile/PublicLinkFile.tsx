@@ -28,6 +28,7 @@ import AbuseReportModal from "../../components/AbuseReportModal"
 import { i18n } from "../../i18n"
 import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewModal/TextEditor"
 import * as docx from "docx-preview"
+import { decode as decodeBase64 } from "js-base64"
 
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video", "docx"]
 const MAX_SIZE: number = 1024 * 1024 * 16
@@ -295,11 +296,17 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 	}
 
 	if (typeof info == "undefined" && !needsPassword) {
+		const urlParams = new URLSearchParams(window.location.href)
+
 		return (
 			<Flex
 				className="full-viewport"
 				flexDirection="column"
-				backgroundColor={getColor(darkMode, "backgroundPrimary")}
+				backgroundColor={
+					typeof urlParams.get("bgColor") === "string"
+						? decodeBase64(urlParams.get("bgColor")!.split("#")[0].trim())
+						: getColor(darkMode, "backgroundPrimary")
+				}
 				overflow="hidden"
 				justifyContent="center"
 				alignItems="center"
@@ -322,7 +329,7 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 			lang={lang}
 		>
 			<Flex
-				width={isMobile ? windowWidth + "px" : windowWidth - 400 + "px"}
+				width={isMobile || window.location.href.indexOf("?embed") !== -1 ? windowWidth + "px" : windowWidth - 400 + "px"}
 				height="100%"
 				flexDirection="column"
 				justifyContent="center"
@@ -616,7 +623,11 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 									</>
 								) : (
 									<Flex
-										width={(windowWidth - 400) / 2 + "px"}
+										width={
+											isMobile || window.location.href.indexOf("?embed") !== -1
+												? "100vw"
+												: (windowWidth - 400) / 2 + "px"
+										}
 										flexDirection="column"
 										justifyContent="center"
 										alignItems="center"
@@ -679,27 +690,29 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 													{i18n(lang, "download")}
 												</Button>
 											)}
-											<Button
-												darkMode={darkMode}
-												isMobile={isMobile}
-												backgroundColor={darkMode ? "white" : "gray"}
-												color={darkMode ? "black" : "white"}
-												border={"1px solid " + (darkMode ? "white" : "gray")}
-												height="35px"
-												marginLeft="10px"
-												_hover={{
-													backgroundColor: getColor(darkMode, "backgroundPrimary"),
-													border: "1px solid " + (darkMode ? "white" : "gray"),
-													color: darkMode ? "white" : "gray"
-												}}
-												onClick={() =>
-													eventListener.emit("openAbuseReportModal", {
-														password
-													})
-												}
-											>
-												<MdReportGmailerrorred fontSize={24} />
-											</Button>
+											{window.location.href.indexOf("?embed") === -1 && (
+												<Button
+													darkMode={darkMode}
+													isMobile={isMobile}
+													backgroundColor={darkMode ? "white" : "gray"}
+													color={darkMode ? "black" : "white"}
+													border={"1px solid " + (darkMode ? "white" : "gray")}
+													height="35px"
+													marginLeft="10px"
+													_hover={{
+														backgroundColor: getColor(darkMode, "backgroundPrimary"),
+														border: "1px solid " + (darkMode ? "white" : "gray"),
+														color: darkMode ? "white" : "gray"
+													}}
+													onClick={() =>
+														eventListener.emit("openAbuseReportModal", {
+															password
+														})
+													}
+												>
+													<MdReportGmailerrorred fontSize={24} />
+												</Button>
+											)}
 										</Flex>
 									</Flex>
 								)}

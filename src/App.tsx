@@ -29,6 +29,7 @@ import AppText from "./components/AppText"
 import { AiOutlineTwitter } from "react-icons/ai"
 import Announcements from "./components/Announcements"
 import { helmetStyle } from "./styles/helmet"
+import { decode as decodeBase64 } from "js-base64"
 
 declare global {
 	interface Window {
@@ -65,7 +66,16 @@ const App = memo(() => {
 		const body = document.querySelector("body") as HTMLElement
 
 		if (body) {
-			body.style.backgroundColor = getColor(darkMode, "backgroundPrimary")
+			if (window.location.href.indexOf("?embed") !== -1) {
+				const urlParams = new URLSearchParams(window.location.href)
+
+				body.style.backgroundColor =
+					typeof urlParams.get("bgColor") === "string"
+						? decodeBase64(urlParams.get("bgColor")!.split("#")[0].trim())
+						: getColor(darkMode, "backgroundPrimary")
+			} else {
+				body.style.backgroundColor = getColor(darkMode, "backgroundPrimary")
+			}
 		}
 	}, [darkMode])
 

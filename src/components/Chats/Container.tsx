@@ -23,7 +23,7 @@ export interface ContainerProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 }
 
-export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed"
+export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
 
 export const Container = memo(

@@ -10,6 +10,7 @@ import { validate } from "uuid"
 import { getCurrentParent } from "../../lib/helpers"
 import AddModal from "./AddModal"
 import DeleteMessageModal from "./DeleteMessageModal"
+import PreviewModal from "./PreviewModal"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -121,6 +122,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			</Flex>
 			<AddModal />
 			<DeleteMessageModal />
+			<PreviewModal />
 		</Flex>
 	)
 })

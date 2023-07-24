@@ -316,6 +316,11 @@ export const Message = memo(
 
 		const isMessageLink = useMemo(() => {
 			const trimmed = message.message.trim()
+
+			if (trimmed.indexOf("/localhost:") !== -1) {
+				return true
+			}
+
 			const urlRegex =
 				/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
 
@@ -332,6 +337,13 @@ export const Message = memo(
 					setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "youtubeEmbed" }))
 				} else if (message.message.indexOf("/twitter.com/") !== -1 || message.message.indexOf("/www.twitter.com/") !== -1) {
 					setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "twitterEmbed" }))
+				} else if (
+					(message.message.indexOf("/localhost:") !== -1 ||
+						message.message.indexOf("/filen.io/") !== -1 ||
+						message.message.indexOf("/www.filen.io/")) !== -1 &&
+					message.message.indexOf("/d/") !== -1
+				) {
+					setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "filenEmbed" }))
 				} else {
 					;(async () => {
 						const response = await axios.head(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(message.message))
@@ -392,6 +404,8 @@ export const Message = memo(
 										isMobile={isMobile}
 										darkMode={darkMode}
 										displayMessageAs={displayMessageAs}
+										hoveringMessage={hoveringMessage}
+										isScrollingChat={isScrollingChat}
 									/>
 								) : (
 									<AppText
@@ -530,6 +544,8 @@ export const Message = memo(
 										isMobile={isMobile}
 										darkMode={darkMode}
 										displayMessageAs={displayMessageAs}
+										hoveringMessage={hoveringMessage}
+										isScrollingChat={isScrollingChat}
 									/>
 								) : (
 									<AppText
