@@ -429,7 +429,7 @@ const ru: {
 	noteArchive: "Архив",
 	noteRestore: "Восстановить",
 	noteDelete: "Удалить",
-	noteSynced: "Заметка синхронизированна",
+	noteSynced: "Заметка синхронизирована",
 	syncingNote: "Синхронизация заметки...",
 	contactRequestSent: "Запрос на контакт отправлен",
 	addContact: "Добавить контакт",
