@@ -170,7 +170,15 @@ export const Conversations = memo(
 		const conversationsSorted = useMemo(() => {
 			return conversations
 				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
-				.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+				.sort((a, b) => {
+					if (a.lastMessageTimestamp > 0 && b.lastMessageTimestamp > 0) {
+						return b.lastMessageTimestamp - a.lastMessageTimestamp
+					} else if (a.lastMessageTimestamp === 0 && b.lastMessageTimestamp === 0) {
+						return b.createdTimestamp - a.createdTimestamp
+					} else {
+						return b.lastMessageTimestamp - a.lastMessageTimestamp
+					}
+				})
 		}, [conversations])
 
 		const fetchConversations = useCallback(async (refresh: boolean = false) => {
@@ -248,7 +256,7 @@ export const Conversations = memo(
 			})
 		}, [currentConversation, currentConversationMe])
 
-		const onFocus = useCallback(async () => {
+		const onFocus = useCallback(() => {
 			windowFocused.current = true
 
 			const currentConversationUUID = getCurrentParent(window.location.href)
@@ -259,7 +267,7 @@ export const Conversations = memo(
 					[currentConversationUUID]: 0
 				}))
 
-				await safeAwait(chatConversationsRead(currentConversationUUID))
+				safeAwait(chatConversationsRead(currentConversationUUID))
 			}
 
 			safeAwait(fetchConversations(true))

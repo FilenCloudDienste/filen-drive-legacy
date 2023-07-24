@@ -461,7 +461,9 @@ const en: {
 	blockUserWarning: "Are you sure you want to block __NAME__?",
 	removeUserWarning: "Are you sure you want to remove __NAME__ from your contact list?",
 	chatYou: "You",
-	chatNoMessagesYet: "No messages yet"
+	chatNoMessagesYet: "No messages yet",
+	chatMessageDelete: "Delete message",
+	chatMessageDeleteWarning: "Are you sure you want to delete this message? This action cannot be undone!"
 }
 
 export default en

@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useRef, useEffect } from "react"
-import { Input as TextInput, Flex } from "@chakra-ui/react"
+import { Input as TextInput, Flex, Menu, MenuItem, MenuButton, MenuList, forwardRef, InputGroup, InputRightElement } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 import { ChatMessage, sendChatMessage, ChatConversation, chatSendTyping, ChatConversationParticipant } from "../../lib/api"
@@ -10,6 +10,8 @@ import { safeAwait } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
+import EmojiPicker from "emoji-picker-react"
+import { AiOutlineSmile } from "react-icons/ai"
 
 export interface ChatContainerInputTypingProps {
 	darkMode: boolean
@@ -119,10 +121,21 @@ export interface InputProps {
 	setFailedMessages: React.Dispatch<React.SetStateAction<string[]>>
 	setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
 	loading: boolean
+	setEmojiPickerOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const Input = memo(
-	({ darkMode, isMobile, lang, currentConversation, currentConversationMe, setFailedMessages, setMessages, loading }: InputProps) => {
+	({
+		darkMode,
+		isMobile,
+		lang,
+		currentConversation,
+		currentConversationMe,
+		setFailedMessages,
+		setMessages,
+		loading,
+		setEmojiPickerOpen
+	}: InputProps) => {
 		const [messageInput, setMessageInput] = useState<string>("")
 		const isTyping = useRef<boolean>(false)
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -174,6 +187,7 @@ export const Input = memo(
 			setMessageInput("")
 			setMessages(prev => [
 				{
+					conversation: currentConversation!.uuid,
 					uuid,
 					senderId: currentConversationMe!.userId,
 					senderEmail: currentConversationMe!.email,
@@ -220,43 +234,89 @@ export const Input = memo(
 		}, [messageInput, currentConversation, currentConversationMe])
 
 		return (
-			<>
-				<TextInput
-					placeholder={i18n(lang, "chatInput")}
-					width="100%"
-					height="40px"
-					marginTop="5px"
-					backgroundColor={getColor(darkMode, "backgroundSecondary")}
-					borderRadius="8px"
-					fontWeight="350"
-					fontSize={13}
-					paddingLeft="10px"
-					paddingRight="10px"
-					border="none"
-					outline="none"
-					value={messageInput}
-					onChange={e => setMessageInput(e.target.value)}
-					onKeyDown={e => {
-						if (e.key === "Enter") {
-							sendMessage()
-						}
+			<Flex flexDirection="column">
+				<InputGroup>
+					<TextInput
+						placeholder={i18n(lang, "chatInput")}
+						width="100%"
+						height="40px"
+						marginTop="5px"
+						backgroundColor={getColor(darkMode, "backgroundSecondary")}
+						borderRadius="8px"
+						fontWeight="350"
+						fontSize={13}
+						paddingLeft="10px"
+						paddingRight="10px"
+						border="none"
+						outline="none"
+						value={messageInput}
+						onChange={e => setMessageInput(e.target.value)}
+						onKeyDown={e => {
+							if (e.key === "Enter") {
+								sendMessage()
+							}
 
-						onKeyDownOrUp()
-					}}
-					onKeyUp={() => onKeyDownOrUp()}
-					color={getColor(darkMode, "textSecondary")}
-					_placeholder={{
-						color: getColor(darkMode, "textSecondary")
-					}}
-					disabled={loading}
-				/>
+							onKeyDownOrUp()
+						}}
+						onKeyUp={() => onKeyDownOrUp()}
+						color={getColor(darkMode, "textSecondary")}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						disabled={loading}
+					/>
+					<InputRightElement
+						children={
+							<Menu
+								onOpen={() => setEmojiPickerOpen(true)}
+								onClose={() => setEmojiPickerOpen(false)}
+							>
+								<MenuButton
+									as={forwardRef((props, ref) => (
+										<Flex
+											ref={ref}
+											{...props}
+											cursor="pointer"
+											marginTop="8px"
+											color={getColor(darkMode, "textSecondary")}
+											_hover={{
+												color: getColor(darkMode, "textPrimary")
+											}}
+										>
+											<AiOutlineSmile size={22} />
+										</Flex>
+									))}
+								>
+									{i18n(lang, "file")}
+								</MenuButton>
+								<MenuList
+									boxShadow="base"
+									padding="0px"
+									borderColor={getColor(darkMode, "borderPrimary")}
+									backgroundColor={getColor(darkMode, "backgroundSecondary")}
+									background={getColor(darkMode, "backgroundSecondary")}
+								>
+									<Flex>
+										<EmojiPicker
+											onEmojiClick={emoji =>
+												setMessageInput(prev => (prev.length > 0 ? prev + " " : "") + emoji.emoji)
+											}
+											autoFocusSearch={false}
+											searchPlaceHolder={i18n(lang, "searchInput")}
+										/>
+									</Flex>
+								</MenuList>
+							</Menu>
+						}
+					/>
+				</InputGroup>
 				<ChatContainerInputTyping
 					darkMode={darkMode}
 					isMobile={isMobile}
 					lang={lang}
 					currentConversation={currentConversation}
 				/>
-			</>
+			</Flex>
 		)
 	}
 )

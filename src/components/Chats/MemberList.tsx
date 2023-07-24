@@ -42,7 +42,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	const lang = useLang()
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
-	const [onlineUsers, setOnlineUsers] = useDb("onlineUsers:" + currentConversation?.uuid, {}, "chats")
+	const [onlineUsers, setOnlineUsers] = useState<OnlineUsers>({})
 	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 
 	const usersSorted = useMemo(() => {
@@ -122,7 +122,6 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		(index: number, participant: ChatConversationParticipant) => {
 			return (
 				<Member
-					key={participant.userId}
 					isMobile={isMobile}
 					darkMode={darkMode}
 					onlineUsers={onlineUsers}

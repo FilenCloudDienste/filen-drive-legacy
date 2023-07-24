@@ -155,3 +155,14 @@ export const fetchChatMessages = async (
 
 	return await refresh()
 }
+
+export const parseYouTubeVideoId = (url: string): string | null => {
+	const regExp = /(?:\?v=|\/embed\/|\/watch\?v=|\/\w+\/\w+\/|youtu.be\/)([\w-]{11})/
+	const match = url.match(regExp)
+
+	if (match && match.length === 2) {
+		return match[1]
+	}
+
+	return null
+}

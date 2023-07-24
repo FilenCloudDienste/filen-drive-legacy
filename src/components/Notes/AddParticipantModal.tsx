@@ -259,7 +259,6 @@ export const AddContactModal = memo(() => {
 		(index: number, contact: IContact) => {
 			return (
 				<Contact
-					key={contact.uuid}
 					contact={contact}
 					note={note}
 					setAddedContactsIds={setAddedContactsIds}
@@ -685,7 +684,6 @@ export const AddParticipantModal = memo(() => {
 		(index: number, participant: NoteParticipant) => {
 			return (
 				<Participant
-					key={participant.userId}
 					participant={participant}
 					note={note}
 				/>

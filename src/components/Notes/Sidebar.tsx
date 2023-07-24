@@ -165,7 +165,6 @@ export const Sidebar = memo(
 			(index: number, note: INote) => {
 				return (
 					<Note
-						key={note.uuid}
 						note={note}
 						userId={userId}
 					/>

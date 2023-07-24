@@ -2,7 +2,7 @@ import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex } from "@chakra-ui/react"
 import { ChatMessage, ChatConversation, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
-import { safeAwait } from "../../lib/helpers"
+import { safeAwait, getCurrentParent } from "../../lib/helpers"
 import db from "../../lib/db"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
@@ -11,7 +11,7 @@ import Input from "./Input"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import Topbar from "./Topbar"
 import { fetchChatMessages } from "./utils"
-import { v4 as uuidv4 } from "uuid"
+import { validate } from "uuid"
 
 export interface ContainerProps {
 	darkMode: boolean
@@ -23,6 +23,9 @@ export interface ContainerProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 }
 
+export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed"
+export type DisplayMessageAs = Record<string, MessageDisplayType>
+
 export const Container = memo(
 	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe }: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -30,6 +33,8 @@ export const Container = memo(
 		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
 		const [failedMessages, setFailedMessages] = useState<string[]>([])
 		const windowFocused = useRef<boolean>(true)
+		const [displayMessageAs, setDisplayMessageAs] = useState<DisplayMessageAs>({})
+		const [emojiPickerOpen, setEmojiPickerOpen] = useState<boolean>(false)
 
 		const heights = useMemo(() => {
 			const inputContainer = 85
@@ -61,7 +66,7 @@ export const Container = memo(
 
 		const fetchMessages = useCallback(
 			async (refresh: boolean = false) => {
-				if (!currentConversation || !currentConversationMe) {
+				if (!currentConversation || !currentConversationMe || currentConversation.uuid !== getCurrentParent(window.location.href)) {
 					return
 				}
 
@@ -99,8 +104,10 @@ export const Container = memo(
 		const onFocus = useCallback(async () => {
 			windowFocused.current = true
 
-			if (currentConversation) {
-				safeAwait(chatConversationsRead(currentConversation.uuid))
+			const uuid = getCurrentParent(window.location.href)
+
+			if (validate(uuid)) {
+				safeAwait(chatConversationsRead(uuid))
 				safeAwait(fetchMessages())
 			}
 		}, [currentConversation])
@@ -122,7 +129,12 @@ export const Container = memo(
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 				if (event.type === "chatMessageNew") {
-					if (!currentConversation || !currentConversationMe || currentConversation.uuid !== event.data.conversation) {
+					if (
+						!currentConversation ||
+						!currentConversationMe ||
+						currentConversation.uuid !== event.data.conversation ||
+						currentConversation.uuid !== getCurrentParent(window.location.href)
+					) {
 						return
 					}
 
@@ -132,6 +144,7 @@ export const Container = memo(
 					if (message.length > 0) {
 						setMessages(prev => [
 							{
+								conversation: event.data.conversation,
 								uuid: event.data.uuid,
 								senderId: event.data.senderId,
 								senderEmail: event.data.senderEmail,
@@ -206,7 +219,9 @@ export const Container = memo(
 						width={sizes.chatContainer}
 						height={heights.messagesContainer}
 						loading={loading}
-						conversationUUID={currentConversation?.uuid || uuidv4()}
+						displayMessageAs={displayMessageAs}
+						setDisplayMessageAs={setDisplayMessageAs}
+						emojiPickerOpen={emojiPickerOpen}
 					/>
 				</Flex>
 				<Flex
@@ -226,6 +241,7 @@ export const Container = memo(
 						setFailedMessages={setFailedMessages}
 						lang={lang}
 						loading={loading}
+						setEmojiPickerOpen={setEmojiPickerOpen}
 					/>
 				</Flex>
 			</Flex>

@@ -44,6 +44,7 @@
 		"await-semaphore": "0.1.3",
 		"axios": "0.27.2",
 		"axios-retry": "3.3.1",
+		"base-64": "^1.0.0",
 		"browser-image-compression": "2.0.0",
 		"client-zip": "^2.3.0",
 		"comlink": "4.3.1",
@@ -52,6 +53,7 @@
 		"crypto-js": "4.1.1",
 		"docx-preview": "git+https://github.com/VolodymyrBaydalka/docxjs.git",
 		"dompurify": "^3.0.1",
+		"emoji-picker-react": "^4.4.10",
 		"framer-motion": "6.4.2",
 		"heic-convert": "1.2.4",
 		"helmet": "6.0.0",
@@ -71,6 +73,7 @@
 		"react-contexify": "5.0.0",
 		"react-device-detect": "2.2.2",
 		"react-dom": "18.2.0",
+		"react-emoji-render": "^2.0.1",
 		"react-fast-compare": "3.2.0",
 		"react-helmet-async": "1.3.0",
 		"react-icons": "4.4.0",
@@ -120,6 +123,7 @@
 		]
 	},
 	"devDependencies": {
+		"@types/base-64": "^1.0.0",
 		"@types/crypto-js": "4.1.1",
 		"@types/dompurify": "^3.0.1",
 		"@types/js-cookie": "3.0.2",

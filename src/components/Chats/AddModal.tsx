@@ -344,7 +344,6 @@ const AddModal = memo(() => {
 		(index: number, contact: IContact) => {
 			return (
 				<Contact
-					key={contact.uuid}
 					contact={contact}
 					contactsToAdd={contactsToAdd}
 					setContactsToAdd={setContactsToAdd}
@@ -370,6 +369,8 @@ const AddModal = memo(() => {
 			}) => {
 				conversationUUID.current = uuid
 				conversationKey.current = key
+
+				console.log(uuid, key, mode, conversation)
 
 				loadContacts()
 

@@ -213,6 +213,10 @@
 		url("fonts/inter-display/InterDisplay-Regular.woff?v=3.12") format("woff");
 }
 
+body {
+	overflow: hidden;
+}
+
 body:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *) {
 	font-family: "Inter", sans-serif !important;
 	overflow-x: hidden;

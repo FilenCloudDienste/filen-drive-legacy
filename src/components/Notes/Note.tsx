@@ -13,7 +13,6 @@ import { IoTrashOutline, IoArchiveOutline, IoHeart } from "react-icons/io5"
 import striptags from "striptags"
 import { MdChecklist } from "react-icons/md"
 import { NoteSidebarTag } from "./Tag"
-import useDb from "../../lib/hooks/useDb"
 
 export const NoteSkeleton = memo(({ index }: { index: number }) => {
 	const darkMode = useDarkMode()

@@ -57,7 +57,6 @@ export const BlockedList = memo(
 		const itemContent = useCallback((index: number, block: BlockedContact) => {
 			return (
 				<Blocked
-					key={block.uuid}
 					block={block}
 					setBlocked={setBlocked}
 				/>

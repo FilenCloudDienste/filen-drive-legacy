@@ -1,23 +1,11 @@
-import { memo, useMemo, useState, useEffect, useCallback } from "react"
-import {
-	Flex,
-	Avatar,
-	Popover,
-	PopoverTrigger,
-	Portal,
-	Tooltip,
-	PopoverContent,
-	PopoverBody,
-	Skeleton,
-	Link,
-	Image
-} from "@chakra-ui/react"
+import { memo, useMemo, useState, useEffect } from "react"
+import { Flex, Avatar, Popover, PopoverTrigger, Portal, Tooltip, PopoverContent, PopoverBody, Skeleton, Link } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatMessage, chatDelete } from "../../lib/api"
+import { ChatMessage } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
 import { IoTrash } from "react-icons/io5"
-import { safeAwait, getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
+import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode, getAPIV3Server } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay } from "./utils"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -26,6 +14,10 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import Linkify from "react-linkify"
 import axios from "axios"
+import { DisplayMessageAs } from "./Container"
+import Embed from "./Embed"
+
+const EMBED_CONTENT_TYPES_IMAGES = ["image/png", "image/jpeg", "image/gif", "image/svg"]
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -172,7 +164,8 @@ export const OuterMessage = memo(
 		darkMode,
 		children,
 		hoveringMessage,
-		setHoveringMessage
+		setHoveringMessage,
+		emojiPickerOpen
 	}: {
 		message: ChatMessage
 		isScrollingChat: boolean
@@ -181,26 +174,19 @@ export const OuterMessage = memo(
 		children: React.ReactNode
 		hoveringMessage: boolean
 		setHoveringMessage: React.Dispatch<React.SetStateAction<boolean>>
+		emojiPickerOpen: boolean
 	}) => {
 		const [hoveringPopover, setHoveringPopover] = useState<boolean>(false)
 		const lang = useLang()
 
-		const deleteMessage = useCallback(async () => {
-			const [err] = await safeAwait(chatDelete(message.uuid))
-
-			if (err) {
-				console.error(err)
-
-				return
-			}
-
-			eventListener.emit("chatMessageDelete", message.uuid)
-		}, [message.uuid])
-
 		return (
 			<Popover
 				placement="top-end"
-				isOpen={hoveringMessage && !isScrollingChat}
+				isOpen={hoveringMessage && !isScrollingChat && !emojiPickerOpen}
+				computePositionOnMount={false}
+				lazyBehavior="unmount"
+				isLazy={true}
+				openDelay={100}
 			>
 				<PopoverTrigger>{children}</PopoverTrigger>
 				{message.senderId === userId && (
@@ -221,6 +207,7 @@ export const OuterMessage = memo(
 							width="auto"
 							border="none"
 							borderRadius="5px"
+							zIndex="popover"
 						>
 							<PopoverBody
 								border={"1px solid " + getColor(darkMode, "borderSecondary")}
@@ -243,7 +230,7 @@ export const OuterMessage = memo(
 											size={20}
 											cursor="pointer"
 											color={getColor(darkMode, "textSecondary")}
-											onClick={() => deleteMessage()}
+											onClick={() => eventListener.emit("openDeleteChatMessageModal", message.uuid)}
 										/>
 									</Flex>
 								</Tooltip>
@@ -265,13 +252,26 @@ export interface MessageProps {
 	failedMessages: string[]
 	userId: number
 	isScrollingChat: boolean
-	index: number
+	displayMessageAs: DisplayMessageAs
+	setDisplayMessageAs: React.Dispatch<React.SetStateAction<DisplayMessageAs>>
+	emojiPickerOpen: boolean
 }
 
 export const Message = memo(
-	({ darkMode, isMobile, message, failedMessages, prevMessage, nextMessage, userId, isScrollingChat, index }: MessageProps) => {
+	({
+		darkMode,
+		isMobile,
+		message,
+		failedMessages,
+		prevMessage,
+		nextMessage,
+		userId,
+		isScrollingChat,
+		displayMessageAs,
+		setDisplayMessageAs,
+		emojiPickerOpen
+	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
-		const [displayMessageAsImage, setDisplayMessageAsImage] = useState<boolean>(false)
 
 		const groupWithPrevMessage = useMemo(() => {
 			if (!prevMessage) {
@@ -314,23 +314,37 @@ export const Message = memo(
 			return isTimestampSameDay(prevMessage.sentTimestamp, message.sentTimestamp)
 		}, [prevMessage, message])
 
-		const isMessageImageLink = useMemo(() => {
+		const isMessageLink = useMemo(() => {
 			const trimmed = message.message.trim()
+			const urlRegex =
+				/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
 
-			return trimmed.startsWith("https://") && trimmed.endsWith(".png")
+			return urlRegex.test(trimmed)
 		}, [message.message])
 
 		useEffect(() => {
-			if (isMessageImageLink) {
-				;(async () => {
-					const response = await axios.head(message.message)
+			if (isMessageLink) {
+				if (
+					message.message.indexOf("youtube.com/watch") !== -1 ||
+					message.message.indexOf("youtube.com/embed") !== -1 ||
+					message.message.indexOf("/youtu.be/") !== -1
+				) {
+					setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "youtubeEmbed" }))
+				} else if (message.message.indexOf("/twitter.com/") !== -1 || message.message.indexOf("/www.twitter.com/") !== -1) {
+					setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "twitterEmbed" }))
+				} else {
+					;(async () => {
+						const response = await axios.head(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(message.message))
 
-					if (response.headers["content-type"] && response.headers["content-type"] === "image/png") {
-						setDisplayMessageAsImage(true)
-					}
-				})()
+						if (response.headers["content-type"] && EMBED_CONTENT_TYPES_IMAGES.includes(response.headers["content-type"])) {
+							setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: "image" }))
+
+							return
+						}
+					})()
+				}
 			}
-		}, [isMessageImageLink, message.message])
+		}, [isMessageLink, message.message])
 
 		if (groupWithPrevMessage) {
 			return (
@@ -350,6 +364,7 @@ export const Message = memo(
 						userId={userId}
 						hoveringMessage={hoveringMessage}
 						setHoveringMessage={setHoveringMessage}
+						emojiPickerOpen={emojiPickerOpen}
 					>
 						<Flex
 							transform="rotate(180deg) scaleX(-1)"
@@ -371,42 +386,53 @@ export const Message = memo(
 							}
 						>
 							<Flex flexDirection="row">
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									color={
-										failedMessages.includes(message.uuid)
-											? getColor(darkMode, "red")
-											: getColor(darkMode, "textSecondary")
-									}
-									fontSize={14}
-									wordBreak="break-word"
-									marginTop="1px"
-									className="user-select-text"
-									userSelect="text"
-								>
-									<Linkify
-										componentDecorator={(decoratedHref, decoratedText, key) => {
-											return (
-												<Link
-													key={key}
-													color={getColor(darkMode, "linkPrimary")}
-													cursor="pointer"
-													href={decoratedHref}
-													target="_blank"
-													rel="noreferrer"
-													_hover={{
-														textDecoration: "underline"
-													}}
-												>
-													{decoratedText}
-												</Link>
-											)
-										}}
+								{typeof displayMessageAs[message.uuid] !== "undefined" ? (
+									<Embed
+										message={message}
+										isMobile={isMobile}
+										darkMode={darkMode}
+										displayMessageAs={displayMessageAs}
+									/>
+								) : (
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
+										color={
+											failedMessages.includes(message.uuid)
+												? getColor(darkMode, "red")
+												: getColor(darkMode, "textSecondary")
+										}
+										fontSize={14}
+										wordBreak="break-word"
+										marginTop="1px"
+										className="user-select-text"
+										userSelect="text"
 									>
-										{striptags(message.message)}
-									</Linkify>
-								</AppText>
+										<Linkify
+											componentDecorator={(decoratedHref, decoratedText, key) => {
+												return (
+													<Link
+														key={key}
+														color={getColor(darkMode, "linkPrimary")}
+														cursor="pointer"
+														href={decoratedHref}
+														target="_blank"
+														rel="noreferrer"
+														className="user-select-text"
+														userSelect="text"
+														_hover={{
+															textDecoration: "underline"
+														}}
+													>
+														{decoratedText}
+													</Link>
+												)
+											}}
+										>
+											{striptags(message.message)}
+										</Linkify>
+									</AppText>
+								)}
 							</Flex>
 						</Flex>
 					</OuterMessage>
@@ -419,6 +445,8 @@ export const Message = memo(
 				flexDirection="column"
 				width="100%"
 				transform="rotate(180deg) scaleX(-1)"
+				className="user-select-text"
+				userSelect="text"
 			>
 				{!prevMessageSameDay && <DateDivider timestamp={message.sentTimestamp} />}
 				<OuterMessage
@@ -428,6 +456,7 @@ export const Message = memo(
 					userId={userId}
 					hoveringMessage={hoveringMessage}
 					setHoveringMessage={setHoveringMessage}
+					emojiPickerOpen={emojiPickerOpen}
 				>
 					<Flex
 						flexDirection="row"
@@ -481,6 +510,8 @@ export const Message = memo(
 									wordBreak="break-all"
 									color={getColor(darkMode, "textPrimary")}
 									fontSize={15}
+									className="user-select-text"
+									userSelect="text"
 								>
 									{striptags(getUserNameFromMessage(message))}
 								</AppText>
@@ -492,13 +523,14 @@ export const Message = memo(
 									/>
 								)}
 							</Flex>
-							<Flex
-								flexDirection="column"
-								className="user-select-text"
-								userSelect="text"
-							>
-								{displayMessageAsImage ? (
-									<Image src={message.message} />
+							<Flex flexDirection="column">
+								{typeof displayMessageAs[message.uuid] !== "undefined" ? (
+									<Embed
+										message={message}
+										isMobile={isMobile}
+										darkMode={darkMode}
+										displayMessageAs={displayMessageAs}
+									/>
 								) : (
 									<AppText
 										darkMode={darkMode}
@@ -527,6 +559,8 @@ export const Message = memo(
 														_hover={{
 															textDecoration: "underline"
 														}}
+														className="user-select-text"
+														userSelect="text"
 													>
 														{decoratedText}
 													</Link>

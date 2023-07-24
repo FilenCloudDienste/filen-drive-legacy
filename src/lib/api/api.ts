@@ -28,8 +28,9 @@ import eventListener from "../eventListener"
 import { getDirectoryTree } from "../services/items"
 import { v4 as uuidv4 } from "uuid"
 import { FileVersions, ICFG } from "../../types"
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
 import { bufferToHash } from "../worker/worker.com"
+import { encode as base64Encode } from "base-64"
 
 const createFolderSemaphore = new Semaphore(1)
 const shareItemsSemaphore = new Semaphore(10)
@@ -2604,6 +2605,7 @@ export const chatConversations = async (timestamp: number): Promise<ChatConversa
 }
 
 export interface ChatMessage {
+	conversation: string
 	uuid: string
 	senderId: number
 	senderEmail: string

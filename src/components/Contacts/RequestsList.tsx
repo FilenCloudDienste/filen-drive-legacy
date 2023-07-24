@@ -37,7 +37,6 @@ export const RequestsList = memo(
 			(index: number, request: ContactRequest) => {
 				return (
 					<Request
-						key={request.uuid}
 						request={request}
 						activeTab={activeTab}
 					/>
