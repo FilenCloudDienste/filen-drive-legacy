@@ -125,296 +125,300 @@ export interface OGEmbedContainerProps {
 
 export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData }: OGEmbedContainerProps) => {
 	return (
-		<Flex
-			paddingTop="5px"
-			paddingBottom="5px"
-			cursor="pointer"
-			onClick={() => window.open(link, "_blank")}
+		<a
+			href={link}
+			target="_blank"
+			rel="noreferrer"
 		>
 			<Flex
-				flexDirection="column"
-				gap="10px"
-				backgroundColor={getColor(darkMode, "backgroundTertiary")}
-				padding="10px"
-				borderRadius="5px"
-				width={isMobile ? "100%" : "500px"}
-				borderLeft={"4px solid " + getColor(darkMode, "borderPrimary")}
-				height="250px"
+				paddingTop="5px"
+				paddingBottom="5px"
+				cursor="pointer"
 			>
 				<Flex
 					flexDirection="column"
-					height="50px"
-					width="100%"
 					gap="10px"
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					padding="10px"
+					borderRadius="5px"
+					width={isMobile ? "100%" : "500px"}
+					borderLeft={"4px solid " + getColor(darkMode, "borderPrimary")}
+					height="250px"
 				>
-					<Linkify
-						componentDecorator={(decoratedHref, decoratedText, key) => {
-							return (
-								<Link
-									key={key}
-									color={getColor(darkMode, "linkPrimary")}
-									cursor="pointer"
-									href={decoratedHref}
-									target="_blank"
-									rel="noreferrer"
-									className="user-select-text"
-									userSelect="text"
-									fontSize={14}
-									wordBreak="break-all"
-									noOfLines={1}
-									_hover={{
-										textDecoration: "underline"
-									}}
-								>
-									{decoratedText}
-								</Link>
-							)
-						}}
+					<Flex
+						flexDirection="column"
+						height="50px"
+						width="100%"
+						gap="10px"
 					>
-						{striptags(link)}
-					</Linkify>
-					{state === "async" && (
-						<Skeleton
-							startColor={getColor(darkMode, "backgroundPrimary")}
-							endColor={getColor(darkMode, "backgroundSecondary")}
-							borderRadius="5px"
-							width="80%"
+						<Linkify
+							componentDecorator={(_, decoratedText, key) => {
+								return (
+									<AppText
+										key={key}
+										darkMode={darkMode}
+										isMobile={isMobile}
+										color={getColor(darkMode, "linkPrimary")}
+										cursor="pointer"
+										className="user-select-text"
+										userSelect="text"
+										fontSize={14}
+										wordBreak="break-all"
+										noOfLines={1}
+										_hover={{
+											textDecoration: "underline"
+										}}
+									>
+										{decoratedText}
+									</AppText>
+								)
+							}}
 						>
+							{striptags(link)}
+						</Linkify>
+						{state === "async" && (
+							<Skeleton
+								startColor={getColor(darkMode, "backgroundPrimary")}
+								endColor={getColor(darkMode, "backgroundSecondary")}
+								borderRadius="5px"
+								width="80%"
+							>
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									fontSize={14}
+									color={getColor(darkMode, "textPrimary")}
+									textTransform="uppercase"
+								>
+									{randomStringUnsafe(10)}
+								</AppText>
+							</Skeleton>
+						)}
+						{state === "invalid" && (
 							<AppText
 								darkMode={darkMode}
 								isMobile={isMobile}
 								fontSize={14}
 								color={getColor(darkMode, "textPrimary")}
 								textTransform="uppercase"
+								noOfLines={1}
+								wordBreak="break-all"
 							>
-								{randomStringUnsafe(10)}
+								No title available
 							</AppText>
-						</Skeleton>
-					)}
-					{state === "invalid" && (
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							fontSize={14}
-							color={getColor(darkMode, "textPrimary")}
-							textTransform="uppercase"
-							noOfLines={1}
-							wordBreak="break-all"
-						>
-							No title available
-						</AppText>
-					)}
-					{state === "ogEmbed" && (
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							fontSize={14}
-							noOfLines={1}
-							wordBreak="break-all"
-							color={getColor(darkMode, "textPrimary")}
-							textTransform="uppercase"
-						>
-							{typeof ogData["og:title"] === "string"
-								? ogData["og:title"]
-								: typeof ogData["meta:title"] === "string"
-								? ogData["meta:title"]
-								: typeof ogData["title"] === "string"
-								? ogData["title"]
-								: "No title available"}
-						</AppText>
-					)}
-				</Flex>
-				<Flex
-					flexDirection="row"
-					height="200px"
-					width="100%"
-					justifyContent="space-between"
-					gap="15px"
-				>
-					{state === "async" && (
-						<Flex
-							flexDirection="column"
-							width="100%"
-							gap="5px"
-						>
-							{new Array(getRandomArbitrary(4, 8)).fill(1).map((_, index) => {
-								return (
-									<Skeleton
-										key={index}
-										startColor={getColor(darkMode, "backgroundPrimary")}
-										endColor={getColor(darkMode, "backgroundSecondary")}
-										borderRadius="5px"
-										width={index === 0 ? "100%" : getRandomArbitrary(60, 100) + "%"}
-										height="15px"
-									/>
-								)
-							})}
-						</Flex>
-					)}
-					{state === "invalid" && (
-						<Flex
-							flexDirection="column"
-							width="100%"
-						>
+						)}
+						{state === "ogEmbed" && (
 							<AppText
 								darkMode={darkMode}
 								isMobile={isMobile}
 								fontSize={14}
-								color={getColor(darkMode, "textSecondary")}
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textPrimary")}
+								textTransform="uppercase"
 							>
-								No description available
+								{typeof ogData["og:title"] === "string"
+									? ogData["og:title"]
+									: typeof ogData["meta:title"] === "string"
+									? ogData["meta:title"]
+									: typeof ogData["title"] === "string"
+									? ogData["title"]
+									: "No title available"}
 							</AppText>
-						</Flex>
-					)}
-					{state === "ogEmbed" && (
-						<Flex
-							flexDirection="column"
-							width="100%"
-							height="100%"
-						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								fontSize={14}
-								wordBreak="break-word"
-								noOfLines={8}
-								color={getColor(darkMode, "textSecondary")}
-							>
-								{typeof ogData["og:description"] === "string"
-									? ogData["og:description"]
-									: typeof ogData["meta:description"] === "string"
-									? ogData["meta:description"]
-									: typeof ogData["description"] === "string"
-									? ogData["description"]
-									: "No description available"}
-							</AppText>
-						</Flex>
-					)}
+						)}
+					</Flex>
 					<Flex
-						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						width="170px"
-						height="170px"
-						borderRadius="5px"
-						flexShrink={0}
-						justifyContent="center"
-						alignItems="center"
-						boxShadow="md"
+						flexDirection="row"
+						height="200px"
+						width="100%"
+						justifyContent="space-between"
+						gap="15px"
 					>
 						{state === "async" && (
-							<Spinner
-								width="32px"
-								height="32px"
-								color={getColor(darkMode, "textSecondary")}
-							/>
+							<Flex
+								flexDirection="column"
+								width="100%"
+								gap="5px"
+							>
+								{new Array(getRandomArbitrary(4, 8)).fill(1).map((_, index) => {
+									return (
+										<Skeleton
+											key={index}
+											startColor={getColor(darkMode, "backgroundPrimary")}
+											endColor={getColor(darkMode, "backgroundSecondary")}
+											borderRadius="5px"
+											width={index === 0 ? "100%" : getRandomArbitrary(60, 100) + "%"}
+											height="15px"
+										/>
+									)
+								})}
+							</Flex>
 						)}
 						{state === "invalid" && (
 							<Flex
-								backgroundColor="gray"
-								width="170px"
-								height="170px"
-								borderRadius="5px"
-								flexShrink={0}
-								justifyContent="center"
-								alignItems="center"
+								flexDirection="column"
+								width="100%"
 							>
 								<AppText
 									darkMode={darkMode}
 									isMobile={isMobile}
 									fontSize={14}
-									color="white"
-									wordBreak="break-word"
+									color={getColor(darkMode, "textSecondary")}
 								>
-									No image available
+									No description available
 								</AppText>
 							</Flex>
 						)}
 						{state === "ogEmbed" && (
-							<>
-								{typeof ogData["og:image"] === "string" ? (
-									<Image
-										width="170px"
-										height="170px"
-										borderRadius="5px"
-										flexShrink={0}
-										src={ogData["og:image"]}
-										fallback={
-											<Flex
-												backgroundColor="gray"
-												width="170px"
-												height="170px"
-												borderRadius="5px"
-												flexShrink={0}
-												justifyContent="center"
-												alignItems="center"
-											>
-												<AppText
-													darkMode={darkMode}
-													isMobile={isMobile}
-													fontSize={14}
-													color="white"
-													wordBreak="break-word"
-												>
-													No image available
-												</AppText>
-											</Flex>
-										}
-									/>
-								) : typeof ogData["twitter:image"] === "string" ? (
-									<Image
-										width="170px"
-										height="170px"
-										borderRadius="5px"
-										flexShrink={0}
-										src={ogData["twitter:image"]}
-										fallback={
-											<Flex
-												backgroundColor="gray"
-												width="170px"
-												height="170px"
-												borderRadius="5px"
-												flexShrink={0}
-												justifyContent="center"
-												alignItems="center"
-											>
-												<AppText
-													darkMode={darkMode}
-													isMobile={isMobile}
-													fontSize={14}
-													color="white"
-													wordBreak="break-word"
-												>
-													No image available
-												</AppText>
-											</Flex>
-										}
-									/>
-								) : (
-									<Flex
-										backgroundColor="gray"
-										width="170px"
-										height="170px"
-										borderRadius="5px"
-										flexShrink={0}
-										justifyContent="center"
-										alignItems="center"
-									>
-										<AppText
-											darkMode={darkMode}
-											isMobile={isMobile}
-											fontSize={14}
-											color="white"
-											wordBreak="break-word"
-										>
-											No image available
-										</AppText>
-									</Flex>
-								)}
-							</>
+							<Flex
+								flexDirection="column"
+								width="100%"
+								height="100%"
+							>
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									fontSize={14}
+									wordBreak="break-word"
+									noOfLines={8}
+									color={getColor(darkMode, "textSecondary")}
+								>
+									{typeof ogData["og:description"] === "string"
+										? ogData["og:description"]
+										: typeof ogData["meta:description"] === "string"
+										? ogData["meta:description"]
+										: typeof ogData["description"] === "string"
+										? ogData["description"]
+										: "No description available"}
+								</AppText>
+							</Flex>
 						)}
+						<Flex
+							backgroundColor={getColor(darkMode, "backgroundSecondary")}
+							width="170px"
+							height="170px"
+							borderRadius="5px"
+							flexShrink={0}
+							justifyContent="center"
+							alignItems="center"
+							boxShadow="md"
+						>
+							{state === "async" && (
+								<Spinner
+									width="32px"
+									height="32px"
+									color={getColor(darkMode, "textSecondary")}
+								/>
+							)}
+							{state === "invalid" && (
+								<Flex
+									backgroundColor="gray"
+									width="170px"
+									height="170px"
+									borderRadius="5px"
+									flexShrink={0}
+									justifyContent="center"
+									alignItems="center"
+								>
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
+										fontSize={14}
+										color="white"
+										wordBreak="break-word"
+									>
+										No image available
+									</AppText>
+								</Flex>
+							)}
+							{state === "ogEmbed" && (
+								<>
+									{typeof ogData["og:image"] === "string" ? (
+										<Image
+											width="170px"
+											height="170px"
+											borderRadius="5px"
+											flexShrink={0}
+											src={ogData["og:image"]}
+											fallback={
+												<Flex
+													backgroundColor="gray"
+													width="170px"
+													height="170px"
+													borderRadius="5px"
+													flexShrink={0}
+													justifyContent="center"
+													alignItems="center"
+												>
+													<AppText
+														darkMode={darkMode}
+														isMobile={isMobile}
+														fontSize={14}
+														color="white"
+														wordBreak="break-word"
+													>
+														No image available
+													</AppText>
+												</Flex>
+											}
+										/>
+									) : typeof ogData["twitter:image"] === "string" ? (
+										<Image
+											width="170px"
+											height="170px"
+											borderRadius="5px"
+											flexShrink={0}
+											src={ogData["twitter:image"]}
+											fallback={
+												<Flex
+													backgroundColor="gray"
+													width="170px"
+													height="170px"
+													borderRadius="5px"
+													flexShrink={0}
+													justifyContent="center"
+													alignItems="center"
+												>
+													<AppText
+														darkMode={darkMode}
+														isMobile={isMobile}
+														fontSize={14}
+														color="white"
+														wordBreak="break-word"
+													>
+														No image available
+													</AppText>
+												</Flex>
+											}
+										/>
+									) : (
+										<Flex
+											backgroundColor="gray"
+											width="170px"
+											height="170px"
+											borderRadius="5px"
+											flexShrink={0}
+											justifyContent="center"
+											alignItems="center"
+										>
+											<AppText
+												darkMode={darkMode}
+												isMobile={isMobile}
+												fontSize={14}
+												color="white"
+												wordBreak="break-word"
+											>
+												No image available
+											</AppText>
+										</Flex>
+									)}
+								</>
+							)}
+						</Flex>
 					</Flex>
 				</Flex>
 			</Flex>
-		</Flex>
+		</a>
 	)
 })
 
