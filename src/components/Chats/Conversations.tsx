@@ -281,6 +281,7 @@ export const Conversations = memo(
 			(index: number, convo: ChatConversation) => {
 				return (
 					<Conversation
+						key={convo.uuid}
 						index={index}
 						conversation={convo}
 						userId={userId}
@@ -301,6 +302,12 @@ export const Conversations = memo(
 				window.removeEventListener("blur", onBlur)
 			}
 		}, [])
+
+		useEffect(() => {
+			if (conversationsSorted.length > 0) {
+				db.set("chatConversations", conversationsSorted, "chats").catch(console.error)
+			}
+		}, [conversationsSorted])
 
 		useEffect(() => {
 			userIdRef.current = userId
@@ -434,6 +441,7 @@ export const Conversations = memo(
 						height={windowHeight - 50 - (isMobile ? 40 : 50)}
 						width={sizes.conversations}
 						itemContent={itemContent}
+						computeItemKey={(_, conversation) => conversation.uuid}
 						defaultItemHeight={65}
 						style={{
 							overflowX: "hidden",

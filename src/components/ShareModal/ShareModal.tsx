@@ -85,6 +85,10 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 		const openShareModalListener = eventListener.on("openShareModal", ({ items }: { items: ItemProps[] }) => {
 			toShare.current = items
 
+			if (items.length === 0) {
+				return
+			}
+
 			setOpen(true)
 		})
 

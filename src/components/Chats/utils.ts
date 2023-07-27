@@ -3,6 +3,7 @@ import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import { validate } from "uuid"
+import { MessageDisplayType } from "./Container"
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -177,4 +178,46 @@ export const parseFilenPublicLink = (url: string) => {
 		uuid: uuid.length > 0 ? uuid[0] : "",
 		key: url.indexOf("#") !== -1 ? keyEx[1].trim() : ""
 	}
+}
+
+export const isMessageLink = (message: string) => {
+	const trimmed = message.trim()
+
+	if (trimmed.indexOf("/localhost:") !== -1) {
+		return true
+	}
+
+	const urlRegex =
+		/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
+
+	return urlRegex.test(trimmed)
+}
+
+export const getMessageDisplayType = (message: string): MessageDisplayType => {
+	const isLink = isMessageLink(message)
+
+	if (!isLink) {
+		return "none"
+	}
+
+	if (
+		message.indexOf("/youtube.com/watch") !== -1 ||
+		message.indexOf("/youtube.com/embed") !== -1 ||
+		message.indexOf("/www.youtube.com/watch") !== -1 ||
+		message.indexOf("/www.youtube.com/embed") !== -1 ||
+		message.indexOf("/youtu.be/") !== -1 ||
+		message.indexOf("/www.youtu.be/") !== -1
+	) {
+		return "youtubeEmbed"
+	} else if (
+		(message.indexOf("/localhost:") !== -1 ||
+			message.indexOf("/filen.io/") !== -1 ||
+			message.indexOf("/drive.filen.io/") !== -1 ||
+			message.indexOf("/www.filen.io/") !== -1) &&
+		message.indexOf("/d/") !== -1
+	) {
+		return "filenEmbed"
+	}
+
+	return "async"
 }

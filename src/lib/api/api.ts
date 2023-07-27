@@ -2612,6 +2612,7 @@ export interface ChatMessage {
 	senderAvatar: string | null
 	senderNickName: string
 	message: string
+	embedDisabled: boolean
 	sentTimestamp: number
 }
 
@@ -3446,6 +3447,20 @@ export const notesUntag = async (uuid: string, tag: string): Promise<void> => {
 		data: {
 			uuid,
 			tag
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const messageEmbedDisable = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/message/embed/disable",
+		data: {
+			uuid
 		}
 	})
 

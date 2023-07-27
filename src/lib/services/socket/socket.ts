@@ -193,6 +193,10 @@ export interface SocketNoteNew {
 	note: string
 }
 
+export interface SocketChatMessageEmbedDisabled {
+	uuid: string
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -305,6 +309,10 @@ export type SocketEvent =
 			type: "noteNew"
 			data: SocketNoteNew
 	  }
+	| {
+			type: "chatMessageEmbedDisabled"
+			data: SocketChatMessageEmbedDisabled
+	  }
 
 const waitForLogin = () => {
 	return new Promise<void>(resolve => {
@@ -322,6 +330,10 @@ const waitForLogin = () => {
 }
 
 export const connect = () => {
+	if (window.location.href.indexOf("?embed") !== -1) {
+		return
+	}
+
 	let PING_INTERVAL: ReturnType<typeof setInterval>
 	let emitSocketAuthed: boolean = false
 
@@ -496,6 +508,13 @@ export const connect = () => {
 	SOCKET_HANDLE.on("chatMessageDelete", (data: SocketChatMessageDelete) => {
 		eventListener.emit("socketEvent", {
 			type: "chatMessageDelete",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageEmbedDisabled", (data: SocketChatMessageEmbedDisabled) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageEmbedDisabled",
 			data
 		} as SocketEvent)
 	})

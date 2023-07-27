@@ -11,6 +11,7 @@ import { getCurrentParent } from "../../lib/helpers"
 import AddModal from "./AddModal"
 import DeleteMessageModal from "./DeleteMessageModal"
 import PreviewModal from "./PreviewModal"
+import ContextMenus from "./ContextMenus"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -32,6 +33,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 	const [userId] = useDb("userId", 0)
 	const [conversations, setConversations] = useState<ChatConversation[]>([])
 	const location = useLocation()
+	const [contextMenuOpen, setContextMenuOpen] = useState<string>("")
 
 	const sizes: ChatSizes = useMemo(() => {
 		const conversations = isMobile ? 125 : windowWidth > 1100 ? 275 : 175
@@ -107,6 +109,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 					sizes={sizes}
 					currentConversation={currentConversation}
 					currentConversationMe={currentConversationMe}
+					contextMenuOpen={contextMenuOpen}
 				/>
 			</Flex>
 			<Flex
@@ -123,6 +126,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			<AddModal />
 			<DeleteMessageModal />
 			<PreviewModal />
+			<ContextMenus setContextMenuOpen={setContextMenuOpen} />
 		</Flex>
 	)
 })

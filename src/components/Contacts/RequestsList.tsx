@@ -37,6 +37,7 @@ export const RequestsList = memo(
 			(index: number, request: ContactRequest) => {
 				return (
 					<Request
+						key={request.uuid}
 						request={request}
 						activeTab={activeTab}
 					/>
@@ -148,6 +149,7 @@ export const RequestsList = memo(
 							width={containerWidth}
 							itemContent={itemContent}
 							defaultItemHeight={75}
+							computeItemKey={(_, item) => item.uuid}
 							style={{
 								overflowX: "hidden",
 								overflowY: "auto",

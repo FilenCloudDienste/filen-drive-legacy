@@ -1,11 +1,10 @@
-import { memo, useState, useRef, useEffect } from "react"
+import { memo, useState, useRef, useCallback } from "react"
 import { Flex } from "@chakra-ui/react"
 import { ChatMessage } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import Message, { MessageSkeleton } from "./Message"
-import db from "../../lib/db"
-import { useVirtualizer } from "@tanstack/react-virtual"
 import { DisplayMessageAs } from "./Container"
+import { Virtuoso } from "react-virtuoso"
 
 const loadingMessages = new Array(32).fill(1).map(() => ({
 	uuid: "",
@@ -28,6 +27,9 @@ export interface MessagesProps {
 	displayMessageAs: DisplayMessageAs
 	setDisplayMessageAs: React.Dispatch<React.SetStateAction<DisplayMessageAs>>
 	emojiPickerOpen: boolean
+	lang: string
+	conversationUUID: string
+	contextMenuOpen: string
 }
 
 export const Messages = memo(
@@ -41,63 +43,71 @@ export const Messages = memo(
 		loading,
 		displayMessageAs,
 		setDisplayMessageAs,
-		emojiPickerOpen
+		emojiPickerOpen,
+		lang,
+		conversationUUID,
+		contextMenuOpen
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 		const isScrollingChatTimeout = useRef<NodeJS.Timeout | number | undefined>()
-		const parentRef = useRef<HTMLDivElement>(null)
 
-		const rowVirtualizer = useVirtualizer({
-			count: messages.length,
-			getScrollElement: () => parentRef.current,
-			estimateSize: () => 40,
-			overscan: 25,
-			getItemKey: index => messages[index].uuid,
-			onChange: instance => {
-				clearTimeout(isScrollingChatTimeout.current)
+		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
-				if (!instance.isScrolling) {
-					isScrollingChatTimeout.current = setTimeout(() => {
-						setIsScrollingChat(false)
-					}, 500)
+		const onScroll = useCallback((scrolling: boolean) => {
+			clearTimeout(isScrollingChatTimeout.current)
 
-					return
-				} else {
-					setIsScrollingChat(true)
-				}
+			if (!scrolling) {
+				isScrollingChatTimeout.current = setTimeout(() => {
+					setIsScrollingChat(false)
+				}, 500)
+			} else {
+				setIsScrollingChat(true)
 			}
-		})
+		}, [])
 
-		const virtualItems = rowVirtualizer.getVirtualItems()
+		const followOutput = useCallback((isAtBottom: boolean) => (isAtBottom ? "smooth" : false), [])
 
-		useEffect(() => {
-			const scroller = parentRef.current as HTMLElement
-
-			const handleScroll = (e: WheelEvent) => {
-				e.preventDefault()
-
-				const currentTarget = e.currentTarget as HTMLElement
-
-				if (currentTarget) {
-					currentTarget.scrollTop -= e.deltaY
-				}
-			}
-
-			scroller?.addEventListener("wheel", handleScroll, {
-				passive: false
-			})
-
-			return () => {
-				scroller?.removeEventListener("wheel", handleScroll)
-			}
-		}, [parentRef.current])
-
-		useEffect(() => {
-			if (messages.length > 0) {
-				db.set("chatMessages:" + messages[0].conversation, messages.slice(-100), "chats").catch(console.error)
-			}
-		}, [messages])
+		const itemContent = useCallback(
+			(index: number, message: ChatMessage) => {
+				return (
+					<div
+						key={getItemKey(index, message)}
+						style={{
+							overflowAnchor: "none"
+						}}
+					>
+						<Message
+							darkMode={darkMode}
+							isMobile={isMobile}
+							failedMessages={failedMessages}
+							message={message}
+							prevMessage={messages[index - 1]}
+							nextMessage={messages[index + 1]}
+							userId={userId}
+							isScrollingChat={isScrollingChat}
+							displayMessageAs={displayMessageAs}
+							setDisplayMessageAs={setDisplayMessageAs}
+							emojiPickerOpen={emojiPickerOpen}
+							lang={lang}
+							contextMenuOpen={contextMenuOpen}
+						/>
+					</div>
+				)
+			},
+			[
+				darkMode,
+				isMobile,
+				failedMessages,
+				messages,
+				userId,
+				isScrollingChat,
+				displayMessageAs,
+				emojiPickerOpen,
+				lang,
+				contextMenuOpen
+			]
+		)
 
 		if (loading) {
 			return (
@@ -123,60 +133,25 @@ export const Messages = memo(
 		}
 
 		return (
-			<div
+			<Virtuoso
+				key={"chat-messages-" + conversationUUID}
+				data={messages}
+				height={height}
+				width={width}
+				atBottomThreshold={100}
+				alignToBottom={true}
+				computeItemKey={getItemKey}
+				initialTopMostItemIndex={9999}
+				followOutput={followOutput}
+				isScrolling={onScroll}
+				itemContent={itemContent}
 				style={{
-					width: width + "px",
-					height: height + "px",
 					overflowX: "hidden",
 					overflowY: "auto",
-					transform: "rotate(180deg) scaleX(-1)"
+					height: height + "px",
+					width: width + "px"
 				}}
-				ref={parentRef}
-			>
-				<div
-					style={{
-						height: rowVirtualizer.getTotalSize() + "px",
-						width: "100%",
-						position: "relative"
-					}}
-				>
-					<div
-						style={{
-							position: "absolute",
-							top: 0,
-							left: 0,
-							width: "100%",
-							transform: "translateY(" + virtualItems[0]?.start + "px)"
-						}}
-					>
-						{virtualItems.map(item => {
-							const message = messages[item.index]
-
-							return (
-								<div
-									key={item.key}
-									data-index={item.index}
-									ref={rowVirtualizer.measureElement}
-								>
-									<Message
-										darkMode={darkMode}
-										isMobile={isMobile}
-										failedMessages={failedMessages}
-										message={message}
-										prevMessage={messages[item.index + 1]}
-										nextMessage={messages[item.index - 1]}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										displayMessageAs={displayMessageAs}
-										setDisplayMessageAs={setDisplayMessageAs}
-										emojiPickerOpen={emojiPickerOpen}
-									/>
-								</div>
-							)
-						})}
-					</div>
-				</div>
-			</div>
+			/>
 		)
 	}
 )

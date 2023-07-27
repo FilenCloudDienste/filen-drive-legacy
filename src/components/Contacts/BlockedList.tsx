@@ -57,6 +57,7 @@ export const BlockedList = memo(
 		const itemContent = useCallback((index: number, block: BlockedContact) => {
 			return (
 				<Blocked
+					key={block.userId}
 					block={block}
 					setBlocked={setBlocked}
 				/>
@@ -169,6 +170,7 @@ export const BlockedList = memo(
 							height={windowHeight - 190}
 							width={containerWidth}
 							itemContent={itemContent}
+							computeItemKey={(_, item) => item.userId}
 							defaultItemHeight={75}
 							style={{
 								overflowX: "hidden",

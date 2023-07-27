@@ -1,5 +1,5 @@
 import { expose, transfer } from "comlink"
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
 import memoryCache from "../memoryCache"
 import {
 	arrayBufferToHex,
@@ -1194,6 +1194,67 @@ export const decryptNoteTagName = async (name: string, masterKeys: string[]): Pr
 	return decryptedName
 }
 
+export const parseOGFromURL = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string" || response.headers["content-type"].split(";")[0].trim() !== "text/html") {
+		throw new Error("Response type is not text/html: " + url)
+	}
+
+	const metadata: Record<string, string> = {}
+	const ogTags = response.data.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+
+	if (ogTags) {
+		ogTags.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
+	const otherTags = response.data.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+
+	if (otherTags) {
+		otherTags.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	const titleMatch = response.data.match(/<title>([^<]+)<\/title>/)
+
+	if (titleMatch && titleMatch[1] && typeof titleMatch[1] === "string") {
+		metadata["title"] = titleMatch[1]
+	}
+
+	const faviconMatch = response.data.match(/<link\s+rel="icon"\s+href="([^"]+)"\s*\/?>/)
+
+	if (faviconMatch && faviconMatch[1] && typeof faviconMatch[1] === "string") {
+		metadata["favicon"] = faviconMatch[1]
+	}
+
+	return metadata
+}
+
+export const corsHead = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.head(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string") {
+		throw new Error("Response type is not string: " + url)
+	}
+
+	return response.headers
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -1232,7 +1293,9 @@ export const api = {
 	encryptNoteTitle,
 	encryptNotePreview,
 	encryptNoteTagName,
-	decryptNoteTagName
+	decryptNoteTagName,
+	parseOGFromURL,
+	corsHead
 }
 
 expose(api)

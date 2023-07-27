@@ -3,6 +3,20 @@ import eventListener from "../../eventListener"
 import Cookies from "../../cookies"
 
 const getInitialValue = (): boolean => {
+	if (window.location.href.indexOf("?embed") !== -1) {
+		const urlParams = new URLSearchParams(window.location.href)
+
+		if (typeof urlParams.get("theme") === "string") {
+			const theme = urlParams.get("theme")?.split("#")[0].trim()
+
+			if (theme === "dark") {
+				return true
+			}
+
+			return false
+		}
+	}
+
 	const value = Cookies.get("colorMode")
 
 	if (typeof value === "string") {

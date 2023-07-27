@@ -21,13 +21,14 @@ export interface ContainerProps {
 	sizes: ChatSizes
 	currentConversation: ChatConversation | undefined
 	currentConversationMe: ChatConversationParticipant | undefined
+	contextMenuOpen: string
 }
 
-export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed"
+export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
 
 export const Container = memo(
-	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe }: ContainerProps) => {
+	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe, contextMenuOpen }: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
 		const [loading, setLoading] = useState<boolean>(false)
 		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
@@ -52,7 +53,7 @@ export const Container = memo(
 			const exists: Record<string, boolean> = {}
 
 			return messages
-				.sort((a, b) => b.sentTimestamp - a.sentTimestamp)
+				.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
 				.filter(message => {
 					if (!exists[message.uuid]) {
 						exists[message.uuid] = true
@@ -69,6 +70,8 @@ export const Container = memo(
 				if (!currentConversation || !currentConversationMe || currentConversation.uuid !== getCurrentParent(window.location.href)) {
 					return
 				}
+
+				const startURL = window.location.href
 
 				const cache = await db.get("chatMessages:" + currentConversation.uuid, "chats")
 				const hasCache = cache && Array.isArray(cache)
@@ -87,6 +90,10 @@ export const Container = memo(
 
 					setLoading(false)
 
+					return
+				}
+
+				if (window.location.href !== startURL) {
 					return
 				}
 
@@ -115,6 +122,12 @@ export const Container = memo(
 		const onBlur = useCallback(() => {
 			windowFocused.current = false
 		}, [])
+
+		useEffect(() => {
+			if (sortedMessages.length > 0) {
+				db.set("chatMessages:" + sortedMessages[0].conversation, sortedMessages, "chats").catch(console.error)
+			}
+		}, [sortedMessages])
 
 		useEffect(() => {
 			window.addEventListener("focus", onFocus)
@@ -151,6 +164,7 @@ export const Container = memo(
 								senderAvatar: event.data.senderAvatar,
 								senderNickName: event.data.senderNickName,
 								message,
+								embedDisabled: event.data.embedDisabled,
 								sentTimestamp: event.data.sentTimestamp
 							},
 							...prev.filter(message => message.uuid !== event.data.uuid)
@@ -158,6 +172,10 @@ export const Container = memo(
 					}
 				} else if (event.type === "chatMessageDelete") {
 					setMessages(prev => prev.filter(message => message.uuid !== event.data.uuid))
+				} else if (event.type === "chatMessageEmbedDisabled") {
+					setMessages(prev =>
+						prev.map(message => (message.uuid === event.data.uuid ? { ...message, embedDisabled: true } : message))
+					)
 				}
 			})
 
@@ -173,11 +191,16 @@ export const Container = memo(
 				console.log("load more messages")
 			})
 
+			const chatMessageEmbedDisabledListener = eventListener.on("chatMessageEmbedDisabled", (uuid: string) => {
+				setMessages(prev => prev.map(message => (message.uuid === uuid ? { ...message, embedDisabled: true } : message)))
+			})
+
 			return () => {
 				socketEventListener.remove()
 				socketAuthedListener.remove()
 				chatMessageDeleteListener.remove()
 				messagesTopReachedListener.remove()
+				chatMessageEmbedDisabledListener.remove()
 			}
 		}, [currentConversation, currentConversationMe])
 
@@ -211,18 +234,23 @@ export const Container = memo(
 					overflowY="auto"
 					overflowX="hidden"
 				>
-					<Messages
-						darkMode={darkMode}
-						isMobile={isMobile}
-						failedMessages={failedMessages}
-						messages={sortedMessages}
-						width={sizes.chatContainer}
-						height={heights.messagesContainer}
-						loading={loading}
-						displayMessageAs={displayMessageAs}
-						setDisplayMessageAs={setDisplayMessageAs}
-						emojiPickerOpen={emojiPickerOpen}
-					/>
+					{currentConversation && (
+						<Messages
+							darkMode={darkMode}
+							isMobile={isMobile}
+							failedMessages={failedMessages}
+							messages={sortedMessages}
+							width={sizes.chatContainer}
+							height={heights.messagesContainer}
+							loading={loading}
+							displayMessageAs={displayMessageAs}
+							setDisplayMessageAs={setDisplayMessageAs}
+							emojiPickerOpen={emojiPickerOpen}
+							lang={lang}
+							conversationUUID={currentConversation.uuid}
+							contextMenuOpen={contextMenuOpen}
+						/>
+					)}
 				</Flex>
 				<Flex
 					flexDirection="column"

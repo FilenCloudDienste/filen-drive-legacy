@@ -186,7 +186,7 @@ const TransfersToast = memo(({}) => {
 		eventListener.emit("currentDownloads", currentDownloads)
 	}, [JSON.stringify(currentUploads), JSON.stringify(currentDownloads)])
 
-	if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length <= 0) {
+	if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length <= 0 || window.location.href.indexOf("?embed") !== -1) {
 		return null
 	}
 

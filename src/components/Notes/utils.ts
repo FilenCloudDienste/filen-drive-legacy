@@ -81,14 +81,12 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 							})
 						}
 
-						if (title.length > 0 && preview.length > 0) {
-							notes.push({
-								...note,
-								title: striptags(title),
-								preview: striptags(preview),
-								tags
-							})
-						}
+						notes.push({
+							...note,
+							title: striptags(title),
+							preview: striptags(preview),
+							tags
+						})
 					} catch (e) {
 						reject(e)
 
@@ -123,17 +121,18 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 			)
 		}
 
-		await Promise.all([
-			...promises,
-			db.set(
-				"notesAndTags",
-				{
-					notes: sortAndFilterNotes(notes, "", ""),
-					tags: sortAndFilterTags(tags)
-				},
-				"notes"
-			)
-		])
+		await Promise.all(promises)
+
+		console.log(notes, tags)
+
+		await db.set(
+			"notesAndTags",
+			{
+				notes: sortAndFilterNotes(notes, "", ""),
+				tags: sortAndFilterTags(tags)
+			},
+			"notes"
+		)
 
 		cleanupLocalDb(notes, tags).catch(console.error)
 

@@ -1,5 +1,5 @@
-import { memo, useCallback, useState, useRef, useEffect } from "react"
-import { Input as TextInput, Flex, Menu, MenuItem, MenuButton, MenuList, forwardRef, InputGroup, InputRightElement } from "@chakra-ui/react"
+import { memo, useCallback, useState, useRef, useEffect, Suspense, lazy } from "react"
+import { Input as TextInput, Flex, Menu, MenuButton, MenuList, forwardRef, InputGroup, InputRightElement } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 import { ChatMessage, sendChatMessage, ChatConversation, chatSendTyping, ChatConversationParticipant } from "../../lib/api"
@@ -10,8 +10,10 @@ import { safeAwait } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
-import EmojiPicker from "emoji-picker-react"
 import { AiOutlineSmile } from "react-icons/ai"
+import { ErrorBoundary } from "react-error-boundary"
+
+const EmojiPicker = lazy(() => import("@emoji-mart/react"))
 
 export interface ChatContainerInputTypingProps {
 	darkMode: boolean
@@ -194,6 +196,7 @@ export const Input = memo(
 					senderAvatar: currentConversationMe!.avatar,
 					senderNickName: currentConversationMe!.nickName,
 					message,
+					embedDisabled: false,
 					sentTimestamp: Date.now()
 				},
 				...prev
@@ -296,15 +299,19 @@ export const Input = memo(
 									backgroundColor={getColor(darkMode, "backgroundSecondary")}
 									background={getColor(darkMode, "backgroundSecondary")}
 								>
-									<Flex>
-										<EmojiPicker
-											onEmojiClick={emoji =>
-												setMessageInput(prev => (prev.length > 0 ? prev + " " : "") + emoji.emoji)
-											}
-											autoFocusSearch={false}
-											searchPlaceHolder={i18n(lang, "searchInput")}
-										/>
-									</Flex>
+									<ErrorBoundary fallback={<></>}>
+										<Suspense fallback={<></>}>
+											<EmojiPicker
+												onEmojiSelect={console.log}
+												onClickOutside={() => setEmojiPickerOpen(false)}
+												autoFocus={false}
+												emojiButtonColors={getColor(darkMode, "purple")}
+												icons="outline"
+												locale={lang}
+												theme={darkMode ? "dark" : "light"}
+											/>
+										</Suspense>
+									</ErrorBoundary>
 								</MenuList>
 							</Menu>
 						}

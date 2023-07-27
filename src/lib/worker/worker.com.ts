@@ -5,6 +5,8 @@ import { ItemProps } from "../../types"
 import { WORKER_THREADS } from "../constants"
 import { logout } from "../services/user/logout"
 import db from "../db"
+import { memoize } from "lodash"
+import { AxiosResponse } from "axios"
 
 let nextWorkerId: number = -1
 
@@ -12,7 +14,9 @@ const workerInstances: Worker[] = []
 const workerAPIs: (typeof api)[] = []
 
 const getWorkerAPI = () => {
-	if (workerAPIs.length < WORKER_THREADS) {
+	const maxThreads = window.location.href.indexOf("?embed") ? 1 : WORKER_THREADS
+
+	if (workerAPIs.length < maxThreads) {
 		const workerInstance = new Worker(new URL("./worker.worker", import.meta.url))
 		const workerAPI = wrap<typeof api>(workerInstance)
 
@@ -240,3 +244,11 @@ export const encryptNoteTagName = async (name: string, key: string): Promise<str
 export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
 	return await getWorkerAPI().decryptNoteTagName(name, masterKeys)
 }
+
+export const parseOGFromURL = memoize(async (url: string): Promise<Record<string, string>> => {
+	return await getWorkerAPI().parseOGFromURL(url)
+})
+
+export const corsHead = memoize(async (url: string): Promise<Record<string, string>> => {
+	return await getWorkerAPI().corsHead(url)
+})

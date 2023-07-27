@@ -165,6 +165,7 @@ export const Sidebar = memo(
 			(index: number, note: INote) => {
 				return (
 					<Note
+						key={note.uuid}
 						note={note}
 						userId={userId}
 					/>
@@ -404,6 +405,7 @@ export const Sidebar = memo(
 									height={windowHeight - 100 - (notesTagsContainerHeight || 0)}
 									width={sizes.notes}
 									itemContent={itemContent}
+									computeItemKey={(_, item) => item.uuid}
 									style={{
 										overflowX: "hidden",
 										overflowY: "auto",

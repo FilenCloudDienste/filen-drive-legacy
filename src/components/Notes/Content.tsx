@@ -85,6 +85,8 @@ export const Content = memo(
 				return
 			}
 
+			const startURL = window.location.href
+
 			const [cache, type] = await Promise.all([
 				db.get("noteContent:" + currentNoteRef.current.uuid, "notes"),
 				db.get("noteType:" + currentNoteRef.current.uuid, "notes")
@@ -105,6 +107,10 @@ export const Content = memo(
 
 				setLoading(false)
 
+				return
+			}
+
+			if (window.location.href !== startURL) {
 				return
 			}
 

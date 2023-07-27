@@ -122,6 +122,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		(index: number, participant: ChatConversationParticipant) => {
 			return (
 				<Member
+					key={participant.userId}
 					isMobile={isMobile}
 					darkMode={darkMode}
 					onlineUsers={onlineUsers}
@@ -220,10 +221,12 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 				</Flex>
 			) : (
 				<Virtuoso
+					key={"chat-member-list-" + currentConversation.uuid}
 					data={usersSorted}
 					height={windowHeight - 50}
 					width={sizes.chatOptions}
 					itemContent={itemContent}
+					computeItemKey={(_, participant) => participant.userId}
 					defaultItemHeight={56}
 					style={{
 						overflowX: "hidden",

@@ -1,34 +1,35 @@
-import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react"
+import { memo, useCallback, useEffect, useRef, useState, useMemo, lazy, Suspense } from "react"
 import { AppBaseProps, LinkGetInfo, ItemProps, LinkHasPassword } from "../../types"
 import { useParams } from "react-router-dom"
 import { validate as validateUUID } from "uuid"
-import InvalidLink from "../../components/PublicLink/InvalidLink"
 import { publicLinkInfo, publicLinkHasPassword } from "../../lib/api"
 import { Flex, Spinner, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { hashFn } from "../../lib/worker/worker.com"
-import Input from "../../components/Input"
-import AppText from "../../components/AppText"
-import Container from "../../components/PublicLink/Container"
 import { getImageForFileByExt, getFileExt, formatBytes, getFilePreviewType } from "../../lib/helpers"
 import { decryptMetadata, deriveKeyFromPassword } from "../../lib/worker/worker.com"
-import Button from "../../components/Button"
 import { queueFileDownload, downloadFile } from "../../lib/services/download"
 import { show as showToast, dismiss as dismissToast } from "../../components/Toast/Toast"
-import LogoAnimated from "../../assets/images/logo_animated.gif"
 import memoryCache from "../../lib/memoryCache"
-import CodeMirror from "@uiw/react-codemirror"
 import { createCodeMirrorTheme } from "../../styles/codeMirror"
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
-import PreviewContainer from "../../components/PublicLink/PreviewContainer"
-import ImagePreview from "../../components/ImagePreview"
 import { MdReportGmailerrorred } from "react-icons/md"
-import AbuseReportModal from "../../components/AbuseReportModal"
 import { i18n } from "../../i18n"
 import { getCodeMirrorLanguageExtensionForFile } from "../../components/PreviewModal/TextEditor"
 import * as docx from "docx-preview"
 import { decode as decodeBase64 } from "js-base64"
+import { ErrorBoundary } from "react-error-boundary"
+
+const CodeMirror = lazy(() => import("@uiw/react-codemirror"))
+const ImagePreview = lazy(() => import("../../components/ImagePreview"))
+const PreviewContainer = lazy(() => import("../../components/PublicLink/PreviewContainer"))
+const AbuseReportModal = lazy(() => import("../../components/AbuseReportModal"))
+const Button = lazy(() => import("../../components/Button"))
+const Container = lazy(() => import("../../components/PublicLink/Container"))
+const Input = lazy(() => import("../../components/Input"))
+const AppText = lazy(() => import("../../components/AppText"))
+const InvalidLink = lazy(() => import("../../components/PublicLink/InvalidLink"))
 
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video", "docx"]
 const MAX_SIZE: number = 1024 * 1024 * 16
@@ -311,422 +312,435 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 				justifyContent="center"
 				alignItems="center"
 			>
-				<Image
-					src={LogoAnimated}
-					width="128px"
-					height="128px"
-				/>
+				{window.location.href.indexOf("?embed") !== -1 ? (
+					<Spinner
+						width="40px"
+						height="40px"
+						color={getColor(darkMode, "textPrimary")}
+					/>
+				) : (
+					<Image
+						src={require("../../assets/images/logo_animated.gif")}
+						width="128px"
+						height="128px"
+					/>
+				)}
 			</Flex>
 		)
 	}
 
 	return (
-		<Container
-			windowWidth={windowWidth}
-			windowHeight={windowHeight}
-			darkMode={darkMode}
-			isMobile={isMobile}
-			lang={lang}
-		>
-			<Flex
-				width={isMobile || window.location.href.indexOf("?embed") !== -1 ? windowWidth + "px" : windowWidth - 400 + "px"}
-				height="100%"
-				flexDirection="column"
-				justifyContent="center"
-				alignItems="center"
-				overflow="hidden"
-			>
-				{needsPassword && !passwordCorrect ? (
+		<ErrorBoundary fallback={<></>}>
+			<Suspense fallback={<></>}>
+				<Container
+					windowWidth={windowWidth}
+					windowHeight={windowHeight}
+					darkMode={darkMode}
+					isMobile={isMobile}
+					lang={lang}
+				>
 					<Flex
-						width="300px"
+						width={isMobile || window.location.href.indexOf("?embed") !== -1 ? windowWidth + "px" : windowWidth - 400 + "px"}
+						height="100%"
 						flexDirection="column"
 						justifyContent="center"
 						alignItems="center"
+						overflow="hidden"
 					>
-						<Input
-							darkMode={darkMode}
-							isMobile={isMobile}
-							value={password}
-							onChange={e => setPassword(e.target.value)}
-							placeholder={i18n(lang, "password")}
-							type="password"
-							onKeyDown={e => {
-								if (e.which == 13) {
-									fetchInfo()
-								}
-							}}
-							color={getColor(darkMode, "textSecondary")}
-							_placeholder={{
-								color: getColor(darkMode, "textSecondary")
-							}}
-						/>
-						<Button
-							darkMode={darkMode}
-							isMobile={isMobile}
-							backgroundColor={darkMode ? "white" : "gray"}
-							color={darkMode ? "black" : "white"}
-							border={"1px solid " + (darkMode ? "white" : "gray")}
-							marginTop="15px"
-							height="35px"
-							_hover={{
-								backgroundColor: getColor(darkMode, "backgroundPrimary"),
-								border: "1px solid " + (darkMode ? "white" : "gray"),
-								color: darkMode ? "white" : "gray"
-							}}
-							onClick={() => fetchInfo()}
-						>
-							{loadingPassword ? (
-								<Spinner
-									width="16px"
-									height="16px"
-								/>
-							) : (
-								i18n(lang, "unlockLink")
-							)}
-						</Button>
-					</Flex>
-				) : (
-					<>
-						{typeof file == "undefined" || typeof info == "undefined" ? (
+						{needsPassword && !passwordCorrect ? (
 							<Flex
 								width="300px"
 								flexDirection="column"
 								justifyContent="center"
 								alignItems="center"
 							>
-								<Spinner
-									width="32px"
-									height="32px"
-									color={getColor(darkMode, "textPrimary")}
+								<Input
+									darkMode={darkMode}
+									isMobile={isMobile}
+									value={password}
+									onChange={e => setPassword(e.target.value)}
+									placeholder={i18n(lang, "password")}
+									type="password"
+									onKeyDown={e => {
+										if (e.which == 13) {
+											fetchInfo()
+										}
+									}}
+									color={getColor(darkMode, "textSecondary")}
+									_placeholder={{
+										color: getColor(darkMode, "textSecondary")
+									}}
 								/>
+								<Button
+									darkMode={darkMode}
+									isMobile={isMobile}
+									backgroundColor={darkMode ? "white" : "gray"}
+									color={darkMode ? "black" : "white"}
+									border={"1px solid " + (darkMode ? "white" : "gray")}
+									marginTop="15px"
+									height="35px"
+									_hover={{
+										backgroundColor: getColor(darkMode, "backgroundPrimary"),
+										border: "1px solid " + (darkMode ? "white" : "gray"),
+										color: darkMode ? "white" : "gray"
+									}}
+									onClick={() => fetchInfo()}
+								>
+									{loadingPassword ? (
+										<Spinner
+											width="16px"
+											height="16px"
+										/>
+									) : (
+										i18n(lang, "unlockLink")
+									)}
+								</Button>
 							</Flex>
 						) : (
 							<>
-								{SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) && MAX_SIZE > file.size ? (
-									<>
-										{getFilePreviewType(getFileExt(file.name)) == "image" && (
-											<>
-												{typeof previewBuffer == "undefined" || image.length == 0 ? (
-													<Flex
-														width="300px"
-														flexDirection="column"
-														justifyContent="center"
-														alignItems="center"
-													>
-														<Spinner
-															width="32px"
-															height="32px"
-															color={getColor(darkMode, "textPrimary")}
-														/>
-													</Flex>
-												) : (
-													<PreviewContainer
-														darkMode={darkMode}
-														isMobile={isMobile}
-														windowWidth={windowWidth}
-														windowHeight={windowHeight}
-														lang={lang}
-														info={info}
-														file={file}
-														download={download}
-														toggleColorMode={toggleColorMode}
-														previewContainerWidth={previewContainerWidth}
-														previewContainerHeight={previewContainerHeight}
-														password={password}
-													>
-														<ImagePreview image={image} />
-													</PreviewContainer>
-												)}
-											</>
-										)}
-										{getFilePreviewType(getFileExt(file.name)) == "text" && (
-											<>
-												{typeof previewBuffer == "undefined" || text.length == 0 ? (
-													<Flex
-														width="300px"
-														flexDirection="column"
-														justifyContent="center"
-														alignItems="center"
-													>
-														<Spinner
-															width="32px"
-															height="32px"
-															color={getColor(darkMode, "textPrimary")}
-														/>
-													</Flex>
-												) : (
-													<PreviewContainer
-														darkMode={darkMode}
-														isMobile={isMobile}
-														windowWidth={windowWidth}
-														windowHeight={windowHeight}
-														lang={lang}
-														info={info}
-														file={file}
-														download={download}
-														toggleColorMode={toggleColorMode}
-														previewContainerWidth={previewContainerWidth}
-														previewContainerHeight={previewContainerHeight}
-														password={password}
-													>
-														<CodeMirror
-															value={text}
-															width={previewContainerWidth - 10 + "px"}
-															height={previewContainerHeight - 10 + "px"}
-															theme={createCodeMirrorTheme(darkMode)}
-															indentWithTab={true}
-															basicSetup={{
-																crosshairCursor: false,
-																searchKeymap: false,
-																foldKeymap: false,
-																lintKeymap: false,
-																completionKeymap: false,
-																closeBracketsKeymap: false,
-																foldGutter: false
-															}}
-															onChange={() => setText(prev => prev)}
-															style={{
-																paddingLeft: "5px",
-																paddingRight: "5px"
-															}}
-															extensions={[getCodeMirrorLanguageExtensionForFile(file.name)]}
-														/>
-													</PreviewContainer>
-												)}
-											</>
-										)}
-										{getFilePreviewType(getFileExt(file.name)) == "pdf" && (
-											<>
-												{typeof previewBuffer == "undefined" || pdf.length == 0 ? (
-													<Flex
-														width="300px"
-														flexDirection="column"
-														justifyContent="center"
-														alignItems="center"
-													>
-														<Spinner
-															width="32px"
-															height="32px"
-															color={getColor(darkMode, "textPrimary")}
-														/>
-													</Flex>
-												) : (
-													<PreviewContainer
-														darkMode={darkMode}
-														isMobile={isMobile}
-														windowWidth={windowWidth}
-														windowHeight={windowHeight}
-														lang={lang}
-														info={info}
-														file={file}
-														download={download}
-														toggleColorMode={toggleColorMode}
-														previewContainerWidth={previewContainerWidth}
-														previewContainerHeight={previewContainerHeight}
-														password={password}
-													>
-														<iframe
-															src={pdf}
-															width="100%"
-															height="100%"
-														/>
-													</PreviewContainer>
-												)}
-											</>
-										)}
-										{getFilePreviewType(getFileExt(file.name)) == "video" && (
-											<>
-												{typeof previewBuffer == "undefined" || video.length == 0 ? (
-													<Flex
-														width="300px"
-														flexDirection="column"
-														justifyContent="center"
-														alignItems="center"
-													>
-														<Spinner
-															width="32px"
-															height="32px"
-															color={getColor(darkMode, "textPrimary")}
-														/>
-													</Flex>
-												) : (
-													<PreviewContainer
-														darkMode={darkMode}
-														isMobile={isMobile}
-														windowWidth={windowWidth}
-														windowHeight={windowHeight}
-														lang={lang}
-														info={info}
-														file={file}
-														download={download}
-														toggleColorMode={toggleColorMode}
-														previewContainerWidth={previewContainerWidth}
-														previewContainerHeight={previewContainerHeight}
-														password={password}
-													>
-														<video
-															autoPlay={true}
-															controls={true}
-															src={video}
-															style={{
-																maxHeight: "100%",
-																maxWidth: "100%"
-															}}
-														/>
-													</PreviewContainer>
-												)}
-											</>
-										)}
-										{getFilePreviewType(getFileExt(file.name)) == "docx" && (
-											<>
-												{docX.byteLength <= 0 ? (
-													<Flex
-														width="300px"
-														flexDirection="column"
-														justifyContent="center"
-														alignItems="center"
-													>
-														<Spinner
-															width="32px"
-															height="32px"
-															color={getColor(darkMode, "textPrimary")}
-														/>
-													</Flex>
-												) : (
-													<PreviewContainer
-														darkMode={darkMode}
-														isMobile={isMobile}
-														windowWidth={windowWidth}
-														windowHeight={windowHeight}
-														lang={lang}
-														info={info}
-														file={file}
-														download={download}
-														toggleColorMode={toggleColorMode}
-														previewContainerWidth={previewContainerWidth}
-														previewContainerHeight={previewContainerHeight}
-														password={password}
-													>
-														<div
-															id="docXContainer"
-															style={{
-																overflowY: "auto",
-																overflowX: "auto",
-																maxHeight: "100%",
-																maxWidth: "100%"
-															}}
-														/>
-													</PreviewContainer>
-												)}
-											</>
-										)}
-									</>
-								) : (
+								{typeof file == "undefined" || typeof info == "undefined" ? (
 									<Flex
-										width={
-											isMobile || window.location.href.indexOf("?embed") !== -1
-												? "100vw"
-												: (windowWidth - 400) / 2 + "px"
-										}
+										width="300px"
 										flexDirection="column"
 										justifyContent="center"
 										alignItems="center"
 									>
-										<Flex
-											border={"1px solid " + getColor(darkMode, "borderPrimary")}
-											padding="15px"
-											boxShadow="md"
-											borderRadius="10px"
-										>
-											<Image
-												src={getImageForFileByExt(getFileExt(file.name))}
-												width="64px"
-												height="64px"
-												flexShrink={0}
-												objectFit="cover"
-											/>
-										</Flex>
-										<AppText
-											darkMode={darkMode}
-											isMobile={isMobile}
-											noOfLines={1}
-											wordBreak="break-all"
-											fontSize={20}
+										<Spinner
+											width="32px"
+											height="32px"
 											color={getColor(darkMode, "textPrimary")}
-											marginTop="15px"
-										>
-											{file.name}
-										</AppText>
-										<AppText
-											darkMode={darkMode}
-											isMobile={isMobile}
-											noOfLines={1}
-											wordBreak="break-all"
-											fontSize={15}
-											color={getColor(darkMode, "textSecondary")}
-											marginTop="1px"
-										>
-											{formatBytes(file.size)}
-										</AppText>
-										<Flex
-											alignItems="center"
-											marginTop="30px"
-										>
-											{info.downloadBtn && (
-												<Button
-													darkMode={darkMode}
-													isMobile={isMobile}
-													backgroundColor={darkMode ? "white" : "gray"}
-													color={darkMode ? "black" : "white"}
-													border={"1px solid " + (darkMode ? "white" : "gray")}
-													height="35px"
-													_hover={{
-														backgroundColor: getColor(darkMode, "backgroundPrimary"),
-														border: "1px solid " + (darkMode ? "white" : "gray"),
-														color: darkMode ? "white" : "gray"
-													}}
-													onClick={() => download()}
-												>
-													{i18n(lang, "download")}
-												</Button>
-											)}
-											{window.location.href.indexOf("?embed") === -1 && (
-												<Button
-													darkMode={darkMode}
-													isMobile={isMobile}
-													backgroundColor={darkMode ? "white" : "gray"}
-													color={darkMode ? "black" : "white"}
-													border={"1px solid " + (darkMode ? "white" : "gray")}
-													height="35px"
-													marginLeft="10px"
-													_hover={{
-														backgroundColor: getColor(darkMode, "backgroundPrimary"),
-														border: "1px solid " + (darkMode ? "white" : "gray"),
-														color: darkMode ? "white" : "gray"
-													}}
-													onClick={() =>
-														eventListener.emit("openAbuseReportModal", {
-															password
-														})
-													}
-												>
-													<MdReportGmailerrorred fontSize={24} />
-												</Button>
-											)}
-										</Flex>
+										/>
 									</Flex>
+								) : (
+									<>
+										{SUPPORTED_PREVIEW_TYPES.includes(getFilePreviewType(getFileExt(file.name))) &&
+										MAX_SIZE > file.size ? (
+											<>
+												{getFilePreviewType(getFileExt(file.name)) == "image" && (
+													<>
+														{typeof previewBuffer == "undefined" || image.length == 0 ? (
+															<Flex
+																width="300px"
+																flexDirection="column"
+																justifyContent="center"
+																alignItems="center"
+															>
+																<Spinner
+																	width="32px"
+																	height="32px"
+																	color={getColor(darkMode, "textPrimary")}
+																/>
+															</Flex>
+														) : (
+															<PreviewContainer
+																darkMode={darkMode}
+																isMobile={isMobile}
+																windowWidth={windowWidth}
+																windowHeight={windowHeight}
+																lang={lang}
+																info={info}
+																file={file}
+																download={download}
+																toggleColorMode={toggleColorMode}
+																previewContainerWidth={previewContainerWidth}
+																previewContainerHeight={previewContainerHeight}
+																password={password}
+															>
+																<ImagePreview image={image} />
+															</PreviewContainer>
+														)}
+													</>
+												)}
+												{getFilePreviewType(getFileExt(file.name)) == "text" && (
+													<>
+														{typeof previewBuffer == "undefined" || text.length == 0 ? (
+															<Flex
+																width="300px"
+																flexDirection="column"
+																justifyContent="center"
+																alignItems="center"
+															>
+																<Spinner
+																	width="32px"
+																	height="32px"
+																	color={getColor(darkMode, "textPrimary")}
+																/>
+															</Flex>
+														) : (
+															<PreviewContainer
+																darkMode={darkMode}
+																isMobile={isMobile}
+																windowWidth={windowWidth}
+																windowHeight={windowHeight}
+																lang={lang}
+																info={info}
+																file={file}
+																download={download}
+																toggleColorMode={toggleColorMode}
+																previewContainerWidth={previewContainerWidth}
+																previewContainerHeight={previewContainerHeight}
+																password={password}
+															>
+																<CodeMirror
+																	value={text}
+																	width={previewContainerWidth - 10 + "px"}
+																	height={previewContainerHeight - 10 + "px"}
+																	theme={createCodeMirrorTheme(darkMode)}
+																	indentWithTab={true}
+																	basicSetup={{
+																		crosshairCursor: false,
+																		searchKeymap: false,
+																		foldKeymap: false,
+																		lintKeymap: false,
+																		completionKeymap: false,
+																		closeBracketsKeymap: false,
+																		foldGutter: false
+																	}}
+																	onChange={() => setText(prev => prev)}
+																	style={{
+																		paddingLeft: "5px",
+																		paddingRight: "5px"
+																	}}
+																	extensions={[getCodeMirrorLanguageExtensionForFile(file.name)]}
+																/>
+															</PreviewContainer>
+														)}
+													</>
+												)}
+												{getFilePreviewType(getFileExt(file.name)) == "pdf" && (
+													<>
+														{typeof previewBuffer == "undefined" || pdf.length == 0 ? (
+															<Flex
+																width="300px"
+																flexDirection="column"
+																justifyContent="center"
+																alignItems="center"
+															>
+																<Spinner
+																	width="32px"
+																	height="32px"
+																	color={getColor(darkMode, "textPrimary")}
+																/>
+															</Flex>
+														) : (
+															<PreviewContainer
+																darkMode={darkMode}
+																isMobile={isMobile}
+																windowWidth={windowWidth}
+																windowHeight={windowHeight}
+																lang={lang}
+																info={info}
+																file={file}
+																download={download}
+																toggleColorMode={toggleColorMode}
+																previewContainerWidth={previewContainerWidth}
+																previewContainerHeight={previewContainerHeight}
+																password={password}
+															>
+																<iframe
+																	src={pdf}
+																	width="100%"
+																	height="100%"
+																/>
+															</PreviewContainer>
+														)}
+													</>
+												)}
+												{getFilePreviewType(getFileExt(file.name)) == "video" && (
+													<>
+														{typeof previewBuffer == "undefined" || video.length == 0 ? (
+															<Flex
+																width="300px"
+																flexDirection="column"
+																justifyContent="center"
+																alignItems="center"
+															>
+																<Spinner
+																	width="32px"
+																	height="32px"
+																	color={getColor(darkMode, "textPrimary")}
+																/>
+															</Flex>
+														) : (
+															<PreviewContainer
+																darkMode={darkMode}
+																isMobile={isMobile}
+																windowWidth={windowWidth}
+																windowHeight={windowHeight}
+																lang={lang}
+																info={info}
+																file={file}
+																download={download}
+																toggleColorMode={toggleColorMode}
+																previewContainerWidth={previewContainerWidth}
+																previewContainerHeight={previewContainerHeight}
+																password={password}
+															>
+																<video
+																	autoPlay={true}
+																	controls={true}
+																	src={video}
+																	style={{
+																		maxHeight: "100%",
+																		maxWidth: "100%"
+																	}}
+																/>
+															</PreviewContainer>
+														)}
+													</>
+												)}
+												{getFilePreviewType(getFileExt(file.name)) == "docx" && (
+													<>
+														{docX.byteLength <= 0 ? (
+															<Flex
+																width="300px"
+																flexDirection="column"
+																justifyContent="center"
+																alignItems="center"
+															>
+																<Spinner
+																	width="32px"
+																	height="32px"
+																	color={getColor(darkMode, "textPrimary")}
+																/>
+															</Flex>
+														) : (
+															<PreviewContainer
+																darkMode={darkMode}
+																isMobile={isMobile}
+																windowWidth={windowWidth}
+																windowHeight={windowHeight}
+																lang={lang}
+																info={info}
+																file={file}
+																download={download}
+																toggleColorMode={toggleColorMode}
+																previewContainerWidth={previewContainerWidth}
+																previewContainerHeight={previewContainerHeight}
+																password={password}
+															>
+																<div
+																	id="docXContainer"
+																	style={{
+																		overflowY: "auto",
+																		overflowX: "auto",
+																		maxHeight: "100%",
+																		maxWidth: "100%"
+																	}}
+																/>
+															</PreviewContainer>
+														)}
+													</>
+												)}
+											</>
+										) : (
+											<Flex
+												width={
+													isMobile || window.location.href.indexOf("?embed") !== -1
+														? "100vw"
+														: (windowWidth - 400) / 2 + "px"
+												}
+												flexDirection="column"
+												justifyContent="center"
+												alignItems="center"
+											>
+												<Flex
+													border={"1px solid " + getColor(darkMode, "borderPrimary")}
+													padding="15px"
+													boxShadow="md"
+													borderRadius="10px"
+												>
+													<Image
+														src={getImageForFileByExt(getFileExt(file.name))}
+														width="64px"
+														height="64px"
+														flexShrink={0}
+														objectFit="cover"
+													/>
+												</Flex>
+												<AppText
+													darkMode={darkMode}
+													isMobile={isMobile}
+													noOfLines={1}
+													wordBreak="break-all"
+													fontSize={20}
+													color={getColor(darkMode, "textPrimary")}
+													marginTop="15px"
+												>
+													{file.name}
+												</AppText>
+												<AppText
+													darkMode={darkMode}
+													isMobile={isMobile}
+													noOfLines={1}
+													wordBreak="break-all"
+													fontSize={15}
+													color={getColor(darkMode, "textSecondary")}
+													marginTop="1px"
+												>
+													{formatBytes(file.size)}
+												</AppText>
+												<Flex
+													alignItems="center"
+													marginTop="30px"
+												>
+													{info.downloadBtn && (
+														<Button
+															darkMode={darkMode}
+															isMobile={isMobile}
+															backgroundColor={darkMode ? "white" : "gray"}
+															color={darkMode ? "black" : "white"}
+															border={"1px solid " + (darkMode ? "white" : "gray")}
+															height="35px"
+															_hover={{
+																backgroundColor: getColor(darkMode, "backgroundPrimary"),
+																border: "1px solid " + (darkMode ? "white" : "gray"),
+																color: darkMode ? "white" : "gray"
+															}}
+															onClick={() => download()}
+														>
+															{i18n(lang, "download")}
+														</Button>
+													)}
+													{window.location.href.indexOf("?embed") === -1 && (
+														<Button
+															darkMode={darkMode}
+															isMobile={isMobile}
+															backgroundColor={darkMode ? "white" : "gray"}
+															color={darkMode ? "black" : "white"}
+															border={"1px solid " + (darkMode ? "white" : "gray")}
+															height="35px"
+															marginLeft="10px"
+															_hover={{
+																backgroundColor: getColor(darkMode, "backgroundPrimary"),
+																border: "1px solid " + (darkMode ? "white" : "gray"),
+																color: darkMode ? "white" : "gray"
+															}}
+															onClick={() =>
+																eventListener.emit("openAbuseReportModal", {
+																	password
+																})
+															}
+														>
+															<MdReportGmailerrorred fontSize={24} />
+														</Button>
+													)}
+												</Flex>
+											</Flex>
+										)}
+									</>
 								)}
 							</>
 						)}
-					</>
-				)}
-			</Flex>
-			<AbuseReportModal
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-			/>
-		</Container>
+					</Flex>
+					<AbuseReportModal
+						darkMode={darkMode}
+						isMobile={isMobile}
+						lang={lang}
+					/>
+				</Container>
+			</Suspense>
+		</ErrorBoundary>
 	)
 })
 

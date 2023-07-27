@@ -15,7 +15,7 @@ const InvalidLink = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang 
 			lang={lang}
 		>
 			<Flex
-				width={windowWidth - 400 + "px"}
+				width={window.location.href.indexOf("?embed") !== -1 ? "100vw" : windowWidth - 400 + "px"}
 				height="100%"
 				flexDirection="column"
 				justifyContent="center"

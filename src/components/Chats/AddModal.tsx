@@ -344,6 +344,7 @@ const AddModal = memo(() => {
 		(index: number, contact: IContact) => {
 			return (
 				<Contact
+					key={contact.uuid}
 					contact={contact}
 					contactsToAdd={contactsToAdd}
 					setContactsToAdd={setContactsToAdd}
@@ -461,6 +462,7 @@ const AddModal = memo(() => {
 							<Virtuoso
 								data={contactsFiltered}
 								height={containerHeight}
+								computeItemKey={(_, contact) => contact.uuid}
 								width="100%"
 								itemContent={itemContent}
 								style={{
