@@ -12,7 +12,7 @@ import {
 	isTimestampSameDay,
 	getMessageDisplayType,
 	isMessageLink,
-	renderContentWithLineBreaks
+	renderContentWithLineBreaksAndEmojis
 } from "./utils"
 import Linkify from "react-linkify"
 import { DisplayMessageAs, MessageDisplayType } from "./Container"
@@ -399,7 +399,7 @@ export const Message = memo(
 											)
 										}}
 									>
-										<pre>{renderContentWithLineBreaks(message.message)}</pre>
+										{renderContentWithLineBreaksAndEmojis(message.message)}
 									</Linkify>
 								</Flex>
 							)}
@@ -557,7 +557,7 @@ export const Message = memo(
 											)
 										}}
 									>
-										{renderContentWithLineBreaks(message.message)}
+										{renderContentWithLineBreaksAndEmojis(message.message)}
 									</Linkify>
 								</Flex>
 							)}

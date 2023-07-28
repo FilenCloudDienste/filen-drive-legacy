@@ -5,6 +5,7 @@ import { decryptChatMessage } from "../../lib/worker/worker.com"
 import { validate } from "uuid"
 import { MessageDisplayType } from "./Container"
 import { Fragment } from "react"
+import Emoji from "react-emoji-render"
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -232,13 +233,38 @@ export const getMessageDisplayType = (message: string): MessageDisplayType => {
 	return "async"
 }
 
-export const renderContentWithLineBreaks = (content: string): React.ReactNode => {
+export const renderContentWithEmojis = (content: string): React.ReactNode => {
+	const regex = /:(.*?):/g
+	const segments = content.split(regex)
+
+	return (
+		<>
+			{segments.map((segment, index) => {
+				const isExtractedText = index % 2 === 1
+
+				if (isExtractedText) {
+					return (
+						<Emoji
+							key={index}
+							text={":" + segment + ":"}
+						/>
+					)
+				} else {
+					// Render regular text as is
+					return <Fragment key={index}>{segment}</Fragment>
+				}
+			})}
+		</>
+	)
+}
+
+export const renderContentWithLineBreaksAndEmojis = (content: string): React.ReactNode => {
 	const lines = content.split("\n")
 
 	return lines.map((line, index) => {
 		return (
 			<Fragment key={index}>
-				{line}
+				{renderContentWithEmojis(line)}
 				{index < lines.length - 1 && <br />}
 			</Fragment>
 		)
