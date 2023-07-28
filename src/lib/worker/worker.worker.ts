@@ -1205,6 +1205,7 @@ export const parseOGFromURL = async (url: string): Promise<Record<string, string
 
 	const metadata: Record<string, string> = {}
 	const ogTags = response.data.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const ogTags2 = response.data.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/g)
 
 	if (ogTags) {
 		ogTags.forEach((tag: any) => {
@@ -1216,11 +1217,32 @@ export const parseOGFromURL = async (url: string): Promise<Record<string, string
 		})
 	}
 
+	if (ogTags2) {
+		ogTags2.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
 	const otherTags = response.data.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const otherTags2 = response.data.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/g)
 
 	if (otherTags) {
 		otherTags.forEach((tag: any) => {
 			const [, name, content] = tag.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	if (otherTags2) {
+		otherTags2.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/)
 
 			if (typeof name === "string" && typeof content === "string") {
 				metadata["meta:" + name] = content
@@ -1235,9 +1257,14 @@ export const parseOGFromURL = async (url: string): Promise<Record<string, string
 	}
 
 	const faviconMatch = response.data.match(/<link\s+rel="icon"\s+href="([^"]+)"\s*\/?>/)
+	const faviconMatch2 = response.data.match(/<link\s+rel='icon'\s+href='([^"]+)'\s*\/?>/)
 
 	if (faviconMatch && faviconMatch[1] && typeof faviconMatch[1] === "string") {
 		metadata["favicon"] = faviconMatch[1]
+	}
+
+	if (faviconMatch2 && faviconMatch2[1] && typeof faviconMatch2[1] === "string") {
+		metadata["favicon"] = faviconMatch2[1]
 	}
 
 	return metadata

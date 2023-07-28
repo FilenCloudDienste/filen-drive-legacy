@@ -1,10 +1,12 @@
-import { memo, useState, useRef, useCallback } from "react"
+import { memo, useState, useRef, useCallback, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
 import { ChatMessage } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import Message, { MessageSkeleton } from "./Message"
 import { DisplayMessageAs } from "./Container"
-import { Virtuoso } from "react-virtuoso"
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
+import eventListener from "../../lib/eventListener"
+import { useLocation } from "react-router-dom"
 
 const loadingMessages = new Array(32).fill(1).map(() => ({
 	uuid: "",
@@ -51,6 +53,10 @@ export const Messages = memo(
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 		const isScrollingChatTimeout = useRef<NodeJS.Timeout | number | undefined>()
+		const virtuosoRef = useRef<VirtuosoHandle>(null)
+		const location = useLocation()
+		const [initalLoadDone, setInitialLoadDone] = useState<boolean>(false)
+		const initalLoadDoneTimer = useRef<ReturnType<typeof setTimeout>>()
 
 		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
@@ -66,7 +72,10 @@ export const Messages = memo(
 			}
 		}, [])
 
-		const followOutput = useCallback((isAtBottom: boolean) => (isAtBottom ? "smooth" : false), [])
+		const followOutput = useCallback(
+			(isAtBottom: boolean) => (!initalLoadDone ? true : isAtBottom ? "smooth" : false),
+			[initalLoadDone]
+		)
 
 		const itemContent = useCallback(
 			(index: number, message: ChatMessage) => {
@@ -103,11 +112,46 @@ export const Messages = memo(
 				userId,
 				isScrollingChat,
 				displayMessageAs,
+				setDisplayMessageAs,
 				emojiPickerOpen,
 				lang,
 				contextMenuOpen
 			]
 		)
+
+		useEffect(() => {
+			clearTimeout(initalLoadDoneTimer.current)
+
+			initalLoadDoneTimer.current = setTimeout(() => {
+				setInitialLoadDone(true)
+
+				if (messages.length > 0) {
+					//eventListener.emit("scrollChatToBottom")
+				}
+			}, 1000)
+
+			return () => {
+				clearTimeout(initalLoadDoneTimer.current)
+			}
+		}, [location.hash, conversationUUID, messages.length, messages[0]?.conversation])
+
+		useEffect(() => {
+			eventListener.emit("scrollChatToBottom")
+		}, [height, location.hash, conversationUUID, messages.length, messages[0]?.conversation])
+
+		useEffect(() => {
+			const scrollChatToBottomListener = eventListener.on("scrollChatToBottom", () => {
+				if (virtuosoRef.current) {
+					virtuosoRef.current.scrollTo({
+						top: Number.MAX_SAFE_INTEGER
+					})
+				}
+			})
+
+			return () => {
+				scrollChatToBottomListener.remove()
+			}
+		}, [])
 
 		if (loading) {
 			return (
@@ -134,7 +178,8 @@ export const Messages = memo(
 
 		return (
 			<Virtuoso
-				key={"chat-messages-" + conversationUUID}
+				key={"chat-messages-" + messages[0]?.conversation}
+				ref={virtuosoRef}
 				data={messages}
 				height={height}
 				width={width}
@@ -142,6 +187,7 @@ export const Messages = memo(
 				alignToBottom={true}
 				computeItemKey={getItemKey}
 				initialTopMostItemIndex={9999}
+				defaultItemHeight={50}
 				followOutput={followOutput}
 				isScrolling={onScroll}
 				itemContent={itemContent}

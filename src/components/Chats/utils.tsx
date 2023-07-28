@@ -4,6 +4,7 @@ import db from "../../lib/db"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import { validate } from "uuid"
 import { MessageDisplayType } from "./Container"
+import { Fragment } from "react"
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -130,9 +131,7 @@ export const fetchChatMessages = async (
 			})
 		}
 
-		if (timestamp >= Date.now()) {
-			await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
-		}
+		await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
 
 		return {
 			messages: messagesDecrypted,
@@ -144,14 +143,12 @@ export const fetchChatMessages = async (
 		return await refresh()
 	}
 
-	if (timestamp >= Date.now()) {
-		const cache = await db.get("chatMessages:" + conversationUUID, "chats")
+	const cache = await db.get("chatMessages:" + conversationUUID, "chats")
 
-		if (cache) {
-			return {
-				cache: true,
-				messages: cache
-			}
+	if (cache) {
+		return {
+			cache: true,
+			messages: cache
 		}
 	}
 
@@ -180,7 +177,20 @@ export const parseFilenPublicLink = (url: string) => {
 	}
 }
 
+export const extractLinksFromString = (input: string): string[] => {
+	const urlRegex =
+		/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
+
+	const matches = input.match(urlRegex)
+
+	return matches || []
+}
+
 export const isMessageLink = (message: string) => {
+	if (message.split(" ").length >= 2 || message.split("\n").length >= 2) {
+		return false
+	}
+
 	const trimmed = message.trim()
 
 	if (trimmed.indexOf("/localhost:") !== -1) {
@@ -220,4 +230,17 @@ export const getMessageDisplayType = (message: string): MessageDisplayType => {
 	}
 
 	return "async"
+}
+
+export const renderContentWithLineBreaks = (content: string): React.ReactNode => {
+	const lines = content.split("\n")
+
+	return lines.map((line, index) => {
+		return (
+			<Fragment key={index}>
+				{line}
+				{index < lines.length - 1 && <br />}
+			</Fragment>
+		)
+	})
 }

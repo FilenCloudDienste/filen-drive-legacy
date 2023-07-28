@@ -61,6 +61,7 @@ export const EmbedContainer = memo(
 										_hover={{
 											textDecoration: "underline"
 										}}
+										onContextMenu={e => e.stopPropagation()}
 									>
 										{decoratedText}
 									</Link>
@@ -76,6 +77,7 @@ export const EmbedContainer = memo(
 							fontSize={14}
 							color={getColor(darkMode, "textSecondary")}
 							textTransform="uppercase"
+							as="span"
 						>
 							{title}
 						</AppText>
@@ -99,6 +101,7 @@ export const EmbedContainer = memo(
 										_hover={{
 											textDecoration: "underline"
 										}}
+										onContextMenu={e => e.stopPropagation()}
 									>
 										{decoratedText}
 									</Link>
@@ -168,6 +171,8 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 										_hover={{
 											textDecoration: "underline"
 										}}
+										onContextMenu={e => e.stopPropagation()}
+										as="span"
 									>
 										{decoratedText}
 									</AppText>
@@ -189,6 +194,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 									fontSize={14}
 									color={getColor(darkMode, "textPrimary")}
 									textTransform="uppercase"
+									as="span"
 								>
 									{randomStringUnsafe(10)}
 								</AppText>
@@ -203,6 +209,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 								textTransform="uppercase"
 								noOfLines={1}
 								wordBreak="break-all"
+								as="span"
 							>
 								No title available
 							</AppText>
@@ -216,6 +223,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 								wordBreak="break-all"
 								color={getColor(darkMode, "textPrimary")}
 								textTransform="uppercase"
+								as="span"
 							>
 								{typeof ogData["og:title"] === "string"
 									? ogData["og:title"]
@@ -264,6 +272,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 									isMobile={isMobile}
 									fontSize={14}
 									color={getColor(darkMode, "textSecondary")}
+									as="span"
 								>
 									No description available
 								</AppText>
@@ -282,6 +291,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 									wordBreak="break-word"
 									noOfLines={8}
 									color={getColor(darkMode, "textSecondary")}
+									as="span"
 								>
 									{typeof ogData["og:description"] === "string"
 										? ogData["og:description"]
@@ -326,6 +336,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 										fontSize={14}
 										color="white"
 										wordBreak="break-word"
+										as="span"
 									>
 										No image available
 									</AppText>
@@ -356,6 +367,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 														fontSize={14}
 														color="white"
 														wordBreak="break-word"
+														as="span"
 													>
 														No image available
 													</AppText>
@@ -385,6 +397,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 														fontSize={14}
 														color="white"
 														wordBreak="break-word"
+														as="span"
 													>
 														No image available
 													</AppText>
@@ -407,6 +420,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData 
 												fontSize={14}
 												color="white"
 												wordBreak="break-word"
+												as="span"
 											>
 												No image available
 											</AppText>
@@ -430,9 +444,10 @@ export interface EmbedProps {
 	userId: number
 	hoveringMessage: boolean
 	ogData: Record<string, string>
+	isScrollingChat: boolean
 }
 
-export const Embed = memo(({ isMobile, message, displayAs, darkMode, userId, hoveringMessage, ogData }: EmbedProps) => {
+export const Embed = memo(({ isMobile, message, displayAs, darkMode, userId, hoveringMessage, ogData, isScrollingChat }: EmbedProps) => {
 	const [hoveringEmbedDisable, setHoveringEmbedDisable] = useState<boolean>(false)
 	const [disablingEmbed, setDisablingEmbed] = useState<boolean>(false)
 
@@ -593,7 +608,7 @@ export const Embed = memo(({ isMobile, message, displayAs, darkMode, userId, hov
 					</Flex>
 				</EmbedContainer>
 			)}
-			{hoveringMessage && message.senderId === userId && (
+			{hoveringMessage && message.senderId === userId && !isScrollingChat && (
 				<Flex paddingTop="2px">
 					{disablingEmbed ? (
 						<Spinner

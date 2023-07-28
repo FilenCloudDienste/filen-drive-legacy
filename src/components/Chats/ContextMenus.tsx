@@ -12,16 +12,22 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
 import { i18n } from "../../i18n"
+import useDb from "../../lib/hooks/useDb"
 
 const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.Dispatch<React.SetStateAction<string>> }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [selectedMessage, setSelectedMessage] = useState<ChatMessage | undefined>(undefined)
+	const [userId] = useDb("userId", 0)
 
 	useEffect(() => {
 		const openChatMessageContextMenuListener = eventListener.on(
 			"openChatMessageContextMenu",
 			({ message, position, event }: { message: ChatMessage; position: { x: number; y: number }; event: KeyboardEvent }) => {
+				if (userId !== message.senderId) {
+					return
+				}
+
 				setSelectedMessage(message)
 				setContextMenuOpen(message.uuid)
 
@@ -36,7 +42,7 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 		return () => {
 			openChatMessageContextMenuListener.remove()
 		}
-	}, [])
+	}, [userId])
 
 	return (
 		<>

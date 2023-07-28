@@ -55,7 +55,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 		<Flex
 			borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
 			alignItems="center"
-			height={isMobile ? "40px" : "50px"}
+			height={isMobile ? "50px" : "60px"}
 			flexDirection="row"
 			paddingLeft="10px"
 			paddingRight="10px"
@@ -422,7 +422,7 @@ export const Conversations = memo(
 				{loading ? (
 					<Flex
 						flexDirection="column"
-						height={windowHeight - 50 - (isMobile ? 40 : 50) + "px"}
+						height={windowHeight - 50 - (isMobile ? 50 : 60) + "px"}
 						width={sizes.conversations + "px"}
 						overflow="hidden"
 					>
@@ -438,7 +438,7 @@ export const Conversations = memo(
 				) : (
 					<Virtuoso
 						data={conversationsSorted}
-						height={windowHeight - 50 - (isMobile ? 40 : 50)}
+						height={windowHeight - 50 - (isMobile ? 50 : 60)}
 						width={sizes.conversations}
 						itemContent={itemContent}
 						computeItemKey={(_, conversation) => conversation.uuid}
@@ -446,7 +446,7 @@ export const Conversations = memo(
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",
-							height: windowHeight - 50 - (isMobile ? 40 : 50) + "px",
+							height: windowHeight - 50 - (isMobile ? 50 : 60) + "px",
 							width: sizes.conversations + "px"
 						}}
 					/>

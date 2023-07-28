@@ -6,14 +6,38 @@ import AppText from "../AppText"
 import striptags from "striptags"
 import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode, Semaphore, SemaphoreProps } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
-import { getUserNameFromMessage, formatMessageDate, isTimestampSameDay, getMessageDisplayType, isMessageLink } from "./utils"
+import {
+	getUserNameFromMessage,
+	formatMessageDate,
+	isTimestampSameDay,
+	getMessageDisplayType,
+	isMessageLink,
+	renderContentWithLineBreaks
+} from "./utils"
 import Linkify from "react-linkify"
 import { DisplayMessageAs, MessageDisplayType } from "./Container"
 import Embed from "./Embed"
 import { parseOGFromURL, corsHead } from "../../lib/worker/worker.com"
 
 const corsMutex: Record<string, SemaphoreProps> = {}
-const EMBED_CONTENT_TYPES_IMAGES = ["image/png", "image/jpeg", "image/gif", "image/svg", "image/gifv", "image/jpg"]
+const EMBED_CONTENT_TYPES_IMAGES = [
+	"image/png",
+	"image/jpeg",
+	"image/jpg",
+	"image/gif",
+	"image/svg",
+	"image/gifv",
+	"image/webp",
+	"image/svg+xml",
+	"image/bmp",
+	"image/tiff",
+	"image/vnd.microsoft.icon",
+	"image/x-icon",
+	"image/jp2",
+	"image/jpx",
+	"image/x-xbitmap",
+	"image/avif"
+]
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -24,8 +48,8 @@ export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: num
 		>
 			<Flex
 				flexDirection="row"
-				paddingTop={index === 0 ? "10px" : "2px"}
-				paddingBottom="2px"
+				paddingTop={index === 0 ? "15px" : "3px"}
+				paddingBottom="3px"
 				paddingRight="15px"
 				paddingLeft="15px"
 				width="100%"
@@ -68,6 +92,7 @@ export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: num
 								wordBreak="break-all"
 								color={getColor(darkMode, "textPrimary")}
 								fontSize={15}
+								as="span"
 							>
 								{randomStringUnsafe(getRandomArbitrary(8, 128))}
 							</AppText>
@@ -101,6 +126,7 @@ export const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: 
 			color={getColor(darkMode, "textSecondary")}
 			paddingLeft="8px"
 			fontSize={11}
+			as="span"
 		>
 			{date}
 		</AppText>
@@ -136,6 +162,7 @@ export const DateDivider = memo(({ timestamp, darkMode, isMobile }: { timestamp:
 					isMobile={isMobile}
 					color={getColor(darkMode, "textSecondary")}
 					fontSize={11}
+					as="span"
 				>
 					{new Date(timestamp).toDateString()}
 				</AppText>
@@ -297,11 +324,25 @@ export const Message = memo(
 
 		if (groupWithPrevMessage) {
 			return (
-				<>
+				<Flex
+					onContextMenu={e => {
+						e.preventDefault()
+
+						eventListener.emit("openChatMessageContextMenu", {
+							message,
+							event: e,
+							position: {
+								x: e.nativeEvent.clientX,
+								y: e.nativeEvent.clientY
+							}
+						})
+					}}
+					flexDirection="column"
+					paddingTop="3px"
+					paddingBottom={!nextMessage ? "15px" : "3px"}
+				>
 					<Flex
 						flexDirection="column"
-						paddingTop="2px"
-						paddingBottom="2px"
 						paddingRight="15px"
 						paddingLeft="62px"
 						className="user-select-text"
@@ -309,18 +350,6 @@ export const Message = memo(
 						onMouseEnter={() => setHoveringMessage(true)}
 						onMouseLeave={() => setHoveringMessage(false)}
 						backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-						onContextMenu={e => {
-							e.preventDefault()
-
-							eventListener.emit("openChatMessageContextMenu", {
-								message,
-								event: e,
-								position: {
-									x: e.nativeEvent.clientX,
-									y: e.nativeEvent.clientY
-								}
-							})
-						}}
 					>
 						<Flex flexDirection="row">
 							{displayAs !== "none" && !message.embedDisabled ? (
@@ -332,11 +361,11 @@ export const Message = memo(
 									hoveringMessage={hovering}
 									userId={userId}
 									ogData={ogData}
+									isScrollingChat={isScrollingChat}
 								/>
 							) : (
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
+								<Flex
+									flexDirection="column"
 									color={
 										failedMessages.includes(message.uuid)
 											? getColor(darkMode, "red")
@@ -344,7 +373,7 @@ export const Message = memo(
 									}
 									fontSize={14}
 									wordBreak="break-word"
-									paddingTop="1px"
+									width="100%"
 									className="user-select-text"
 									userSelect="text"
 								>
@@ -363,15 +392,16 @@ export const Message = memo(
 													_hover={{
 														textDecoration: "underline"
 													}}
+													onContextMenu={e => e.stopPropagation()}
 												>
 													{decoratedText}
 												</Link>
 											)
 										}}
 									>
-										{striptags(message.message)}
+										<pre>{renderContentWithLineBreaks(message.message)}</pre>
 									</Linkify>
-								</AppText>
+								</Flex>
 							)}
 						</Flex>
 					</Flex>
@@ -383,7 +413,7 @@ export const Message = memo(
 							backgroundColor="transparent"
 						/>
 					)}
-				</>
+				</Flex>
 			)
 		}
 
@@ -391,6 +421,7 @@ export const Message = memo(
 			<Flex
 				flexDirection="column"
 				width="100%"
+				paddingBottom={!nextMessage ? "15px" : "3px"}
 				className="user-select-text"
 				userSelect="text"
 				onContextMenu={e => {
@@ -415,8 +446,8 @@ export const Message = memo(
 				)}
 				<Flex
 					flexDirection="row"
-					paddingTop={!prevMessage ? "10px" : "2px"}
-					paddingBottom="2px"
+					paddingTop={!prevMessage ? "15px" : "3px"}
+					paddingBottom="3px"
 					paddingRight="15px"
 					paddingLeft="15px"
 					width="100%"
@@ -467,6 +498,7 @@ export const Message = memo(
 								fontSize={15}
 								className="user-select-text"
 								userSelect="text"
+								as="span"
 							>
 								{striptags(getUserNameFromMessage(message))}
 							</AppText>
@@ -488,18 +520,18 @@ export const Message = memo(
 									hoveringMessage={hovering}
 									userId={userId}
 									ogData={ogData}
+									isScrollingChat={isScrollingChat}
 								/>
 							) : (
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
+								<Flex
+									flexDirection="column"
 									color={
 										failedMessages.includes(message.uuid)
 											? getColor(darkMode, "red")
 											: getColor(darkMode, "textSecondary")
 									}
 									fontSize={14}
-									wordBreak="break-word"
+									wordBreak="break-all"
 									className="user-select-text"
 									userSelect="text"
 								>
@@ -518,15 +550,16 @@ export const Message = memo(
 													}}
 													className="user-select-text"
 													userSelect="text"
+													onContextMenu={e => e.stopPropagation()}
 												>
 													{decoratedText}
 												</Link>
 											)
 										}}
 									>
-										{striptags(message.message)}
+										{renderContentWithLineBreaks(message.message)}
 									</Linkify>
-								</AppText>
+								</Flex>
 							)}
 						</Flex>
 					</Flex>

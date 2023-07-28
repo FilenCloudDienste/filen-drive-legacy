@@ -38,7 +38,7 @@ export const Container = memo(
 		const [emojiPickerOpen, setEmojiPickerOpen] = useState<boolean>(false)
 
 		const heights = useMemo(() => {
-			const inputContainer = 85
+			const inputContainer = 32 + 41
 			const topbarContainer = 50
 			const messagesContainer = windowHeight - inputContainer - topbarContainer
 
@@ -124,10 +124,10 @@ export const Container = memo(
 		}, [])
 
 		useEffect(() => {
-			if (sortedMessages.length > 0) {
-				db.set("chatMessages:" + sortedMessages[0].conversation, sortedMessages, "chats").catch(console.error)
+			if (messages.length > 0) {
+				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
-		}, [sortedMessages])
+		}, [messages])
 
 		useEffect(() => {
 			window.addEventListener("focus", onFocus)
@@ -211,11 +211,11 @@ export const Container = memo(
 		return (
 			<Flex
 				width={sizes.chatContainer + "px"}
-				height={windowHeight + "px"}
 				flexDirection="column"
+				overflow="hidden"
 			>
 				<Flex
-					height={heights.topbarContainer + "px"}
+					minHeight={heights.topbarContainer + "px"}
 					width={sizes.chatContainer + "px"}
 					flexDirection="row"
 					overflowY="hidden"
@@ -228,7 +228,6 @@ export const Container = memo(
 					/>
 				</Flex>
 				<Flex
-					height={heights.messagesContainer + "px"}
 					width={sizes.chatContainer + "px"}
 					flexDirection="column"
 					overflowY="auto"
@@ -254,23 +253,23 @@ export const Container = memo(
 				</Flex>
 				<Flex
 					flexDirection="column"
-					justifyContent="center"
-					height={heights.inputContainer + "px"}
 					width={sizes.chatContainer + "px"}
 					paddingLeft="15px"
 					paddingRight="15px"
 				>
-					<Input
-						darkMode={darkMode}
-						isMobile={isMobile}
-						currentConversation={currentConversation}
-						currentConversationMe={currentConversationMe}
-						setMessages={setMessages}
-						setFailedMessages={setFailedMessages}
-						lang={lang}
-						loading={loading}
-						setEmojiPickerOpen={setEmojiPickerOpen}
-					/>
+					{currentConversation && (
+						<Input
+							darkMode={darkMode}
+							isMobile={isMobile}
+							currentConversation={currentConversation}
+							currentConversationMe={currentConversationMe}
+							setMessages={setMessages}
+							setFailedMessages={setFailedMessages}
+							lang={lang}
+							setEmojiPickerOpen={setEmojiPickerOpen}
+							conversationUUID={currentConversation.uuid}
+						/>
+					)}
 				</Flex>
 			</Flex>
 		)

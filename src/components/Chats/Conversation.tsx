@@ -305,7 +305,7 @@ export const Conversation = memo(
 								marginLeft="10px"
 								fontSize={12}
 							>
-								{striptags(lastMessageIncludingSender)}
+								{lastMessageIncludingSender}
 							</AppText>
 						</Flex>
 					</Flex>
