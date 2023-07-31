@@ -21,7 +21,9 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 			return null
 		}
 
-		return currentConversation.participants.filter(participant => participant.userId !== userId)
+		return currentConversation.participants
+			.filter(participant => participant.userId !== userId)
+			.sort((a, b) => a.email.localeCompare(b.email))
 	}, [currentConversation, userId])
 
 	if (!currentConversation || !currentConversationMe || !conversationParticipantsFilteredWithoutMe) {

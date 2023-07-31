@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect } from "react"
+import { memo, useMemo, useState, useEffect, useRef } from "react"
 import Conversations from "./Conversations"
 import ChatContainer from "./Container"
 import { Flex } from "@chakra-ui/react"
@@ -12,6 +12,12 @@ import AddModal from "./AddModal"
 import DeleteMessageModal from "./DeleteMessageModal"
 import PreviewModal from "./PreviewModal"
 import ContextMenus from "./ContextMenus"
+import data from "@emoji-mart/data"
+import { init } from "emoji-mart"
+import { customEmojis } from "./customEmojis"
+import DeleteConversationModal from "./DeleteConversationModal"
+import LeaveConversationModal from "./LeaveConversationModal"
+import RemoveParticipantModal from "./RemoveParticipantModal"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -34,6 +40,8 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 	const [conversations, setConversations] = useState<ChatConversation[]>([])
 	const location = useLocation()
 	const [contextMenuOpen, setContextMenuOpen] = useState<string>("")
+	const [emojiInitDone, setEmojiInitDone] = useState<boolean>(false)
+	const didInitEmojis = useRef<boolean>(false)
 
 	const sizes: ChatSizes = useMemo(() => {
 		const conversations = isMobile ? 125 : windowWidth > 1100 ? 275 : 175
@@ -70,12 +78,35 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 	}, [currentConversation])
 
 	useEffect(() => {
+		if (!didInitEmojis.current) {
+			didInitEmojis.current = true
+
+			init({
+				data,
+				custom: [
+					{
+						emojis: customEmojis
+					}
+				]
+			})
+				.then(() => {
+					setEmojiInitDone(true)
+				})
+				.catch(console.error)
+		}
+	}, [])
+
+	useEffect(() => {
 		const uuid = getCurrentParent(location.hash)
 
 		if (uuid && validate(uuid)) {
 			setCurrentConversationUUID(uuid)
 		}
 	}, [location.hash])
+
+	if (!emojiInitDone) {
+		return null
+	}
 
 	return (
 		<Flex flexDirection="row">
@@ -110,6 +141,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 					currentConversation={currentConversation}
 					currentConversationMe={currentConversationMe}
 					contextMenuOpen={contextMenuOpen}
+					emojiInitDone={emojiInitDone}
 				/>
 			</Flex>
 			<Flex
@@ -127,6 +159,9 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			<DeleteMessageModal />
 			<PreviewModal />
 			<ContextMenus setContextMenuOpen={setContextMenuOpen} />
+			<DeleteConversationModal />
+			<LeaveConversationModal />
+			<RemoveParticipantModal />
 		</Flex>
 	)
 })

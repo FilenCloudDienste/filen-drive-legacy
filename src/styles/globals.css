@@ -217,18 +217,31 @@ body {
 	overflow: hidden;
 }
 
-body:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *) {
+body:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *):not([contenteditable]):not(.slate-editor *) {
 	font-family: "Inter", sans-serif !important;
 	overflow-x: hidden;
 	user-select: none !important;
 }
 
-*:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *) {
+*:not(#docXContainer *):not(.cm-theme *):not(.user-select-text *):not(.quill *):not([contenteditable]):not(.slate-editor *) {
 	font-family: "Inter", sans-serif !important;
 	font-weight: 500;
 	letter-spacing: -0.5px;
 	user-select: none !important;
 	outline: none !important;
+}
+
+.slate-editor {
+	outline: none !important;
+}
+
+.twitter-embed-parent > div {
+	width: 100% !important;
+}
+
+.twitter-embed-parent > div > div {
+	width: 100% !important;
+	margin: 0 !important;
 }
 
 .cm-panels {

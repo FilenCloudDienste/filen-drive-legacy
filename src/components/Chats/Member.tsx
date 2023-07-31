@@ -9,6 +9,7 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import striptags from "striptags"
 import { randomStringUnsafe, getRandomArbitrary, generateAvatarColorCode } from "../../lib/helpers"
+import eventListener from "../../lib/eventListener"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -93,10 +94,6 @@ export interface MemberProps {
 export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConversation, currentConversationMe }: MemberProps) => {
 	const [hovering, setHovering] = useState<boolean>(false)
 	const [hoveringDelete, setHoveringDelete] = useState<boolean>(false)
-
-	const removeUser = useCallback(async () => {
-		console.log("remove", user)
-	}, [user])
 
 	const showUserModal = useCallback(() => {
 		console.log("show user modal", user)
@@ -183,7 +180,15 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 								style={{
 									marginRight: "3px"
 								}}
-								onClick={() => removeUser()}
+								onClick={e => {
+									e.preventDefault()
+									e.stopPropagation()
+
+									eventListener.emit("openChatConversationRemoveParticipantModal", {
+										conversation: currentConversation,
+										userId: user.userId
+									})
+								}}
 							/>
 						)}
 				</Flex>

@@ -22,13 +22,24 @@ export interface ContainerProps {
 	currentConversation: ChatConversation | undefined
 	currentConversationMe: ChatConversationParticipant | undefined
 	contextMenuOpen: string
+	emojiInitDone: boolean
 }
 
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
 
 export const Container = memo(
-	({ darkMode, isMobile, windowHeight, lang, sizes, currentConversation, currentConversationMe, contextMenuOpen }: ContainerProps) => {
+	({
+		darkMode,
+		isMobile,
+		windowHeight,
+		lang,
+		sizes,
+		currentConversation,
+		currentConversationMe,
+		contextMenuOpen,
+		emojiInitDone
+	}: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
 		const [loading, setLoading] = useState<boolean>(false)
 		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
@@ -233,7 +244,7 @@ export const Container = memo(
 					overflowY="auto"
 					overflowX="hidden"
 				>
-					{currentConversation && (
+					{currentConversation && emojiInitDone && (
 						<Messages
 							darkMode={darkMode}
 							isMobile={isMobile}
@@ -257,7 +268,7 @@ export const Container = memo(
 					paddingLeft="15px"
 					paddingRight="15px"
 				>
-					{currentConversation && (
+					{currentConversation && emojiInitDone && (
 						<Input
 							darkMode={darkMode}
 							isMobile={isMobile}

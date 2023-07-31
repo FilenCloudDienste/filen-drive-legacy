@@ -252,3 +252,7 @@ export const parseOGFromURL = memoize(async (url: string): Promise<Record<string
 export const corsHead = memoize(async (url: string): Promise<Record<string, string>> => {
 	return await getWorkerAPI().corsHead(url)
 })
+
+export const corsGet = async (url: string): Promise<any> => {
+	return await getWorkerAPI().corsGet(url)
+}

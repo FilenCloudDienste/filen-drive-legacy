@@ -1282,3 +1282,32 @@ export function componentToHex(value: number): string {
 
 	return hex.length === 1 ? "0" + hex : hex
 }
+
+export const findClosestIndex = (sourceString: string, targetString: string, givenIndex: number): number => {
+	const extractedSubstring = sourceString.slice(0, givenIndex + 1)
+	const lastIndexWithinExtracted = extractedSubstring.lastIndexOf(targetString)
+
+	if (lastIndexWithinExtracted !== -1) {
+		return lastIndexWithinExtracted
+	}
+
+	for (let offset = 1; offset <= givenIndex; offset++) {
+		const substringBefore = sourceString.slice(givenIndex - offset, givenIndex + 1)
+		const lastIndexBefore = substringBefore.lastIndexOf(targetString)
+
+		if (lastIndexBefore !== -1) {
+			return givenIndex - offset + lastIndexBefore
+		}
+	}
+
+	return -1
+}
+
+export const hexToRgb = (hex: string) => {
+	const bigint = parseInt(hex, 16)
+	const r = (bigint >> 16) & 255
+	const g = (bigint >> 8) & 255
+	const b = bigint & 255
+
+	return r + "," + g + "," + b
+}

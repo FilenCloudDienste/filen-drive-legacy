@@ -1282,6 +1282,18 @@ export const corsHead = async (url: string): Promise<Record<string, string>> => 
 	return response.headers
 }
 
+export const corsGet = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string") {
+		throw new Error("Response type is not string: " + url)
+	}
+
+	return response.data
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -1322,7 +1334,8 @@ export const api = {
 	encryptNoteTagName,
 	decryptNoteTagName,
 	parseOGFromURL,
-	corsHead
+	corsHead,
+	corsGet
 }
 
 expose(api)

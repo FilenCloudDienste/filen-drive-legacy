@@ -197,6 +197,15 @@ export interface SocketChatMessageEmbedDisabled {
 	uuid: string
 }
 
+export interface SocketChatConversationParticipantLeft {
+	uuid: string
+	userId: number
+}
+
+export interface SocketChatConversationDeleted {
+	uuid: string
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -312,6 +321,14 @@ export type SocketEvent =
 	| {
 			type: "chatMessageEmbedDisabled"
 			data: SocketChatMessageEmbedDisabled
+	  }
+	| {
+			type: "chatConversationParticipantLeft"
+			data: SocketChatConversationParticipantLeft
+	  }
+	| {
+			type: "chatConversationDeleted"
+			data: SocketChatConversationDeleted
 	  }
 
 const waitForLogin = () => {

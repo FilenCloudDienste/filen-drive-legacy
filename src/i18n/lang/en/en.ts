@@ -384,7 +384,7 @@ const en: {
 	chatsMessageInput: "Send a message to __NAME__",
 	notes: "Notes",
 	contacts: "Contacts",
-	chatConversations: "Conversations",
+	chatConversations: "Chats",
 	chatParticipants: "Participants",
 	chatNew: "New conversation",
 	chatNewInviteEmail: "Email address",
@@ -463,7 +463,13 @@ const en: {
 	chatYou: "You",
 	chatNoMessagesYet: "No messages yet",
 	chatMessageDelete: "Delete message",
-	chatMessageDeleteWarning: "Are you sure you want to delete this message? This action cannot be undone!"
+	chatMessageDeleteWarning: "Are you sure you want to delete this message? This action cannot be undone!",
+	chatConversationDelete: "Delete chat",
+	chatConversationDeleteWarning: "Are you sure you want to delete this chat? This action cannot be undone!",
+	chatConversationLeave: "Leave chat",
+	chatConversationLeaveWarning: "Are you sure you want to leave this chat?",
+	chatConversationRemoveParticipant: "Remove participant",
+	chatConversationRemoveParticipantWarning: "Are you sure you want to remove this participant from the chat?"
 }
 
 export default en

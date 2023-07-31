@@ -17,7 +17,6 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
-import useDb from "../../lib/hooks/useDb"
 
 const loadingMembers = new Array(5).fill(1).map(() => ({
 	userId: 0,

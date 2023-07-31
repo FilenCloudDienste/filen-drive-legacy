@@ -1,9 +1,9 @@
 import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
-import { Flex, Avatar, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatConversation, chatConversationsUnread, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
-import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode } from "../../lib/helpers"
+import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode, randomStringUnsafe } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
 import { validate } from "uuid"
@@ -48,7 +48,63 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 	}, [])
 
 	if (!userAccount) {
-		return null
+		return (
+			<Flex
+				borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
+				alignItems="center"
+				height={isMobile ? "50px" : "60px"}
+				flexDirection="row"
+				paddingLeft="10px"
+				paddingRight="10px"
+				justifyContent="space-between"
+			>
+				<Flex
+					flexDirection="row"
+					alignItems="center"
+					gap="8px"
+				>
+					<Skeleton
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
+						width="32px"
+						height="32px"
+						borderRadius="full"
+					>
+						<Avatar
+							name="none"
+							bg={generateAvatarColorCode("none", darkMode)}
+							width="32px"
+							height="32px"
+							borderRadius="full"
+							border="none"
+						>
+							<AvatarBadge
+								boxSize="12px"
+								border="none"
+								backgroundColor={getColor(darkMode, "green")}
+							/>
+						</Avatar>
+					</Skeleton>
+					<Skeleton
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
+						borderRadius="10px"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							noOfLines={1}
+							wordBreak="break-all"
+							color={getColor(darkMode, "textSecondary")}
+							marginLeft="10px"
+							fontSize={15}
+						>
+							{randomStringUnsafe(64)}
+						</AppText>
+					</Skeleton>
+				</Flex>
+			</Flex>
+		)
 	}
 
 	return (
@@ -347,6 +403,28 @@ export const Conversations = memo(
 					}
 				} else if (event.type === "chatConversationsNew") {
 					fetchConversations(true)
+				} else if (event.type === "chatConversationDeleted") {
+					setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
+
+					if (getCurrentParent(window.location.href) === event.data.uuid) {
+						navigate("/#/chats")
+					}
+				} else if (event.type === "chatConversationParticipantLeft") {
+					if (event.data.userId === userId) {
+						setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
+
+						if (getCurrentParent(window.location.href) === event.data.uuid) {
+							navigate("/#/chats")
+						}
+					} else {
+						setConversations(prev =>
+							prev.map(c =>
+								c.uuid === event.data.uuid
+									? { ...c, participants: c.participants.filter(p => p.userId !== event.data.userId) }
+									: c
+							)
+						)
+					}
 				}
 			})
 
@@ -358,12 +436,40 @@ export const Conversations = memo(
 				fetchConversations(true)
 			})
 
+			const chatConversationDeleteListener = eventListener.on("chatConversationDelete", (convo: ChatConversation) => {
+				setConversations(prev => prev.filter(c => c.uuid !== convo.uuid))
+
+				if (getCurrentParent(window.location.href) === convo.uuid) {
+					navigate("/#/chats")
+				}
+			})
+
+			const chatConversationLeaveListener = eventListener.on("chatConversationLeave", (convo: ChatConversation) => {
+				setConversations(prev => prev.filter(c => c.uuid !== convo.uuid))
+
+				if (getCurrentParent(window.location.href) === convo.uuid) {
+					navigate("/#/chats")
+				}
+			})
+
+			const chatConversationParticipantRemovedListener = eventListener.on(
+				"chatConversationParticipantRemoved",
+				({ conversation: convo, userId: user }: { conversation: ChatConversation; userId: number }) => {
+					setConversations(prev =>
+						prev.map(c => (c.uuid === convo.uuid ? { ...c, participants: c.participants.filter(p => p.userId !== user) } : c))
+					)
+				}
+			)
+
 			return () => {
 				socketEventListener.remove()
 				updateChatConversationsListener.remove()
 				socketAuthedListener.remove()
+				chatConversationDeleteListener.remove()
+				chatConversationLeaveListener.remove()
+				chatConversationParticipantRemovedListener.remove()
 			}
-		}, [])
+		}, [userId])
 
 		useEffect(() => {
 			fetchConversations()

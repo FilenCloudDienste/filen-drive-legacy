@@ -1,43 +1,21 @@
-import { memo, useMemo, useState, useEffect, useRef } from "react"
+import { memo, useMemo, useState, useEffect } from "react"
 import { Flex, Avatar, Skeleton, Link } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
-import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode, Semaphore, SemaphoreProps } from "../../lib/helpers"
+import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import {
 	getUserNameFromMessage,
 	formatMessageDate,
 	isTimestampSameDay,
-	getMessageDisplayType,
-	isMessageLink,
-	renderContentWithLineBreaksAndEmojis
+	ReplaceMessageWithComponents,
+	extractLinksFromString
 } from "./utils"
 import Linkify from "react-linkify"
-import { DisplayMessageAs, MessageDisplayType } from "./Container"
+import { DisplayMessageAs } from "./Container"
 import Embed from "./Embed"
-import { parseOGFromURL, corsHead } from "../../lib/worker/worker.com"
-
-const corsMutex: Record<string, SemaphoreProps> = {}
-const EMBED_CONTENT_TYPES_IMAGES = [
-	"image/png",
-	"image/jpeg",
-	"image/jpg",
-	"image/gif",
-	"image/svg",
-	"image/gifv",
-	"image/webp",
-	"image/svg+xml",
-	"image/bmp",
-	"image/tiff",
-	"image/vnd.microsoft.icon",
-	"image/x-icon",
-	"image/jp2",
-	"image/jpx",
-	"image/x-xbitmap",
-	"image/avif"
-]
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -176,6 +154,86 @@ export const DateDivider = memo(({ timestamp, darkMode, isMobile }: { timestamp:
 	)
 })
 
+export interface MessagTextProps {
+	message: ChatMessage
+	failedMessages: string[]
+	darkMode: boolean
+	isMobile: boolean
+}
+
+export const MessageText = memo(({ message, failedMessages, darkMode, isMobile }: MessagTextProps) => {
+	return (
+		<Flex
+			flexDirection="row"
+			gap="4px"
+			color={failedMessages.includes(message.uuid) ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")}
+			fontSize={14}
+			wordBreak="break-all"
+			className="user-select-text"
+			userSelect="text"
+		>
+			<pre
+				className="user-select-text"
+				style={{
+					maxWidth: "100%",
+					whiteSpace: "pre-wrap",
+					overflow: "hidden",
+					margin: "0px",
+					textIndent: 0,
+					userSelect: "text"
+				}}
+			>
+				<ReplaceMessageWithComponents
+					content={message.message}
+					darkMode={darkMode}
+				/>
+			</pre>
+		</Flex>
+	)
+})
+
+export interface MessageContentProps {
+	message: ChatMessage
+	isMobile: boolean
+	darkMode: boolean
+	hovering: boolean
+	userId: number
+	isScrollingChat: boolean
+	failedMessages: string[]
+}
+
+export const MessageContent = memo(
+	({ message, isMobile, darkMode, hovering, userId, isScrollingChat, failedMessages }: MessageContentProps) => {
+		return (
+			<Flex
+				flexDirection="row"
+				wordBreak="break-all"
+				className="user-select-text"
+				userSelect="text"
+			>
+				{extractLinksFromString(message.message).length > 0 && !message.embedDisabled ? (
+					<Embed
+						darkMode={darkMode}
+						isMobile={isMobile}
+						message={message}
+						userId={userId}
+						hoveringMessage={hovering}
+						isScrollingChat={isScrollingChat}
+						failedMessages={failedMessages}
+					/>
+				) : (
+					<MessageText
+						message={message}
+						failedMessages={failedMessages}
+						darkMode={darkMode}
+						isMobile={isMobile}
+					/>
+				)}
+			</Flex>
+		)
+	}
+)
+
 export interface MessageProps {
 	darkMode: boolean
 	isMobile: boolean
@@ -209,16 +267,6 @@ export const Message = memo(
 		contextMenuOpen
 	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
-		const initialDisplayAs = useRef<MessageDisplayType>(
-			message.embedDisabled
-				? "none"
-				: typeof displayMessageAs[message.uuid] !== "undefined"
-				? displayMessageAs[message.uuid]
-				: getMessageDisplayType(message.message)
-		).current
-		const [displayAs, setDisplayAs] = useState<MessageDisplayType>(initialDisplayAs)
-		const [ogData, setOGData] = useState<Record<string, string>>({})
-		const didGetHeaders = useRef<boolean>(false)
 
 		const hovering = useMemo(() => {
 			return hoveringMessage || contextMenuOpen === message.uuid
@@ -265,66 +313,74 @@ export const Message = memo(
 			return isTimestampSameDay(prevMessage.sentTimestamp, message.sentTimestamp)
 		}, [prevMessage, message])
 
-		useEffect(() => {
-			setDisplayMessageAs(prev => ({ ...prev, [message.uuid]: displayAs }))
-		}, [displayAs, message])
-
-		useEffect(() => {
-			if (
-				["async", "invalid", "ogEmbed"].includes(initialDisplayAs) &&
-				!message.embedDisabled &&
-				isMessageLink(message.message) &&
-				!didGetHeaders.current
-			) {
-				didGetHeaders.current = true
-				;(async () => {
-					if (!corsMutex[message.uuid]) {
-						corsMutex[message.uuid] = new Semaphore(1)
-					}
-
-					await corsMutex[message.uuid].acquire()
-
-					try {
-						const headers = await corsHead(message.message)
-
-						if (typeof headers["content-type"] !== "string") {
-							corsMutex[message.uuid].release()
-
-							return
-						}
-
-						const contentType = headers["content-type"].split(";")[0].trim()
-
-						if (EMBED_CONTENT_TYPES_IMAGES.includes(contentType)) {
-							corsMutex[message.uuid].release()
-
-							setDisplayAs("image")
-
-							return
-						}
-
-						if (contentType === "text/html") {
-							const og = await parseOGFromURL(message.message)
-
-							corsMutex[message.uuid].release()
-
-							setOGData(og)
-							setDisplayAs("ogEmbed")
-
-							return
-						}
-					} catch {}
-
-					corsMutex[message.uuid].release()
-
-					setDisplayAs("invalid")
-				})()
-			}
-		}, [initialDisplayAs, message])
-
 		if (groupWithPrevMessage) {
 			return (
+				<>
+					<Flex
+						onContextMenu={e => {
+							e.preventDefault()
+
+							eventListener.emit("openChatMessageContextMenu", {
+								message,
+								event: e,
+								position: {
+									x: e.nativeEvent.clientX,
+									y: e.nativeEvent.clientY
+								}
+							})
+						}}
+						flexDirection="column"
+						paddingTop="3px"
+						paddingBottom={!nextMessage ? "15px" : "3px"}
+						onMouseEnter={() => setHoveringMessage(true)}
+						onMouseLeave={() => setHoveringMessage(false)}
+						backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
+					>
+						<Flex
+							flexDirection="column"
+							paddingRight="15px"
+							paddingLeft="62px"
+							className="user-select-text"
+							userSelect="text"
+						>
+							<MessageContent
+								message={message}
+								darkMode={darkMode}
+								isMobile={isMobile}
+								failedMessages={failedMessages}
+								hovering={hovering}
+								userId={userId}
+								isScrollingChat={isScrollingChat}
+							/>
+						</Flex>
+					</Flex>
+					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
+						<Flex
+							flexDirection="row"
+							width="100%"
+							height="15px"
+							backgroundColor="transparent"
+						/>
+					)}
+				</>
+			)
+		}
+
+		return (
+			<>
+				{!prevMessageSameDay && (
+					<DateDivider
+						timestamp={message.sentTimestamp}
+						darkMode={darkMode}
+						isMobile={isMobile}
+					/>
+				)}
 				<Flex
+					flexDirection="column"
+					width="100%"
+					paddingBottom={!nextMessage ? "15px" : undefined}
+					className="user-select-text"
+					userSelect="text"
 					onContextMenu={e => {
 						e.preventDefault()
 
@@ -337,230 +393,82 @@ export const Message = memo(
 							}
 						})
 					}}
-					flexDirection="column"
-					paddingTop="3px"
-					paddingBottom={!nextMessage ? "15px" : "3px"}
-				>
-					<Flex
-						flexDirection="column"
-						paddingRight="15px"
-						paddingLeft="62px"
-						className="user-select-text"
-						userSelect="text"
-						onMouseEnter={() => setHoveringMessage(true)}
-						onMouseLeave={() => setHoveringMessage(false)}
-						backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-					>
-						<Flex flexDirection="row">
-							{displayAs !== "none" && !message.embedDisabled ? (
-								<Embed
-									message={message}
-									isMobile={isMobile}
-									darkMode={darkMode}
-									displayAs={displayAs}
-									hoveringMessage={hovering}
-									userId={userId}
-									ogData={ogData}
-									isScrollingChat={isScrollingChat}
-								/>
-							) : (
-								<Flex
-									flexDirection="column"
-									color={
-										failedMessages.includes(message.uuid)
-											? getColor(darkMode, "red")
-											: getColor(darkMode, "textSecondary")
-									}
-									fontSize={14}
-									wordBreak="break-word"
-									width="100%"
-									className="user-select-text"
-									userSelect="text"
-								>
-									<Linkify
-										componentDecorator={(decoratedHref, decoratedText, key) => {
-											return (
-												<Link
-													key={key}
-													color={getColor(darkMode, "linkPrimary")}
-													cursor="pointer"
-													href={decoratedHref}
-													target="_blank"
-													rel="noreferrer"
-													className="user-select-text"
-													userSelect="text"
-													_hover={{
-														textDecoration: "underline"
-													}}
-													onContextMenu={e => e.stopPropagation()}
-												>
-													{decoratedText}
-												</Link>
-											)
-										}}
-									>
-										{renderContentWithLineBreaksAndEmojis(message.message)}
-									</Linkify>
-								</Flex>
-							)}
-						</Flex>
-					</Flex>
-					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
-						<Flex
-							flexDirection="row"
-							width="100%"
-							height="15px"
-							backgroundColor="transparent"
-						/>
-					)}
-				</Flex>
-			)
-		}
-
-		return (
-			<Flex
-				flexDirection="column"
-				width="100%"
-				paddingBottom={!nextMessage ? "15px" : "3px"}
-				className="user-select-text"
-				userSelect="text"
-				onContextMenu={e => {
-					e.preventDefault()
-
-					eventListener.emit("openChatMessageContextMenu", {
-						message,
-						event: e,
-						position: {
-							x: e.nativeEvent.clientX,
-							y: e.nativeEvent.clientY
-						}
-					})
-				}}
-			>
-				{!prevMessageSameDay && (
-					<DateDivider
-						timestamp={message.sentTimestamp}
-						darkMode={darkMode}
-						isMobile={isMobile}
-					/>
-				)}
-				<Flex
-					flexDirection="row"
-					paddingTop={!prevMessage ? "15px" : "3px"}
-					paddingBottom="3px"
-					paddingRight="15px"
-					paddingLeft="15px"
-					width="100%"
 					onMouseEnter={() => setHoveringMessage(true)}
 					onMouseLeave={() => setHoveringMessage(false)}
 					backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
-					className="user-select-text"
-					userSelect="text"
 				>
-					<Flex>
-						<Avatar
-							name={
-								typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-									? undefined
-									: message.senderEmail
-							}
-							src={
-								typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-									? message.senderAvatar
-									: undefined
-							}
-							bg={generateAvatarColorCode(message.senderEmail, darkMode)}
-							width="32px"
-							height="32px"
-							borderRadius="full"
-							border="none"
-							userSelect="none"
-						/>
-					</Flex>
 					<Flex
-						flexDirection="column"
+						flexDirection="row"
+						paddingTop={!prevMessage ? "15px" : "3px"}
+						paddingBottom="3px"
+						paddingRight="15px"
 						paddingLeft="15px"
+						width="100%"
 						className="user-select-text"
 						userSelect="text"
 					>
+						<Flex>
+							<Avatar
+								name={
+									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+										? undefined
+										: message.senderEmail
+								}
+								src={
+									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+										? message.senderAvatar
+										: undefined
+								}
+								bg={generateAvatarColorCode(message.senderEmail, darkMode)}
+								width="32px"
+								height="32px"
+								borderRadius="full"
+								border="none"
+								userSelect="none"
+							/>
+						</Flex>
 						<Flex
-							flexDirection="row"
-							alignItems="center"
+							flexDirection="column"
+							paddingLeft="15px"
 							className="user-select-text"
 							userSelect="text"
 						>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								noOfLines={1}
-								wordBreak="break-all"
-								color={getColor(darkMode, "textPrimary")}
-								fontSize={15}
+							<Flex
+								flexDirection="row"
+								alignItems="center"
 								className="user-select-text"
 								userSelect="text"
-								as="span"
 							>
-								{striptags(getUserNameFromMessage(message))}
-							</AppText>
-							{!isMobile && (
-								<MessageDate
+								<AppText
 									darkMode={darkMode}
 									isMobile={isMobile}
-									timestamp={message.sentTimestamp}
-								/>
-							)}
-						</Flex>
-						<Flex flexDirection="column">
-							{displayAs !== "none" ? (
-								<Embed
-									message={message}
-									isMobile={isMobile}
-									darkMode={darkMode}
-									displayAs={displayAs}
-									hoveringMessage={hovering}
-									userId={userId}
-									ogData={ogData}
-									isScrollingChat={isScrollingChat}
-								/>
-							) : (
-								<Flex
-									flexDirection="column"
-									color={
-										failedMessages.includes(message.uuid)
-											? getColor(darkMode, "red")
-											: getColor(darkMode, "textSecondary")
-									}
-									fontSize={14}
+									noOfLines={1}
 									wordBreak="break-all"
+									color={getColor(darkMode, "textPrimary")}
+									fontSize={15}
 									className="user-select-text"
 									userSelect="text"
+									as="span"
 								>
-									<Linkify
-										componentDecorator={(decoratedHref, decoratedText, key) => {
-											return (
-												<Link
-													key={key}
-													color={getColor(darkMode, "linkPrimary")}
-													cursor="pointer"
-													href={decoratedHref}
-													target="_blank"
-													rel="noreferrer"
-													_hover={{
-														textDecoration: "underline"
-													}}
-													className="user-select-text"
-													userSelect="text"
-													onContextMenu={e => e.stopPropagation()}
-												>
-													{decoratedText}
-												</Link>
-											)
-										}}
-									>
-										{renderContentWithLineBreaksAndEmojis(message.message)}
-									</Linkify>
-								</Flex>
-							)}
+									{striptags(getUserNameFromMessage(message))}
+								</AppText>
+								{!isMobile && (
+									<MessageDate
+										darkMode={darkMode}
+										isMobile={isMobile}
+										timestamp={message.sentTimestamp}
+									/>
+								)}
+							</Flex>
+							<MessageContent
+								message={message}
+								darkMode={darkMode}
+								isMobile={isMobile}
+								failedMessages={failedMessages}
+								hovering={hovering}
+								userId={userId}
+								isScrollingChat={isScrollingChat}
+							/>
 						</Flex>
 					</Flex>
 				</Flex>
@@ -572,7 +480,7 @@ export const Message = memo(
 						backgroundColor="transparent"
 					/>
 				)}
-			</Flex>
+			</>
 		)
 	}
 )

@@ -57,6 +57,8 @@ export const Messages = memo(
 		const location = useLocation()
 		const [initalLoadDone, setInitialLoadDone] = useState<boolean>(false)
 		const initalLoadDoneTimer = useRef<ReturnType<typeof setTimeout>>()
+		const [atBottom, setAtBottom] = useState<boolean>(true)
+		const lastMessageUUID = useRef<string>("")
 
 		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
@@ -72,10 +74,15 @@ export const Messages = memo(
 			}
 		}, [])
 
-		const followOutput = useCallback(
-			(isAtBottom: boolean) => (!initalLoadDone ? true : isAtBottom ? "smooth" : false),
-			[initalLoadDone]
-		)
+		const followOutput = useCallback((isAtBottom: boolean) => (!initalLoadDone ? true : isAtBottom), [initalLoadDone])
+
+		const rangeChanged = useCallback(() => {
+			if (!initalLoadDone) {
+				virtuosoRef.current?.scrollTo({
+					top: Number.MAX_SAFE_INTEGER
+				})
+			}
+		}, [initalLoadDone])
 
 		const itemContent = useCallback(
 			(index: number, message: ChatMessage) => {
@@ -122,22 +129,58 @@ export const Messages = memo(
 		useEffect(() => {
 			clearTimeout(initalLoadDoneTimer.current)
 
-			initalLoadDoneTimer.current = setTimeout(() => {
-				setInitialLoadDone(true)
+			if (messages.length > 0) {
+				virtuosoRef.current?.scrollTo({
+					top: Number.MAX_SAFE_INTEGER
+				})
+			}
 
+			initalLoadDoneTimer.current = setTimeout(() => {
 				if (messages.length > 0) {
-					//eventListener.emit("scrollChatToBottom")
+					virtuosoRef.current?.scrollTo({
+						top: Number.MAX_SAFE_INTEGER
+					})
 				}
-			}, 1000)
+
+				setTimeout(() => {
+					setInitialLoadDone(true)
+
+					if (messages.length > 0) {
+						virtuosoRef.current?.scrollTo({
+							top: Number.MAX_SAFE_INTEGER
+						})
+					}
+
+					setTimeout(() => {
+						if (messages.length > 0) {
+							virtuosoRef.current?.scrollTo({
+								top: Number.MAX_SAFE_INTEGER
+							})
+						}
+					}, 250)
+				}, 250)
+			}, 100)
 
 			return () => {
 				clearTimeout(initalLoadDoneTimer.current)
 			}
-		}, [location.hash, conversationUUID, messages.length, messages[0]?.conversation])
+		}, [location.hash, conversationUUID, messages[0]?.conversation])
 
 		useEffect(() => {
-			eventListener.emit("scrollChatToBottom")
-		}, [height, location.hash, conversationUUID, messages.length, messages[0]?.conversation])
+			virtuosoRef.current?.scrollTo({
+				top: Number.MAX_SAFE_INTEGER
+			})
+		}, [height, location.hash, conversationUUID, messages[0]?.conversation])
+
+		useEffect(() => {
+			if (atBottom && messages.length > 0 && messages[messages.length - 1].uuid !== lastMessageUUID.current) {
+				lastMessageUUID.current = messages[messages.length - 1].uuid
+
+				virtuosoRef.current?.scrollTo({
+					top: Number.MAX_SAFE_INTEGER
+				})
+			}
+		}, [atBottom, messages])
 
 		useEffect(() => {
 			const scrollChatToBottomListener = eventListener.on("scrollChatToBottom", () => {
@@ -191,6 +234,8 @@ export const Messages = memo(
 				followOutput={followOutput}
 				isScrolling={onScroll}
 				itemContent={itemContent}
+				atBottomStateChange={setAtBottom}
+				rangeChanged={rangeChanged}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",

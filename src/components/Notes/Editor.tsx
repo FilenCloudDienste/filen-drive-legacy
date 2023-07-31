@@ -9,6 +9,7 @@ import { getCodeMirrorLanguageExtensionForFile } from "../PreviewModal/TextEdito
 import { getColor } from "../../styles/colors"
 import { ErrorBoundary } from "react-error-boundary"
 import type ReactQuill from "react-quill"
+import { ContentSkeleton } from "./Content"
 
 const CodeMirror = lazy(() => import("@uiw/react-codemirror"))
 const MarkdownPreview = lazy(() => import("@uiw/react-markdown-preview"))
@@ -55,8 +56,40 @@ export const Editor = memo(
 		}, [type])
 
 		return (
-			<ErrorBoundary fallback={<></>}>
-				<Suspense fallback={<></>}>
+			<ErrorBoundary
+				fallback={
+					<Flex
+						width={width + "px"}
+						height={height + "px"}
+						flexDirection="column"
+						paddingLeft="15px"
+						paddingRight="15px"
+						paddingBottom="15px"
+						paddingTop="15px"
+					>
+						{new Array(20).fill(1).map((_, index) => {
+							return <ContentSkeleton key={index} />
+						})}
+					</Flex>
+				}
+			>
+				<Suspense
+					fallback={
+						<Flex
+							width={width + "px"}
+							height={height + "px"}
+							flexDirection="column"
+							paddingLeft="15px"
+							paddingRight="15px"
+							paddingBottom="15px"
+							paddingTop="15px"
+						>
+							{new Array(20).fill(1).map((_, index) => {
+								return <ContentSkeleton key={index} />
+							})}
+						</Flex>
+					}
+				>
 					<Flex
 						width={width + "px"}
 						height={height + "px"}

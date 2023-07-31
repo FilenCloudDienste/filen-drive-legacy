@@ -3468,3 +3468,46 @@ export const messageEmbedDisable = async (uuid: string): Promise<void> => {
 		throw new Error(response.message)
 	}
 }
+
+export const chatConversationsParticipantsRemove = async (uuid: string, userId: number): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/participants/remove",
+		data: {
+			uuid,
+			userId
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsLeave = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/leave",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}

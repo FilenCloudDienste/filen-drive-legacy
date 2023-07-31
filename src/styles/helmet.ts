@@ -52,15 +52,7 @@ export const lightModeStyle = () => {
             border: 3px solid transparent;
         }
 
-        .EmojiPickerReact {
-            --epr-hover-bg-color: ${getColor(false, "backgroundTertiary")};
-            --epr-focus-bg-color: ${getColor(false, "backgroundTertiary")};
-            --epr-bg-color: ${getColor(false, "backgroundSecondary")};
-            --epr-category-label-bg-color: ${getColor(false, "backgroundSecondary")};
-            --epr-text-color: ${getColor(false, "textPrimary")};
-            --epr-search-input-bg-color: ${getColor(false, "backgroundTertiary")};
-            --epr-preview-border-color: ${getColor(false, "borderPrimary")};
-        }
+        
     `
 }
 
@@ -84,16 +76,6 @@ export const darkModeStyle = () => {
             background-color: ${getColor(true, "backgroundTertiary")};
             border-radius: 5px;
             border: 3px solid transparent;
-        }
-
-        .EmojiPickerReact {
-            --epr-hover-bg-color: ${getColor(true, "backgroundTertiary")};
-            --epr-focus-bg-color: ${getColor(true, "backgroundTertiary")};
-            --epr-bg-color: ${getColor(true, "backgroundSecondary")};
-            --epr-category-label-bg-color: ${getColor(true, "backgroundSecondary")};
-            --epr-text-color: ${getColor(true, "textPrimary")};
-            --epr-search-input-bg-color: ${getColor(true, "backgroundTertiary")};
-            --epr-preview-border-color: ${getColor(true, "borderPrimary")};
         }
     `
 }

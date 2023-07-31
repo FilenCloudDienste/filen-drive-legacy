@@ -4,8 +4,15 @@ import db from "../../lib/db"
 import { decryptChatMessage } from "../../lib/worker/worker.com"
 import { validate } from "uuid"
 import { MessageDisplayType } from "./Container"
-import { Fragment } from "react"
-import Emoji from "react-emoji-render"
+import regexifyString from "regexify-string"
+import EMOJI_REGEX from "emojibase-regex"
+import { Emoji } from "emoji-mart"
+import { useEffect, createElement, memo, useRef } from "react"
+import { getColor } from "../../styles/colors"
+import { Link } from "@chakra-ui/react"
+import { customEmojis } from "./customEmojis"
+
+const customEmojisList = customEmojis.map(emoji => emoji.id)
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -228,45 +235,180 @@ export const getMessageDisplayType = (message: string): MessageDisplayType => {
 		message.indexOf("/d/") !== -1
 	) {
 		return "filenEmbed"
+	} else if (
+		(message.indexOf("/www.twitter.com/") !== -1 || message.indexOf("/twitter.com/") !== -1) &&
+		message.indexOf("/status/") !== -1
+	) {
+		return "twitterEmbed"
 	}
 
 	return "async"
 }
 
-export const renderContentWithEmojis = (content: string): React.ReactNode => {
-	const regex = /:(.*?):/g
-	const segments = content.split(regex)
+// dirty because emoji-mart's Emoji component does not support react yet
+export const EmojiElement = memo(
+	(props: { shortcodes?: string; native?: string; fallback?: string; size: string; style?: React.CSSProperties }) => {
+		const ref = useRef<HTMLSpanElement>(null)
+		const instance = useRef<any>(null)
 
-	return (
-		<>
-			{segments.map((segment, index) => {
-				const isExtractedText = index % 2 === 1
+		if (instance.current) {
+			instance.current.update(props)
+		}
 
-				if (isExtractedText) {
-					return (
-						<Emoji
-							key={index}
-							text={":" + segment + ":"}
-						/>
-					)
-				} else {
-					// Render regular text as is
-					return <Fragment key={index}>{segment}</Fragment>
-				}
-			})}
-		</>
+		useEffect(() => {
+			instance.current = new Emoji({ ...props, ref })
+
+			return () => {
+				instance.current = null
+			}
+		}, [])
+
+		return createElement("span", {
+			ref,
+			style: props.style
+		})
+	}
+)
+
+export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { content: string; darkMode: boolean }) => {
+	const lineBreakRegex = /\n/
+	const codeRegex = /```([\s\S]*?)```/
+	const linkRegex = /(https?:\/\/\S+)/
+	const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
+	const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
+	const regex = new RegExp(
+		`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}`
 	)
-}
+	const emojiCount = content.match(emojiRegex)
 
-export const renderContentWithLineBreaksAndEmojis = (content: string): React.ReactNode => {
-	const lines = content.split("\n")
+	let size: number | undefined = 34
 
-	return lines.map((line, index) => {
-		return (
-			<Fragment key={index}>
-				{renderContentWithEmojis(line)}
-				{index < lines.length - 1 && <br />}
-			</Fragment>
-		)
+	if (emojiCount) {
+		const emojiCountJoined = emojiCount.join("")
+
+		if (emojiCountJoined.length !== content.length) {
+			size = 22
+		}
+	}
+
+	const replaced = regexifyString({
+		pattern: regex,
+		decorator: (match, index) => {
+			if (match.split("```").length >= 3) {
+				const code = match.split("```").join("")
+
+				return (
+					<div
+						key={index}
+						style={{
+							paddingTop: "5px",
+							paddingBottom: "5px"
+						}}
+					>
+						<pre
+							style={{
+								maxWidth: "100%",
+								whiteSpace: "pre-wrap",
+								overflow: "hidden",
+								margin: "0px",
+								textIndent: 0,
+								backgroundColor: getColor(darkMode, "backgroundTertiary"),
+								borderRadius: "5px",
+								paddingLeft: "10px",
+								paddingRight: "10px",
+								paddingBottom: "10px",
+								paddingTop: "10px",
+								fontWeight: "bold",
+								color: getColor(darkMode, "textSecondary"),
+								border: "1px solid " + getColor(darkMode, "borderPrimary")
+							}}
+						>
+							<code
+								style={{
+									maxWidth: "100%",
+									whiteSpace: "pre-wrap",
+									overflow: "hidden",
+									margin: "0px"
+								}}
+							>
+								{code.startsWith("\n") ? code.slice(1, code.length) : code}
+							</code>
+						</pre>
+					</div>
+				)
+			}
+
+			if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+				return (
+					<Link
+						key={index}
+						color={getColor(darkMode, "linkPrimary")}
+						cursor="pointer"
+						href={match}
+						target="_blank"
+						rel="noreferrer"
+						_hover={{
+							textDecoration: "underline"
+						}}
+						className="user-select-text"
+						userSelect="text"
+						onContextMenu={e => e.stopPropagation()}
+					>
+						{match}
+					</Link>
+				)
+			}
+
+			if (match.indexOf("\n") !== -1) {
+				return (
+					<div
+						key={index}
+						style={{
+							height: "8px"
+						}}
+					>
+						<br />
+					</div>
+				)
+			}
+
+			if (customEmojisList.includes(match.split(":").join("").trim())) {
+				return (
+					<span
+						key={index}
+						title={match.indexOf(":") !== -1 ? match : undefined}
+					>
+						<EmojiElement
+							fallback={match}
+							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+							size={size + "px"}
+						/>
+					</span>
+				)
+			}
+
+			return (
+				<span
+					key={index}
+					title={match.indexOf(":") !== -1 ? match : undefined}
+				>
+					<EmojiElement
+						fallback={match}
+						shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+						native={match.indexOf(":") === -1 ? match : undefined}
+						size={size + "px"}
+					/>
+				</span>
+			)
+		},
+		input: content
 	})
+
+	return <>{replaced}</>
+})
+
+export const parseTwitterStatusIdFromURL = (url: string) => {
+	const ex = url.split("/")
+
+	return ex[ex.length - 1].trim()
 }
