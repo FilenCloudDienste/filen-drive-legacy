@@ -396,7 +396,7 @@ const uk: {
 	chatsMessageInput: "Надіслати повідомлення __NAME__",
 	notes: "Нотатки",
 	contacts: "Контакти",
-	chatConversations: "Розмови",
+	chatConversations: "Чати",
 	chatParticipants: "Учасники",
 	chatNew: "Нова розмова",
 	chatNewInviteEmail: "Адреса електронної пошти",
@@ -475,7 +475,13 @@ const uk: {
 	chatYou: "Ви",
 	chatNoMessagesYet: "Ще немає повідомлень",
 	chatMessageDelete: "Видалити повідомлення",
-	chatMessageDeleteWarning: "Ви впевнені, що хочете видалити це повідомлення? Ця дія не може бути скасована!"
+	chatMessageDeleteWarning: "Ви впевнені, що хочете видалити це повідомлення? Ця дія не може бути скасована!",
+	chatConversationDelete: "Видалити чат",
+	chatConversationDeleteWarning: "Ви впевнені, що хочете видалити цей чат? Ця дія не може бути скасована!",
+	chatConversationLeave: "Покинути чат",
+	chatConversationLeaveWarning: "Ви впевнені, що хочете покинути цей чат?",
+	chatConversationRemoveParticipant: "Видалити учасника",
+	chatConversationRemoveParticipantWarning: "Ви впевнені, що хочете видалити цього учасника з чату?"
 }
 
 export default uk
