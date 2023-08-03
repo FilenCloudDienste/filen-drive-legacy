@@ -397,7 +397,7 @@ const ru: {
 	chatsMessageInput: "Отправить сообщение __NAME__",
 	notes: "Заметки",
 	contacts: "Контакты",
-	chatConversations: "Разговоры",
+	chatConversations: "Чаты",
 	chatParticipants: "Участники",
 	chatNew: "Новый разговор",
 	chatNewInviteEmail: "Адрес электронной почты",
@@ -476,7 +476,13 @@ const ru: {
 	chatYou: "Вы",
 	chatNoMessagesYet: "Пока нет сообщений",
 	chatMessageDelete: "Удалить сообщение",
-	chatMessageDeleteWarning: "Вы уверены, что хотите удалить это сообщение? Это действие не может быть отменено!"
+	chatMessageDeleteWarning: "Вы уверены, что хотите удалить это сообщение? Это действие не может быть отменено!",
+	chatConversationDelete: "Удалить чат",
+	chatConversationDeleteWarning: "Вы уверены, что хотите удалить этот чат? Это действие не может быть отменено!",
+	chatConversationLeave: "Покинуть чат",
+	chatConversationLeaveWarning: "Вы уверены, что хотите покинуть этот чат?",
+	chatConversationRemoveParticipant: "Удалить участника",
+	chatConversationRemoveParticipantWarning: "Вы уверены, что хотите удалить этого участника из чата?"
 }
 
 export default ru
