@@ -112,7 +112,7 @@ export const YouTube = memo(
 											justifyContent="center"
 											alignItems="center"
 											_hover={{
-												backgroundColor: "rgba(1, 1, 1, 0.7)"
+												backgroundColor: "rgba(1, 1, 1, 0.75)"
 											}}
 											cursor="pointer"
 											onClick={() => setPlay(true)}

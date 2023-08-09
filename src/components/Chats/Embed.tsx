@@ -122,6 +122,8 @@ export const EmbedContainer = memo(
 							color={getColor(darkMode, "textSecondary")}
 							textTransform="uppercase"
 							as="span"
+							wordBreak="break-all"
+							noOfLines={1}
 						>
 							{title}
 						</AppText>
