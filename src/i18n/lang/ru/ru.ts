@@ -482,7 +482,12 @@ const ru: {
 	chatConversationLeave: "Покинуть чат",
 	chatConversationLeaveWarning: "Вы уверены, что хотите покинуть этот чат?",
 	chatConversationRemoveParticipant: "Удалить участника",
-	chatConversationRemoveParticipantWarning: "Вы уверены, что хотите удалить этого участника из чата?"
+	chatConversationRemoveParticipantWarning: "Вы уверены, что хотите удалить этого участника из чата?",
+	chatInfoTitle: "Чат со сквозным шифрованием",
+	chatInfoSubtitle1: "Filen по умолчанию защищает каждый чат с помощью сквозного шифрования с нулевым знанием.",
+	chatInfoSubtitle2: "Расшифровать и прочитать содержимое чата могут только его участники.",
+	chatInfoSubtitle3:
+		"Система гарантирует, что полученные данные действительно исходят от отображаемого пользователя и не были изменены за прошедшее время."
 }
 
 export default ru
