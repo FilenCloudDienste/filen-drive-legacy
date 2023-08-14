@@ -481,7 +481,12 @@ const uk: {
 	chatConversationLeave: "Покинути чат",
 	chatConversationLeaveWarning: "Ви впевнені, що хочете покинути цей чат?",
 	chatConversationRemoveParticipant: "Видалити учасника",
-	chatConversationRemoveParticipantWarning: "Ви впевнені, що хочете видалити цього учасника з чату?"
+	chatConversationRemoveParticipantWarning: "Ви впевнені, що хочете видалити цього учасника з чату?",
+	chatInfoTitle: "Чат з наскрізним шифруванням",
+	chatInfoSubtitle1: "Filen за замовчуванням захищає кожен чат наскрізним шифруванням з нульовою довірою.",
+	chatInfoSubtitle2: "Тільки учасники чату можуть розшифрувати та прочитати вміст.",
+	chatInfoSubtitle3:
+		"Система гарантує, що отримані дані дійсно надходять від відображуваного користувача і не були змінені за минулий час."
 }
 
 export default uk
