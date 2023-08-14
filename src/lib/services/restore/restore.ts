@@ -1,21 +1,15 @@
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { restoreItem } from "../../api"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { i18n } from "../../../i18n"
 import { getLang } from "../../helpers"
-import { addItemsToStore, removeItemsFromStore } from "../metadata"
 
 export const restoreFromTrash = async (items: ItemProps[]): Promise<void> => {
 	const lang: string = getLang()
 
-	const toastId = showToast(
-		"loading",
-		i18n(lang, "restoringItems", true, ["__COUNT__"], [items.length.toString()]),
-		"bottom",
-		ONE_YEAR
-	)
+	const toastId = showToast("loading", i18n(lang, "restoringItems", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 
 	const promises = []
 	const restored: ItemProps[] = []
@@ -69,11 +63,6 @@ export const restoreFromTrash = async (items: ItemProps[]): Promise<void> => {
 			eventListener.emit("itemRestored", {
 				item: restored[i]
 			})
-		}
-
-		for (let i = 0; i < restored.length; i++) {
-			removeItemsFromStore([restored[i]], "trash").catch(console.error)
-			addItemsToStore([restored[i]], restored[i].parent).catch(console.error)
 		}
 	}
 

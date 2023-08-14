@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, useCallback } from "react"
-import type { AccountProps, UserInfoV1, UserGetSettingsV3, UserGetAccountV1, UserEvent, ICFG } from "../../types"
+import { AccountProps, UserInfo, UserGetSettings, UserGetAccount, UserEvent, ICFG } from "../../types"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, Spinner, Switch, Skeleton, Progress, Badge } from "@chakra-ui/react"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
@@ -8,7 +8,15 @@ import AppText from "../AppText"
 import { fetchUserInfo, fetchUserSettings, fetchUserAccount } from "../../lib/services/user"
 import Cookies from "../../lib/cookies"
 import eventListener from "../../lib/eventListener"
-import { formatBytes, downloadObjectAsJson, simpleDate, convertTimestampToMs, downloadPDF, firstToLowerCase } from "../../lib/helpers"
+import {
+	formatBytes,
+	downloadObjectAsJson,
+	simpleDate,
+	convertTimestampToMs,
+	downloadPDF,
+	firstToLowerCase,
+	generateAvatarColorCode
+} from "../../lib/helpers"
 import { userGDPR, uploadAvatar, fetchEvents, generateInvoice, versioning, loginAlerts } from "../../lib/api"
 import * as Modals from "./Modals"
 import { show as showToast } from "../Toast/Toast"
@@ -68,12 +76,13 @@ const Skeletons = memo(({ darkMode, count }: { darkMode: boolean; count: number 
 			{new Array(count).fill(1).map((_, index) => {
 				return (
 					<Skeleton
-						startColor={getColor(darkMode, "backgroundPrimary")}
-						endColor={getColor(darkMode, "backgroundSecondary")}
+						startColor={getColor(darkMode, "backgroundSecondary")}
+						endColor={getColor(darkMode, "backgroundTertiary")}
 						height="60px"
 						width="80%"
 						marginBottom="10px"
 						key={index.toString()}
+						borderRadius="10px"
 					>
 						&nbsp;
 					</Skeleton>
@@ -84,9 +93,9 @@ const Skeletons = memo(({ darkMode, count }: { darkMode: boolean; count: number 
 })
 
 const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [downloadingGDPR, setDownloadingGDPR] = useState<boolean>(false)
 	const [uploadingAvatar, setUploadingAvatar] = useState<boolean>(false)
 	const navigate = useNavigate()
@@ -351,6 +360,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 									name={
 										typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email
 									}
+									bg={generateAvatarColorCode(userInfo.email, darkMode)}
 									width="32px"
 									height="32px"
 									src={
@@ -636,7 +646,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 })
 
 const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [versionedSize, setVersionedSize] = useState<number>(0)
 
 	const fetchSettings = useCallback(async () => {
@@ -658,7 +668,10 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	const toggleVersioning = useCallback(async (enable: boolean) => {
 		try {
 			await versioning(enable)
-			await fetchSettings()
+
+			const settings = await fetchUserSettings()
+
+			setUserSettings(settings)
 		} catch (e: any) {
 			console.error(e)
 
@@ -669,7 +682,10 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	const toggleLoginAlerts = useCallback(async (enable: boolean) => {
 		try {
 			await loginAlerts(enable)
-			await fetchSettings()
+
+			const settings = await fetchUserSettings()
+
+			setUserSettings(settings)
 		} catch (e: any) {
 			console.error(e)
 
@@ -689,10 +705,20 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 
 	if (typeof userSettings == "undefined") {
 		return (
-			<Skeletons
-				count={2}
-				darkMode={darkMode}
-			/>
+			<>
+				<Skeletons
+					count={2}
+					darkMode={darkMode}
+				/>
+				<Skeletons
+					count={2}
+					darkMode={darkMode}
+				/>
+				<Skeletons
+					count={1}
+					darkMode={darkMode}
+				/>
+			</>
 		)
 	}
 
@@ -784,7 +810,7 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						)}
 					</Flex>
 				</Flex>
-				{/*<Flex
+				<Flex
 					alignItems="center"
 					justifyContent="space-between"
 					height="60px"
@@ -801,19 +827,14 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						</AppText>
 					</Flex>
 					<Flex>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textSecondary")}
-							marginLeft="20px"
-							textDecoration="underline"
-							fontWeight="bold"
-							cursor="pointer"
-							noOfLines={1}
-							onClick={() => toggleVersioning(!userSettings.versioningEnabled)}
-						>
-							{userSettings.versioningEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
-						</AppText>
+						<Switch
+							size="lg"
+							colorScheme={CHAKRA_COLOR_SCHEME}
+							isChecked={userSettings.versioningEnabled}
+							onChange={e => {
+								toggleVersioning(!userSettings.versioningEnabled)
+							}}
+						/>
 					</Flex>
 				</Flex>
 				<Flex
@@ -832,21 +853,16 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 						</AppText>
 					</Flex>
 					<Flex>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textSecondary")}
-							marginLeft="20px"
-							textDecoration="underline"
-							fontWeight="bold"
-							cursor="pointer"
-							noOfLines={1}
-							onClick={() => toggleLoginAlerts(!userSettings.loginAlertsEnabled)}
-						>
-							{userSettings.loginAlertsEnabled ? i18n(lang, "disable") : i18n(lang, "enable")}
-						</AppText>
+						<Switch
+							size="lg"
+							colorScheme={CHAKRA_COLOR_SCHEME}
+							isChecked={userSettings.loginAlertsEnabled}
+							onChange={e => {
+								toggleLoginAlerts(!userSettings.loginAlertsEnabled)
+							}}
+						/>
 					</Flex>
-						</Flex>*/}
+				</Flex>
 				<Flex
 					alignItems="center"
 					justifyContent="space-between"
@@ -900,7 +916,7 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 })
 
 const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userSettings, setUserSettings] = useState<UserGetSettingsV3 | undefined>(undefined)
+	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 
 	const fetchSettings = () => {
 		setUserSettings(undefined)
@@ -1063,7 +1079,7 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 })
 
 const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 
 	useEffect(() => {
 		fetchUserAccount()
@@ -1297,7 +1313,7 @@ const Subscriptions = memo(({ darkMode, isMobile, windowHeight, windowWidth, lan
 })
 
 const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 	const [downloadingInvoice, setDownloadingInvoice] = useState<boolean>(false)
 
 	useEffect(() => {
@@ -1484,7 +1500,7 @@ const Invoices = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 export interface EventRowProps {
 	style: React.CSSProperties
 	darkMode: boolean
-	userInfo: UserInfoV1 | undefined
+	userInfo: UserInfo | undefined
 	isMobile: boolean
 	event: UserEvent
 	masterKeys: string[]
@@ -1522,8 +1538,8 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 				style={style}
 			>
 				<Skeleton
-					startColor={getColor(darkMode, "backgroundPrimary")}
-					endColor={getColor(darkMode, "backgroundSecondary")}
+					startColor={getColor(darkMode, "backgroundSecondary")}
+					endColor={getColor(darkMode, "backgroundTertiary")}
 					height="45px"
 					width="100%"
 					marginTop="5px"
@@ -1573,6 +1589,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 								name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 								width="22px"
 								height="22px"
+								bg={generateAvatarColorCode(userInfo.email, darkMode)}
 								src={
 									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}
@@ -1611,7 +1628,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) => {
 	const [events, setEvents] = useState<UserEvent[]>([])
 	const [loading, setLoading] = useState<boolean>(false)
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 	const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
 
 	const fetchData = (): void => {
@@ -2031,7 +2048,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 })
 
 const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
-	const [userAccount, setUserAccount] = useState<UserGetAccountV1 | undefined>(undefined)
+	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 
 	const copy = (text: string) => {
 		try {
@@ -2214,8 +2231,8 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 	const navigate = useNavigate()
 
 	const [activeTab, activeTabIndex] = useMemo(() => {
-		const activeTab: string = location.hash.split("/").slice(1).join("/").split("?")[0]
-		const activeTabIndex: number = getTabIndex(activeTab)
+		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]
+		const activeTabIndex = getTabIndex(activeTab)
 
 		return [activeTab, activeTabIndex]
 	}, [location.hash])

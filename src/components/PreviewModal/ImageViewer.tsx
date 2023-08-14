@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
@@ -32,6 +32,7 @@ const ImageViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				position="absolute"
 				zIndex={100001}
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText

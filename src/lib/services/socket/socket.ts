@@ -4,7 +4,9 @@ import io from "socket.io-client"
 import eventListener from "../../eventListener"
 import db from "../../db"
 import cookies from "../../cookies"
-import type { FolderColors } from "../../../types"
+import { FolderColors } from "../../../types"
+import { ChatMessage, TypingType, NoteType, NoteParticipant } from "../../api"
+import memoryCache from "../../memoryCache"
 
 export interface SocketNewEvent {
 	uuid: string
@@ -123,6 +125,87 @@ export interface SocketFolderColorChanged {
 	color: FolderColors
 }
 
+export interface SocketChatMessageNew extends ChatMessage {
+	conversation: string
+}
+
+export interface SocketChatTyping {
+	conversation: string
+	senderAvatar: string | null
+	senderEmail: string
+	senderNickName: string
+	senderId: number
+	timestamp: number
+	type: TypingType
+}
+
+export interface SocketChatConversationsNew {
+	uuid: string
+	metadata: string
+	addedTimestamp: number
+}
+
+export interface SocketChatMessageDelete {
+	uuid: string
+}
+
+export interface SocketNoteContentEdited {
+	note: string
+	content: string
+	type: NoteType
+	editorId: number
+	editedTimestamp: number
+}
+
+export interface SocketNoteArchived {
+	note: string
+}
+
+export interface SocketNoteDeleted {
+	note: string
+}
+
+export interface SocketNoteTitleEdited {
+	note: string
+	title: string
+}
+
+export interface SocketNoteParticipantPermissions {
+	note: string
+	userId: number
+	permissionsWrite: boolean
+}
+
+export interface SocketNoteRestored {
+	note: string
+}
+
+export interface SocketNoteParticipantRemoved {
+	note: string
+	userId: number
+}
+
+export interface SocketNoteParticipantNew extends NoteParticipant {
+	note: string
+}
+
+export interface SocketNoteNew {
+	note: string
+}
+
+export interface SocketChatMessageEmbedDisabled {
+	uuid: string
+}
+
+export interface SocketChatConversationParticipantLeft {
+	uuid: string
+	userId: number
+}
+
+export interface SocketChatConversationDeleted {
+	uuid: string
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -183,18 +266,95 @@ export type SocketEvent =
 	| {
 			type: "trashEmpty"
 	  }
+	| {
+			type: "chatMessageNew"
+			data: SocketChatMessageNew
+	  }
+	| {
+			type: "chatTyping"
+			data: SocketChatTyping
+	  }
+	| {
+			type: "chatConversationsNew"
+			data: SocketChatConversationsNew
+	  }
+	| {
+			type: "chatMessageDelete"
+			data: SocketChatMessageDelete
+	  }
+	| {
+			type: "noteContentEdited"
+			data: SocketNoteContentEdited
+	  }
+	| {
+			type: "noteArchived"
+			data: SocketNoteArchived
+	  }
+	| {
+			type: "noteDeleted"
+			data: SocketNoteDeleted
+	  }
+	| {
+			type: "noteTitleEdited"
+			data: SocketNoteTitleEdited
+	  }
+	| {
+			type: "noteParticipantPermissions"
+			data: SocketNoteParticipantPermissions
+	  }
+	| {
+			type: "noteRestored"
+			data: SocketNoteRestored
+	  }
+	| {
+			type: "noteParticipantRemoved"
+			data: SocketNoteParticipantRemoved
+	  }
+	| {
+			type: "noteParticipantNew"
+			data: SocketNoteParticipantNew
+	  }
+	| {
+			type: "noteNew"
+			data: SocketNoteNew
+	  }
+	| {
+			type: "chatMessageEmbedDisabled"
+			data: SocketChatMessageEmbedDisabled
+	  }
+	| {
+			type: "chatConversationParticipantLeft"
+			data: SocketChatConversationParticipantLeft
+	  }
+	| {
+			type: "chatConversationDeleted"
+			data: SocketChatConversationDeleted
+	  }
 
-let CONNECTED: boolean = false
-let PING_INTERVAL: any = undefined
-let SOCKET_HANDLE: any = undefined
+const waitForLogin = () => {
+	return new Promise<void>(resolve => {
+		const wait = setInterval(async () => {
+			const loggedIn = cookies.get("loggedIn")
+			const apiKey = await db.get("apiKey")
+
+			if (loggedIn === "true" && typeof apiKey === "string" && apiKey.length > 0) {
+				clearInterval(wait)
+
+				resolve()
+			}
+		}, 1000)
+	})
+}
 
 export const connect = () => {
-	CONNECTED = false
-	SOCKET_HANDLE = undefined
+	if (window.location.href.indexOf("?embed") !== -1) {
+		return
+	}
 
-	clearInterval(PING_INTERVAL)
+	let PING_INTERVAL: ReturnType<typeof setInterval>
+	let emitSocketAuthed: boolean = false
 
-	SOCKET_HANDLE = io(SOCKET, {
+	const SOCKET_HANDLE = io(SOCKET, {
 		path: "",
 		reconnect: true,
 		reconnection: true,
@@ -203,29 +363,41 @@ export const connect = () => {
 	})
 
 	SOCKET_HANDLE.on("connect", async () => {
-		CONNECTED = true
+		console.log("Connected to socket")
 
-		console.log("Connected to socket server")
+		SOCKET_HANDLE.emit("authed", Date.now())
 
-		const loggedIn = cookies.get("loggedIn")
+		PING_INTERVAL = setInterval(() => {
+			SOCKET_HANDLE.emit("authed", Date.now())
+		}, 3000)
+	})
 
-		if (loggedIn == "true") {
+	SOCKET_HANDLE.on("authFailed", () => {
+		console.log("Socket auth failed")
+	})
+
+	SOCKET_HANDLE.on("authed", async (authed: boolean) => {
+		if (!authed) {
+			await waitForLogin()
+
 			SOCKET_HANDLE.emit("auth", {
 				apiKey: (await db.get("apiKey")) || ""
 			})
 
-			clearInterval(PING_INTERVAL)
+			emitSocketAuthed = true
+		} else {
+			if (emitSocketAuthed) {
+				emitSocketAuthed = false
 
-			PING_INTERVAL = setInterval(() => {
-				SOCKET_HANDLE.emit("heartbeat")
-			}, 5000)
+				eventListener.emit("socketAuthed")
+			}
 		}
 	})
 
 	SOCKET_HANDLE.on("disconnect", () => {
-		CONNECTED = false
+		clearInterval(PING_INTERVAL)
 
-		console.log("Disconnected from socket server")
+		console.log("Disconnected from socket")
 	})
 
 	SOCKET_HANDLE.on("new-event", (data: SocketNewEvent) => {
@@ -250,6 +422,10 @@ export const connect = () => {
 	})
 
 	SOCKET_HANDLE.on("file-new", (data: SocketFileNew) => {
+		if (memoryCache.has("suppressFileNewSocketEvent:" + data.uuid)) {
+			return
+		}
+
 		eventListener.emit("socketEvent", {
 			type: "fileNew",
 			data
@@ -329,6 +505,97 @@ export const connect = () => {
 	SOCKET_HANDLE.on("trash-empty", () => {
 		eventListener.emit("socketEvent", {
 			type: "trashEmpty"
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageNew", (data: SocketChatMessageNew) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageNew",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatTyping", (data: SocketChatTyping) => {
+		eventListener.emit("socketEvent", {
+			type: "chatTyping",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageDelete", (data: SocketChatMessageDelete) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageDelete",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageEmbedDisabled", (data: SocketChatMessageEmbedDisabled) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageEmbedDisabled",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteContentEdited", (data: SocketNoteContentEdited) => {
+		eventListener.emit("socketEvent", {
+			type: "noteContentEdited",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteArchived", (data: SocketNoteArchived) => {
+		eventListener.emit("socketEvent", {
+			type: "noteArchived",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteDeleted", (data: SocketNoteDeleted) => {
+		eventListener.emit("socketEvent", {
+			type: "noteDeleted",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteTitleEdited", (data: SocketNoteTitleEdited) => {
+		eventListener.emit("socketEvent", {
+			type: "noteTitleEdited",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantPermissions", (data: SocketNoteParticipantPermissions) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantPermissions",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteRestored", (data: SocketNoteRestored) => {
+		eventListener.emit("socketEvent", {
+			type: "noteRestored",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantRemoved", (data: SocketNoteParticipantRemoved) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantRemoved",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteParticipantNew", (data: SocketNoteParticipantNew) => {
+		eventListener.emit("socketEvent", {
+			type: "noteParticipantNew",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("noteNew", (data: SocketNoteNew) => {
+		eventListener.emit("socketEvent", {
+			type: "noteNew",
+			data
 		} as SocketEvent)
 	})
 }

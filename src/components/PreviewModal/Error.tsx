@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
@@ -34,6 +34,7 @@ const Error = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				position="absolute"
 				zIndex={100001}
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText

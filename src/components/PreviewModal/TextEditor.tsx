@@ -1,5 +1,5 @@
-import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react"
-import type { ItemProps, UploadQueueItemFile } from "../../types"
+import { memo, useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from "react"
+import { ItemProps, UploadQueueItemFile } from "../../types"
 import {
 	Modal,
 	ModalOverlay,
@@ -18,7 +18,6 @@ import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import { getFileExt } from "../../lib/helpers"
 import AppText from "../AppText"
-import CodeMirror from "@uiw/react-codemirror"
 import { createCodeMirrorTheme } from "../../styles/codeMirror"
 import { javascript } from "@codemirror/lang-javascript"
 import { json } from "@codemirror/lang-json"
@@ -37,13 +36,16 @@ import { BiChevronDown } from "react-icons/bi"
 import { i18n } from "../../i18n"
 import memoryCache from "../../lib/memoryCache"
 import { EditorView } from "@codemirror/view"
-import MarkdownPreview from "@uiw/react-markdown-preview"
 import { useLocation } from "react-router-dom"
 import { memoize } from "lodash"
 import ModalCloseButton from "../ModalCloseButton"
+import { ErrorBoundary } from "react-error-boundary"
+
+const CodeMirror = lazy(() => import("@uiw/react-codemirror"))
+const MarkdownPreview = lazy(() => import("@uiw/react-markdown-preview"))
 
 export const getCodeMirrorLanguageExtensionForFile = memoize((name: string) => {
-	const ext: string = getFileExt(name)
+	const ext = getFileExt(name)
 
 	switch (ext) {
 		case "json":
@@ -298,7 +300,8 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "fileHasBeenChanged")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -479,130 +482,151 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 	}, [])
 
 	return (
-		<>
-			<Flex
-				className="full-viewport"
-				flexDirection="column"
-				backgroundColor={getColor(darkMode, "backgroundSecondary")}
-			>
+		<ErrorBoundary fallback={<></>}>
+			<Suspense fallback={<></>}>
 				<Flex
-					width={windowWidth}
-					height="50px"
-					flexDirection="row"
-					alignItems="center"
-					paddingLeft="15px"
-					paddingRight="15px"
+					className="full-viewport"
+					flexDirection="column"
+					backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				>
-					{window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
+					<Flex
+						width={windowWidth}
+						height="50px"
+						flexDirection="row"
+						alignItems="center"
+						paddingLeft="15px"
+						paddingRight="15px"
+						borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+					>
+						{window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
+							<Flex>
+								<FileMenu
+									darkMode={darkMode}
+									isMobile={isMobile}
+									lang={lang}
+									isNewFile={isNewFile}
+								/>
+							</Flex>
+						)}
 						<Flex>
-							<FileMenu
+							<AppText
 								darkMode={darkMode}
 								isMobile={isMobile}
-								lang={lang}
-								isNewFile={isNewFile}
-							/>
+								noOfLines={1}
+								wordBreak="break-all"
+								color={getColor(darkMode, "textSecondary")}
+							>
+								{currentItem.name}
+							</AppText>
 						</Flex>
-					)}
-					<Flex>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							noOfLines={1}
-							wordBreak="break-all"
-							color={getColor(darkMode, "textSecondary")}
-						>
-							{currentItem.name}
-						</AppText>
 					</Flex>
-				</Flex>
-				<Flex
-					width={windowWidth + "px"}
-					height={windowHeight - 50 + "px"}
-				>
-					<CodeMirror
-						value={text}
-						width={textEditorWidth + "px"}
+					<Flex
+						width={windowWidth + "px"}
 						height={windowHeight - 50 + "px"}
-						theme={createCodeMirrorTheme(darkMode)}
-						indentWithTab={true}
-						autoFocus={true}
-						basicSetup={{
-							crosshairCursor: false,
-							searchKeymap: false,
-							foldKeymap: false,
-							lintKeymap: false,
-							completionKeymap: false,
-							closeBracketsKeymap: false,
-							foldGutter: false
-						}}
-						onChange={value => {
-							if (window.location.href.indexOf("/f/") !== -1 || window.location.href.indexOf("/d/") !== -1) {
-								return
-							}
-
-							setTextEdited(value)
-						}}
-						style={{
-							paddingLeft: "5px",
-							paddingRight: "5px",
-							maxWidth: textEditorWidth + "px",
-							maxHeight: windowHeight - 50 + "px",
-							width: textEditorWidth + "px",
-							height: windowHeight - 50 + "px"
-						}}
-						extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
-					/>
-					{showMarkDownPreview && window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
-						<Flex
+					>
+						<CodeMirror
+							value={text}
 							width={textEditorWidth + "px"}
 							height={windowHeight - 50 + "px"}
-							overflowY="auto"
-							backgroundColor={darkMode ? "#0D1117" : "white"}
-						>
-							<MarkdownPreview
-								source={textEdited}
-								style={{
-									width: textEditorWidth + "px",
-									height: windowHeight - 50 + "px",
-									paddingLeft: "15px",
-									paddingRight: "15px",
-									paddingTop: "6px",
-									paddingBottom: "15px",
-									color: getColor(darkMode, "textPrimary"),
-									userSelect: "all"
-								}}
-								rehypeRewrite={(node, index, parent) => {
-									try {
-										if (
-											// @ts-ignore
-											node.tagName === "a" &&
-											parent &&
-											// @ts-ignore
-											/^h(1|2|3|4|5|6)/.test(parent.tagName)
-										) {
-											parent.children = parent.children.slice(1)
+							theme={createCodeMirrorTheme(darkMode)}
+							indentWithTab={true}
+							autoFocus={true}
+							basicSetup={{
+								crosshairCursor: false,
+								searchKeymap: false,
+								foldKeymap: false,
+								lintKeymap: false,
+								completionKeymap: false,
+								closeBracketsKeymap: false,
+								foldGutter: false
+							}}
+							onChange={value => {
+								if (window.location.href.indexOf("/f/") !== -1 || window.location.href.indexOf("/d/") !== -1) {
+									return
+								}
+
+								setTextEdited(value)
+							}}
+							style={{
+								paddingLeft: "5px",
+								paddingRight: "5px",
+								maxWidth: textEditorWidth + 4 + "px",
+								maxHeight: windowHeight - 50 + "px",
+								width: textEditorWidth + 4 + "px",
+								height: windowHeight - 50 + "px",
+								marginLeft: "-5px"
+							}}
+							extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
+						/>
+						{showMarkDownPreview && window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
+							<Flex
+								width={textEditorWidth + "px"}
+								height={windowHeight - 50 + "px"}
+								overflowY="auto"
+								overflowX="hidden"
+								backgroundColor={getColor(darkMode, "backgroundPrimary")}
+								borderLeft={"2px solid " + getColor(darkMode, "borderPrimary")}
+							>
+								<MarkdownPreview
+									source={textEdited}
+									style={{
+										width: textEditorWidth + "px",
+										height: windowHeight - 50 + "px",
+										paddingLeft: "15px",
+										paddingRight: "15px",
+										paddingTop: "6px",
+										paddingBottom: "15px",
+										color: getColor(darkMode, "textPrimary"),
+										userSelect: "all",
+										backgroundColor: getColor(darkMode, "backgroundPrimary")
+									}}
+									rehypeRewrite={(node, index, parent) => {
+										try {
+											if (
+												// @ts-ignore
+												node.tagName === "a" &&
+												parent &&
+												// @ts-ignore
+												/^h(1|2|3|4|5|6)/.test(parent.tagName)
+											) {
+												parent.children = parent.children.slice(1)
+											}
+
+											if (
+												// @ts-ignore
+												node.tagName === "a" &&
+												// @ts-ignore
+												node.properties &&
+												// @ts-ignore
+												node.properties.href &&
+												// @ts-ignore
+												node.properties.href.indexOf("#") !== -1
+											) {
+												// @ts-ignore
+												node.properties.href = window.location.hash
+											}
+										} catch (e) {
+											console.error(e)
 										}
-									} catch (e) {
-										console.error(e)
-									}
-								}}
-								skipHtml={true}
-								linkTarget="_blank"
-								warpperElement={{
-									"data-color-mode": darkMode ? "dark" : "light"
-								}}
-							/>
-						</Flex>
-					)}
+									}}
+									skipHtml={true}
+									linkTarget="_blank"
+									warpperElement={{
+										"data-color-mode": darkMode ? "dark" : "light"
+									}}
+								/>
+							</Flex>
+						)}
+					</Flex>
 				</Flex>
-			</Flex>
-			<BeforeCloseModal
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-				isNewFile={isNewFile}
-			/>
-		</>
+				<BeforeCloseModal
+					darkMode={darkMode}
+					isMobile={isMobile}
+					lang={lang}
+					isNewFile={isNewFile}
+				/>
+			</Suspense>
+		</ErrorBoundary>
 	)
 })
 

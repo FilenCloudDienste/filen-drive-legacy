@@ -1,10 +1,10 @@
 import { memo, useState, useEffect, useMemo } from "react"
 import { Flex } from "@chakra-ui/react"
-import type { ListHeaderProps } from "../../types"
+import { ListHeaderProps } from "../../types"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
 import useDb from "../../lib/hooks/useDb"
-import { IoCaretUp, IoCaretDown } from "react-icons/io5"
+import { IoCaretUpOutline, IoCaretDownOutline } from "react-icons/io5"
 import { i18n } from "../../i18n"
 
 const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, listWidth, lang }: ListHeaderProps) => {
@@ -48,8 +48,8 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 			flexDirection="row"
 			alignItems="center"
 			justifyContent="space-between"
-			paddingLeft="15px"
-			paddingRight="15px"
+			paddingLeft="20px"
+			paddingRight="20px"
 			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 		>
 			<Flex
@@ -61,8 +61,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					setSortBy({
 						...sortBy,
 						[window.location.href]:
-							typeof sortBy[window.location.href] == "undefined" ||
-							sortBy[window.location.href] == "nameAsc"
+							typeof sortBy[window.location.href] == "undefined" || sortBy[window.location.href] == "nameAsc"
 								? "nameDesc"
 								: "nameAsc"
 					})
@@ -79,7 +78,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					{i18n(lang, "name")}
 				</AppText>
 				{typeof sortBy[window.location.href] == "undefined" ? (
-					<IoCaretUp
+					<IoCaretUpOutline
 						size={14}
 						color={getColor(darkMode, "textSecondary")}
 						style={{
@@ -87,7 +86,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 						}}
 					/>
 				) : sortBy[window.location.href] == "nameAsc" ? (
-					<IoCaretUp
+					<IoCaretUpOutline
 						size={14}
 						color={getColor(darkMode, "textSecondary")}
 						style={{
@@ -96,7 +95,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					/>
 				) : (
 					sortBy[window.location.href] == "nameDesc" && (
-						<IoCaretDown
+						<IoCaretDownOutline
 							size={14}
 							color={getColor(darkMode, "textSecondary")}
 							style={{
@@ -115,8 +114,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					setSortBy({
 						...sortBy,
 						[window.location.href]:
-							typeof sortBy[window.location.href] == "undefined" ||
-							sortBy[window.location.href] == "sizeAsc"
+							typeof sortBy[window.location.href] == "undefined" || sortBy[window.location.href] == "sizeAsc"
 								? "sizeDesc"
 								: "sizeAsc"
 					})
@@ -133,7 +131,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					{i18n(lang, "size")}
 				</AppText>
 				{sortBy[window.location.href] == "sizeAsc" ? (
-					<IoCaretUp
+					<IoCaretUpOutline
 						size={14}
 						color={getColor(darkMode, "textSecondary")}
 						style={{
@@ -142,7 +140,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					/>
 				) : (
 					sortBy[window.location.href] == "sizeDesc" && (
-						<IoCaretDown
+						<IoCaretDownOutline
 							size={14}
 							color={getColor(darkMode, "textSecondary")}
 							style={{
@@ -161,8 +159,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					setSortBy({
 						...sortBy,
 						[window.location.href]:
-							typeof sortBy[window.location.href] == "undefined" ||
-							sortBy[window.location.href] == "lastModifiedAsc"
+							typeof sortBy[window.location.href] == "undefined" || sortBy[window.location.href] == "lastModifiedAsc"
 								? "lastModifiedDesc"
 								: "lastModifiedAsc"
 					})
@@ -179,7 +176,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					{i18n(lang, "lastModified")}
 				</AppText>
 				{sortBy[window.location.href] == "lastModifiedAsc" ? (
-					<IoCaretUp
+					<IoCaretUpOutline
 						size={14}
 						color={getColor(darkMode, "textSecondary")}
 						style={{
@@ -188,7 +185,7 @@ const ListHeader = memo(({ darkMode, isMobile, items, setItems, loadingItems, li
 					/>
 				) : (
 					sortBy[window.location.href] == "lastModifiedDesc" && (
-						<IoCaretDown
+						<IoCaretDownOutline
 							size={14}
 							color={getColor(darkMode, "textSecondary")}
 							style={{

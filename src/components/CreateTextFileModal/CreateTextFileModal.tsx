@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
-import type { CreateFolderModalProps, ItemProps } from "../../types"
+import { CreateFolderModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Flex, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -197,7 +197,8 @@ export const CreateTextFileModal = memo(
 				<ModalContent
 					backgroundColor={getColor(darkMode, "backgroundSecondary")}
 					color={getColor(darkMode, "textSecondary")}
-					borderRadius={isMobile ? "0px" : "5px"}
+					borderRadius="10px"
+					border={"1px solid " + getColor(darkMode, "borderPrimary")}
 				>
 					<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "createTextFile")}</ModalHeader>
 					<ModalCloseButton darkMode={darkMode} />

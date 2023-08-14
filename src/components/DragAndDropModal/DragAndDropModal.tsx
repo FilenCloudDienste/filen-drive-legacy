@@ -107,7 +107,8 @@ const DragAndDropModal = memo(
 				<ModalContent
 					backgroundColor={getColor(darkMode, "backgroundSecondary")}
 					color={getColor(darkMode, "textSecondary")}
-					borderRadius={isMobile ? "0px" : "5px"}
+					borderRadius="10px"
+					border={"1px solid " + getColor(darkMode, "borderPrimary")}
 					onDragOver={onDragOverListener}
 					onDragLeave={onDragLeaveListener}
 					onDrop={onDropListener}

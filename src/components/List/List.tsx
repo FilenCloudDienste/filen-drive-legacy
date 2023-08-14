@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useMemo, useCallback } from "react"
 import { Flex } from "@chakra-ui/react"
-import type { ListProps, ListScrollState, ItemProps, ListBodyProps } from "../../types"
+import { ListProps, ListScrollState, ItemProps, ListBodyProps } from "../../types"
 import { Item, SkeletonItem } from "../Item"
 import { contextMenu } from "react-contexify"
 import { List as RVList, Grid as RVGrid } from "react-virtualized"
@@ -11,7 +11,6 @@ import { useLocation } from "react-router-dom"
 import { orderItemsByType, isBetween, getCurrentParent } from "../../lib/helpers"
 import { moveToParent } from "../../lib/services/move"
 import ListEmpty from "../ListEmpty"
-import { DEFAULT_PARENTS } from "../../lib/services/metadata"
 import memoryCache from "../../lib/memoryCache"
 
 const ListBody = memo(
@@ -100,17 +99,7 @@ const ListBody = memo(
 		)
 
 		const cellRenderer = useCallback(
-			({
-				columnIndex,
-				key,
-				rowIndex,
-				style
-			}: {
-				columnIndex: number
-				key: string
-				rowIndex: number
-				style: React.CSSProperties
-			}) => {
+			({ columnIndex, key, rowIndex, style }: { columnIndex: number; key: string; rowIndex: number; style: React.CSSProperties }) => {
 				columnIndex += 1
 				rowIndex += 1
 
@@ -263,14 +252,6 @@ const List = memo(
 				}
 
 				if (
-					DEFAULT_PARENTS.map(parent => (location.pathname.indexOf(parent) !== -1 ? 1 : 0)).filter(
-						res => res == 1
-					).length > 0
-				) {
-					return
-				}
-
-				if (
 					(e.target as HTMLElement).classList.contains("ReactVirtualized__List") ||
 					(e.target as HTMLElement).classList.contains("ReactVirtualized__List__innerScrollContainer") ||
 					(e.target as HTMLElement).classList.contains("ReactVirtualized__Grid") ||
@@ -342,16 +323,18 @@ const List = memo(
 							setDragSelectState={setDragSelectState}
 							lang={lang}
 						/>
-						<ListFooter
-							darkMode={darkMode}
-							isMobile={isMobile}
-							items={items}
-							loadingItems={loadingItems}
-							listScrollState={listScrollState}
-							windowWidth={windowWidth}
-							sidebarWidth={sidebarWidth}
-							lang={lang}
-						/>
+						{!isMobile && (
+							<ListFooter
+								darkMode={darkMode}
+								isMobile={isMobile}
+								items={items}
+								loadingItems={loadingItems}
+								listScrollState={listScrollState}
+								windowWidth={windowWidth}
+								sidebarWidth={sidebarWidth}
+								lang={lang}
+							/>
+						)}
 					</>
 				)}
 			</Flex>

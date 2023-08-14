@@ -1,12 +1,11 @@
-import type { UploadQueueItem, ItemProps } from "../../../types"
+import { UploadQueueItem, ItemProps } from "../../../types"
 import mimeTypes from "mime-types"
 import { generateRandomString, Semaphore, getUploadV3Server, canCompressThumbnail, getFileExt, readChunk } from "../../helpers"
-import { encryptMetadata, hashFn, encryptAndUploadFileChunk, bufferToHash } from "../../worker/worker.com"
+import { encryptMetadata, hashFn, encryptAndUploadFileChunk } from "../../worker/worker.com"
 import db from "../../db"
 import eventListener from "../../eventListener"
 import { MAX_CONCURRENT_UPLOADS, MAX_UPLOAD_THREADS, UPLOAD_VERSION } from "../../constants"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
-import { addItemsToStore } from "../metadata"
 import { fetchUserInfoCached } from "../user"
 import { generateThumbnailAfterUpload } from "../thumbnails"
 import { show as showToast } from "../../../components/Toast/Toast"
@@ -14,24 +13,6 @@ import { i18n } from "../../../i18n"
 
 const uploadSemaphore = new Semaphore(MAX_CONCURRENT_UPLOADS)
 const uploadThreadsSemaphore = new Semaphore(MAX_UPLOAD_THREADS)
-
-export const chunkToHash = async (file: File, index: number, size: number) => {
-	const chunk = await readChunk(file, index, size)
-
-	return await bufferToHash(new Uint8Array(chunk), "SHA-1")
-}
-
-export const generateClientSideFileHashes = async (file: File, fileChunks: number, chunkSizeToUse: number): Promise<string[]> => {
-	const promises: Promise<string>[] = []
-
-	for (let i = 0; i < fileChunks + 1; i++) {
-		promises.push(chunkToHash(file, i, chunkSizeToUse))
-	}
-
-	const hashes = await Promise.all(promises)
-
-	return hashes
-}
 
 export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<ItemProps> => {
 	return new Promise(async (resolve, reject) => {
@@ -354,8 +335,6 @@ export const queueFileUpload = (item: UploadQueueItem, parent: string): Promise<
 			item: newItem
 		})
 
-		addItemsToStore([newItem], newItem.parent).catch(console.error)
-
-		return resolve(newItem)
+		resolve(newItem)
 	})
 }

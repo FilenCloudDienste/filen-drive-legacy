@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
-import type { RenameModalProps, ItemProps } from "../../types"
+import { RenameModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -11,7 +11,6 @@ import { orderItemsByType, getFileExt, fileAndFolderNameValidation } from "../..
 import { show as showToast } from "../Toast/Toast"
 import { addFolderNameToDb } from "../../lib/services/items"
 import { i18n } from "../../i18n"
-import { changeItemsInStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameModalProps) => {
@@ -84,17 +83,6 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 					window.location.href
 				)
 			)
-
-			changeItemsInStore(
-				[
-					{
-						...currentItem,
-						name: value,
-						selected: false
-					}
-				],
-				currentItem.parent
-			).catch(console.error)
 
 			showToast("success", i18n(lang, "itemRenamed"))
 
@@ -179,7 +167,8 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "rename")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react"
-import type { PublicLinkModalProps, ItemProps } from "../../types"
+import { PublicLinkModalProps, ItemProps } from "../../types"
 import {
 	Modal,
 	ModalOverlay,
@@ -24,7 +24,6 @@ import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
 import { decryptFolderLinkKey } from "../../lib/worker/worker.com"
 import { ONE_YEAR } from "../../lib/constants"
 import { i18n } from "../../i18n"
-import { removeItemsFromStore, addItemsToStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLinkModalProps) => {
@@ -135,8 +134,6 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 				)
 			})
 
-			addItemsToStore([currentItem], "links").catch(console.error)
-
 			fetchInfo(currentItem, true)
 		} catch (e: any) {
 			console.error(e)
@@ -158,8 +155,6 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 
 		try {
 			await disableItemPublicLink(currentItem, info.uuid)
-
-			removeItemsFromStore([currentItem], "links").catch(console.error)
 
 			if (window.location.href.indexOf("links") !== -1) {
 				setItems(prev => prev.filter(item => item.uuid !== currentItem.uuid))
@@ -240,7 +235,8 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "publicLink")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

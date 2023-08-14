@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react"
-import type { AppBaseProps, LinkDirInfoV1, ItemProps, DragSelectState } from "../../types"
+import { AppBaseProps, LinkDirInfo, ItemProps, DragSelectState } from "../../types"
 import { useParams } from "react-router-dom"
 import { validate as validateUUID } from "uuid"
 import InvalidLink from "../../components/PublicLink/InvalidLink"
@@ -38,7 +38,7 @@ const cache = new Map()
 const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const params = useParams()
 	const key = useRef<string>(window.location.hash.split("#").join("").split("!").join("")).current
-	const [info, setInfo] = useState<LinkDirInfoV1 | undefined>(undefined)
+	const [info, setInfo] = useState<LinkDirInfo | undefined>(undefined)
 	const [needsPassword, setNeedsPassword] = useState<boolean>(false)
 	const [password, setPassword] = useState<string>("")
 	const [notFound, setNotFound] = useState<boolean>(false)

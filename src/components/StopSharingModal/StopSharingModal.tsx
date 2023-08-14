@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
-import type { StopSharingModalProps, ItemProps } from "../../types"
+import { StopSharingModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -7,7 +7,6 @@ import AppText from "../AppText"
 import { stopSharingItem } from "../../lib/api"
 import { show as showToast } from "../Toast/Toast"
 import { i18n } from "../../i18n"
-import { removeItemsFromStore } from "../../lib/services/metadata"
 import ModalCloseButton from "../ModalCloseButton"
 
 const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopSharingModalProps) => {
@@ -97,8 +96,6 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
 				"bottom",
 				5000
 			)
-
-			removeItemsFromStore(stopSharingItems.current, "shared-out").catch(console.error)
 		}
 
 		stopSharingItems.current = []
@@ -149,7 +146,8 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "stopSharing")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

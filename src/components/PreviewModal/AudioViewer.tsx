@@ -1,5 +1,5 @@
 import { memo, useRef, useEffect } from "react"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
@@ -53,6 +53,7 @@ const AudioViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				position="absolute"
 				zIndex={100001}
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText
@@ -81,10 +82,7 @@ const AudioViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 						src={audio}
 						onVolumeChange={() => {
 							if (playerRef.current) {
-								db.set(
-									"audioViewerVolume",
-									playerRef.current.muted ? 0 : playerRef.current.volume
-								).catch(console.error)
+								db.set("audioViewerVolume", playerRef.current.muted ? 0 : playerRef.current.volume).catch(console.error)
 							}
 						}}
 					/>

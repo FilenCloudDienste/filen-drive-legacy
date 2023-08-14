@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react"
 import { Flex } from "@chakra-ui/react"
-import type { ItemDragTooltipProps } from "../../types"
+import { ItemDragTooltipProps } from "../../types"
 import { getItemDragIndicatorCoords } from "../../lib/helpers"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"

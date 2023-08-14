@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react"
-import type { AppBaseProps, LinkDirInfoV1, ItemProps } from "../../types"
+import { AppBaseProps, LinkDirInfo, ItemProps } from "../../types"
 import { Flex, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
@@ -11,7 +11,7 @@ import { IoGridOutline, IoList } from "react-icons/io5"
 
 export interface FolderContainerProps extends AppBaseProps {
 	children?: React.ReactNode
-	info: LinkDirInfoV1 | undefined
+	info: LinkDirInfo | undefined
 	toggleColorMode: any
 	previewContainerHeight: number
 	previewContainerWidth: number

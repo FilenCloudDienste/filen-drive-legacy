@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { AuthContainerProps } from "../../types"
+import { AuthContainerProps } from "../../types"
 import { Flex, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import LoginImage from "../../assets/images/login.jpg"

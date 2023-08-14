@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
 import db from "../../db"
 import eventListener from "../../eventListener"
+import { StoreTypes } from "../../db/db"
 
-const useDb = (key: string, defaultValue: any): [any, (value: any) => Promise<void>] => {
+const useDb = (key: string, defaultValue: any, storeType: StoreTypes = "normal"): [any, (value: any) => Promise<void>] => {
 	const [value, setValue] = useState<any>(defaultValue)
 
 	useEffect(() => {
-		db.get(key)
+		db.get(key, storeType)
 			.then(value => {
 				if (typeof value !== "undefined" && value !== null) {
 					setValue(value)
@@ -41,7 +42,7 @@ const useDb = (key: string, defaultValue: any): [any, (value: any) => Promise<vo
 		}
 	}, [])
 
-	return [value, (value: any): Promise<void> => db.set(key, value)]
+	return [value, (value: any): Promise<void> => db.set(key, value, storeType).catch(console.error)]
 }
 
 export default useDb

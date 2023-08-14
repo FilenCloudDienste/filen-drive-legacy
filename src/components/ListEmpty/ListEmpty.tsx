@@ -11,6 +11,23 @@ import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri
 import { i18n } from "../../i18n"
 import { AiOutlineSearch } from "react-icons/ai"
 
+const Parent = memo(({ children }: { children: React.ReactNode }) => {
+	return (
+		<Flex
+			width="100%"
+			height="100%"
+			flexDirection="column"
+			justifyContent="center"
+			alignItems="center"
+			className="no-items-uploaded"
+			paddingLeft="25px"
+			paddingRight="25px"
+		>
+			{children}
+		</Flex>
+	)
+})
+
 const ListEmpty = memo(
 	({
 		darkMode,
@@ -37,16 +54,7 @@ const ListEmpty = memo(
 
 		if (searchTerm.length > 0) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<AiOutlineSearch
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -54,29 +62,21 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
 						fontSize={isMobile ? 15 : 17}
 						color={getColor(darkMode, "textSecondary")}
 						marginTop="10px"
+						textAlign="center"
+						wordBreak="break-word"
 					>
 						{i18n(lang, "searchNothingFound", true, ["__TERM__"], [searchTerm])}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("shared-in") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<RiFolderReceivedFill
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -84,7 +84,8 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -94,28 +95,20 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_2")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("shared-out") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<RiFolderSharedFill
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -123,7 +116,8 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -133,28 +127,20 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_4")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("links") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<RiLink
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -162,7 +148,7 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -172,28 +158,20 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						wordBreak="break-word"
+						textAlign="center"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_6")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("favorites") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<MdOutlineFavorite
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -201,7 +179,8 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -211,28 +190,20 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_8")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("recent") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<HiClock
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -240,7 +211,8 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -250,28 +222,20 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_10")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
 		if (location.hash.indexOf("trash") !== -1) {
 			return (
-				<Flex
-					width="100%"
-					height="100%"
-					flexDirection="column"
-					justifyContent="center"
-					alignItems="center"
-					className="no-items-uploaded"
-					paddingLeft="15px"
-					paddingRight="15px"
-				>
+				<Parent>
 					<IoTrash
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
@@ -279,7 +243,8 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.primary}
 						color={getColor(darkMode, "textPrimary")}
 						marginTop="10px"
@@ -289,13 +254,14 @@ const ListEmpty = memo(
 					<AppText
 						darkMode={darkMode}
 						isMobile={isMobile}
-						noOfLines={1}
+						textAlign="center"
+						wordBreak="break-word"
 						fontSize={sizes.secondary}
 						color={getColor(darkMode, "textSecondary")}
 					>
 						{i18n(lang, "listEmpty_12")}
 					</AppText>
-				</Flex>
+				</Parent>
 			)
 		}
 
@@ -308,8 +274,8 @@ const ListEmpty = memo(
 				alignItems="center"
 				className="no-items-uploaded open-main-context-menu"
 				onContextMenu={handleContextMenu}
-				paddingLeft="15px"
-				paddingRight="15px"
+				paddingLeft="25px"
+				paddingRight="25px"
 			>
 				<IoFolder
 					size={sizes.icon}
@@ -318,7 +284,8 @@ const ListEmpty = memo(
 				<AppText
 					darkMode={darkMode}
 					isMobile={isMobile}
-					noOfLines={1}
+					textAlign="center"
+					wordBreak="break-word"
 					fontSize={sizes.primary}
 					color={getColor(darkMode, "textPrimary")}
 					marginTop="10px"
@@ -328,7 +295,8 @@ const ListEmpty = memo(
 				<AppText
 					darkMode={darkMode}
 					isMobile={isMobile}
-					noOfLines={1}
+					textAlign="center"
+					wordBreak="break-word"
 					fontSize={sizes.secondary}
 					color={getColor(darkMode, "textSecondary")}
 				>

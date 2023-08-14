@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react"
 import Cookies from "../../cookies"
 
+const getInitialValue = () => {
+	const value = Cookies.get("windowWidth")
+
+	return typeof value === "string" ? parseInt(value as string) : 1920
+}
+
 const useWindowWidth = (): number => {
-	const [width, setWidth] = useState<number>(
-		typeof Cookies.get("windowWidth") == "string" ? parseInt(Cookies.get("windowWidth") as string) : 1920
-	)
+	const [width, setWidth] = useState<number>(getInitialValue())
 
 	useEffect(() => {
 		setWidth(document.documentElement.clientWidth || window.innerWidth)

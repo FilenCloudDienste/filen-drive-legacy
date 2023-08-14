@@ -1,6 +1,6 @@
 import db from "../../db"
 import cookies from "../../cookies"
-import type { NavigateFunction } from "react-router-dom"
+import { NavigateFunction } from "react-router-dom"
 
 export const logout = async (navigate?: NavigateFunction) => {
 	try {

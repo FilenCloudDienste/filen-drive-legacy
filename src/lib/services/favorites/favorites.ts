@@ -1,24 +1,17 @@
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { favoriteItem } from "../../api"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { getLang } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { changeItemsInStore } from "../metadata"
 
 export const markAsFavorite = async (items: ItemProps[], favorite: 0 | 1): Promise<void> => {
 	const lang: string = getLang()
 
 	const toastId = showToast(
 		"loading",
-		i18n(
-			lang,
-			favorite == 1 ? "favoritingItems" : "unfavoritingItems",
-			true,
-			["__COUNT__"],
-			[items.length.toString()]
-		),
+		i18n(lang, favorite == 1 ? "favoritingItems" : "unfavoritingItems", true, ["__COUNT__"], [items.length.toString()]),
 		"bottom",
 		ONE_YEAR
 	)
@@ -78,17 +71,6 @@ export const markAsFavorite = async (items: ItemProps[], favorite: 0 | 1): Promi
 				item: favorited[i],
 				favorited: favorite
 			})
-
-			changeItemsInStore(
-				[
-					{
-						...favorited[i],
-						favorited: favorite,
-						selected: false
-					}
-				],
-				favorited[i].parent
-			).catch(console.error)
 		}
 	}
 

@@ -1,21 +1,15 @@
-import type { ItemProps, FolderColors } from "../../../types"
+import { ItemProps, FolderColors } from "../../../types"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { changeFolderColor } from "../../api"
 import { ONE_YEAR } from "../../constants"
 import { getLang } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { changeItemsInStore } from "../metadata"
 
 export const changeColor = async (items: ItemProps[], color: FolderColors) => {
 	const lang: string = getLang()
 
-	const toastId = showToast(
-		"loading",
-		i18n(lang, "changingColor", true, ["__COUNT__"], [items.length.toString()]),
-		"bottom",
-		ONE_YEAR
-	)
+	const toastId = showToast("loading", i18n(lang, "changingColor", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 
 	const promises = []
 	const changed: ItemProps[] = []
@@ -68,17 +62,6 @@ export const changeColor = async (items: ItemProps[], color: FolderColors) => {
 				item: changed[i],
 				color
 			})
-
-			changeItemsInStore(
-				[
-					{
-						...changed[i],
-						color,
-						selected: false
-					}
-				],
-				changed[i].parent
-			).catch(console.error)
 		}
 	}
 

@@ -374,7 +374,10 @@ const de: {
 	queued: "Warteschlange",
 	searchInThisFolder: "In diesem Ordner suchen...",
 	fileVersioning: "Dateiversionierung",
-	loginAlerts: "Login Benachrichtigungen"
+	loginAlerts: "Login Benachrichtigungen",
+	chats: "Chats",
+	chatsMessageInput: "Sende eine Nachricht an __NAME__",
+	notes: "Notizen"
 }
 
 export default de

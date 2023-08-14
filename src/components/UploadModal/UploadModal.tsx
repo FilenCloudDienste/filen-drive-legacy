@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useRef, useCallback, useMemo, Component } fr
 import eventListener from "../../lib/eventListener"
 import { getColor } from "../../styles/colors"
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Flex, ModalFooter, Progress } from "@chakra-ui/react"
-import type {
+import {
 	UploadModalProps,
 	UploadQueueItem,
 	UploadQueueItemFile,
@@ -674,6 +674,8 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 				height={windowHeight / 2 + "px"}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "upload")}</ModalHeader>

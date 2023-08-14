@@ -1,22 +1,19 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react"
-import { Flex, Image, Avatar, Spinner } from "@chakra-ui/react"
+import { Flex, Avatar, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import type { TopbarProps, UserInfoV1 } from "../../types"
-import DarkLogo from "../../assets/images/dark_logo.svg"
-import LightLogo from "../../assets/images/light_logo.svg"
+import { TopbarProps, UserInfo } from "../../types"
 import Input from "../../components/Input"
 import eventListener from "../../lib/eventListener"
-import db from "../../lib/db"
 import { useNavigate, useLocation } from "react-router-dom"
 import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
 import { i18n } from "../../i18n"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, generateAvatarColorCode } from "../../lib/helpers"
 
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const [userInfo, setUserInfo] = useState<UserInfoV1 | undefined>(undefined)
+	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
 
 	const uploadButtonEnabled: boolean = useMemo(() => {
 		return (
@@ -50,54 +47,40 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 		<Flex
 			width="100%"
 			height="50px"
-			borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 			alignItems="center"
 			paddingLeft="15px"
-			paddingRight="15px"
+			paddingRight="20px"
 			flexDirection="row"
 			justifyContent="space-between"
+			gap="25px"
 		>
-			<Flex>
-				<Image
-					src={darkMode ? LightLogo : DarkLogo}
-					width="28px"
-					height="28px"
-					cursor="pointer"
-					onClick={() => {
-						db.get("defaultDriveUUID")
-							.then(defaultDriveUUID => {
-								if (typeof defaultDriveUUID == "string" && defaultDriveUUID.length > 32) {
-									navigate("/#/" + defaultDriveUUID)
-								}
-							})
-							.catch(console.error)
-					}}
-				/>
-			</Flex>
-			{location.hash.indexOf("account") == -1 && (
-				<Flex>
+			{!isMobile && <Flex>&nbsp;</Flex>}
+			{location.hash.indexOf("account") === -1 &&
+				location.hash.indexOf("chats") === -1 &&
+				location.hash.indexOf("notes") === -1 &&
+				location.hash.indexOf("contacts") === -1 && (
 					<Input
 						darkMode={darkMode}
 						isMobile={isMobile}
 						placeholder={i18n(lang, "searchInThisFolder")}
-						width={windowWidth / 3 + "px"}
-						maxWidth="450px"
-						height="28px"
+						width={isMobile ? "100%" : windowWidth / 3 + "px"}
+						maxWidth={!isMobile ? "500px" : undefined}
+						height="30px"
 						backgroundColor={getColor(darkMode, "backgroundSecondary")}
-						borderRadius="8px"
+						borderRadius="10px"
 						fontWeight="350"
 						fontSize={13}
-						paddingLeft="10px"
-						paddingRight="10px"
+						paddingLeft="12px"
+						paddingRight="12px"
 						value={searchTerm}
 						onChange={e => setSearchTerm(e.target.value)}
 						color={getColor(darkMode, "textSecondary")}
+						border="none"
 						_placeholder={{
-							color: getColor(darkMode, "textSecondary")
+							color: !darkMode ? "gray" : getColor(darkMode, "textSecondary")
 						}}
 					/>
-				</Flex>
-			)}
+				)}
 			<Flex
 				alignItems="center"
 				width="auto"
@@ -122,6 +105,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						width="28px"
 						height="28px"
 						src={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
+						bg={generateAvatarColorCode(userInfo.email, darkMode)}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}
 					/>

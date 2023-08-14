@@ -1,5 +1,5 @@
 import { memo } from "react"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { Spinner, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
@@ -28,6 +28,7 @@ const PDFViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, current
 				justifyContent="space-between"
 				paddingLeft="15px"
 				paddingRight="15px"
+				borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<Flex>
 					<AppText

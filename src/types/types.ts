@@ -1,6 +1,6 @@
-import type { ButtonProps as ChakraButtonProps, InputProps as ChakraInputProps, TextProps } from "@chakra-ui/react"
-import type { ReactElement } from "react"
-import type { MouseEventHandler } from "react"
+import { ButtonProps as ChakraButtonProps, InputProps as ChakraInputProps, TextProps } from "@chakra-ui/react"
+import { ReactElement } from "react"
+import { MouseEventHandler } from "react"
 
 export interface AppBaseProps {
 	windowWidth: number
@@ -359,6 +359,7 @@ export interface CloudTreeProps extends SidebarBaseProps {
 	items: ItemProps[]
 	setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>
 	setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
+	sidebarWidth: number
 }
 
 export interface SidebarFolderOpenProps {
@@ -376,6 +377,7 @@ export interface CloudTreeItemProps extends SidebarBaseProps {
 	items: ItemProps[]
 	setItems: React.Dispatch<React.SetStateAction<ItemProps[]>>
 	setActiveItem: React.Dispatch<React.SetStateAction<ItemProps | null>>
+	sidebarWidth: number
 }
 
 export interface TopbarProps {

@@ -64,7 +64,7 @@
 }
 
 .react-contexify__theme--filenlight .react-contexify__separator {
-	background-color: 1px solid rgba(0, 0, 0, 0.1);
+	background-color: 1px solid #f0f0f0;
 }
 
 .react-contexify__theme--filenlight .react-contexify__item:not(.react-contexify__item--disabled):focus {

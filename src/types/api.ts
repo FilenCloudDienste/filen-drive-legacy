@@ -1,6 +1,6 @@
-import type { FolderColors } from "./types"
+import { FolderColors } from "./types"
 
-export interface UserInfoV1 {
+export interface UserInfo {
 	id: number
 	email: string
 	isPremium: number
@@ -9,7 +9,7 @@ export interface UserInfoV1 {
 	avatarURL: string
 }
 
-export interface FileVersionsV1 {
+export interface FileVersions {
 	bucket: string
 	chunks: number
 	metadata: string
@@ -20,7 +20,7 @@ export interface FileVersionsV1 {
 	version: number
 }
 
-export interface UserGetSettingsV1 {
+export interface UserGetSettings {
 	email: string
 	storageUsed: number
 	twoFactorEnabled: 0 | 1
@@ -29,9 +29,11 @@ export interface UserGetSettingsV1 {
 	unfinishedStorage: number
 	versionedFiles: number
 	versionedStorage: number
+	versioningEnabled: boolean
+	loginAlertsEnabled: boolean
 }
 
-export interface UserGetAccountPlanV1 {
+export interface UserGetAccountPlan {
 	cost: number
 	endTimestamp: number
 	id: number
@@ -40,7 +42,7 @@ export interface UserGetAccountPlanV1 {
 	storage: number
 }
 
-export interface UserGetSubsInvoicesV1 {
+export interface UserGetSubsInvoices {
 	gateway: string
 	id: string
 	planCost: number
@@ -49,7 +51,7 @@ export interface UserGetSubsInvoicesV1 {
 	timestamp: number
 }
 
-export interface UserGetAccountSubsV1 {
+export interface UserGetAccountSubs {
 	id: string
 	planId: number
 	planName: string
@@ -62,7 +64,7 @@ export interface UserGetAccountSubsV1 {
 	cancelTimestamp: number
 }
 
-export interface UserGetAccountV1 {
+export interface UserGetAccount {
 	affBalance: number
 	affCount: number
 	affEarnings: number
@@ -84,18 +86,19 @@ export interface UserGetAccountV1 {
 		streetNumber: string | null
 		vatId: string | null
 	}
-	plans: UserGetAccountPlanV1[]
+	plans: UserGetAccountPlan[]
 	refId: string
 	refLimit: number
 	refStorage: number
 	referCount: number
 	referStorage: number
 	storage: number
-	subs: UserGetAccountSubsV1[]
-	subsInvoices: UserGetSubsInvoicesV1[]
+	nickName: string
+	subs: UserGetAccountSubs[]
+	subsInvoices: UserGetSubsInvoices[]
 }
 
-export interface LinkGetInfoV1 {
+export interface LinkGetInfo {
 	bucket: string
 	chunks: number
 	downloadBtn: boolean
@@ -109,12 +112,12 @@ export interface LinkGetInfoV1 {
 	version: number
 }
 
-export interface LinkHasPasswordV1 {
+export interface LinkHasPassword {
 	hasPassword: boolean
 	salt: string
 }
 
-export interface LinkDirInfoV1 {
+export interface LinkDirInfo {
 	parent: string
 	metadata: string
 	hasPassword: boolean
@@ -122,7 +125,7 @@ export interface LinkDirInfoV1 {
 	timestamp: number
 }
 
-export interface LinkDirContentV1 {
+export interface LinkDirContent {
 	folders: {
 		color: FolderColors
 		metadata: string

@@ -5,7 +5,7 @@ import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import { show as showToast } from "../Toast/Toast"
 import { buySub } from "../../lib/api"
-import type { PaymentMethods } from "../../types"
+import { PaymentMethods } from "../../types"
 import Button from "../Button"
 import { i18n } from "../../i18n"
 import ModalCloseButton from "../ModalCloseButton"
@@ -88,7 +88,8 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{plan.name}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

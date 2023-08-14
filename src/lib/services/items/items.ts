@@ -1,4 +1,4 @@
-import type { ItemProps, ItemReceiver } from "../../../types"
+import { ItemProps, ItemReceiver } from "../../../types"
 import db from "../../db"
 import {
 	decryptFolderName,
@@ -8,11 +8,10 @@ import {
 	decryptFolderNameLink,
 	decryptFileMetadataLink
 } from "../../worker/worker.com"
-import { folderContent, sharedInContent, sharedOutContent, recentContent, getFolderContents } from "../../api"
+import { folderContent, sharedInContent, sharedOutContent, recentContent, getFolderContents, folderContentFoldersOnly } from "../../api"
 import { orderItemsByType, getCurrentParent, Semaphore, convertTimestampToMs } from "../../helpers"
 import memoryCache from "../../memoryCache"
 import striptags from "striptags"
-import { addToSearchItems } from "../search"
 
 const addFolderNameToDbSemaphore = new Semaphore(1)
 
@@ -42,8 +41,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 	const uuid = getCurrentParent(href)
 
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
-		let [apiKey, masterKeys, privateKey, userId, userEmail, sortBy] = await Promise.all([
-			db.get("apiKey"),
+		let [masterKeys, privateKey, userId, userEmail, sortBy] = await Promise.all([
 			db.get("masterKeys"),
 			db.get("privateKey"),
 			db.get("userId"),
@@ -433,7 +431,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 			sortBy = {}
 		}
 
-		let items = (await Promise.all(promises)).filter(item => item !== null) as ItemProps[]
+		let items = (await Promise.all(promises)).filter(item => item !== null).map(item => ({ ...item, selected: false })) as ItemProps[]
 
 		if (href.indexOf("shared-out") !== -1) {
 			const groups: ItemProps[] = []
@@ -473,8 +471,6 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 
 		const sorted: ItemProps[] = orderItemsByType(items, sortBy[href], href)
 
-		addToSearchItems(sorted)
-
 		await db.set("loadItems:" + uuid, sorted, "metadata")
 
 		return {
@@ -501,16 +497,12 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 
 export const loadSidebarItems = async (uuid: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
-		const [apiKey, masterKeys, defaultDriveUUID] = await Promise.all([
-			db.get("apiKey"),
-			db.get("masterKeys"),
-			db.get("defaultDriveUUID")
-		])
+		const [masterKeys, defaultDriveUUID] = await Promise.all([db.get("masterKeys"), db.get("defaultDriveUUID")])
 
 		const promises: Promise<ItemProps | null>[] = []
 
 		if (uuid == "base" || uuid == "cloudDrive") {
-			const content = await folderContent(defaultDriveUUID)
+			const content = await folderContentFoldersOnly(defaultDriveUUID)
 
 			const folders = content.folders
 
@@ -561,7 +553,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 				)
 			}
 		} else {
-			const content = await folderContent(uuid)
+			const content = await folderContentFoldersOnly(uuid)
 			const folders = content.folders
 
 			for (const folder of folders) {
@@ -614,8 +606,6 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 
 		const items: ItemProps[] = (await Promise.all(promises)).filter(item => item !== null) as ItemProps[]
 		const sorted = orderItemsByType(items, "nameAsc")
-
-		addToSearchItems(sorted)
 
 		await db.set("loadSidebarItems:" + uuid, sorted, "metadata")
 

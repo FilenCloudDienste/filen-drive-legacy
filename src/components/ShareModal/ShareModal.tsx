@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
-import type { ShareModalProps, ItemProps } from "../../types"
+import { ShareModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -85,6 +85,10 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 		const openShareModalListener = eventListener.on("openShareModal", ({ items }: { items: ItemProps[] }) => {
 			toShare.current = items
 
+			if (items.length === 0) {
+				return
+			}
+
 			setOpen(true)
 		})
 
@@ -104,7 +108,8 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "share")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

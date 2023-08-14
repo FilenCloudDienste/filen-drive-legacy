@@ -1,6 +1,4 @@
 import { memo, useMemo, useRef, useState, useEffect, useCallback } from "react"
-import "react-contexify/dist/ReactContexify.css"
-import "../../styles/contexify.css"
 import {
 	Menu as ContextMenu,
 	Item as ContextMenuItem,
@@ -11,7 +9,7 @@ import {
 } from "react-contexify"
 import { normalDownload, zipDownload } from "../../lib/services/download"
 import db from "../../lib/db"
-import type { ItemProps, ContextMenusProps, MoveSubmenuProps, FolderColors } from "../../types"
+import { ItemProps, ContextMenusProps, MoveSubmenuProps, FolderColors } from "../../types"
 import { getFileExt, getFilePreviewType, getFolderColor, getCurrentParent } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import { markAsFavorite } from "../../lib/services/favorites"
@@ -61,22 +59,19 @@ const MoveSubmenu = memo(({ parent, load, uuid, darkMode, isMobile, items, lang 
 		moveToParent(selected, moveUUID)
 	}, [uuid])
 
-	const fetchFolders = useCallback(
-		(uuid: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
-			return new Promise((resolve, reject) => {
-				if (uuid == "base") {
-					db.get("defaultDriveUUID")
-						.then(defaultDriveUUID => {
-							loadSidebarItems(defaultDriveUUID, skipCache).then(resolve).catch(reject)
-						})
-						.catch(reject)
-				} else {
-					loadSidebarItems(uuid, skipCache).then(resolve).catch(reject)
-				}
-			})
-		},
-		[]
-	)
+	const fetchFolders = useCallback((uuid: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
+		return new Promise((resolve, reject) => {
+			if (uuid == "base") {
+				db.get("defaultDriveUUID")
+					.then(defaultDriveUUID => {
+						loadSidebarItems(defaultDriveUUID, skipCache).then(resolve).catch(reject)
+					})
+					.catch(reject)
+			} else {
+				loadSidebarItems(uuid, skipCache).then(resolve).catch(reject)
+			}
+		})
+	}, [])
 
 	const loadFolders = useCallback((uuid: string, skipCache: boolean = false) => {
 		fetchFolders(uuid, skipCache)
@@ -223,52 +218,31 @@ const MoveSubmenu = memo(({ parent, load, uuid, darkMode, isMobile, items, lang 
 const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: ContextMenusProps) => {
 	const location = useLocation()
 
-	const [
-		selected,
-		selectedCount,
-		fileCount,
-		folderCount,
-		canEdit,
-		canPreview,
-		favoriteEnabledCount,
-		favoriteDisabledCount
-	] = useMemo(() => {
-		const selected: ItemProps[] = items.filter(item => item.selected)
-		const selectedCount: number = selected.length
-		const fileCount: number = items.filter(item => item.selected && item.type == "file").length
-		const folderCount: number = items.filter(item => item.selected && item.type == "folder").length
-		const canEdit: boolean =
-			selectedCount == 1 &&
-			fileCount == 1 &&
-			folderCount == 0 &&
-			items.filter(
-				item =>
-					item.selected &&
-					item.type == "file" &&
-					["text", "code"].includes(getFilePreviewType(getFileExt(item.name)))
-			).length == 1 &&
-			location.hash.indexOf("shared-in") == -1
-		const canPreview: boolean =
-			selectedCount == 1 &&
-			fileCount == 1 &&
-			folderCount == 0 &&
-			items.filter(
-				item => item.selected && item.type == "file" && getFilePreviewType(getFileExt(item.name)) !== "none"
-			).length == 1
-		const favoriteEnabledCount: number = selected.filter(item => item.favorited == 1).length
-		const favoriteDisabledCount: number = selected.filter(item => item.favorited == 0).length
+	const [selected, selectedCount, fileCount, folderCount, canEdit, canPreview, favoriteEnabledCount, favoriteDisabledCount] =
+		useMemo(() => {
+			const selected: ItemProps[] = items.filter(item => item.selected)
+			const selectedCount: number = selected.length
+			const fileCount: number = items.filter(item => item.selected && item.type == "file").length
+			const folderCount: number = items.filter(item => item.selected && item.type == "folder").length
+			const canEdit: boolean =
+				selectedCount == 1 &&
+				fileCount == 1 &&
+				folderCount == 0 &&
+				items.filter(
+					item => item.selected && item.type == "file" && ["text", "code"].includes(getFilePreviewType(getFileExt(item.name)))
+				).length == 1 &&
+				location.hash.indexOf("shared-in") == -1
+			const canPreview: boolean =
+				selectedCount == 1 &&
+				fileCount == 1 &&
+				folderCount == 0 &&
+				items.filter(item => item.selected && item.type == "file" && getFilePreviewType(getFileExt(item.name)) !== "none").length ==
+					1
+			const favoriteEnabledCount: number = selected.filter(item => item.favorited == 1).length
+			const favoriteDisabledCount: number = selected.filter(item => item.favorited == 0).length
 
-		return [
-			selected,
-			selectedCount,
-			fileCount,
-			folderCount,
-			canEdit,
-			canPreview,
-			favoriteEnabledCount,
-			favoriteDisabledCount
-		]
-	}, [items, location])
+			return [selected, selectedCount, fileCount, folderCount, canEdit, canPreview, favoriteEnabledCount, favoriteDisabledCount]
+		}, [items, location])
 
 	const deleteItems = useCallback(
 		(passedItem: ItemProps | undefined = undefined) => {
@@ -493,12 +467,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 					<>
 						<ContextMenuItem
 							onClick={() => {
-								const downloadingToast = showToast(
-									"loading",
-									i18n(lang, "preparingDownload"),
-									"bottom",
-									ONE_YEAR
-								)
+								const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
 								normalDownload(selected, () => {
 									dismissToast(downloadingToast)
@@ -523,12 +492,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 						>
 							<ContextMenuItem
 								onClick={() => {
-									const downloadingToast = showToast(
-										"loading",
-										i18n(lang, "preparingDownload"),
-										"bottom",
-										ONE_YEAR
-									)
+									const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
 									normalDownload(selected, () => {
 										dismissToast(downloadingToast)
@@ -545,12 +509,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							</ContextMenuItem>
 							<ContextMenuItem
 								onClick={() => {
-									const downloadingToast = showToast(
-										"loading",
-										i18n(lang, "preparingDownload"),
-										"bottom",
-										ONE_YEAR
-									)
+									const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
 									zipDownload(selected, () => {
 										dismissToast(downloadingToast)
@@ -574,9 +533,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 					location.pathname.indexOf("/f/") == -1 && (
 						<>
 							{selectedCount == 1 && (
-								<ContextMenuItem onClick={() => publicLink()}>
-									{i18n(lang, "publicLink")}
-								</ContextMenuItem>
+								<ContextMenuItem onClick={() => publicLink()}>{i18n(lang, "publicLink")}</ContextMenuItem>
 							)}
 							<ContextMenuItem onClick={() => shareItems()}>{i18n(lang, "share")}</ContextMenuItem>
 							<ContextMenuSeparator />
@@ -690,17 +647,13 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 					location.hash.indexOf("trash") == -1 &&
 					location.hash.indexOf("shared-in") == -1 &&
 					location.pathname.indexOf("/f/") == -1 && (
-						<ContextMenuItem onClick={() => markAsFavorite(selected, 0)}>
-							{i18n(lang, "unfavorite")}
-						</ContextMenuItem>
+						<ContextMenuItem onClick={() => markAsFavorite(selected, 0)}>{i18n(lang, "unfavorite")}</ContextMenuItem>
 					)}
 				{favoriteDisabledCount > 0 &&
 					location.hash.indexOf("trash") == -1 &&
 					location.hash.indexOf("shared-in") == -1 &&
 					location.pathname.indexOf("/f/") == -1 && (
-						<ContextMenuItem onClick={() => markAsFavorite(selected, 1)}>
-							{i18n(lang, "favorite")}
-						</ContextMenuItem>
+						<ContextMenuItem onClick={() => markAsFavorite(selected, 1)}>{i18n(lang, "favorite")}</ContextMenuItem>
 					)}
 				{(favoriteEnabledCount + favoriteDisabledCount > 0 || fileCount == 0) &&
 					location.hash.indexOf("trash") == -1 &&
@@ -732,9 +685,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 									label={i18n(lang, "move")}
 									arrow={<IoChevronForward fontSize={16} />}
 								>
-									<ContextMenuItem onClick={() => moveModal()}>
-										{i18n(lang, "selectDestination")}
-									</ContextMenuItem>
+									<ContextMenuItem onClick={() => moveModal()}>{i18n(lang, "selectDestination")}</ContextMenuItem>
 									<ContextMenuSeparator />
 									<MoveSubmenu
 										parent={i18n(lang, "move")}
@@ -756,21 +707,15 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							{i18n(lang, "restore")}
 						</ContextMenuItem>
 						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => deleteItemsPermanently()}>
-							{i18n(lang, "deletePerm")}
-						</ContextMenuItem>
+						<ContextMenuItem onClick={() => deleteItemsPermanently()}>{i18n(lang, "deletePerm")}</ContextMenuItem>
 					</>
 				)}
-				{location.hash.indexOf("shared-in") !== -1 &&
-					location.pathname.indexOf("/f/") == -1 &&
-					getCurrentParent().length < 32 && (
-						<ContextMenuItem onClick={() => removeSharedIn()}>{i18n(lang, "remove")}</ContextMenuItem>
-					)}
-				{location.hash.indexOf("shared-out") !== -1 &&
-					location.pathname.indexOf("/f/") == -1 &&
-					getCurrentParent().length < 32 && (
-						<ContextMenuItem onClick={() => stopSharing()}>{i18n(lang, "stopSharing")}</ContextMenuItem>
-					)}
+				{location.hash.indexOf("shared-in") !== -1 && location.pathname.indexOf("/f/") == -1 && getCurrentParent().length < 32 && (
+					<ContextMenuItem onClick={() => removeSharedIn()}>{i18n(lang, "remove")}</ContextMenuItem>
+				)}
+				{location.hash.indexOf("shared-out") !== -1 && location.pathname.indexOf("/f/") == -1 && getCurrentParent().length < 32 && (
+					<ContextMenuItem onClick={() => stopSharing()}>{i18n(lang, "stopSharing")}</ContextMenuItem>
+				)}
 			</ContextMenu>
 			<ContextMenu
 				id="sidebarContextMenu"
@@ -784,12 +729,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 					<>
 						<ContextMenuItem
 							onClick={() => {
-								const downloadingToast = showToast(
-									"loading",
-									i18n(lang, "preparingDownload"),
-									"bottom",
-									ONE_YEAR
-								)
+								const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
 								normalDownload([activeItem], () => {
 									dismissToast(downloadingToast)
@@ -805,9 +745,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							{i18n(lang, "download")}
 						</ContextMenuItem>
 						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => publicLink(activeItem)}>
-							{i18n(lang, "publicLink")}
-						</ContextMenuItem>
+						<ContextMenuItem onClick={() => publicLink(activeItem)}>{i18n(lang, "publicLink")}</ContextMenuItem>
 						<ContextMenuItem onClick={() => shareItems(activeItem)}>{i18n(lang, "share")}</ContextMenuItem>
 						<ContextMenuSeparator />
 						<ContextMenuSubmenu
@@ -900,14 +838,10 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							</ContextMenuItem>
 						</ContextMenuSubmenu>
 						{favoriteEnabledCount > 0 && (
-							<ContextMenuItem onClick={() => markAsFavorite([activeItem], 0)}>
-								{i18n(lang, "unfavorite")}
-							</ContextMenuItem>
+							<ContextMenuItem onClick={() => markAsFavorite([activeItem], 0)}>{i18n(lang, "unfavorite")}</ContextMenuItem>
 						)}
 						{favoriteDisabledCount > 0 && (
-							<ContextMenuItem onClick={() => markAsFavorite([activeItem], 1)}>
-								{i18n(lang, "favorite")}
-							</ContextMenuItem>
+							<ContextMenuItem onClick={() => markAsFavorite([activeItem], 1)}>{i18n(lang, "favorite")}</ContextMenuItem>
 						)}
 						<ContextMenuSeparator />
 						<ContextMenuItem
@@ -924,9 +858,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 								label={i18n(lang, "move")}
 								arrow={<IoChevronForward fontSize={16} />}
 							>
-								<ContextMenuItem onClick={() => moveModal(activeItem)}>
-									{i18n(lang, "selectDestination")}
-								</ContextMenuItem>
+								<ContextMenuItem onClick={() => moveModal(activeItem)}>{i18n(lang, "selectDestination")}</ContextMenuItem>
 								<ContextMenuSeparator />
 								<MoveSubmenu
 									parent={i18n(lang, "move")}
@@ -939,9 +871,7 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 								/>
 							</ContextMenuSubmenu>
 						)}
-						<ContextMenuItem onClick={() => deleteItems(activeItem)}>
-							{i18n(lang, "delete")}
-						</ContextMenuItem>
+						<ContextMenuItem onClick={() => deleteItems(activeItem)}>{i18n(lang, "delete")}</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>

@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback } from "react"
-import type { ItemProps, ItemReceiver } from "../../types"
+import { ItemProps, ItemReceiver } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Flex, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -81,7 +81,8 @@ const SharedWithInfoModal = memo(({ darkMode, isMobile, lang }: { darkMode: bool
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "sharedWith")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

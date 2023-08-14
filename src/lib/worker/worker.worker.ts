@@ -1,5 +1,5 @@
 import { expose, transfer } from "comlink"
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
 import memoryCache from "../memoryCache"
 import {
 	arrayBufferToHex,
@@ -10,12 +10,13 @@ import {
 	mergeUInt8Arrays,
 	getAPIV3Server,
 	convertWordArrayToArrayBuffer,
-	convertArrayBufferToBinaryString
+	convertArrayBufferToBinaryString,
+	parseURLParams
 } from "../helpers"
 // @ts-ignore
 import CryptoApi from "crypto-api-v1"
 import CryptoJS from "crypto-js"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import {
 	MAX_DOWNLOAD_RETRIES,
 	DOWNLOAD_RETRY_TIMEOUT,
@@ -39,46 +40,51 @@ const apiRequest = (
 		let current = -1
 		let lastErr: Error
 
-		const req = () => {
-			current += 1
+		bufferToHash(textEncoder.encode(JSON.stringify(typeof data !== "undefined" ? data : {})), "SHA-512")
+			.then(checksum => {
+				const req = () => {
+					current += 1
 
-			if (current >= MAX_API_RETRIES) {
-				return reject(lastErr)
-			}
-
-			const promise =
-				method.toUpperCase() === "POST"
-					? axios.post(getAPIV3Server() + endpoint, data, {
-							headers: {
-								Authorization: "Bearer " + apiKey
-							}
-					  })
-					: axios.get(getAPIV3Server() + endpoint, {
-							headers: {
-								Authorization: "Bearer " + apiKey
-							}
-					  })
-
-			promise
-				.then(response => {
-					if (response.status !== 200) {
-						lastErr = new Error("Response status " + response.status)
-
-						setTimeout(req, API_RETRY_TIMEOUT)
-
-						return
+					if (current >= MAX_API_RETRIES) {
+						return reject(lastErr)
 					}
 
-					return resolve(response.data)
-				})
-				.catch(err => {
-					lastErr = err
+					const promise =
+						method.toUpperCase() === "POST"
+							? axios.post(getAPIV3Server() + endpoint, data, {
+									headers: {
+										Authorization: "Bearer " + apiKey,
+										Checksum: checksum
+									}
+							  })
+							: axios.get(getAPIV3Server() + endpoint, {
+									headers: {
+										Authorization: "Bearer " + apiKey
+									}
+							  })
 
-					setTimeout(req, API_RETRY_TIMEOUT)
-				})
-		}
+					promise
+						.then(response => {
+							if (response.status !== 200) {
+								lastErr = new Error("Response status " + response.status)
 
-		req()
+								setTimeout(req, API_RETRY_TIMEOUT)
+
+								return
+							}
+
+							return resolve(response.data)
+						})
+						.catch(err => {
+							lastErr = err
+
+							setTimeout(req, API_RETRY_TIMEOUT)
+						})
+				}
+
+				req()
+			})
+			.catch(reject)
 	})
 }
 
@@ -368,6 +374,32 @@ const encryptMetadataPublicKey = async (data: string, publicKey: string): Promis
 	return arrayBufferToBase64(encrypted)
 }
 
+const decryptMetadataPrivateKey = async (data: string, privateKey: string): Promise<string> => {
+	try {
+		const cacheKey: string = "decryptMetadataPrivateKey:" + data
+
+		if (memoryCache.has(cacheKey)) {
+			return memoryCache.get(cacheKey)
+		}
+
+		const importedKey = await importPrivateKey(privateKey, ["decrypt"])
+		const decrypted = await globalThis.crypto.subtle.decrypt(
+			{
+				name: "RSA-OAEP"
+			},
+			importedKey,
+			base64ToArrayBuffer(data)
+		)
+		const metadata = textDecoder.decode(decrypted)
+
+		memoryCache.set(cacheKey, metadata)
+
+		return metadata
+	} catch (e) {
+		return ""
+	}
+}
+
 const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]): Promise<CryptoKey> => {
 	const cacheKey = "importPrivateKey:" + mode.join(":") + ":" + publicKey
 
@@ -513,17 +545,9 @@ const decryptFileMetadataPrivateKey = async (
 	}
 }
 
-const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array | string> => {
-	if (typeof data == "undefined") {
-		return ""
-	}
-
-	if (typeof data.byteLength == "undefined") {
-		return ""
-	}
-
-	if (data.byteLength == 0) {
-		return ""
+const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array> => {
+	if (typeof data === "undefined" || typeof data.byteLength === "undefined" || data.byteLength === 0) {
+		throw new Error("encryptData: Invalid data")
 	}
 
 	const iv = generateRandomString(12)
@@ -552,82 +576,90 @@ const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, 
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
-				bufferToHash(
-					(encryptedChunk as Uint8Array).byteLength > 0 ? (encryptedChunk as Uint8Array) : new Uint8Array([1]),
-					"SHA-512"
-				)
+				if (encryptedChunk.byteLength <= 0) {
+					reject(new Error("Chunk byteLength <= 0"))
+
+					return
+				}
+
+				bufferToHash(encryptedChunk, "SHA-512")
 					.then(chunkHash => {
 						let current = -1
 						let lastBytes = 0
 						let lastErr: Error
 
-						if ((encryptedChunk as Uint8Array).byteLength > 0) {
-							url = url + "&hash=" + encodeURIComponent(chunkHash)
-						}
+						url = url + "&hash=" + encodeURIComponent(chunkHash)
 
-						const req = () => {
-							current += 1
+						const urlParams = parseURLParams(url)
 
-							if (current >= MAX_UPLOAD_RETRIES) {
-								return reject(lastErr)
-							}
+						bufferToHash(textEncoder.encode(JSON.stringify(urlParams)), "SHA-512")
+							.then(checksum => {
+								const req = () => {
+									current += 1
 
-							lastBytes = 0
-
-							axios({
-								method: "post",
-								url,
-								data: new Blob([encryptedChunk]),
-								timeout: 3600000,
-								headers: {
-									Authorization: "Bearer " + apiKey
-								},
-								onUploadProgress: event => {
-									if (typeof event !== "object" || typeof event.loaded !== "number") {
-										return
+									if (current >= MAX_UPLOAD_RETRIES) {
+										return reject(lastErr)
 									}
 
-									let bytes = event.loaded
+									lastBytes = 0
 
-									if (lastBytes == 0) {
-										lastBytes = event.loaded
-									} else {
-										bytes = Math.floor(event.loaded - lastBytes)
-										lastBytes = event.loaded
-									}
+									axios({
+										method: "post",
+										url,
+										data: new Blob([encryptedChunk]),
+										timeout: 3600000,
+										headers: {
+											Authorization: "Bearer " + apiKey,
+											Checksum: checksum
+										},
+										onUploadProgress: event => {
+											if (typeof event !== "object" || typeof event.loaded !== "number") {
+												return
+											}
 
-									globalThis.postMessage({
-										type: "uploadProgress",
-										data: {
-											uuid,
-											bytes: bytes
+											let bytes = event.loaded
+
+											if (lastBytes == 0) {
+												lastBytes = event.loaded
+											} else {
+												bytes = Math.floor(event.loaded - lastBytes)
+												lastBytes = event.loaded
+											}
+
+											globalThis.postMessage({
+												type: "uploadProgress",
+												data: {
+													uuid,
+													bytes: bytes
+												}
+											})
 										}
 									})
+										.then(response => {
+											if (response.status !== 200) {
+												lastErr = new Error("Request status: " + response.status)
+
+												setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+
+												return
+											}
+
+											if (!response.data.status) {
+												return reject(response.data.message)
+											}
+
+											return resolve(response.data)
+										})
+										.catch(err => {
+											lastErr = err
+
+											setTimeout(req, UPLOAD_RETRY_TIMEOUT)
+										})
 								}
+
+								req()
 							})
-								.then(response => {
-									if (response.status !== 200) {
-										lastErr = new Error("Request status: " + response.status)
-
-										setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-
-										return
-									}
-
-									if (!response.data.status) {
-										return reject(response.data.message)
-									}
-
-									return resolve(response.data)
-								})
-								.catch(err => {
-									lastErr = err
-
-									setTimeout(req, UPLOAD_RETRY_TIMEOUT)
-								})
-						}
-
-						req()
+							.catch(reject)
 					})
 					.catch(reject)
 			})
@@ -799,7 +831,7 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 					lastErr = err
 
 					console.error(lastErr)
-					console.log("Axios error")
+					console.error("Axios error")
 
 					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
 				})
@@ -904,6 +936,364 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 	return transfer(result, [result.buffer])
 }
 
+export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatMessageKey:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	try {
+		const key = await decryptMetadataPrivateKey(metadata, privateKey)
+
+		if (!key) {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		memoryCache.set(cacheKey, parsed.key)
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptChatMessage = async (message: string, metadata: string, privateKey: string): Promise<string> => {
+	try {
+		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
+
+		if (keyDecrypted.length === 0) {
+			return ""
+		}
+
+		const messageDecrypted = await decryptMetadata(message, keyDecrypted)
+
+		if (!messageDecrypted) {
+			return ""
+		}
+
+		const parsedMessage = JSON.parse(messageDecrypted)
+
+		if (typeof parsedMessage.message !== "string") {
+			return ""
+		}
+
+		return parsedMessage.message
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ message }), key)
+}
+
+export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteKeyOwner:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	let key = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = await decryptMetadata(metadata, masterKeys[i])
+
+			if (obj && typeof obj.key === "string") {
+				if (obj.key.length >= 16) {
+					key = obj.key
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	if (typeof key == "string") {
+		if (key.length > 0) {
+			memoryCache.set(cacheKey, key)
+		}
+	}
+
+	return key
+}
+
+export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptNoteKeyParticipant:" + metadata
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	try {
+		const key = await decryptMetadataPrivateKey(metadata, privateKey)
+
+		if (typeof key !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		memoryCache.set(cacheKey, parsed.key)
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteContent = async (content: string, key: string): Promise<string> => {
+	try {
+		const decrypted = await decryptMetadata(content, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.content !== "string") {
+			return ""
+		}
+
+		return parsed.content
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNoteTitle:" + title
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	try {
+		const decrypted = await decryptMetadata(title, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.title !== "string") {
+			return ""
+		}
+
+		memoryCache.set(cacheKey, parsed.title)
+
+		return parsed.title
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNotePreview:" + preview
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	try {
+		const decrypted = await decryptMetadata(preview, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.preview !== "string") {
+			return ""
+		}
+
+		memoryCache.set(cacheKey, parsed.preview)
+
+		return parsed.preview
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ content }), key)
+}
+
+export const encryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ title }), key)
+}
+
+export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ preview }), key)
+}
+
+export const encryptNoteTagName = async (name: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
+export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteTagName:" + name
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey)
+	}
+
+	let decryptedName = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = JSON.parse(await decryptMetadata(name, masterKeys[i]))
+
+			if (obj && typeof obj.name === "string") {
+				if (obj.name.length > 0) {
+					decryptedName = obj.name
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	if (typeof decryptedName == "string") {
+		if (decryptedName.length > 0) {
+			memoryCache.set(cacheKey, decryptedName)
+		}
+	}
+
+	return decryptedName
+}
+
+export const parseOGFromURL = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string" || response.headers["content-type"].split(";")[0].trim() !== "text/html") {
+		throw new Error("Response type is not text/html: " + url)
+	}
+
+	const metadata: Record<string, string> = {}
+	const ogTags = response.data.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const ogTags2 = response.data.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/g)
+
+	if (ogTags) {
+		ogTags.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
+	if (ogTags2) {
+		ogTags2.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
+	const otherTags = response.data.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const otherTags2 = response.data.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/g)
+
+	if (otherTags) {
+		otherTags.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	if (otherTags2) {
+		otherTags2.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	const titleMatch = response.data.match(/<title>([^<]+)<\/title>/)
+
+	if (titleMatch && titleMatch[1] && typeof titleMatch[1] === "string") {
+		metadata["title"] = titleMatch[1]
+	}
+
+	const faviconMatch = response.data.match(/<link\s+rel="icon"\s+href="([^"]+)"\s*\/?>/)
+	const faviconMatch2 = response.data.match(/<link\s+rel='icon'\s+href='([^"]+)'\s*\/?>/)
+
+	if (faviconMatch && faviconMatch[1] && typeof faviconMatch[1] === "string") {
+		metadata["favicon"] = faviconMatch[1]
+	}
+
+	if (faviconMatch2 && faviconMatch2[1] && typeof faviconMatch2[1] === "string") {
+		metadata["favicon"] = faviconMatch2[1]
+	}
+
+	return metadata
+}
+
+export const corsHead = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.head(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string") {
+		throw new Error("Response type is not string: " + url)
+	}
+
+	return response.headers
+}
+
+export const corsGet = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string") {
+		throw new Error("Response type is not string: " + url)
+	}
+
+	return response.data
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -928,7 +1318,24 @@ export const api = {
 	decryptFolderNameLink,
 	decryptFileMetadataLink,
 	convertHeic,
-	bufferToHash
+	bufferToHash,
+	decryptMetadataPrivateKey,
+	decryptChatMessageKey,
+	decryptChatMessage,
+	encryptChatMessage,
+	decryptNoteKeyOwner,
+	decryptNoteKeyParticipant,
+	encryptNoteContent,
+	decryptNoteContent,
+	decryptNotePreview,
+	decryptNoteTitle,
+	encryptNoteTitle,
+	encryptNotePreview,
+	encryptNoteTagName,
+	decryptNoteTagName,
+	parseOGFromURL,
+	corsHead,
+	corsGet
 }
 
 expose(api)

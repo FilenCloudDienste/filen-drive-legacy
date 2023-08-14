@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback } from "react"
-import type { VersionsModalProps, ItemProps } from "../../types"
+import { VersionsModalProps, ItemProps } from "../../types"
 import {
 	Modal,
 	ModalOverlay,
@@ -21,14 +21,14 @@ import AppText from "../AppText"
 import { restoreArchivedFile, fetchFileVersions, trashItem } from "../../lib/api"
 import { decryptFileMetadata } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
-import { FileVersionsV1 } from "../../types"
+import { FileVersions } from "../../types"
 import { convertTimestampToMs, simpleDate, formatBytes } from "../../lib/helpers"
 import { queueFileDownload } from "../../lib/services/download"
 import { i18n } from "../../i18n"
 import ModalCloseButton from "../ModalCloseButton"
 
 export type Version = {
-	item: FileVersionsV1
+	item: FileVersions
 	metadata: {
 		name: string
 		size: number
@@ -241,7 +241,8 @@ const VersionsModal = memo(({ darkMode, isMobile, lang }: VersionsModalProps) =>
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "versions")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

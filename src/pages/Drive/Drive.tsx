@@ -1,9 +1,9 @@
 import { memo, useEffect, useState, useRef, useCallback, useMemo } from "react"
-import type { AppBaseProps } from "../../types"
+import { AppBaseProps } from "../../types"
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { Flex, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import type {
+import {
 	ItemProps,
 	ItemDragState,
 	DragSelectState,
@@ -57,16 +57,20 @@ import Account from "../../components/Account"
 import DragAndDropModal from "../../components/DragAndDropModal"
 import EventInfoModal from "../../components/EventInfoModal"
 import SharedWithInfoModal from "../../components/SharedWithInfoModal"
-import type { SocketEvent } from "../../lib/services/socket"
+import { SocketEvent } from "../../lib/services/socket"
 import { decryptFileMetadata, decryptFolderName } from "../../lib/worker/worker.com"
 import striptags from "striptags"
 import LogoAnimated from "../../assets/images/logo_animated.gif"
-import { addItemsToStore, removeItemsFromStore, clearItemsInStore } from "../../lib/services/metadata"
 import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
 import { debounce } from "lodash"
 import EmptryTrashModal from "../../components/EmptyTrashModal"
+import { validate } from "uuid"
+import Chats from "../../components/Chats"
+import Notes from "../../components/Notes"
+import Contacts from "../../components/Contacts"
+import { i18n } from "../../i18n"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -136,6 +140,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 			if (
 				memoryCache.has("previewModalOpen") ||
 				window.location.hash.indexOf("account") !== -1 ||
+				window.location.hash.indexOf("chats") !== -1 ||
+				window.location.hash.indexOf("notes") !== -1 ||
+				window.location.hash.indexOf("contacts") !== -1 ||
 				document.querySelectorAll(".chakra-modal__overlay").length > 0
 			) {
 				return
@@ -263,10 +270,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 		if (
 			path.filter(
-				el =>
-					typeof el !== "undefined" &&
-					typeof el.className == "string" &&
-					el.className.indexOf("do-not-unselect-items") !== -1
+				el => typeof el !== "undefined" && typeof el.className == "string" && el.className.indexOf("do-not-unselect-items") !== -1
 			).length == 0 &&
 			!isDragSelecting.current
 		) {
@@ -274,51 +278,54 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		}
 	}, [])
 
-	const readDroppedFiles = useCallback(async (e: DragEvent): Promise<void> => {
-		if (
-			window.location.hash.indexOf("shared-in") !== -1 ||
-			window.location.hash.indexOf("trash") !== -1 ||
-			window.location.hash.indexOf("links") !== -1 ||
-			window.location.hash.indexOf("favorites") !== -1 ||
-			window.location.hash.indexOf("recent") !== -1 ||
-			window.location.hash.indexOf("account") !== -1
-		) {
-			return
-		}
-
-		const items = e.dataTransfer?.items
-
-		if (!items) {
-			return
-		}
-
-		const preparingToast = showToast("loading", "Preparing files..", "bottom", 8640000)
-
-		try {
-			const files = await readLocalDroppedDirectory(items)
-
-			if (files.filter(file => typeof (file as any).uuid !== "undefined").length > 0) {
-				dismissToast(preparingToast)
-
+	const readDroppedFiles = useCallback(
+		async (e: DragEvent): Promise<void> => {
+			if (
+				window.location.hash.indexOf("shared-in") !== -1 ||
+				window.location.hash.indexOf("trash") !== -1 ||
+				window.location.hash.indexOf("links") !== -1 ||
+				window.location.hash.indexOf("favorites") !== -1 ||
+				window.location.hash.indexOf("recent") !== -1 ||
+				window.location.hash.indexOf("account") !== -1
+			) {
 				return
 			}
 
-			const filteredFiles = files.filter(file => file.size > 0)
+			const items = e.dataTransfer?.items
 
-			if (filteredFiles.length > 0) {
-				eventListener.emit("openUploadModal", {
-					files: filteredFiles,
-					openModal: filteredFiles.length > 0
-				})
+			if (!items) {
+				return
 			}
-		} catch (e: any) {
-			console.error(e)
 
-			showToast("error", e.toString(), "bottom", 5000)
-		}
+			const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"), "bottom", 8640000)
 
-		dismissToast(preparingToast)
-	}, [])
+			try {
+				const files = await readLocalDroppedDirectory(items)
+
+				if (files.filter(file => typeof (file as any).uuid !== "undefined").length > 0) {
+					dismissToast(preparingToast)
+
+					return
+				}
+
+				const filteredFiles = files.filter(file => file.size > 0)
+
+				if (filteredFiles.length > 0) {
+					eventListener.emit("openUploadModal", {
+						files: filteredFiles,
+						openModal: filteredFiles.length > 0
+					})
+				}
+			} catch (e: any) {
+				console.error(e)
+
+				showToast("error", e.toString(), "bottom", 5000)
+			}
+
+			dismissToast(preparingToast)
+		},
+		[lang]
+	)
 
 	const bodyOnDropListener = useCallback((e: DragEvent): void => {
 		setShowDragAndDropModal(false)
@@ -329,10 +336,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 			items: []
 		})
 
-		if (
-			(e.dataTransfer?.files && e.dataTransfer?.files[0]) ||
-			(e.dataTransfer?.items && e.dataTransfer?.items[0])
-		) {
+		if ((e.dataTransfer?.files && e.dataTransfer?.files[0]) || (e.dataTransfer?.items && e.dataTransfer?.items[0])) {
 			readDroppedFiles(e)
 		}
 
@@ -398,13 +402,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 		window.doingSetup = true
 
-		Promise.all([
-			db.set("isOnline", true),
-			db.get("apiKey"),
-			db.get("defaultDriveUUID"),
-			db.get("userId"),
-			db.get("masterKeys")
-		])
+		Promise.all([db.set("isOnline", true), db.get("apiKey"), db.get("defaultDriveUUID"), db.get("userId"), db.get("masterKeys")])
 			.then(([_, apiKey, defaultDriveUUID, userId, masterKeys]) => {
 				if (apiKey == null || defaultDriveUUID == null || userId == null || masterKeys == null) {
 					cookies.set("loggedIn", "false")
@@ -430,13 +428,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					return
 				}
 
-				if (
-					!apiKey ||
-					!defaultDriveUUID ||
-					apiKey.length !== 64 ||
-					defaultDriveUUID.length < 32 ||
-					userId <= 0
-				) {
+				if (!apiKey || !defaultDriveUUID || apiKey.length !== 64 || defaultDriveUUID.length < 32 || userId <= 0) {
 					cookies.set("loggedIn", "false")
 
 					navigate("/login" + (typeof params.get("pro") == "string" ? "?pro=" + params.get("pro") : ""), {
@@ -470,7 +462,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						if (typeof params.get("pro") == "string") {
 							navigate("/#/account/plans?pro=" + params.get("pro"))
 						} else {
-							navigate("/#/" + defaultDriveUUID)
+							//navigate("/#/" + defaultDriveUUID)
 						}
 
 						window.doingSetup = false
@@ -504,11 +496,22 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		async (refresh: boolean = false): Promise<void> => {
 			const startingURL = window.location.href
 
-			if (startingURL.indexOf("#/") == -1) {
+			if (
+				startingURL.indexOf("#/") === -1 ||
+				startingURL.indexOf("chats") !== -1 ||
+				startingURL.indexOf("notes") !== -1 ||
+				startingURL.indexOf("contacts") !== -1
+			) {
 				return
 			}
 
-			const getItemsInDb = await db.get("loadItems:" + getCurrentParent(startingURL), "metadata")
+			const currentParent = getCurrentParent(startingURL)
+
+			if (!validate(currentParent) && !["shared-in", "shared-out", "links", "recent", "favorites", "trash"].includes(currentParent)) {
+				return
+			}
+
+			const getItemsInDb = await db.get("loadItems:" + currentParent, "metadata")
 			const hasItemsInDb = Array.isArray(getItemsInDb)
 
 			if (!hasItemsInDb) {
@@ -553,13 +556,19 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		populateList(true)
 	}, [searchTerm])
 
+	const unduplicatedItems = useMemo(() => {
+		return items.filter((value, index, self) => {
+			return self.findIndex(v => v.uuid === value.uuid) === index
+		})
+	}, [items])
+
 	const filteredSearchItems = useMemo(() => {
 		if (searchTerm.length <= 0) {
-			return items
+			return unduplicatedItems
 		}
 
-		return items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
-	}, [items, searchTerm])
+		return unduplicatedItems.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
+	}, [unduplicatedItems, searchTerm])
 
 	useEffect(() => {
 		if (initDone && location.hash.split("/").length < 2) {
@@ -664,9 +673,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		const itemFavoritedListener = eventListener.on("itemFavorited", (data: ItemFavoritedEvent) => {
 			setItems(prev => {
 				if (prev.filter(item => item.uuid == data.item.uuid).length > 0) {
-					return prev.map(item =>
-						item.uuid == data.item.uuid ? { ...item, favorited: data.favorited } : item
-					)
+					return prev.map(item => (item.uuid == data.item.uuid ? { ...item, favorited: data.favorited } : item))
 				}
 
 				return prev
@@ -711,36 +718,27 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		})
 
 		const fileUploadedListener = eventListener.on("fileUploaded", (data: FileUploadedEvent) => {
-			setItems(prev => {
-				if (getCurrentURLParentFolder() == data.item.parent) {
-					if (prev.filter(item => item.uuid == data.item.uuid).length == 0) {
-						const items: ItemProps[] = [
-							...prev.filter(item => item.name !== data.item.name),
-							...[data.item]
-						]
-
-						return orderItemsByType(items, sortBy[window.location.href], window.location.href)
-					}
-				}
-
-				return prev
-			})
+			if (getCurrentURLParentFolder() == data.item.parent) {
+				setItems(prev =>
+					orderItemsByType(
+						[...prev.filter(item => item.name !== data.item.name && item.uuid !== data.item.uuid), data.item],
+						sortBy[window.location.href],
+						window.location.href
+					)
+				)
+			}
 		})
 
 		const addFolderListener = eventListener.on("addFolder", (data: AddFolderEvent) => {
-			setItems(prev => {
-				if (getCurrentURLParentFolder() == data.item.parent) {
-					if (prev.filter(item => item.uuid == data.item.uuid).length == 0) {
-						return orderItemsByType(
-							[...prev, ...[data.item]],
-							sortBy[window.location.href],
-							window.location.href
-						)
-					}
-				}
-
-				return prev
-			})
+			if (getCurrentURLParentFolder() == data.item.parent) {
+				setItems(prev =>
+					orderItemsByType(
+						[...prev.filter(item => item.name !== data.item.name && item.uuid !== data.item.uuid), data.item],
+						sortBy[window.location.href],
+						window.location.href
+					)
+				)
+			}
 		})
 
 		const itemColorChangedListener = eventListener.on("itemColorChanged", (data: ItemColorChangedEvent) => {
@@ -763,9 +761,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				if (typeof decrypted.name == "string") {
 					if (decrypted.name.length > 0) {
 						setItems(prev =>
-							prev.map(item =>
-								item.uuid == event.data.uuid ? { ...item, name: striptags(decrypted.name) } : item
-							)
+							prev.map(item => (item.uuid == event.data.uuid ? { ...item, name: striptags(decrypted.name) } : item))
 						)
 					}
 				}
@@ -775,17 +771,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 				if (typeof decrypted == "string") {
 					if (decrypted.length > 0) {
-						setItems(prev =>
-							prev.map(item =>
-								item.uuid == event.data.uuid ? { ...item, name: striptags(decrypted) } : item
-							)
-						)
+						setItems(prev => prev.map(item => (item.uuid == event.data.uuid ? { ...item, name: striptags(decrypted) } : item)))
 					}
 				}
 			} else if (event.type == "folderColorChanged") {
-				setItems(prev =>
-					prev.map(item => (item.uuid == event.data.uuid ? { ...item, color: event.data.color } : item))
-				)
+				setItems(prev => prev.map(item => (item.uuid == event.data.uuid ? { ...item, color: event.data.color } : item)))
 			} else if (event.type == "folderSubCreated" || event.type == "folderRestore") {
 				if (getCurrentParent() == event.data.parent) {
 					const masterKeys = (await db.get("masterKeys")) || []
@@ -833,9 +823,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											window.location.href
 										)
 									)
-
-									addItemsToStore([newFolderItem], event.data.parent).catch(console.error)
-									removeItemsFromStore([newFolderItem], "trash").catch(console.error)
 								}
 
 								return prev
@@ -883,16 +870,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 										region: event.data.region
 									}
 
-									setItems(prev =>
-										orderItemsByType(
-											[...prev, ...[{ ...newItem, selected: false }]],
-											sortBy[window.location.href],
-											window.location.href
-										)
+									return orderItemsByType(
+										[...prev, ...[{ ...newItem, selected: false }]],
+										sortBy[window.location.href],
+										window.location.href
 									)
-
-									addItemsToStore([newItem], event.data.parent).catch(console.error)
-									removeItemsFromStore([newItem], "trash").catch(console.error)
 								}
 
 								return prev
@@ -942,12 +924,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											region: event.data.region
 										}
 
-										setItems(prev =>
-											orderItemsByType(
-												[...prev, ...[{ ...newItem, selected: false }]],
-												sortBy[window.location.href],
-												window.location.href
-											)
+										return orderItemsByType(
+											[...prev, ...[{ ...newItem, selected: false }]],
+											sortBy[window.location.href],
+											window.location.href
 										)
 									}
 
@@ -992,12 +972,10 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 											region: ""
 										}
 
-										setItems(prev =>
-											orderItemsByType(
-												[...prev, ...[{ ...newFolderItem, selected: false }]],
-												sortBy[window.location.href],
-												window.location.href
-											)
+										return orderItemsByType(
+											[...prev, ...[{ ...newFolderItem, selected: false }]],
+											sortBy[window.location.href],
+											window.location.href
 										)
 									}
 
@@ -1012,8 +990,6 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 			} else if (event.type == "trashEmpty") {
 				if (window.location.href.indexOf("trash") !== -1) {
 					setItems([])
-
-					clearItemsInStore("trash").catch(console.error)
 				}
 			}
 		})
@@ -1114,7 +1090,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						return
 					}
 
-					const preparingToast = showToast("loading", "Preparing files..")
+					const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
 
 					const files = e.target.files
 					const toUpload = []
@@ -1160,7 +1136,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 						return
 					}
 
-					const preparingToast = showToast("loading", "Preparing files..")
+					const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
 
 					const files = e.target.files
 					const toUpload = []
@@ -1187,17 +1163,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					display: "none"
 				}}
 			/>
-			<Topbar
-				darkMode={darkMode}
-				isMobile={isMobile}
-				windowWidth={windowWidth}
-				lang={lang}
-				searchTerm={searchTerm}
-				setSearchTerm={setSearchTerm}
-			/>
 			<Flex
 				width="100%"
-				height={windowHeight - 50 + "px"}
+				height={windowHeight + "px"}
 			>
 				<Sidebar
 					darkMode={darkMode}
@@ -1215,6 +1183,19 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					flexDirection="column"
 					outline="none"
 				>
+					{location.hash.indexOf("account") === -1 &&
+						location.hash.indexOf("chats") === -1 &&
+						location.hash.indexOf("notes") === -1 &&
+						location.hash.indexOf("contacts") === -1 && (
+							<Topbar
+								darkMode={darkMode}
+								isMobile={isMobile}
+								windowWidth={windowWidth}
+								lang={lang}
+								searchTerm={searchTerm}
+								setSearchTerm={setSearchTerm}
+							/>
+						)}
 					{location.hash.indexOf("account") !== -1 ? (
 						<Account
 							darkMode={darkMode}
@@ -1224,6 +1205,19 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 							sidebarWidth={sidebarWidth}
 							lang={lang}
 						/>
+					) : location.hash.indexOf("chats") !== -1 ? (
+						<Chats
+							darkMode={darkMode}
+							isMobile={isMobile}
+							windowWidth={windowWidth}
+							windowHeight={windowHeight}
+							sidebarWidth={sidebarWidth}
+							lang={lang}
+						/>
+					) : location.hash.indexOf("notes") !== -1 ? (
+						<Notes sidebarWidth={sidebarWidth} />
+					) : location.hash.indexOf("contacts") !== -1 ? (
+						<Contacts sidebarWidth={sidebarWidth} />
 					) : (
 						<>
 							<Breadcrumbs

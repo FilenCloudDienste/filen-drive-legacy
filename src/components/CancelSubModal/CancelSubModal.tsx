@@ -60,7 +60,8 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; 
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "cancelSub")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

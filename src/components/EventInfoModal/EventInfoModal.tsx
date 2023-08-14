@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback } from "react"
-import type { EventInfoModalProps, UserEvent } from "../../types"
+import { EventInfoModalProps, UserEvent } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -85,7 +85,8 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "event")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -242,22 +243,7 @@ const EventInfoModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, la
 						</Flex>
 					)}
 				</ModalBody>
-				<ModalFooter>
-					<AppText
-						darkMode={darkMode}
-						isMobile={isMobile}
-						noOfLines={1}
-						wordBreak="break-all"
-						color={getColor(darkMode, "textSecondary")}
-						cursor="pointer"
-						onClick={() => setOpen(false)}
-						_hover={{
-							color: getColor(darkMode, "textPrimary")
-						}}
-					>
-						{i18n(lang, "close")}
-					</AppText>
-				</ModalFooter>
+				<ModalFooter />
 			</ModalContent>
 		</Modal>
 	)

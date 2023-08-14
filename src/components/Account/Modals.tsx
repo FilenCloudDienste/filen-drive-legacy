@@ -22,7 +22,7 @@ import { show as showToast } from "../Toast/Toast"
 import { fetchUserAccount, fetchUserSettings } from "../../lib/services/user"
 import { generateRandomString, downloadObjectAsText } from "../../lib/helpers"
 import QRCode from "react-qr-code"
-import type { UserGetSettingsV1 } from "../../types"
+import { UserGetSettings } from "../../types"
 import { i18n } from "../../i18n"
 import cookies from "../../lib/cookies"
 import useDb from "../../lib/hooks/useDb"
@@ -52,7 +52,8 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "language")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -237,7 +238,8 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "changeEmail")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -429,7 +431,8 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "personalInformation")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -753,7 +756,8 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "delete")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -842,7 +846,8 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "delete")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1008,7 +1013,8 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "changePassword")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1189,7 +1195,8 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "deleteAccount")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1266,7 +1273,7 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(false)
-	const [settings, setSettings] = useState<UserGetSettingsV1 | undefined>(undefined)
+	const [settings, setSettings] = useState<UserGetSettings | undefined>(undefined)
 	const [code, setCode] = useState<string>("")
 
 	const fetchSettings = useCallback(async () => {
@@ -1347,7 +1354,8 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "enable2FA")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1496,7 +1504,8 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "recoveryKeys")}</ModalHeader>
 				<ModalBody
@@ -1635,7 +1644,8 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "disable2FA")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1735,7 +1745,8 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "exportMasterKeys")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />
@@ -1911,7 +1922,8 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "requestPayout")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

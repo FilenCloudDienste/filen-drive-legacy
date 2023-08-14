@@ -1,10 +1,12 @@
 import { api } from "./worker.worker"
 import { wrap, transfer } from "comlink"
 import eventListener from "../eventListener"
-import type { ItemProps } from "../../types"
+import { ItemProps } from "../../types"
 import { WORKER_THREADS } from "../constants"
 import { logout } from "../services/user/logout"
 import db from "../db"
+import { memoize } from "lodash"
+import { AxiosResponse } from "axios"
 
 let nextWorkerId: number = -1
 
@@ -12,7 +14,9 @@ const workerInstances: Worker[] = []
 const workerAPIs: (typeof api)[] = []
 
 const getWorkerAPI = () => {
-	if (workerAPIs.length < WORKER_THREADS) {
+	const maxThreads = window.location.href.indexOf("?embed") ? 1 : WORKER_THREADS
+
+	if (workerAPIs.length < maxThreads) {
 		const workerInstance = new Worker(new URL("./worker.worker", import.meta.url))
 		const workerAPI = wrap<typeof api>(workerInstance)
 
@@ -153,6 +157,10 @@ export const encryptMetadataPublicKey = async (data: string, publicKey: string):
 	return await getWorkerAPI().encryptMetadataPublicKey(data, publicKey)
 }
 
+export const decryptMetadataPrivateKey = async (data: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptMetadataPrivateKey(data, privateKey)
+}
+
 export const importPublicKey = async (publicKey: string, mode: KeyUsage[] = ["encrypt"]): Promise<CryptoKey> => {
 	return await getWorkerAPI().importPublicKey(publicKey, mode)
 }
@@ -183,4 +191,68 @@ export const convertHeic = async (buffer: Uint8Array, format: "JPEG" | "PNG"): P
 
 export const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	return await getWorkerAPI().bufferToHash(buffer, algorithm)
+}
+
+export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptChatMessageKey(metadata, privateKey)
+}
+
+export const decryptChatMessage = async (message: string, metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptChatMessage(message, metadata, privateKey)
+}
+
+export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptChatMessage(message, key)
+}
+
+export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	return await getWorkerAPI().decryptNoteKeyOwner(metadata, masterKeys)
+}
+
+export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteKeyParticipant(metadata, privateKey)
+}
+
+export const decryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteContent(content, key)
+}
+
+export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNoteTitle(title, key)
+}
+
+export const decryptNotePreview = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().decryptNotePreview(content, key)
+}
+
+export const encryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteContent(content, key)
+}
+
+export const encryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteTitle(title, key)
+}
+
+export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNotePreview(preview, key)
+}
+
+export const encryptNoteTagName = async (name: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptNoteTagName(name, key)
+}
+
+export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	return await getWorkerAPI().decryptNoteTagName(name, masterKeys)
+}
+
+export const parseOGFromURL = memoize(async (url: string): Promise<Record<string, string>> => {
+	return await getWorkerAPI().parseOGFromURL(url)
+})
+
+export const corsHead = memoize(async (url: string): Promise<Record<string, string>> => {
+	return await getWorkerAPI().corsHead(url)
+})
+
+export const corsGet = async (url: string): Promise<any> => {
+	return await getWorkerAPI().corsGet(url)
 }

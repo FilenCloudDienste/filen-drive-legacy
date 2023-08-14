@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useCallback, useMemo } from "react"
-import type { MoveModalProps, ItemProps } from "../../types"
+import { MoveModalProps, ItemProps } from "../../types"
 import { Modal, ModalOverlay, ModalContent, ModalBody, Spinner, ModalFooter, ModalHeader, Flex } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
@@ -10,7 +10,6 @@ import { getFolderColor } from "../../lib/helpers"
 import db from "../../lib/db"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
-import { addItemsToStore, removeItemsFromStore } from "../../lib/services/metadata"
 import { show as showToast } from "../Toast/Toast"
 import ModalCloseButton from "../ModalCloseButton"
 
@@ -340,11 +339,6 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
 			}
 
 			await moveToParent(toMove, moveUUID)
-
-			for (let i = 0; i < toMove.length; i++) {
-				removeItemsFromStore([toMove[i]], toMove[i].parent).catch(console.error)
-				addItemsToStore([toMove[i]], moveUUID).catch(console.error)
-			}
 		} catch (e: any) {
 			console.error(e)
 
@@ -387,7 +381,8 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
 			<ModalContent
 				backgroundColor={getColor(darkMode, "backgroundSecondary")}
 				color={getColor(darkMode, "textSecondary")}
-				borderRadius={isMobile ? "0px" : "5px"}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
 			>
 				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "selectDestination")}</ModalHeader>
 				<ModalCloseButton darkMode={darkMode} />

@@ -1,11 +1,11 @@
-import type { UserInfoV1, UserGetSettingsV3, UserGetAccountV1 } from "../../../types"
+import { UserInfo, UserGetSettings, UserGetAccount } from "../../../types"
 import { userInfo, userSettings, userAccount } from "../../api"
 import memoryCache from "../../memoryCache"
 
-export const fetchUserInfo = async (): Promise<UserInfoV1> => {
+export const fetchUserInfo = async (): Promise<UserInfo> => {
 	if (memoryCache.has("fetchUserInfo") && memoryCache.has("fetchUserInfoTimeout")) {
 		if (memoryCache.get("fetchUserInfoTimeout") > Date.now()) {
-			return memoryCache.get("fetchUserInfo") as UserInfoV1
+			return memoryCache.get("fetchUserInfo") as UserInfo
 		}
 	}
 
@@ -17,18 +17,18 @@ export const fetchUserInfo = async (): Promise<UserInfoV1> => {
 	return info
 }
 
-export const fetchUserInfoCached = (): UserInfoV1 | undefined => {
+export const fetchUserInfoCached = (): UserInfo | undefined => {
 	if (memoryCache.has("fetchUserInfo")) {
-		return memoryCache.get("fetchUserInfo") as UserInfoV1
+		return memoryCache.get("fetchUserInfo") as UserInfo
 	}
 
 	return undefined
 }
 
-export const fetchUserSettings = async (): Promise<UserGetSettingsV3> => {
+export const fetchUserSettings = async (): Promise<UserGetSettings> => {
 	if (memoryCache.has("fetchUserSettings") && memoryCache.has("fetchUserSettingsTimeout")) {
 		if (memoryCache.get("fetchUserSettingsTimeout") > Date.now()) {
-			return memoryCache.get("fetchUserSettings") as UserGetSettingsV3
+			return memoryCache.get("fetchUserSettings") as UserGetSettings
 		}
 	}
 
@@ -40,10 +40,10 @@ export const fetchUserSettings = async (): Promise<UserGetSettingsV3> => {
 	return settings
 }
 
-export const fetchUserAccount = async (): Promise<UserGetAccountV1> => {
+export const fetchUserAccount = async (): Promise<UserGetAccount> => {
 	if (memoryCache.has("fetchUserAccount") && memoryCache.has("fetchUserAccountTimeout")) {
 		if (memoryCache.get("fetchUserAccountTimeout") > Date.now()) {
-			return memoryCache.get("fetchUserAccount") as UserGetAccountV1
+			return memoryCache.get("fetchUserAccount") as UserGetAccount
 		}
 	}
 

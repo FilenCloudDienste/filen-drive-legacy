@@ -1,11 +1,10 @@
-import type { ItemProps } from "../../../types"
+import { ItemProps } from "../../../types"
 import { moveFile, moveFolder, folderExists } from "../../api"
 import { show as showToast, dismiss as dismissToast } from "../../../components/Toast/Toast"
 import eventListener from "../../eventListener"
 import { ONE_YEAR } from "../../constants"
 import { getLang, Semaphore, safeAwait } from "../../helpers"
 import { i18n } from "../../../i18n"
-import { addItemsToStore, removeItemsFromStore } from "../metadata"
 
 const mutex = new Semaphore(1)
 
@@ -18,12 +17,7 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 		return
 	}
 
-	const toastId = showToast(
-		"loading",
-		i18n(lang, "movingItems", true, ["__COUNT__"], [items.length.toString()]),
-		"bottom",
-		ONE_YEAR
-	)
+	const toastId = showToast("loading", i18n(lang, "movingItems", true, ["__COUNT__"], [items.length.toString()]), "bottom", ONE_YEAR)
 	const toMove: ItemProps[] = []
 
 	await mutex.acquire()
@@ -41,12 +35,7 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 			}
 
 			if (exists.exists) {
-				showToast(
-					"error",
-					i18n(lang, "folderExistsAtDest", true, ["__NAME__"], [items[i].name]),
-					"bottom",
-					5000
-				)
+				showToast("error", i18n(lang, "folderExistsAtDest", true, ["__NAME__"], [items[i].name]), "bottom", 5000)
 			} else {
 				toMove.push(items[i])
 			}
@@ -96,13 +85,7 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 		for (let i = 0; i < error.length; i++) {
 			showToast(
 				"error",
-				i18n(
-					lang,
-					"couldNotMoveItem",
-					true,
-					["__NAME__", "__ERR__"],
-					[error[i].reason.item.name, error[i].reason.err.toString()]
-				),
+				i18n(lang, "couldNotMoveItem", true, ["__NAME__", "__ERR__"], [error[i].reason.item.name, error[i].reason.err.toString()]),
 				"bottom",
 				5000
 			)
@@ -116,11 +99,6 @@ export const moveToParent = async (items: ItemProps[], parent: string): Promise<
 				from: moved[i].from,
 				to: parent
 			})
-		}
-
-		for (let i = 0; i < moved.length; i++) {
-			removeItemsFromStore([moved[i].item], moved[i].from).catch(console.error)
-			addItemsToStore([moved[i].item], moved[i].to).catch(console.error)
 		}
 	}
 
