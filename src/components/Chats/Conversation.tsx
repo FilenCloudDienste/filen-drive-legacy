@@ -244,18 +244,18 @@ export const Conversation = memo(
 							) : (
 								<Avatar
 									name={
-										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
-										conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
+										typeof conversationParticipantsFilteredWithoutMe[0]?.avatar === "string" &&
+										conversationParticipantsFilteredWithoutMe[0]?.avatar.indexOf("https://") !== -1
 											? undefined
-											: conversationParticipantsFilteredWithoutMe[0].email
+											: conversationParticipantsFilteredWithoutMe[0]?.email
 									}
 									src={
-										typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
-										conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1
-											? conversationParticipantsFilteredWithoutMe[0].avatar
+										typeof conversationParticipantsFilteredWithoutMe[0]?.avatar === "string" &&
+										conversationParticipantsFilteredWithoutMe[0]?.avatar.indexOf("https://") !== -1
+											? conversationParticipantsFilteredWithoutMe[0]?.avatar
 											: undefined
 									}
-									bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0].email, darkMode)}
+									bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0]?.email, darkMode)}
 									width="30px"
 									height="30px"
 									borderRadius="full"

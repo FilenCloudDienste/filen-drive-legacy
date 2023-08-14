@@ -2,11 +2,12 @@ import { memo, useState, useRef, useCallback, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
 import { ChatMessage } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
-import Message, { MessageSkeleton } from "./Message"
+import Message, { MessageSkeleton, ChatInfo } from "./Message"
 import { DisplayMessageAs } from "./Container"
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import eventListener from "../../lib/eventListener"
 import { useLocation } from "react-router-dom"
+import { BIG_NUMBER } from "./Container"
 
 const loadingMessages = new Array(32).fill(1).map(() => ({
 	uuid: "",
@@ -32,6 +33,8 @@ export interface MessagesProps {
 	lang: string
 	conversationUUID: string
 	contextMenuOpen: string
+	firstMessageIndex: number
+	setScrolledUp: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const Messages = memo(
@@ -48,11 +51,14 @@ export const Messages = memo(
 		emojiPickerOpen,
 		lang,
 		conversationUUID,
-		contextMenuOpen
+		contextMenuOpen,
+		firstMessageIndex,
+		setScrolledUp
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
 		const isScrollingChatTimeout = useRef<NodeJS.Timeout | number | undefined>()
+		const isScrollingChatRef = useRef<boolean>(false)
 		const virtuosoRef = useRef<VirtuosoHandle>(null)
 		const location = useLocation()
 		const [initalLoadDone, setInitialLoadDone] = useState<boolean>(false)
@@ -65,6 +71,8 @@ export const Messages = memo(
 		const onScroll = useCallback((scrolling: boolean) => {
 			clearTimeout(isScrollingChatTimeout.current)
 
+			isScrollingChatRef.current = scrolling
+
 			if (!scrolling) {
 				isScrollingChatTimeout.current = setTimeout(() => {
 					setIsScrollingChat(false)
@@ -74,18 +82,39 @@ export const Messages = memo(
 			}
 		}, [])
 
+		const scrollEvent = useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
+			const target = e.target as HTMLDivElement
+
+			if (target && target.scrollTop + target.clientHeight < target.scrollHeight) {
+				setScrolledUp(true)
+			} else {
+				setScrolledUp(false)
+			}
+		}, [])
+
 		const followOutput = useCallback((isAtBottom: boolean) => (!initalLoadDone ? true : isAtBottom), [initalLoadDone])
 
 		const rangeChanged = useCallback(() => {
 			if (!initalLoadDone) {
 				virtuosoRef.current?.scrollTo({
-					top: Number.MAX_SAFE_INTEGER
+					top: BIG_NUMBER
 				})
 			}
 		}, [initalLoadDone])
 
+		const atTopStateChange = useCallback(
+			(atTop: boolean) => {
+				if (atTop && messages.length > 0 && initalLoadDone) {
+					eventListener.emit("messagesTopReached", messages[0].sentTimestamp)
+				}
+			},
+			[messages, initalLoadDone]
+		)
+
 		const itemContent = useCallback(
-			(index: number, message: ChatMessage) => {
+			(_: number, message: ChatMessage) => {
+				const index = messages.findIndex(m => m.uuid === message.uuid)
+
 				return (
 					<div
 						key={getItemKey(index, message)}
@@ -129,37 +158,19 @@ export const Messages = memo(
 		useEffect(() => {
 			clearTimeout(initalLoadDoneTimer.current)
 
-			if (messages.length > 0) {
-				virtuosoRef.current?.scrollTo({
-					top: Number.MAX_SAFE_INTEGER
-				})
-			}
-
-			initalLoadDoneTimer.current = setTimeout(() => {
-				if (messages.length > 0) {
+			const interval = setInterval(() => {
+				if (messages.length > 0 && !isScrollingChatRef.current) {
 					virtuosoRef.current?.scrollTo({
-						top: Number.MAX_SAFE_INTEGER
+						top: BIG_NUMBER
 					})
 				}
+			}, 1)
 
-				setTimeout(() => {
-					setInitialLoadDone(true)
+			setTimeout(() => clearInterval(interval), 500)
 
-					if (messages.length > 0) {
-						virtuosoRef.current?.scrollTo({
-							top: Number.MAX_SAFE_INTEGER
-						})
-					}
-
-					setTimeout(() => {
-						if (messages.length > 0) {
-							virtuosoRef.current?.scrollTo({
-								top: Number.MAX_SAFE_INTEGER
-							})
-						}
-					}, 250)
-				}, 250)
-			}, 100)
+			initalLoadDoneTimer.current = setTimeout(() => {
+				setInitialLoadDone(true)
+			}, 250)
 
 			return () => {
 				clearTimeout(initalLoadDoneTimer.current)
@@ -168,7 +179,7 @@ export const Messages = memo(
 
 		useEffect(() => {
 			virtuosoRef.current?.scrollTo({
-				top: Number.MAX_SAFE_INTEGER
+				top: BIG_NUMBER
 			})
 		}, [height, location.hash, conversationUUID, messages[0]?.conversation])
 
@@ -177,7 +188,7 @@ export const Messages = memo(
 				lastMessageUUID.current = messages[messages.length - 1].uuid
 
 				virtuosoRef.current?.scrollTo({
-					top: Number.MAX_SAFE_INTEGER
+					top: BIG_NUMBER
 				})
 			}
 		}, [atBottom, messages])
@@ -186,7 +197,7 @@ export const Messages = memo(
 			const scrollChatToBottomListener = eventListener.on("scrollChatToBottom", () => {
 				if (virtuosoRef.current) {
 					virtuosoRef.current.scrollTo({
-						top: Number.MAX_SAFE_INTEGER
+						top: BIG_NUMBER
 					})
 				}
 			})
@@ -219,23 +230,46 @@ export const Messages = memo(
 			)
 		}
 
+		if (messages.length === 0) {
+			return (
+				<Flex
+					flexDirection="column-reverse"
+					height={height + "px"}
+					width={width + "px"}
+					overflow="hidden"
+					transition="200ms"
+				>
+					<ChatInfo
+						darkMode={darkMode}
+						isMobile={isMobile}
+						lang={lang}
+					/>
+				</Flex>
+			)
+		}
+
 		return (
 			<Virtuoso
 				key={"chat-messages-" + messages[0]?.conversation}
 				ref={virtuosoRef}
 				data={messages}
+				totalCount={messages.length}
 				height={height}
 				width={width}
 				atBottomThreshold={100}
 				alignToBottom={true}
 				computeItemKey={getItemKey}
 				initialTopMostItemIndex={9999}
+				firstItemIndex={firstMessageIndex}
 				defaultItemHeight={50}
 				followOutput={followOutput}
 				isScrolling={onScroll}
 				itemContent={itemContent}
 				atBottomStateChange={setAtBottom}
 				rangeChanged={rangeChanged}
+				atTopStateChange={atTopStateChange}
+				onScroll={scrollEvent}
+				atTopThreshold={300}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",

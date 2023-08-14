@@ -64,7 +64,11 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 			>
 				{selectedMessage && (
 					<>
-						<ContextMenuItem onClick={() => eventListener.emit("openDeleteChatMessageModal", selectedMessage.uuid)}>
+						<ContextMenuItem
+							onClick={e =>
+								eventListener.emit("openDeleteChatMessageModal", { uuid: selectedMessage.uuid, shift: e.event.shiftKey })
+							}
+						>
 							{i18n(lang, "delete")}
 						</ContextMenuItem>
 					</>

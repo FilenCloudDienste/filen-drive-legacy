@@ -59,11 +59,18 @@ export const DeleteMessageModal = memo(() => {
 	useEffect(() => {
 		window.addEventListener("keydown", windowKeyDownListener)
 
-		const openDeleteChatMessageModalListener = eventListener.on("openDeleteChatMessageModal", (uuid: string) => {
-			setOpen(true)
+		const openDeleteChatMessageModalListener = eventListener.on(
+			"openDeleteChatMessageModal",
+			({ uuid, shift }: { uuid: string; shift: boolean }) => {
+				messageUUID.current = uuid
 
-			messageUUID.current = uuid
-		})
+				if (!shift) {
+					setOpen(true)
+				} else {
+					del()
+				}
+			}
+		)
 
 		return () => {
 			window.removeEventListener("keydown", windowKeyDownListener)

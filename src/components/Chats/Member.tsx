@@ -169,7 +169,7 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 				<Flex>
 					{hovering &&
 						currentConversation.ownerId === currentConversationMe.userId &&
-						currentConversation.participants.length > 1 &&
+						currentConversation.participants.length > 2 &&
 						user.userId !== currentConversationMe.userId && (
 							<IoCloseOutline
 								size={18}

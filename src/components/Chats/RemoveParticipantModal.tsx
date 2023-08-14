@@ -42,7 +42,7 @@ export const RemoveParticipantModal = memo(() => {
 		}
 
 		eventListener.emit("chatConversationParticipantRemoved", {
-			uuid: conversationRef.current.uuid,
+			conversation: conversationRef.current,
 			userId: userIdRef.current
 		})
 

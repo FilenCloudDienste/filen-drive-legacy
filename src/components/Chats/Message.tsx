@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useEffect } from "react"
-import { Flex, Avatar, Skeleton, Link } from "@chakra-ui/react"
+import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage } from "../../lib/api"
 import AppText from "../AppText"
@@ -13,9 +13,10 @@ import {
 	ReplaceMessageWithComponents,
 	extractLinksFromString
 } from "./utils"
-import Linkify from "react-linkify"
 import { DisplayMessageAs } from "./Container"
 import Embed from "./Embed"
+import { i18n } from "../../i18n"
+import { AiOutlineLock, AiOutlineCheckCircle } from "react-icons/ai"
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -79,6 +80,102 @@ export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: num
 				</Flex>
 			</Flex>
 		</Flex>
+	)
+})
+
+export const ChatInfo = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
+	return (
+		<>
+			<Flex
+				flexDirection="column"
+				paddingLeft="8px"
+				paddingBottom="25px"
+				gap="15px"
+				paddingRight="15px"
+			>
+				<Flex
+					flexDirection="column"
+					gap="5px"
+				>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						color={getColor(darkMode, "textPrimary")}
+						paddingLeft="8px"
+						fontSize={22}
+						noOfLines={1}
+						wordBreak="break-all"
+					>
+						{i18n(lang, "chatInfoTitle")}
+					</AppText>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						color={getColor(darkMode, "textSecondary")}
+						paddingLeft="8px"
+						fontSize={13}
+						noOfLines={1}
+						wordBreak="break-all"
+					>
+						{i18n(lang, "chatInfoSubtitle1")}
+					</AppText>
+				</Flex>
+				<Flex
+					flexDirection="column"
+					gap="15px"
+					paddingLeft="6px"
+				>
+					<Flex
+						flexDirection="row"
+						gap="5px"
+						alignItems="center"
+					>
+						<AiOutlineLock
+							size={30}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0
+							}}
+						/>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="8px"
+							fontSize={14}
+							noOfLines={1}
+							wordBreak="break-all"
+						>
+							{i18n(lang, "chatInfoSubtitle2")}
+						</AppText>
+					</Flex>
+					<Flex
+						flexDirection="row"
+						gap="5px"
+						alignItems="center"
+					>
+						<AiOutlineCheckCircle
+							size={30}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0
+							}}
+						/>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="8px"
+							fontSize={14}
+							noOfLines={1}
+							wordBreak="break-all"
+						>
+							{i18n(lang, "chatInfoSubtitle3")}
+						</AppText>
+					</Flex>
+				</Flex>
+			</Flex>
+		</>
 	)
 })
 
@@ -368,6 +465,23 @@ export const Message = memo(
 
 		return (
 			<>
+				{!prevMessage && (
+					<Flex
+						flexDirection="column"
+						paddingTop="10px"
+					>
+						<ChatInfo
+							darkMode={darkMode}
+							isMobile={isMobile}
+							lang={lang}
+						/>
+						<DateDivider
+							timestamp={message.sentTimestamp}
+							darkMode={darkMode}
+							isMobile={isMobile}
+						/>
+					</Flex>
+				)}
 				{!prevMessageSameDay && (
 					<DateDivider
 						timestamp={message.sentTimestamp}

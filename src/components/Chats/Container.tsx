@@ -28,6 +28,8 @@ export interface ContainerProps {
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
 
+export const BIG_NUMBER = 99999999999
+
 export const Container = memo(
 	({
 		darkMode,
@@ -41,12 +43,16 @@ export const Container = memo(
 		emojiInitDone
 	}: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
-		const [loading, setLoading] = useState<boolean>(false)
-		const messagesTimestamp = useRef<number>(Date.now() + 3600000)
+		const [loading, setLoading] = useState<boolean>(true)
 		const [failedMessages, setFailedMessages] = useState<string[]>([])
-		const windowFocused = useRef<boolean>(true)
 		const [displayMessageAs, setDisplayMessageAs] = useState<DisplayMessageAs>({})
 		const [emojiPickerOpen, setEmojiPickerOpen] = useState<boolean>(false)
+		const [loadingPrevMessages, setLoadingPrevMessages] = useState<boolean>(false)
+		const lastPreviousFetchTimestamp = useRef<number>(0)
+		const [firstMessageIndex, setFirstMessageIndex] = useState<number>(0)
+		const [scrolledUp, setScrolledUp] = useState<boolean>(false)
+		const scrolledUpRef = useRef<boolean>(false)
+		const windowFocused = useRef<boolean>(true)
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -76,6 +82,52 @@ export const Container = memo(
 				})
 		}, [messages])
 
+		const fetchPreviousMessages = useCallback(
+			async (lastTimestamp: number) => {
+				if (
+					!currentConversation ||
+					!currentConversationMe ||
+					currentConversation.uuid !== getCurrentParent(window.location.href) ||
+					lastPreviousFetchTimestamp.current === lastTimestamp
+				) {
+					return
+				}
+
+				lastPreviousFetchTimestamp.current = lastTimestamp
+
+				const startURL = window.location.href
+
+				setLoadingPrevMessages(true)
+
+				const [messagesErr, messagesRes] = await safeAwait(
+					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, lastTimestamp, true, false)
+				)
+
+				if (messagesErr) {
+					console.error(messagesErr)
+
+					lastPreviousFetchTimestamp.current = 0
+
+					setLoadingPrevMessages(false)
+
+					return
+				}
+
+				if (window.location.href !== startURL || messagesRes.messages.length === 0) {
+					lastPreviousFetchTimestamp.current = 0
+
+					setLoadingPrevMessages(false)
+
+					return
+				}
+
+				setFirstMessageIndex(prev => prev - messagesRes.messages.length)
+				setMessages(prev => [...messagesRes.messages, ...prev])
+				setLoadingPrevMessages(false)
+			},
+			[currentConversation, currentConversationMe]
+		)
+
 		const fetchMessages = useCallback(
 			async (refresh: boolean = false) => {
 				if (!currentConversation || !currentConversationMe || currentConversation.uuid !== getCurrentParent(window.location.href)) {
@@ -93,7 +145,7 @@ export const Container = memo(
 				}
 
 				const [messagesErr, messagesRes] = await safeAwait(
-					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, messagesTimestamp.current, refresh)
+					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, Date.now() + 3600000, refresh)
 				)
 
 				if (messagesErr) {
@@ -108,9 +160,8 @@ export const Container = memo(
 					return
 				}
 
-				setMessages(messagesRes.messages)
+				setMessages(prev => [...prev, ...messagesRes.messages])
 				setLoading(false)
-				safeAwait(chatConversationsRead(currentConversation.uuid))
 
 				if (messagesRes.cache) {
 					fetchMessages(true)
@@ -125,10 +176,13 @@ export const Container = memo(
 			const uuid = getCurrentParent(window.location.href)
 
 			if (validate(uuid)) {
-				safeAwait(chatConversationsRead(uuid))
+				if (!scrolledUp) {
+					safeAwait(chatConversationsRead(uuid))
+				}
+
 				safeAwait(fetchMessages())
 			}
-		}, [currentConversation])
+		}, [currentConversation, scrolledUp])
 
 		const onBlur = useCallback(() => {
 			windowFocused.current = false
@@ -139,16 +193,6 @@ export const Container = memo(
 				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
 		}, [messages])
-
-		useEffect(() => {
-			window.addEventListener("focus", onFocus)
-			window.addEventListener("blur", onBlur)
-
-			return () => {
-				window.removeEventListener("focus", onFocus)
-				window.removeEventListener("blur", onBlur)
-			}
-		}, [])
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -198,8 +242,8 @@ export const Container = memo(
 				setMessages(prev => prev.filter(message => message.uuid !== uuid))
 			})
 
-			const messagesTopReachedListener = eventListener.on("messagesTopReached", () => {
-				console.log("load more messages")
+			const messagesTopReachedListener = eventListener.on("messagesTopReached", (lastTimestamp: number) => {
+				fetchPreviousMessages(lastTimestamp)
 			})
 
 			const chatMessageEmbedDisabledListener = eventListener.on("chatMessageEmbedDisabled", (uuid: string) => {
@@ -216,6 +260,31 @@ export const Container = memo(
 		}, [currentConversation, currentConversationMe])
 
 		useEffect(() => {
+			if (messages.length > 0) {
+				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
+			}
+		}, [messages])
+
+		useEffect(() => {
+			window.addEventListener("focus", onFocus)
+			window.addEventListener("blur", onBlur)
+
+			return () => {
+				window.removeEventListener("focus", onFocus)
+				window.removeEventListener("blur", onBlur)
+			}
+		}, [])
+
+		useEffect(() => {
+			scrolledUpRef.current = scrolledUp
+		}, [scrolledUp])
+
+		useEffect(() => {
+			windowFocused.current = true
+			lastPreviousFetchTimestamp.current = 0
+
+			setMessages([])
+			setFirstMessageIndex(BIG_NUMBER)
 			fetchMessages()
 		}, [currentConversation?.uuid])
 
@@ -259,6 +328,8 @@ export const Container = memo(
 							lang={lang}
 							conversationUUID={currentConversation.uuid}
 							contextMenuOpen={contextMenuOpen}
+							firstMessageIndex={firstMessageIndex}
+							setScrolledUp={setScrolledUp}
 						/>
 					)}
 				</Flex>

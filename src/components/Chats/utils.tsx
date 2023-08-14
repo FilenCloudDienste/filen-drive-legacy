@@ -120,7 +120,8 @@ export const fetchChatMessages = async (
 	conversationUUID: string,
 	metadata: string,
 	timestamp: number = Date.now() + 3600000,
-	skipCache: boolean = false
+	skipCache: boolean = false,
+	saveToLocalDb: boolean = true
 ): Promise<FetchChatMessagesResult> => {
 	const refresh = async (): Promise<FetchChatMessagesResult> => {
 		const messagesDecrypted: ChatMessage[] = []
@@ -139,7 +140,9 @@ export const fetchChatMessages = async (
 			})
 		}
 
-		await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
+		if (saveToLocalDb) {
+			await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
+		}
 
 		return {
 			messages: messagesDecrypted,

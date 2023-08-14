@@ -1224,6 +1224,10 @@ export const parseURLParams = (url: string) => {
 
 export const generateAvatarColorCode = memoize(
 	(input: string, darkMode: boolean): string => {
+		if (typeof input !== "string") {
+			input = "default"
+		}
+
 		const colorCodes: string[] = [
 			getColor(darkMode, "pink"),
 			getColor(darkMode, "green"),

@@ -469,7 +469,12 @@ const en: {
 	chatConversationLeave: "Leave chat",
 	chatConversationLeaveWarning: "Are you sure you want to leave this chat?",
 	chatConversationRemoveParticipant: "Remove participant",
-	chatConversationRemoveParticipantWarning: "Are you sure you want to remove this participant from the chat?"
+	chatConversationRemoveParticipantWarning: "Are you sure you want to remove this participant from the chat?",
+	chatInfoTitle: "End-to-end encrypted chat",
+	chatInfoSubtitle1: "Filen secures every chat with zero-knowledge end-to-end encryption by default.",
+	chatInfoSubtitle2: "Only the members of the chat can decrypt and read the content.",
+	chatInfoSubtitle3:
+		"The system ensures that the data received actually comes from the displayed user and has not been changed in the meantime."
 }
 
 export default en
