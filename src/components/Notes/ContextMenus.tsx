@@ -305,29 +305,6 @@ const ContextMenus = memo(
 			}
 		}, [selectedNote])
 
-		const fetchNotes = useCallback(async () => {
-			const privateKey = await db.get("privateKey")
-			const userId = await db.get("userId")
-			const notesRes = await getNotes()
-			const notes: INote[] = []
-
-			for (const note of notesRes) {
-				const noteKey = await decryptNoteKeyParticipant(
-					note.participants.filter(participant => participant.userId === userId)[0].metadata,
-					privateKey
-				)
-				const title = await decryptNoteTitle(note.title, noteKey)
-
-				notes.push({
-					...note,
-					title,
-					preview: note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)
-				})
-			}
-
-			return notes
-		}, [])
-
 		const duplicate = useCallback(async () => {
 			if (!selectedNote) {
 				return
@@ -406,19 +383,8 @@ const ContextMenus = memo(
 				return
 			}
 
-			const [notesErr, notesRes] = await safeAwait(fetchNotes())
+			eventListener.emit("refreshNotes")
 
-			if (notesErr) {
-				console.error(notesErr)
-
-				setDuplicating(false)
-
-				showToast("error", notesErr.message, "bottom", 5000)
-
-				return
-			}
-
-			setNotes(notesRes)
 			navigate("#/notes/" + uuid)
 			setDuplicating(false)
 
