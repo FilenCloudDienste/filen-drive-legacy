@@ -23,7 +23,8 @@ import {
 	bpsToReadable,
 	pathGetDirname,
 	pathGetBasename,
-	getEveryPossibleFolderPathFromPath
+	getEveryPossibleFolderPathFromPath,
+	randomIdUnsafeLength
 } from "../../lib/helpers"
 import useTransfers from "../../lib/hooks/useTransfers"
 import { i18n } from "../../i18n"
@@ -509,6 +510,20 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 
 							return
 						}
+
+						for (const file of files) {
+							const newName = randomIdUnsafeLength(4) + "_" + Date.now() + "_" + file.name
+
+							Object.defineProperty(file, "fullPath", {
+								value: newName,
+								writable: true
+							})
+
+							Object.defineProperty(file, "name", {
+								value: newName,
+								writable: true
+							})
+						}
 					}
 
 					const addToQueue: UploadQueueItem[] = files.map(item => ({
@@ -518,7 +533,7 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 					}))
 
 					const needsToCreateFolders: boolean = files.filter(file => file.fullPath.split("/").length >= 2).length > 0
-					const existingFolderPaths: { [key: string]: string } = { ".": parent }
+					const existingFolderPaths: Record<string, string> = { ".": parent }
 
 					if (needsToCreateFolders) {
 						const createFolderToast = showToast("loading", i18n(lang, "creatingFolders"), "bottom", ONE_YEAR)

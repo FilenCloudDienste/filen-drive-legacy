@@ -479,13 +479,8 @@ export const Input = memo(
 				const toUpload = []
 
 				for (let i = 0; i < files.length; i++) {
-					Object.defineProperty(files[i], "name", {
-						value: Date.now() + "_" + files[i].name,
-						writable: true
-					})
-
 					Object.defineProperty(files[i], "fullPath", {
-						value: Date.now() + "_" + files[i].name,
+						value: files[i].name,
 						writable: true
 					})
 
