@@ -24,6 +24,8 @@ import { EmojiElement } from "./utils"
 import { custom as customEmojis } from "./customEmojis"
 import emojiData from "@emoji-mart/data"
 import { ItemProps } from "../../types"
+import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
+import throttle from "lodash/throttle"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -465,6 +467,56 @@ export const Input = memo(
 			sendTypingEvents()
 		}, [currentConversation, currentConversationMe])
 
+		const onPaste = useCallback(
+			throttle((e: React.ClipboardEvent<HTMLDivElement>) => {
+				const files = e.clipboardData.files
+
+				if (files.length === 0) {
+					return
+				}
+
+				const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
+				const toUpload = []
+
+				for (let i = 0; i < files.length; i++) {
+					Object.defineProperty(files[i], "name", {
+						value: Date.now() + "_" + files[i].name,
+						writable: true
+					})
+
+					Object.defineProperty(files[i], "fullPath", {
+						value: Date.now() + "_" + files[i].name,
+						writable: true
+					})
+
+					toUpload.push(files[i])
+				}
+
+				const requestId = window.location.href
+
+				const sub = eventListener.on("uploadsDone", ({ requestId: rId, items }: { requestId: string; items: ItemProps[] }) => {
+					if (rId === requestId) {
+						sub.remove()
+
+						eventListener.emit("chatAddFiles", {
+							conversation: getCurrentParent(requestId),
+							items
+						})
+					}
+				})
+
+				eventListener.emit("openUploadModal", {
+					files: toUpload.filter(file => file.size > 0),
+					openModal: true,
+					chatUpload: true,
+					requestId
+				})
+
+				dismissToast(preparingToast)
+			}, 100),
+			[]
+		)
+
 		useEffect(() => {
 			setEmojiSuggestionsPosition(0)
 		}, [emojiSuggestions.length])
@@ -757,6 +809,7 @@ export const Input = memo(
 							placeholder={i18n(lang, "chatInput")}
 							onFocus={() => setInputFocused(true)}
 							onBlur={() => setInputFocused(false)}
+							onPaste={onPaste}
 							onKeyDown={e => {
 								onKeyDownOrUp()
 								toggleEmojiSuggestions()

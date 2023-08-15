@@ -477,7 +477,8 @@ const en: {
 		"The system ensures that the data received actually comes from the displayed user and has not been changed in the meantime.",
 	chatEmojisMatching: "Emojis matching",
 	selectFromCloud: "Select from cloud",
-	creatingPublicLinks: "Creating public links"
+	creatingPublicLinks: "Creating public links",
+	attachToChat: "Attach to chat"
 }
 
 export default en

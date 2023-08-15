@@ -11,7 +11,7 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
 import { CustomToastTypes } from "../../types"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
-import { throttle } from "lodash"
+import throttle from "lodash/throttle"
 import { createStandaloneToast, ToastPosition, ToastId } from "@chakra-ui/react"
 
 const { toast } = createStandaloneToast()

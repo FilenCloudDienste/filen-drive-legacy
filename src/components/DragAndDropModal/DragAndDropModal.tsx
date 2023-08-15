@@ -1,8 +1,8 @@
 import { memo, useCallback, useState, useEffect, useMemo } from "react"
-import { Modal, ModalOverlay, ModalContent, ModalBody, Flex, ModalFooter, ModalHeader } from "@chakra-ui/react"
+import { Modal, ModalContent, ModalBody, Flex, ModalFooter, ModalHeader } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { useLocation } from "react-router-dom"
-import { debounce } from "lodash"
+import debounce from "lodash/debounce"
 import { i18n } from "../../i18n"
 
 const DragAndDropModal = memo(
@@ -33,6 +33,8 @@ const DragAndDropModal = memo(
 				window.location.hash.indexOf("links") !== -1 ||
 				window.location.hash.indexOf("favorites") !== -1 ||
 				window.location.hash.indexOf("recent") !== -1 ||
+				window.location.hash.indexOf("notes") !== -1 ||
+				window.location.hash.indexOf("contacts") !== -1 ||
 				window.location.hash.indexOf("account") !== -1
 			)
 		}, [location])
@@ -128,7 +130,7 @@ const DragAndDropModal = memo(
 							justifyContent="center"
 							border={"2px dashed " + getColor(darkMode, "borderPrimary")}
 						>
-							{i18n(lang, "uploadHere")}
+							{location.hash.indexOf("chats") !== -1 ? i18n(lang, "attachToChat") : i18n(lang, "uploadHere")}
 						</Flex>
 					</ModalBody>
 					<ModalFooter />

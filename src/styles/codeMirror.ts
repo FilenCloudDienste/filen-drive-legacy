@@ -1,4 +1,4 @@
-import { memoize } from "lodash"
+import memoize from "lodash/memoize"
 import { createTheme } from "@uiw/codemirror-themes"
 import { tags as t } from "@lezer/highlight"
 import { getColor } from "./colors"

@@ -5,8 +5,7 @@ import { ItemProps } from "../../types"
 import { WORKER_THREADS } from "../constants"
 import { logout } from "../services/user/logout"
 import db from "../db"
-import { memoize } from "lodash"
-import { AxiosResponse } from "axios"
+import memoize from "lodash/memoize"
 
 let nextWorkerId: number = -1
 

@@ -24,7 +24,7 @@ import {
 	getCurrentParent,
 	convertTimestampToMs
 } from "../../lib/helpers"
-import { throttle } from "lodash"
+import throttle from "lodash/throttle"
 import ContextMenus from "../../components/ContextMenus"
 import { contextMenu } from "react-contexify"
 import Sidebar from "../../components/Sidebar"
@@ -64,7 +64,7 @@ import LogoAnimated from "../../assets/images/logo_animated.gif"
 import MaxStorageModal from "../../components/MaxStorageModal"
 import { CreateTextFileModal, CreateTextFileModalEditor } from "../../components/CreateTextFileModal"
 import cookies from "../../lib/cookies"
-import { debounce } from "lodash"
+import debounce from "lodash/debounce"
 import EmptryTrashModal from "../../components/EmptyTrashModal"
 import { validate } from "uuid"
 import Chats from "../../components/Chats"
@@ -286,6 +286,8 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				window.location.hash.indexOf("links") !== -1 ||
 				window.location.hash.indexOf("favorites") !== -1 ||
 				window.location.hash.indexOf("recent") !== -1 ||
+				window.location.hash.indexOf("notes") !== -1 ||
+				window.location.hash.indexOf("contacts") !== -1 ||
 				window.location.hash.indexOf("account") !== -1
 			) {
 				return
@@ -311,10 +313,35 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				const filteredFiles = files.filter(file => file.size > 0)
 
 				if (filteredFiles.length > 0) {
-					eventListener.emit("openUploadModal", {
-						files: filteredFiles,
-						openModal: filteredFiles.length > 0
-					})
+					if (window.location.href.indexOf("chats") !== -1) {
+						const requestId = window.location.href
+
+						const sub = eventListener.on(
+							"uploadsDone",
+							({ requestId: rId, items }: { requestId: string; items: ItemProps[] }) => {
+								if (rId === requestId) {
+									sub.remove()
+
+									eventListener.emit("chatAddFiles", {
+										conversation: getCurrentParent(requestId),
+										items
+									})
+								}
+							}
+						)
+
+						eventListener.emit("openUploadModal", {
+							files: filteredFiles,
+							openModal: filteredFiles.length > 0,
+							chatUpload: true,
+							requestId
+						})
+					} else {
+						eventListener.emit("openUploadModal", {
+							files: filteredFiles,
+							openModal: filteredFiles.length > 0
+						})
+					}
 				}
 			} catch (e: any) {
 				console.error(e)

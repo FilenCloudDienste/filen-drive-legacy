@@ -37,7 +37,7 @@ import { i18n } from "../../i18n"
 import memoryCache from "../../lib/memoryCache"
 import { EditorView } from "@codemirror/view"
 import { useLocation } from "react-router-dom"
-import { memoize } from "lodash"
+import memoize from "lodash/memoize"
 import ModalCloseButton from "../ModalCloseButton"
 import { ErrorBoundary } from "react-error-boundary"
 

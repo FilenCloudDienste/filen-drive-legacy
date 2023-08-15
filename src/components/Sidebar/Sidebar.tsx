@@ -36,7 +36,7 @@ import { getFolderColor, getCurrentParent, formatBytes, safeAwait } from "../../
 import db from "../../lib/db"
 import { CHAKRA_COLOR_SCHEME, DROP_NAVIGATION_TIMEOUT } from "../../lib/constants"
 import eventListener from "../../lib/eventListener"
-import { debounce } from "lodash"
+import debounce from "lodash/debounce"
 import { fetchUserInfo } from "../../lib/services/user"
 import { moveToParent } from "../../lib/services/move"
 import { i18n } from "../../i18n"
