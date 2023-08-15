@@ -478,7 +478,9 @@ const en: {
 	chatEmojisMatching: "Emojis matching",
 	selectFromCloud: "Select from cloud",
 	creatingPublicLinks: "Creating public links",
-	attachToChat: "Attach to chat"
+	attachToChat: "Attach to chat",
+	select: "Select",
+	selectNumItems: "Select __NUM__ items"
 }
 
 export default en

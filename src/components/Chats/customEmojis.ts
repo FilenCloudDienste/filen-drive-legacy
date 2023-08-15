@@ -40,6 +40,18 @@ export const customEmojis = [
 		name: "Okayge",
 		keywords: ["filen", "okayge"],
 		skins: [{ src: "./emojis/okayge.webp" }]
+	},
+	{
+		id: "pogu",
+		name: "PogU",
+		keywords: ["filen", "pogu"],
+		skins: [{ src: "./emojis/pogu.webp" }]
+	},
+	{
+		id: "pepega",
+		name: "Pepega",
+		keywords: ["filen", "pepega"],
+		skins: [{ src: "./emojis/pepega.webp" }]
 	}
 ]
 

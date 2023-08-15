@@ -77,6 +77,7 @@ export const CloudTreeItem = memo(
 					transition="200ms"
 					onMouseEnter={() => setHovering(true)}
 					onMouseLeave={() => setHovering(false)}
+					borderRadius="10px"
 					backgroundColor={bgHover ? getColor(darkMode, "backgroundPrimary") : "transparent"}
 					onClick={() => {
 						if (canMove) {
