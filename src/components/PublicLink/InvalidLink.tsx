@@ -25,7 +25,7 @@ const InvalidLink = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang 
 					darkMode={darkMode}
 					isMobile={isMobile}
 					noOfLines={1}
-					fontSize={30}
+					fontSize={window.location.href.indexOf("?embed") === -1 ? 30 : 22}
 					color={getColor(darkMode, "textPrimary")}
 					marginTop="20px"
 				>
@@ -35,26 +35,28 @@ const InvalidLink = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang 
 					darkMode={darkMode}
 					isMobile={isMobile}
 					noOfLines={1}
-					fontSize={18}
+					fontSize={window.location.href.indexOf("?embed") === -1 ? 18 : 15}
 					color={getColor(darkMode, "textSecondary")}
 				>
 					This public link does not exist or is expired
 				</AppText>
-				<AppText
-					darkMode={darkMode}
-					isMobile={isMobile}
-					noOfLines={1}
-					fontSize={14}
-					color={getColor(darkMode, "linkPrimary")}
-					_hover={{
-						textDecoration: "underline"
-					}}
-					cursor="pointer"
-					marginTop="10px"
-					onClick={() => (window.location.href = "https://filen.io")}
-				>
-					Go back
-				</AppText>
+				{window.location.href.indexOf("?embed") === -1 && (
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						noOfLines={1}
+						fontSize={14}
+						color={getColor(darkMode, "linkPrimary")}
+						_hover={{
+							textDecoration: "underline"
+						}}
+						cursor="pointer"
+						marginTop="10px"
+						onClick={() => (window.location.href = "https://filen.io")}
+					>
+						Go back
+					</AppText>
+				)}
 			</Flex>
 		</Container>
 	)
