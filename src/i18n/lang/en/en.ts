@@ -474,7 +474,10 @@ const en: {
 	chatInfoSubtitle1: "Filen secures every chat with zero-knowledge end-to-end encryption by default.",
 	chatInfoSubtitle2: "Only the members of the chat can decrypt and read the content.",
 	chatInfoSubtitle3:
-		"The system ensures that the data received actually comes from the displayed user and has not been changed in the meantime."
+		"The system ensures that the data received actually comes from the displayed user and has not been changed in the meantime.",
+	chatEmojisMatching: "Emojis matching",
+	selectFromCloud: "Select from cloud",
+	creatingPublicLinks: "Creating public links"
 }
 
 export default en

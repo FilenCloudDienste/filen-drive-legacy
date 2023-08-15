@@ -1163,6 +1163,59 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 					display: "none"
 				}}
 			/>
+			<input
+				type="file"
+				id="file-input-chat"
+				multiple={true}
+				onChange={e => {
+					if (!e.target.files) {
+						e.target.value = ""
+
+						return
+					}
+
+					const preparingToast = showToast("loading", i18n(lang, "preparingFilesDots"))
+
+					const files = e.target.files
+					const toUpload = []
+
+					for (let i = 0; i < files.length; i++) {
+						Object.defineProperty(files[i], "fullPath", {
+							value: files[i].name,
+							writable: true
+						})
+
+						toUpload.push(files[i])
+					}
+
+					const requestId = window.location.href
+
+					const sub = eventListener.on("uploadsDone", ({ requestId: rId, items }: { requestId: string; items: ItemProps[] }) => {
+						if (rId === requestId) {
+							sub.remove()
+
+							eventListener.emit("chatAddFiles", {
+								conversation: getCurrentParent(requestId),
+								items
+							})
+						}
+					})
+
+					eventListener.emit("openUploadModal", {
+						files: toUpload.filter(file => file.size > 0),
+						openModal: true,
+						chatUpload: true,
+						requestId
+					})
+
+					dismissToast(preparingToast)
+
+					e.target.value = ""
+				}}
+				style={{
+					display: "none"
+				}}
+			/>
 			<Flex
 				width="100%"
 				height={windowHeight + "px"}

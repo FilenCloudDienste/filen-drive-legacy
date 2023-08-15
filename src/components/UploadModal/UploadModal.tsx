@@ -27,14 +27,16 @@ import {
 } from "../../lib/helpers"
 import useTransfers from "../../lib/hooks/useTransfers"
 import { i18n } from "../../i18n"
-import { createFolder } from "../../lib/api"
+import { createFolder, enableItemPublicLink, itemPublicLinkInfo } from "../../lib/api"
 import SelectFromComputer from "../SelectFromComputer"
-import { addFolderNameToDb } from "../../lib/services/items"
+import { addFolderNameToDb, loadSidebarItems } from "../../lib/services/items"
 import { throttle } from "lodash"
 import { CHAKRA_COLOR_SCHEME } from "../../lib/constants"
 import { show as showToast, update as updateToast, dismiss as dismissToast } from "../Toast/Toast"
 import { ONE_YEAR } from "../../lib/constants"
 import ModalCloseButton from "../ModalCloseButton"
+import db from "../../lib/db"
+import { validate } from "uuid"
 
 const ROW_HEIGHT = 45
 
@@ -465,9 +467,49 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 	useEffect(() => {
 		const openUploadModalListener = eventListener.on(
 			"openUploadModal",
-			async ({ files = undefined, openModal = true }: { files?: UploadQueueItemFile[]; openModal?: boolean }) => {
+			async ({
+				files = undefined,
+				openModal = true,
+				chatUpload = false,
+				requestId
+			}: {
+				files?: UploadQueueItemFile[]
+				openModal?: boolean
+				chatUpload?: boolean
+				requestId?: string
+			}) => {
 				if (Array.isArray(files)) {
-					const parent: string = getCurrentURLParentFolder()
+					let parent: string = getCurrentURLParentFolder()
+
+					if (chatUpload) {
+						openModal = false
+
+						try {
+							const defaultDriveUUID = await db.get("defaultDriveUUID")
+
+							if (!validate(defaultDriveUUID)) {
+								return
+							}
+
+							const folders = (await loadSidebarItems(defaultDriveUUID, true)).items
+							const chatUploadsFolder = folders.filter(folder => folder.name === "Chat Uploads")
+
+							if (chatUploadsFolder.length === 0) {
+								parent = await createFolder({
+									uuid: uuidv4(),
+									name: "Chat Uploads",
+									parent: defaultDriveUUID,
+									emitEvents: false
+								})
+							} else {
+								parent = chatUploadsFolder[0].uuid
+							}
+						} catch (e) {
+							console.error(e)
+
+							return
+						}
+					}
 
 					const addToQueue: UploadQueueItem[] = files.map(item => ({
 						file: item,
@@ -641,15 +683,73 @@ const UploadModal = memo(({ darkMode, isMobile, windowWidth, windowHeight, lang,
 
 					setOpen(openModal)
 
+					const uploadedItems: ItemProps[] = []
+					let uploadsDone = 0
+
+					const uploadDone = async (newItem: ItemProps) => {
+						uploadsDone += 1
+						uploadedItems.push(newItem)
+
+						if (chatUpload && uploadsDone >= addToQueue.length && typeof requestId === "string") {
+							const uploadedItemsWithLinkUUIDs: ItemProps[] = []
+							const promises: Promise<void>[] = []
+							const enablingLinksToast = showToast("loading", i18n(lang, "creatingPublicLinks"), "bottom", ONE_YEAR)
+
+							for (const item of uploadedItems) {
+								promises.push(
+									new Promise<void>((resolve, reject) =>
+										enableItemPublicLink(item)
+											.then(() => {
+												itemPublicLinkInfo(item)
+													.then(info => {
+														uploadedItemsWithLinkUUIDs.push({
+															...item,
+															linkUUID: info.uuid
+														})
+
+														resolve()
+													})
+													.catch(reject)
+											})
+											.catch(reject)
+									)
+								)
+							}
+
+							await Promise.allSettled(promises)
+
+							dismissToast(enablingLinksToast)
+
+							if (uploadedItemsWithLinkUUIDs.length > 0) {
+								eventListener.emit("uploadsDone", {
+									requestId,
+									items: uploadedItemsWithLinkUUIDs
+								})
+							}
+						}
+					}
+
 					for (let i = 0; i < addToQueue.length; i++) {
 						if (addToQueue[i].file.fullPath.split("/").length >= 2 && needsToCreateFolders) {
 							const dirname: string = pathGetDirname(addToQueue[i].file.fullPath)
 
 							if (typeof existingFolderPaths[dirname] == "string") {
-								queueFileUpload(addToQueue[i], existingFolderPaths[dirname]).catch(console.error)
+								queueFileUpload(addToQueue[i], existingFolderPaths[dirname])
+									.then(uploadDone)
+									.catch(err => {
+										uploadsDone += 1
+
+										console.error(err)
+									})
 							}
 						} else {
-							queueFileUpload(addToQueue[i], parent).catch(console.error)
+							queueFileUpload(addToQueue[i], parent)
+								.then(uploadDone)
+								.catch(err => {
+									uploadsDone += 1
+
+									console.error(err)
+								})
 						}
 					}
 				} else {

@@ -204,7 +204,7 @@ export const isMessageLink = (message: string) => {
 
 	const trimmed = message.trim()
 
-	if (trimmed.indexOf("/localhost:") !== -1) {
+	if (trimmed.indexOf("/localhost:") !== -1 && trimmed.startsWith("http://localhost:")) {
 		return true
 	}
 
@@ -234,6 +234,7 @@ export const getMessageDisplayType = (message: string): MessageDisplayType => {
 		(message.indexOf("/localhost:") !== -1 ||
 			message.indexOf("/filen.io/") !== -1 ||
 			message.indexOf("/drive.filen.io/") !== -1 ||
+			message.indexOf("/drive.filen.dev/") !== -1 ||
 			message.indexOf("/www.filen.io/") !== -1) &&
 		message.indexOf("/d/") !== -1
 	) {

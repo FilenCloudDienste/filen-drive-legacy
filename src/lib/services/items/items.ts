@@ -501,7 +501,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 
 		const promises: Promise<ItemProps | null>[] = []
 
-		if (uuid == "base" || uuid == "cloudDrive") {
+		if (uuid === "base" || uuid === "cloudDrive") {
 			const content = await folderContentFoldersOnly(defaultDriveUUID)
 
 			const folders = content.folders

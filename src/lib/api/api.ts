@@ -1958,7 +1958,7 @@ export const createFolderPublicLink = async (item: ItemProps, progressCallback?:
 }
 
 export const enableItemPublicLink = async (item: ItemProps, progressCallback?: (current: number, total: number) => any): Promise<void> => {
-	if (item.type == "file") {
+	if (item.type === "file") {
 		const linkUUID = uuidv4()
 
 		const response = await apiRequest({
@@ -1989,7 +1989,7 @@ export const enableItemPublicLink = async (item: ItemProps, progressCallback?: (
 }
 
 export const disableItemPublicLink = async (item: ItemProps, linkUUID: string): Promise<void> => {
-	if (item.type == "file") {
+	if (item.type === "file") {
 		if (typeof linkUUID !== "string" || linkUUID.length < 32) {
 			throw new Error("Invalid linkUUID")
 		}

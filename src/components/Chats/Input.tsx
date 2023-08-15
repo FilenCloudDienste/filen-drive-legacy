@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useRef, useEffect, Suspense, lazy } from "react"
-import { Flex, Menu, MenuButton, MenuList, forwardRef } from "@chakra-ui/react"
+import { Flex, Menu, MenuButton, MenuList, forwardRef, MenuItem } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 import { ChatMessage, sendChatMessage, ChatConversation, chatSendTyping, ChatConversationParticipant } from "../../lib/api"
@@ -23,6 +23,7 @@ import { SearchIndex } from "emoji-mart"
 import { EmojiElement } from "./utils"
 import { custom as customEmojis } from "./customEmojis"
 import emojiData from "@emoji-mart/data"
+import { ItemProps } from "../../types"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -247,12 +248,29 @@ export const Input = memo(
 
 		const insertEmoji = useCallback(
 			(emoji: string) => {
-				if (!editor) {
+				if (!editor || emoji.length === 0) {
 					return
 				}
 
 				const currentText = getEditorText()
 				const newText = currentText.length === 0 || currentText.endsWith(" ") ? emoji + " " : " " + emoji + " "
+
+				ReactEditor.focus(editor)
+				Transforms.insertText(editor, newText)
+				Transforms.select(editor, Editor.end(editor, []))
+			},
+			[editor]
+		)
+
+		const insertPublicLinks = useCallback(
+			(links: string[]) => {
+				if (!editor || links.length === 0) {
+					return
+				}
+
+				const currentText = getEditorText()
+				const newText =
+					currentText.length === 0 || currentText.endsWith("\n") ? links.join("\n") + "\n\n" : "\n" + links.join("\n") + "\n\n"
 
 				ReactEditor.focus(editor)
 				Transforms.insertText(editor, newText)
@@ -462,6 +480,27 @@ export const Input = memo(
 			eventListener.emit("scrollChatToBottom")
 		}, [editorBounds.height])
 
+		useEffect(() => {
+			const chatAddFilesListener = eventListener.on(
+				"chatAddFiles",
+				({ conversation, items }: { conversation: string; items: ItemProps[] }) => {
+					if (getCurrentParent() === conversation) {
+						insertPublicLinks(
+							items
+								.filter(item => typeof item.linkUUID === "string" && typeof item.key === "string")
+								.map(
+									item => window.location.protocol + "//" + window.location.host + "/d/" + item.linkUUID + "#" + item.key
+								)
+						)
+					}
+				}
+			)
+
+			return () => {
+				chatAddFilesListener.remove()
+			}
+		}, [])
+
 		return (
 			<Flex
 				flexDirection="column"
@@ -517,7 +556,7 @@ export const Input = memo(
 												textTransform="uppercase"
 												color={getColor(darkMode, "textPrimary")}
 											>
-												Emojis matching
+												{i18n(lang, "chatEmojisMatching")}
 											</AppText>
 											<AppText
 												isMobile={isMobile}
@@ -580,21 +619,83 @@ export const Input = memo(
 										)}
 									</Flex>
 								)}
-								<Flex
-									position="absolute"
-									zIndex={100001}
-									marginLeft="10px"
-									color={getColor(darkMode, "textSecondary")}
-									_hover={{
-										color: getColor(darkMode, "textPrimary")
-									}}
-									marginTop="9px"
-								>
-									<AiFillPlusCircle
-										size={22}
-										cursor="pointer"
-									/>
-								</Flex>
+								<Menu>
+									<MenuButton
+										as={forwardRef((props, ref) => (
+											<Flex
+												ref={ref}
+												{...props}
+												position="absolute"
+												zIndex={100001}
+												marginLeft="10px"
+												color={getColor(darkMode, "textSecondary")}
+												_hover={{
+													color: getColor(darkMode, "textPrimary")
+												}}
+												marginTop="9px"
+											>
+												<AiFillPlusCircle
+													size={22}
+													cursor="pointer"
+												/>
+											</Flex>
+										))}
+									>
+										{i18n(lang, "selectFromComputer")}
+									</MenuButton>
+									<MenuList
+										boxShadow="base"
+										paddingTop="5px"
+										paddingBottom="5px"
+										backgroundColor={getColor(darkMode, "backgroundPrimary")}
+										borderColor={getColor(darkMode, "borderPrimary")}
+										minWidth="150px"
+										marginLeft="-10px"
+										marginBottom="5px"
+									>
+										<MenuItem
+											height="auto"
+											fontSize={14}
+											paddingTop="5px"
+											paddingBottom="5px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
+											_hover={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											_active={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											_focus={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											onClick={() => {}}
+										>
+											{i18n(lang, "selectFromCloud")}
+										</MenuItem>
+										<MenuItem
+											height="auto"
+											fontSize={14}
+											paddingTop="5px"
+											paddingBottom="5px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
+											_hover={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											_active={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											_focus={{
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											}}
+											onClick={() => document.getElementById("file-input-chat")?.click()}
+										>
+											{i18n(lang, "selectFromComputer")}
+										</MenuItem>
+									</MenuList>
+								</Menu>
+
 								<Flex
 									position="absolute"
 									zIndex={100001}
@@ -621,7 +722,7 @@ export const Input = memo(
 												</Flex>
 											))}
 										>
-											{i18n(lang, "file")}
+											Emojis
 										</MenuButton>
 										<MenuList
 											boxShadow="base"

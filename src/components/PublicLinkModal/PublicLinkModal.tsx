@@ -58,7 +58,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 			itemPublicLinkInfo(item)
 				.then(async info => {
 					if (waitUntilEnabled) {
-						if (item.type == "folder") {
+						if (item.type === "folder") {
 							if (typeof info.exists == "boolean" && !info.exists) {
 								return setTimeout(req, 250)
 							}
@@ -70,7 +70,7 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 					}
 
 					if (waitUntilDisabled) {
-						if (item.type == "folder") {
+						if (item.type === "folder") {
 							if (typeof info.exists == "boolean" && info.exists) {
 								return setTimeout(req, 250)
 							}
@@ -81,11 +81,11 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 						}
 					}
 
-					if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
+					if (item.type === "folder" && typeof info.exists === "boolean" && info.exists) {
 						const masterKeys: string[] = await db.get("masterKeys")
 						const keyDecrypted: string = await decryptFolderLinkKey(info.key, masterKeys)
 
-						if (keyDecrypted.length == 0) {
+						if (keyDecrypted.length === 0) {
 							setOpen(false)
 
 							return
