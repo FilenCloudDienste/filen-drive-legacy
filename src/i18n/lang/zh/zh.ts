@@ -475,7 +475,12 @@ const zh: {
 	chatEmojisMatching: "表情符号匹配中",
 	selectFromCloud: "从云端选择",
 	creatingPublicLinks: "正在创建公共链接",
-	attachToChat: "附加到聊天"
+	attachToChat: "附加到聊天",
+	select: "选择",
+	selectNumItems: "选择 __NUM__ 个项目",
+	chatSettings: "聊天设置",
+	chatSettingsDisplayName: "显示名称",
+	chatSettingsAppearOffline: "显示为离线"
 }
 
 export default zh
