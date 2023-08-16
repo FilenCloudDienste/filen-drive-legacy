@@ -490,7 +490,12 @@ const uk: {
 	chatEmojisMatching: "Підбір емодзі",
 	selectFromCloud: "Вибрати з хмари",
 	creatingPublicLinks: "Створення публічних посилань",
-	attachToChat: "Прикріпити до чату"
+	attachToChat: "Прикріпити до чату",
+	select: "Вибрати",
+	selectNumItems: "Вибрати __NUM__ об'єктів",
+	chatSettings: "Налаштування чату",
+	chatSettingsDisplayName: "Відображуване ім'я",
+	chatSettingsAppearOffline: "Статус \"Не в мережі\""
 }
 
 export default uk
