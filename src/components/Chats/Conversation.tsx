@@ -155,8 +155,8 @@ export const Conversation = memo(
 				message = message + i18n(lang, "chatNoMessagesYet")
 			}
 
-			return message
-		}, [lang, conversationParticipantsFilteredWithoutMe, lastMessageDecrypted])
+			return message.split("`").join("")
+		}, [lang, conversationParticipantsFilteredWithoutMe, lastMessageDecrypted, userId])
 
 		useEffect(() => {
 			;(async () => {

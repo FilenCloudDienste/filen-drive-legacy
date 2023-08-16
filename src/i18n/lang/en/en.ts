@@ -480,7 +480,10 @@ const en: {
 	creatingPublicLinks: "Creating public links",
 	attachToChat: "Attach to chat",
 	select: "Select",
-	selectNumItems: "Select __NUM__ items"
+	selectNumItems: "Select __NUM__ items",
+	chatSettings: "Chat settings",
+	chatSettingsDisplayName: "Display name",
+	chatSettingsAppearOffline: "Appear offline"
 }
 
 export default en

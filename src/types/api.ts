@@ -94,6 +94,8 @@ export interface UserGetAccount {
 	referStorage: number
 	storage: number
 	nickName: string
+	displayName: string
+	appearOffline: boolean
 	subs: UserGetAccountSubs[]
 	subsInvoices: UserGetSubsInvoices[]
 }

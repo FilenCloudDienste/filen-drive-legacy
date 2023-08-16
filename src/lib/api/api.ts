@@ -3292,6 +3292,20 @@ export const userNickname = async (nickname: string): Promise<void> => {
 	}
 }
 
+export const userAppearOffline = async (appearOffline: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/appearOffline",
+		data: {
+			appearOffline
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
 export interface BlockedContact {
 	uuid: string
 	userId: number

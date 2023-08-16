@@ -389,6 +389,9 @@ const SelectFromCloudModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 						color={Object.keys(selected).length > 0 ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")}
 						cursor={Object.keys(selected).length > 0 ? "pointer" : "not-allowed"}
 						onClick={select}
+						_hover={{
+							textDecoration: "underline"
+						}}
 					>
 						{Object.keys(selected).length > 0
 							? i18n(lang, "selectNumItems", true, ["__NUM__"], [Object.keys(selected).length.toString()])
