@@ -38,7 +38,12 @@ export const addFolderNameToDb = async (uuid: string, name: string): Promise<voi
 }
 
 export const loadItems = async (href: string, skipCache: boolean = false): Promise<{ cache: boolean; items: ItemProps[] }> => {
-	const uuid = getCurrentParent(href)
+	let uuid = getCurrentParent(href)
+	const defaultDriveUUID = await db.get("defaultDriveUUID")
+
+	if (uuid === "cloudDrive" || uuid === "base") {
+		uuid = defaultDriveUUID
+	}
 
 	const refresh = async (): Promise<{ cache: boolean; items: ItemProps[] }> => {
 		let [masterKeys, privateKey, userId, userEmail, sortBy] = await Promise.all([

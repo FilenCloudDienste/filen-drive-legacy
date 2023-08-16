@@ -2,7 +2,15 @@ import { memo, useCallback, useState, useRef, useEffect, Suspense, lazy } from "
 import { Flex, Menu, MenuButton, MenuList, forwardRef, MenuItem } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
-import { ChatMessage, sendChatMessage, ChatConversation, chatSendTyping, ChatConversationParticipant } from "../../lib/api"
+import {
+	ChatMessage,
+	sendChatMessage,
+	ChatConversation,
+	chatSendTyping,
+	ChatConversationParticipant,
+	enableItemPublicLink,
+	itemPublicLinkInfo
+} from "../../lib/api"
 import db from "../../lib/db"
 import { v4 as uuidv4 } from "uuid"
 import { encryptChatMessage, decryptChatMessageKey } from "../../lib/worker/worker.com"
@@ -26,6 +34,7 @@ import emojiData from "@emoji-mart/data"
 import { ItemProps } from "../../types"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import throttle from "lodash/throttle"
+import { selectFromCloud } from "../SelectFromCloud/SelectFromCloud"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -194,6 +203,45 @@ export const Input = memo(
 		const [emojiSuggestionsPosition, setEmojiSuggestionsPosition] = useState<number>(0)
 		const emojiSuggestionsOpenRef = useRef<boolean>(false)
 		const [inputFocused, setInputFocused] = useState<boolean>(false)
+
+		const selectItemsFromCloud = useCallback(async () => {
+			const items = await selectFromCloud()
+
+			const itemsWithLinkUUIDs: ItemProps[] = []
+			const promises: Promise<void>[] = []
+			const enablingLinksToast = showToast("loading", i18n(lang, "creatingPublicLinks"), "bottom", 86400000 * 365)
+
+			for (const item of items) {
+				promises.push(
+					new Promise<void>((resolve, reject) =>
+						enableItemPublicLink(item)
+							.then(() => {
+								itemPublicLinkInfo(item)
+									.then(info => {
+										itemsWithLinkUUIDs.push({
+											...item,
+											linkUUID: info.uuid
+										})
+
+										resolve()
+									})
+									.catch(reject)
+							})
+							.catch(reject)
+					)
+				)
+			}
+
+			await Promise.allSettled(promises)
+
+			dismissToast(enablingLinksToast)
+
+			insertPublicLinks(
+				itemsWithLinkUUIDs
+					.filter(item => typeof item.linkUUID === "string" && typeof item.key === "string")
+					.map(item => window.location.protocol + "//" + window.location.host + "/d/" + item.linkUUID + "#" + item.key)
+			)
+		}, [])
 
 		const sendTypingEvents = useCallback(async () => {
 			if (!currentConversation) {
@@ -716,7 +764,7 @@ export const Input = memo(
 											_focus={{
 												backgroundColor: getColor(darkMode, "backgroundSecondary")
 											}}
-											onClick={() => {}}
+											onClick={selectItemsFromCloud}
 										>
 											{i18n(lang, "selectFromCloud")}
 										</MenuItem>
@@ -742,7 +790,6 @@ export const Input = memo(
 										</MenuItem>
 									</MenuList>
 								</Menu>
-
 								<Flex
 									position="absolute"
 									zIndex={100001}

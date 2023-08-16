@@ -18,6 +18,7 @@ import { customEmojis } from "./customEmojis"
 import DeleteConversationModal from "./DeleteConversationModal"
 import LeaveConversationModal from "./LeaveConversationModal"
 import RemoveParticipantModal from "./RemoveParticipantModal"
+import SettingsModal from "./SettingsModal"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -162,6 +163,11 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			<DeleteConversationModal />
 			<LeaveConversationModal />
 			<RemoveParticipantModal />
+			<SettingsModal
+				darkMode={darkMode}
+				isMobile={isMobile}
+				lang={lang}
+			/>
 		</Flex>
 	)
 })

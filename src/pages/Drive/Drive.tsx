@@ -71,6 +71,7 @@ import Chats from "../../components/Chats"
 import Notes from "../../components/Notes"
 import Contacts from "../../components/Contacts"
 import { i18n } from "../../i18n"
+import SelectFromCloud from "../../components/SelectFromCloud"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -1507,6 +1508,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				windowHeight={windowHeight}
 				items={items}
 				setItems={setItems}
+				lang={lang}
+			/>
+			<SelectFromCloud
+				darkMode={darkMode}
+				isMobile={isMobile}
 				lang={lang}
 			/>
 		</Flex>

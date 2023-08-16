@@ -5,6 +5,8 @@ import { ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import AppText from "../AppText"
 import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
+import { getUserNameFromParticipant } from "./utils"
+import striptags from "striptags"
 
 export interface TopbarProps {
 	darkMode: boolean
@@ -137,7 +139,7 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 					marginLeft="10px"
 					fontWeight="bold"
 				>
-					{conversationParticipantsFilteredWithoutMe.map(user => user.email).join(", ")}
+					{conversationParticipantsFilteredWithoutMe.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
 				</AppText>
 			</Flex>
 		</Flex>

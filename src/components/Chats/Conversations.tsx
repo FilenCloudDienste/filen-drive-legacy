@@ -45,6 +45,14 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 
 	useEffect(() => {
 		fetchAccount()
+
+		const chatSettingsChangedListener = eventListener.on("chatSettingsChanged", () => {
+			fetchAccount()
+		})
+
+		return () => {
+			chatSettingsChangedListener.remove()
+		}
 	}, [])
 
 	if (!userAccount) {
@@ -141,7 +149,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 					<AvatarBadge
 						boxSize="12px"
 						border="none"
-						backgroundColor={getColor(darkMode, "green")}
+						backgroundColor={userAccount.appearOffline ? "gray" : getColor(darkMode, "green")}
 					/>
 				</Avatar>
 				<AppText
@@ -166,9 +174,8 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 				alignItems="center"
 				onMouseEnter={() => setHoveringSettings(true)}
 				onMouseLeave={() => setHoveringSettings(false)}
-				onClick={() => eventListener.emit("openNewConversationModal")}
+				onClick={() => eventListener.emit("openChatSettingsModal")}
 				cursor="pointer"
-				className="do-not-unselect-items"
 			>
 				<HiCog
 					size={20}
@@ -548,7 +555,7 @@ export const Conversations = memo(
 						width={sizes.conversations}
 						itemContent={itemContent}
 						computeItemKey={(_, conversation) => conversation.uuid}
-						defaultItemHeight={65}
+						defaultItemHeight={50}
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",
