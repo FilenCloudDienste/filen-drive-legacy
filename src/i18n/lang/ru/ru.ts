@@ -491,7 +491,12 @@ const ru: {
 	chatEmojisMatching: "Подбор эмодзи",
 	selectFromCloud: "Выбрать из облака",
 	creatingPublicLinks: "Создание публичных ссылок",
-	attachToChat: "Прикрепить к чату"
+	attachToChat: "Прикрепить к чату",
+	select: "Выбрать",
+	selectNumItems: "Выбрать __NUM__ объектов",
+	chatSettings: "Настройки чата",
+	chatSettingsDisplayName: "Отображаемое имя",
+	chatSettingsAppearOffline: "Статус \"Не в сети\""
 }
 
 export default ru
