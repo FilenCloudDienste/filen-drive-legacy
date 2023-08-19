@@ -39,18 +39,10 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 
 		try {
 			let sEmail: string = email.trim()
-			let sPassword: string = password.trim()
+			let sPassword: string = password
 			let sTfa: string = tfa.trim()
 
-			if (!sEmail || !sPassword) {
-				toast.show("error", i18n(lang, "invalidEmailAndPassword"), "bottom", 5000)
-
-				setLoading(false)
-
-				return
-			}
-
-			if (sEmail.length == 0 || sPassword.length == 0) {
+			if (!sEmail || !sPassword || sEmail.length == 0 || sPassword.length == 0) {
 				toast.show("error", i18n(lang, "invalidEmailAndPassword"), "bottom", 5000)
 
 				setLoading(false)
