@@ -451,7 +451,7 @@ const en: {
 	notesTagsRename: "Rename tag",
 	notesTagsCreateRenamePlaceholder: "Tag name",
 	noContactsFound: "No contacts found.",
-	noParticipantsFound: "No participants founds.",
+	noParticipantsFound: "No participants found.",
 	leave: "Leave",
 	leaveNote: "Leave note",
 	leaveNoteWarning: "Are you sure you want to leave this note? This action cannot be undone!",
