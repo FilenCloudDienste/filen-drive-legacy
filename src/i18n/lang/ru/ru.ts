@@ -496,7 +496,11 @@ const ru: {
 	selectNumItems: "Выбрать __NUM__ объектов",
 	chatSettings: "Настройки чата",
 	chatSettingsDisplayName: "Отображаемое имя",
-	chatSettingsAppearOffline: "Статус \"Не в сети\""
+	chatSettingsAppearOffline: "Статус \"Не в сети\"",
+	chatMessageHiddenUserBlocked: "Сообщение заблокированного контакта скрыто.",
+	chatConversationCreateSidebar: "Безопасных чатов пока нет.",
+	chatConversationCreateSidebarCreate: "Начать разговор",
+	noConversationFound: "Чаты не найдены."
 }
 
 export default ru

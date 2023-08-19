@@ -495,7 +495,11 @@ const uk: {
 	selectNumItems: "Вибрати __NUM__ об'єктів",
 	chatSettings: "Налаштування чату",
 	chatSettingsDisplayName: "Відображуване ім'я",
-	chatSettingsAppearOffline: "Статус \"Не в мережі\""
+	chatSettingsAppearOffline: "Статус \"Не в мережі\"",
+	chatMessageHiddenUserBlocked: "Повідомлення від заблокованого контакту приховано.",
+	chatConversationCreateSidebar: "Захищених чатів ще немає.",
+	chatConversationCreateSidebarCreate: "Почати розмову",
+	noConversationFound: "Чатів не знайдено."
 }
 
 export default uk
