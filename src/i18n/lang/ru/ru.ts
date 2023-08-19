@@ -399,7 +399,7 @@ const ru: {
 	contacts: "Контакты",
 	chatConversations: "Чаты",
 	chatParticipants: "Участники",
-	chatNew: "Новый разговор",
+	chatNew: "Новый чат",
 	chatNewInviteEmail: "Адрес электронной почты",
 	chatAddUserToConversation: "Добавить пользователя",
 	add: "Добавить",
@@ -487,7 +487,16 @@ const ru: {
 	chatInfoSubtitle1: "Filen по умолчанию защищает каждый чат с помощью сквозного шифрования с нулевым знанием.",
 	chatInfoSubtitle2: "Расшифровать и прочитать содержимое чата могут только его участники.",
 	chatInfoSubtitle3:
-		"Система гарантирует, что полученные данные действительно исходят от отображаемого пользователя и не были изменены за прошедшее время."
+		"Система гарантирует, что полученные данные действительно исходят от отображаемого пользователя и не были изменены за прошедшее время.",
+	chatEmojisMatching: "Подбор эмодзи",
+	selectFromCloud: "Выбрать из облака",
+	creatingPublicLinks: "Создание публичных ссылок",
+	attachToChat: "Прикрепить к чату",
+	select: "Выбрать",
+	selectNumItems: "Выбрать __NUM__ объектов",
+	chatSettings: "Настройки чата",
+	chatSettingsDisplayName: "Отображаемое имя",
+	chatSettingsAppearOffline: "Статус \"Не в сети\""
 }
 
 export default ru

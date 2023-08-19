@@ -398,7 +398,7 @@ const uk: {
 	contacts: "Контакти",
 	chatConversations: "Чати",
 	chatParticipants: "Учасники",
-	chatNew: "Нова розмова",
+	chatNew: "Новий чат",
 	chatNewInviteEmail: "Адреса електронної пошти",
 	chatAddUserToConversation: "Додати користувача",
 	add: "Додати",
@@ -486,7 +486,16 @@ const uk: {
 	chatInfoSubtitle1: "Filen за замовчуванням захищає кожен чат наскрізним шифруванням з нульовою довірою.",
 	chatInfoSubtitle2: "Тільки учасники чату можуть розшифрувати та прочитати вміст.",
 	chatInfoSubtitle3:
-		"Система гарантує, що отримані дані дійсно надходять від відображуваного користувача і не були змінені за минулий час."
+		"Система гарантує, що отримані дані дійсно надходять від відображуваного користувача і не були змінені за минулий час.",
+	chatEmojisMatching: "Підбір емодзі",
+	selectFromCloud: "Вибрати з хмари",
+	creatingPublicLinks: "Створення публічних посилань",
+	attachToChat: "Прикріпити до чату",
+	select: "Вибрати",
+	selectNumItems: "Вибрати __NUM__ об'єктів",
+	chatSettings: "Налаштування чату",
+	chatSettingsDisplayName: "Відображуване ім'я",
+	chatSettingsAppearOffline: "Статус \"Не в мережі\""
 }
 
 export default uk
