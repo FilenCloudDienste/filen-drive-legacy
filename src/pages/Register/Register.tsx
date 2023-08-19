@@ -118,8 +118,14 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 			let userPassword: string = password
 			let userConfirmPassword: string = confirmPassword
 
-			if (!userEmail || !userPassword || !userConfirmPassword
-				  || userEmail.length == 0 || userPassword.length == 0 || userConfirmPassword.length == 0) {
+			if (
+				!userEmail ||
+				!userPassword ||
+				!userConfirmPassword ||
+				userEmail.length == 0 ||
+				userPassword.length == 0 ||
+				userConfirmPassword.length == 0
+			) {
 				toast.show("error", i18n(lang, "invalidEmailAndPassword"), "bottom", 5000)
 
 				setLoading(false)
