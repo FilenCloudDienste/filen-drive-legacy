@@ -480,7 +480,11 @@ const zh: {
 	selectNumItems: "选择 __NUM__ 个项目",
 	chatSettings: "聊天设置",
 	chatSettingsDisplayName: "显示名称",
-	chatSettingsAppearOffline: "显示为离线"
+	chatSettingsAppearOffline: "显示为离线",
+	chatMessageHiddenUserBlocked: "被拉黑的联系人的消息已隐藏。",
+	chatConversationCreateSidebar: "还没有安全聊天。",
+	chatConversationCreateSidebarCreate: "开始聊天",
+	noConversationFound: "没有找到聊天记录。"
 }
 
 export default zh
