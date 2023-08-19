@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex } from "@chakra-ui/react"
-import { ChatMessage, ChatConversation, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
+import { ChatMessage, ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import { safeAwait, getCurrentParent } from "../../lib/helpers"
 import db from "../../lib/db"
 import eventListener from "../../lib/eventListener"
@@ -23,6 +23,8 @@ export interface ContainerProps {
 	currentConversationMe: ChatConversationParticipant | undefined
 	contextMenuOpen: string
 	emojiInitDone: boolean
+	unreadConversationsMessages: Record<string, number>
+	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 }
 
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
@@ -40,7 +42,9 @@ export const Container = memo(
 		currentConversation,
 		currentConversationMe,
 		contextMenuOpen,
-		emojiInitDone
+		emojiInitDone,
+		unreadConversationsMessages,
+		setUnreadConversationsMessages
 	}: ContainerProps) => {
 		const [messages, setMessages] = useState<ChatMessage[]>([])
 		const [loading, setLoading] = useState<boolean>(true)
@@ -176,11 +180,7 @@ export const Container = memo(
 			const uuid = getCurrentParent(window.location.href)
 
 			if (validate(uuid)) {
-				if (!scrolledUp) {
-					safeAwait(chatConversationsRead(uuid))
-				}
-
-				safeAwait(fetchMessages())
+				safeAwait(fetchMessages(true))
 			}
 		}, [currentConversation, scrolledUp])
 
@@ -192,7 +192,7 @@ export const Container = memo(
 			if (messages.length > 0) {
 				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
-		}, [messages])
+		}, [JSON.stringify(messages)])
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -235,7 +235,7 @@ export const Container = memo(
 			})
 
 			const socketAuthedListener = eventListener.on("socketAuthed", () => {
-				fetchMessages()
+				fetchMessages(true)
 			})
 
 			const chatMessageDeleteListener = eventListener.on("chatMessageDelete", (uuid: string) => {
@@ -330,6 +330,8 @@ export const Container = memo(
 							contextMenuOpen={contextMenuOpen}
 							firstMessageIndex={firstMessageIndex}
 							setScrolledUp={setScrolledUp}
+							unreadConversationsMessages={unreadConversationsMessages}
+							setUnreadConversationsMessages={setUnreadConversationsMessages}
 						/>
 					)}
 				</Flex>

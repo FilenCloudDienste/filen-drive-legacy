@@ -483,7 +483,11 @@ const en: {
 	selectNumItems: "Select __NUM__ items",
 	chatSettings: "Chat settings",
 	chatSettingsDisplayName: "Display name",
-	chatSettingsAppearOffline: "Appear offline"
+	chatSettingsAppearOffline: "Appear offline",
+	chatMessageHiddenUserBlocked: "Message of blocked contact hidden.",
+	chatConversationCreateSidebar: "No secure chats yet.",
+	chatConversationCreateSidebarCreate: "Start talking",
+	noConversationFound: "No chat found."
 }
 
 export default en

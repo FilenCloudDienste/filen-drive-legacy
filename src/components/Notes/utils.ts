@@ -287,7 +287,7 @@ export const cleanupLocalDb = async (notes: INote[], tags: NoteTag[]) => {
 	const keys = await db.keys("notes")
 
 	const existingNoteUUIDs: string[] = notes.map(n => n.uuid)
-	const existingTagsUUDs: string[] = tags.map(t => t.uuid)
+	const existingTagsUUIDs: string[] = tags.map(t => t.uuid)
 
 	for (const key of keys) {
 		if (key.startsWith("noteContent:") || key.startsWith("noteType:")) {

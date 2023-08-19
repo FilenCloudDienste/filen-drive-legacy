@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Flex, Avatar, Spinner, Progress, CircularProgress, Image } from "@chakra-ui/react"
+import { Flex, Spinner, Progress, CircularProgress, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import AppText from "../../components/AppText"
 import {
@@ -28,7 +28,6 @@ import {
 	ItemColorChangedEvent,
 	ItemTrashedEvent,
 	FolderCreatedEvent,
-	SidebarUsageProps,
 	UserInfo
 } from "../../types"
 import { loadSidebarItems } from "../../lib/services/items"
@@ -51,6 +50,7 @@ import { FiUsers } from "react-icons/fi"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
+import useWindowFocus from "use-window-focus"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -72,9 +72,11 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	const location = useLocation()
 	const [unreadChatMessages, setUnreadChatMessages] = useState<number>(0)
 	const [contactRequestsIn, setContactRequestsIn] = useState<number>(0)
+	const focused = useWindowFocus()
+	const focusedRef = useRef<boolean>(focused)
 
 	const active = useMemo(() => {
-		return "/" + location.hash == to || location.hash.indexOf(type) !== -1
+		return "/" + location.hash === to || location.hash.indexOf(type) !== -1
 	}, [location.hash])
 
 	const colors = useMemo(() => {
@@ -109,7 +111,13 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 	}, [])
 
 	useEffect(() => {
-		let refreshTimer: ReturnType<typeof setInterval>
+		focusedRef.current = focused
+	}, [focused])
+
+	useEffect(() => {
+		let refreshTimer: ReturnType<typeof setInterval> | undefined
+		let socketEventListener: ReturnType<typeof eventListener.on> | undefined
+		let sidebarUpdateChatNotificationsListener: ReturnType<typeof eventListener.on> | undefined
 
 		if (type === "chats" || type === "contacts") {
 			if (type === "chats") {
@@ -131,8 +139,34 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 			}, 5000)
 		}
 
+		if (type === "chats") {
+			socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				if (event.type === "chatMessageNew") {
+					try {
+						const userId = await db.get("userId")
+
+						if (
+							userId !== event.data.senderId &&
+							(!focusedRef.current || event.data.conversation !== getCurrentParent(window.location.href))
+						) {
+							setUnreadChatMessages(prev => prev + 1)
+						}
+					} catch (e) {
+						console.error(e)
+					}
+				}
+			})
+
+			sidebarUpdateChatNotificationsListener = eventListener.on("sidebarUpdateChatNotifications", () => {
+				updateChatUnread()
+			})
+		}
+
 		return () => {
 			clearInterval(refreshTimer)
+
+			sidebarUpdateChatNotificationsListener?.remove()
+			socketEventListener?.remove()
 		}
 	}, [])
 

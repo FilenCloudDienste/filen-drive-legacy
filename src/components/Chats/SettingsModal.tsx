@@ -39,7 +39,9 @@ const SettingsModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; i
 				nickName: displayName.trim(),
 				appearOffline
 			})
-		} catch (e) {
+		} catch (e: any) {
+			showToast("error", e.toString(), "bottom", 5000)
+
 			console.error(e)
 		}
 
@@ -109,7 +111,12 @@ const SettingsModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; i
 							gap="25px"
 						>
 							<Flex flexDirection="column">
-								<FormLabel color={getColor(darkMode, "textPrimary")}>{i18n(lang, "chatSettingsDisplayName")}</FormLabel>
+								<FormLabel
+									color={getColor(darkMode, "textSecondary")}
+									fontSize={14}
+								>
+									{i18n(lang, "chatSettingsDisplayName")}
+								</FormLabel>
 								<Input
 									darkMode={darkMode}
 									isMobile={isMobile}
@@ -134,7 +141,7 @@ const SettingsModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; i
 									isMobile={isMobile}
 									noOfLines={1}
 									wordBreak="break-all"
-									color={getColor(darkMode, "textPrimary")}
+									color={getColor(darkMode, "textSecondary")}
 								>
 									{i18n(lang, "chatSettingsAppearOffline")}
 								</AppText>

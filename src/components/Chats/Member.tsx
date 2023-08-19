@@ -10,6 +10,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import striptags from "striptags"
 import { randomStringUnsafe, getRandomArbitrary, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
+import { AiFillCrown } from "react-icons/ai"
 
 const ONLINE_TIMEOUT = 900000
 
@@ -161,10 +162,20 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 						color={getColor(darkMode, "textSecondary")}
 						marginLeft="10px"
 						fontSize={15}
-						onClick={() => showUserModal()}
+						onClick={() => eventListener.emit("openChatUserModal", user.userId)}
 					>
 						{striptags(getUserNameFromParticipant(user))}
 					</AppText>
+					{user.userId === currentConversation.ownerId && (
+						<AiFillCrown
+							color={getColor(darkMode, "yellow")}
+							size={16}
+							style={{
+								flexShrink: 0,
+								marginLeft: "5px"
+							}}
+						/>
+					)}
 				</Flex>
 				<Flex>
 					{hovering &&

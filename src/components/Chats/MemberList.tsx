@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo } from "react"
+import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { ChatSizes } from "./Chats"
 import { getColor } from "../../styles/colors"
 import { Flex } from "@chakra-ui/react"
@@ -43,6 +43,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	const isMobile = useIsMobile()
 	const [onlineUsers, setOnlineUsers] = useState<OnlineUsers>({})
 	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
+	const lastUserCountRef = useRef<number>(currentConversation?.participants.length || 0)
 
 	const usersSorted = useMemo(() => {
 		if (!currentConversation || !onlineUsers || Object.keys(onlineUsers).length === 0) {
@@ -118,7 +119,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	}, [currentConversation, currentConversationMe])
 
 	const itemContent = useCallback(
-		(index: number, participant: ChatConversationParticipant) => {
+		(_: number, participant: ChatConversationParticipant) => {
 			return (
 				<Member
 					key={participant.userId}
@@ -135,20 +136,53 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	)
 
 	useEffect(() => {
+		if (
+			currentConversation &&
+			currentConversation.participants.length > 0 &&
+			currentConversation.participants.length !== lastUserCountRef.current
+		) {
+			lastUserCountRef.current = currentConversation.participants.length
+
+			updateOnlineUsers()
+		}
+	}, [currentConversation])
+
+	useEffect(() => {
 		updateOnlineUsers()
 	}, [currentConversation?.uuid])
 
 	useEffect(() => {
-		const updateOnlineUsersInterval = setInterval(updateOnlineUsers, 30000)
+		const updateOnlineUsersInterval = setInterval(updateOnlineUsers, 15000)
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
 			updateOnlineUsers()
 		})
 
+		const updateChatOnlineUsersListener = eventListener.on("updateChatOnlineUsers", () => {
+			updateOnlineUsers()
+		})
+
+		const chatSettingsChangedListener = eventListener.on(
+			"chatSettingsChanged",
+			async ({ appearOffline }: { appearOffline: boolean }) => {
+				const userId = await db.get("userId")
+
+				setOnlineUsers(prev => ({
+					...prev,
+					[userId]: {
+						...prev[userId],
+						appearOffline
+					}
+				}))
+			}
+		)
+
 		return () => {
 			clearInterval(updateOnlineUsersInterval)
 
 			socketAuthedListener.remove()
+			updateChatOnlineUsersListener.remove()
+			chatSettingsChangedListener.remove()
 		}
 	}, [])
 

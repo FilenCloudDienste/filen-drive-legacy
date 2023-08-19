@@ -82,7 +82,6 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const contactsSorted = useMemo(() => {
 		const sorted = contacts
 			.sort((a, b) => a.email.localeCompare(b.email))
-			.sort((a, b) => b.lastActive - a.lastActive)
 			.filter(contact => {
 				if (search.length === 0) {
 					return true

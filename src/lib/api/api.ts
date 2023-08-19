@@ -2585,6 +2585,7 @@ export interface ChatConversation {
 	lastMessageSender: number
 	lastMessage: string | null
 	lastMessageTimestamp: number
+	lastMessageUUID: string | null
 	ownerId: number
 	participants: ChatConversationParticipant[]
 	createdTimestamp: number
@@ -2664,13 +2665,13 @@ export const chatConversationsCreate = async (uuid: string, metadata: string): P
 	}
 }
 
-export const chatConversationsParticipantsAdd = async (uuid: string, email: string, metadata: string): Promise<void> => {
+export const chatConversationsParticipantsAdd = async (uuid: string, contactUUID: string, metadata: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/chat/conversations/participants/add",
 		data: {
 			uuid,
-			email,
+			contactUUID,
 			metadata
 		}
 	})

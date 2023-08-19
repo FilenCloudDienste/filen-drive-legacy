@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useEffect } from "react"
 import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatMessage } from "../../lib/api"
+import { ChatMessage, BlockedContact } from "../../lib/api"
 import AppText from "../AppText"
 import striptags from "striptags"
 import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
@@ -297,10 +297,12 @@ export interface MessageContentProps {
 	userId: number
 	isScrollingChat: boolean
 	failedMessages: string[]
+	isBlocked: boolean
+	lang: string
 }
 
 export const MessageContent = memo(
-	({ message, isMobile, darkMode, hovering, userId, isScrollingChat, failedMessages }: MessageContentProps) => {
+	({ message, isMobile, darkMode, hovering, userId, isScrollingChat, failedMessages, isBlocked, lang }: MessageContentProps) => {
 		return (
 			<Flex
 				flexDirection="row"
@@ -308,23 +310,52 @@ export const MessageContent = memo(
 				className="user-select-text"
 				userSelect="text"
 			>
-				{extractLinksFromString(message.message).length > 0 && !message.embedDisabled ? (
-					<Embed
-						darkMode={darkMode}
-						isMobile={isMobile}
-						message={message}
-						userId={userId}
-						hoveringMessage={hovering}
-						isScrollingChat={isScrollingChat}
-						failedMessages={failedMessages}
-					/>
+				{isBlocked ? (
+					<Flex
+						flexDirection="row"
+						gap="4px"
+						color={getColor(darkMode, "textSecondary")}
+						fontSize={14}
+						wordBreak="break-all"
+						className="user-select-text"
+						userSelect="text"
+						fontStyle="italic"
+					>
+						<pre
+							className="user-select-text"
+							style={{
+								maxWidth: "100%",
+								whiteSpace: "pre-wrap",
+								overflow: "hidden",
+								margin: "0px",
+								textIndent: 0,
+								userSelect: "text"
+							}}
+						>
+							{i18n(lang, "chatMessageHiddenUserBlocked")}
+						</pre>
+					</Flex>
 				) : (
-					<MessageText
-						message={message}
-						failedMessages={failedMessages}
-						darkMode={darkMode}
-						isMobile={isMobile}
-					/>
+					<>
+						{extractLinksFromString(message.message).length > 0 && !message.embedDisabled ? (
+							<Embed
+								darkMode={darkMode}
+								isMobile={isMobile}
+								message={message}
+								userId={userId}
+								hoveringMessage={hovering}
+								isScrollingChat={isScrollingChat}
+								failedMessages={failedMessages}
+							/>
+						) : (
+							<MessageText
+								message={message}
+								failedMessages={failedMessages}
+								darkMode={darkMode}
+								isMobile={isMobile}
+							/>
+						)}
+					</>
 				)}
 			</Flex>
 		)
@@ -345,6 +376,7 @@ export interface MessageProps {
 	emojiPickerOpen: boolean
 	lang: string
 	contextMenuOpen: string
+	blockedContacts: BlockedContact[]
 }
 
 export const Message = memo(
@@ -361,13 +393,22 @@ export const Message = memo(
 		setDisplayMessageAs,
 		emojiPickerOpen,
 		lang,
-		contextMenuOpen
+		contextMenuOpen,
+		blockedContacts
 	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
 		const hovering = useMemo(() => {
 			return hoveringMessage || contextMenuOpen === message.uuid
 		}, [message, contextMenuOpen, hoveringMessage])
+
+		const blockedContactsIds = useMemo(() => {
+			return blockedContacts.map(c => c.userId)
+		}, [blockedContacts])
+
+		const isBlocked = useMemo(() => {
+			return blockedContactsIds.includes(message.senderId) && message.senderId !== userId
+		}, [blockedContactsIds, message, userId])
 
 		const groupWithPrevMessage = useMemo(() => {
 			if (!prevMessage) {
@@ -434,21 +475,40 @@ export const Message = memo(
 						backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 					>
 						<Flex
-							flexDirection="column"
+							flexDirection="row"
+							paddingLeft="25px"
 							paddingRight="15px"
-							paddingLeft="62px"
-							className="user-select-text"
-							userSelect="text"
 						>
-							<MessageContent
-								message={message}
-								darkMode={darkMode}
-								isMobile={isMobile}
-								failedMessages={failedMessages}
-								hovering={hovering}
-								userId={userId}
-								isScrollingChat={isScrollingChat}
-							/>
+							<Flex
+								color={getColor(darkMode, "textSecondary")}
+								fontSize={10}
+								width="37px"
+								flexShrink={0}
+								paddingTop="4px"
+							>
+								{hovering &&
+									new Date(message.sentTimestamp).toLocaleTimeString("de-DE", {
+										hour: "2-digit",
+										minute: "2-digit"
+									})}
+							</Flex>
+							<Flex
+								flexDirection="column"
+								className="user-select-text"
+								userSelect="text"
+							>
+								<MessageContent
+									message={message}
+									darkMode={darkMode}
+									isMobile={isMobile}
+									failedMessages={failedMessages}
+									hovering={hovering}
+									userId={userId}
+									isScrollingChat={isScrollingChat}
+									isBlocked={isBlocked}
+									lang={lang}
+								/>
+							</Flex>
 						</Flex>
 					</Flex>
 					{nextMessage && (!groupWithNextMessage || dontGroupWithNextMessage) && (
@@ -563,6 +623,11 @@ export const Message = memo(
 									className="user-select-text"
 									userSelect="text"
 									as="span"
+									cursor="pointer"
+									onClick={() => eventListener.emit("openChatUserModal", message.senderId)}
+									_hover={{
+										textDecoration: "underline"
+									}}
 								>
 									{striptags(getUserNameFromMessage(message))}
 								</AppText>
@@ -582,6 +647,8 @@ export const Message = memo(
 								hovering={hovering}
 								userId={userId}
 								isScrollingChat={isScrollingChat}
+								isBlocked={isBlocked}
+								lang={lang}
 							/>
 						</Flex>
 					</Flex>

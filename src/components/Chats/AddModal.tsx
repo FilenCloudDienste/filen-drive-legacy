@@ -194,10 +194,6 @@ const AddModal = memo(() => {
 		const itemHeight = 45
 		const max = 400
 
-		if (!conversation) {
-			return itemHeight
-		}
-
 		const calced = Math.round(itemHeight * contactsFiltered.length)
 
 		if (calced > max) {
@@ -205,7 +201,7 @@ const AddModal = memo(() => {
 		}
 
 		return calced
-	}, [conversation, contactsFiltered])
+	}, [contactsFiltered])
 
 	const loadContacts = useCallback(async (showLoader: boolean = true) => {
 		setLoadingContacts(showLoader)
@@ -227,21 +223,23 @@ const AddModal = memo(() => {
 	}, [])
 
 	const addOrCreate = useCallback(async () => {
-		if (conversationUUID.current.length === 0 || conversationKey.current.length === 0) {
-			return
-		}
-
 		setLoading(true)
 
-		const to = Object.keys(contactsToAdd).map(key => contactsToAdd[key].email.trim())
+		const to = Object.keys(contactsToAdd).map(key => contactsToAdd[key])
 		const promises: Promise<void>[] = []
 		let newUUID = ""
 
 		if (mode === "add") {
-			for (const email of to) {
+			if (conversationUUID.current.length === 0 || conversationKey.current.length === 0) {
+				setLoading(false)
+
+				return
+			}
+
+			for (const contact of to) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						const [toErr, toRes] = await safeAwait(getPublicKeyFromEmail(email))
+						const [toErr, toRes] = await safeAwait(getPublicKeyFromEmail(contact.email))
 
 						if (toErr) {
 							reject(toErr)
@@ -252,7 +250,7 @@ const AddModal = memo(() => {
 						const participantMetadata = await encryptMetadataPublicKey(JSON.stringify({ key: conversationKey.current }), toRes)
 
 						const [addErr] = await safeAwait(
-							chatConversationsParticipantsAdd(conversationUUID.current, email, participantMetadata)
+							chatConversationsParticipantsAdd(conversationUUID.current, contact.uuid, participantMetadata)
 						)
 
 						if (addErr) {
@@ -276,15 +274,17 @@ const AddModal = memo(() => {
 			if (createErr) {
 				console.error(createErr)
 
+				showToast("error", createErr.toString(), "bottom", 5000)
+
 				setLoading(false)
 
 				return
 			}
 
-			for (const email of to) {
+			for (const contact of to) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						const [toErr, toRes] = await safeAwait(getPublicKeyFromEmail(email))
+						const [toErr, toRes] = await safeAwait(getPublicKeyFromEmail(contact.email))
 
 						if (toErr) {
 							reject(toErr)
@@ -294,7 +294,7 @@ const AddModal = memo(() => {
 
 						const participantMetadata = await encryptMetadataPublicKey(JSON.stringify({ key }), toRes)
 
-						const [addErr] = await safeAwait(chatConversationsParticipantsAdd(uuid, email, participantMetadata))
+						const [addErr] = await safeAwait(chatConversationsParticipantsAdd(uuid, contact.uuid, participantMetadata))
 
 						if (addErr) {
 							reject(addErr)
@@ -315,6 +315,8 @@ const AddModal = memo(() => {
 		if (err) {
 			console.error(err)
 
+			showToast("error", err.toString(), "bottom", 5000)
+
 			setLoading(false)
 
 			return
@@ -325,12 +327,15 @@ const AddModal = memo(() => {
 		if (conversationsErr) {
 			console.error(conversationsErr)
 
+			showToast("error", conversationsErr.toString(), "bottom", 5000)
+
 			setLoading(false)
 
 			return
 		}
 
-		eventListener.emit("updateChatConversations", conversationsRes)
+		eventListener.emit("updateChatConversations")
+		eventListener.emit("updateChatConversationsWithData", conversationsRes)
 
 		if (mode === "new") {
 			navigate("#/chats/" + newUUID)
@@ -341,7 +346,7 @@ const AddModal = memo(() => {
 	}, [contactsToAdd, mode])
 
 	const itemContent = useCallback(
-		(index: number, contact: IContact) => {
+		(_: number, contact: IContact) => {
 			return (
 				<Contact
 					key={contact.uuid}
@@ -370,8 +375,6 @@ const AddModal = memo(() => {
 			}) => {
 				conversationUUID.current = uuid
 				conversationKey.current = key
-
-				console.log(uuid, key, mode, conversation)
 
 				loadContacts()
 
@@ -458,7 +461,18 @@ const AddModal = memo(() => {
 						height="auto"
 						flexDirection="column"
 					>
-						{contactsFiltered.length > 0 ? (
+						{loadingContacts ? (
+							<Flex
+								justifyContent="center"
+								alignItems="center"
+							>
+								<Spinner
+									width="24px"
+									height="24px"
+									color={getColor(darkMode, "textPrimary")}
+								/>
+							</Flex>
+						) : contactsFiltered.length > 0 ? (
 							<Virtuoso
 								data={contactsFiltered}
 								height={containerHeight}

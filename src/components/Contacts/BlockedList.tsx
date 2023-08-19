@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState, useMemo } from "react"
+import { memo, useCallback, useEffect, useState } from "react"
 import { Flex, Input } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"

@@ -32,7 +32,7 @@ export const ContactsList = memo(
 		const windowHeight = useWindowHeight()
 		const lang = useLang()
 
-		const itemContent = useCallback((index: number, contact: IContact) => {
+		const itemContent = useCallback((_: number, contact: IContact) => {
 			return (
 				<Contact
 					key={contact.uuid}

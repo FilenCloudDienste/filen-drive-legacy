@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useCallback, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
-import { ChatMessage } from "../../lib/api"
+import { ChatMessage, chatConversationsRead, contactsBlocked, BlockedContact } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import Message, { MessageSkeleton, ChatInfo } from "./Message"
 import { DisplayMessageAs } from "./Container"
@@ -8,6 +8,10 @@ import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import eventListener from "../../lib/eventListener"
 import { useLocation } from "react-router-dom"
 import { BIG_NUMBER } from "./Container"
+import { SocketEvent } from "../../lib/services/socket"
+import { getCurrentParent, Semaphore, safeAwait } from "../../lib/helpers"
+
+const markNotificationsAsReadMutex = new Semaphore(1)
 
 const loadingMessages = new Array(32).fill(1).map(() => ({
 	uuid: "",
@@ -35,6 +39,8 @@ export interface MessagesProps {
 	contextMenuOpen: string
 	firstMessageIndex: number
 	setScrolledUp: React.Dispatch<React.SetStateAction<boolean>>
+	unreadConversationsMessages: Record<string, number>
+	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 }
 
 export const Messages = memo(
@@ -53,7 +59,9 @@ export const Messages = memo(
 		conversationUUID,
 		contextMenuOpen,
 		firstMessageIndex,
-		setScrolledUp
+		setScrolledUp,
+		unreadConversationsMessages,
+		setUnreadConversationsMessages
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
@@ -64,7 +72,15 @@ export const Messages = memo(
 		const [initalLoadDone, setInitialLoadDone] = useState<boolean>(false)
 		const initalLoadDoneTimer = useRef<ReturnType<typeof setTimeout>>()
 		const [atBottom, setAtBottom] = useState<boolean>(true)
+		const [isFocused, setIsFocused] = useState<boolean>(true)
 		const lastMessageUUID = useRef<string>("")
+		const atBottomRef = useRef<boolean>(atBottom)
+		const isFocusedRef = useRef<boolean>(isFocused)
+		const userIdRef = useRef<number>(userId)
+		const markNotificationsAsReadLastMessageRef = useRef<string>("")
+		const messagesRef = useRef<ChatMessage[]>(messages)
+		const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
+		const mountedRef = useRef<boolean>(false)
 
 		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
@@ -102,6 +118,12 @@ export const Messages = memo(
 			}
 		}, [initalLoadDone])
 
+		const atBottomStateChange = useCallback((bottom: boolean) => {
+			setAtBottom(bottom)
+
+			atBottomRef.current = bottom
+		}, [])
+
 		const atTopStateChange = useCallback(
 			(atTop: boolean) => {
 				if (atTop && messages.length > 0 && initalLoadDone) {
@@ -136,6 +158,7 @@ export const Messages = memo(
 							emojiPickerOpen={emojiPickerOpen}
 							lang={lang}
 							contextMenuOpen={contextMenuOpen}
+							blockedContacts={blockedContacts}
 						/>
 					</div>
 				)
@@ -151,12 +174,78 @@ export const Messages = memo(
 				setDisplayMessageAs,
 				emojiPickerOpen,
 				lang,
-				contextMenuOpen
+				contextMenuOpen,
+				blockedContacts
 			]
 		)
 
+		const onFocus = useCallback(() => {
+			setIsFocused(true)
+
+			isFocusedRef.current = true
+		}, [])
+
+		const onBlur = useCallback(() => {
+			setIsFocused(false)
+
+			isFocusedRef.current = false
+		}, [])
+
+		const fetchBlockedContacts = useCallback(async () => {
+			const [err, res] = await safeAwait(contactsBlocked())
+
+			if (err) {
+				console.error(err)
+
+				return
+			}
+
+			setBlockedContacts(res)
+		}, [])
+
+		const markNotificationsAsRead = useCallback(async (convo: string) => {
+			try {
+				await chatConversationsRead(convo)
+
+				eventListener.emit("sidebarUpdateChatNotifications")
+
+				setUnreadConversationsMessages(prev => ({
+					...prev,
+					[convo]: 0
+				}))
+			} catch (e) {
+				console.error(e)
+			}
+		}, [])
+
+		useEffect(() => {
+			;(async () => {
+				await markNotificationsAsReadMutex.acquire()
+
+				if (
+					messages.length > 0 &&
+					markNotificationsAsReadLastMessageRef.current !== messages[messages.length - 1].uuid &&
+					isFocused &&
+					atBottom
+				) {
+					try {
+						await markNotificationsAsRead(conversationUUID)
+
+						markNotificationsAsReadLastMessageRef.current = messages[messages.length - 1].uuid
+					} catch (e) {
+						console.error(e)
+					}
+				}
+
+				markNotificationsAsReadMutex.release()
+			})()
+		}, [messages, atBottom, isFocused, conversationUUID])
+
 		useEffect(() => {
 			clearTimeout(initalLoadDoneTimer.current)
+
+			setIsFocused(true)
+			setAtBottom(true)
 
 			const interval = setInterval(() => {
 				if (messages.length > 0 && !isScrollingChatRef.current) {
@@ -166,7 +255,7 @@ export const Messages = memo(
 				}
 			}, 1)
 
-			setTimeout(() => clearInterval(interval), 500)
+			setTimeout(() => clearInterval(interval), 1000)
 
 			initalLoadDoneTimer.current = setTimeout(() => {
 				setInitialLoadDone(true)
@@ -194,6 +283,36 @@ export const Messages = memo(
 		}, [atBottom, messages])
 
 		useEffect(() => {
+			atBottomRef.current = atBottom
+			isFocusedRef.current = isFocused
+			userIdRef.current = userId
+			messagesRef.current = messages
+		}, [atBottom, isFocused, userId, messages])
+
+		useEffect(() => {
+			window.addEventListener("focus", onFocus)
+			window.addEventListener("blur", onBlur)
+
+			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				if (event.type === "chatMessageNew" && event.data.senderId !== userIdRef.current) {
+					if (getCurrentParent(window.location.href) !== event.data.conversation) {
+						setUnreadConversationsMessages(prev => ({
+							...prev,
+							[event.data.conversation]:
+								typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
+						}))
+					} else {
+						if (!atBottomRef.current || !isFocusedRef.current) {
+							setUnreadConversationsMessages(prev => ({
+								...prev,
+								[event.data.conversation]:
+									typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
+							}))
+						}
+					}
+				}
+			})
+
 			const scrollChatToBottomListener = eventListener.on("scrollChatToBottom", () => {
 				if (virtuosoRef.current) {
 					virtuosoRef.current.scrollTo({
@@ -203,7 +322,29 @@ export const Messages = memo(
 			})
 
 			return () => {
+				window.removeEventListener("focus", onFocus)
+				window.removeEventListener("blur", onBlur)
+
 				scrollChatToBottomListener.remove()
+				socketEventListener.remove()
+			}
+		}, [])
+
+		useEffect(() => {
+			if (!mountedRef.current) {
+				mountedRef.current = true
+
+				fetchBlockedContacts()
+			}
+
+			const fetchBlockedContactsInterval = setInterval(fetchBlockedContacts, 60000)
+
+			const contactBlockedListener = eventListener.on("contactBlocked", () => fetchBlockedContacts())
+
+			return () => {
+				clearInterval(fetchBlockedContactsInterval)
+
+				contactBlockedListener.remove()
 			}
 		}, [])
 
@@ -265,7 +406,7 @@ export const Messages = memo(
 				followOutput={followOutput}
 				isScrolling={onScroll}
 				itemContent={itemContent}
-				atBottomStateChange={setAtBottom}
+				atBottomStateChange={atBottomStateChange}
 				rangeChanged={rangeChanged}
 				atTopStateChange={atTopStateChange}
 				onScroll={scrollEvent}

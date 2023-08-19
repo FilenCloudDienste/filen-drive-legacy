@@ -40,6 +40,8 @@ export const BlockModal = memo(({ setContacts }: { setContacts: React.Dispatch<R
 			return
 		}
 
+		eventListener.emit("contactBlocked", selectedContactRef.current)
+
 		setBlocking(false)
 		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContactRef.current?.uuid))
 		setOpen(false)

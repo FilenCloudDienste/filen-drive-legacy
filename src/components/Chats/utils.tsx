@@ -1,3 +1,4 @@
+import { useEffect, createElement, memo, useRef } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
@@ -7,12 +8,11 @@ import { MessageDisplayType } from "./Container"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { Emoji } from "emoji-mart"
-import { useEffect, createElement, memo, useRef } from "react"
 import { getColor } from "../../styles/colors"
 import { Link } from "@chakra-ui/react"
 import { customEmojis } from "./customEmojis"
 
-const customEmojisList = customEmojis.map(emoji => emoji.id)
+export const customEmojisList = customEmojis.map(emoji => emoji.id)
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -88,6 +88,8 @@ export const fetchChatConversations = async (
 		const result = await chatConversations(timestamp)
 
 		await db.set("chatConversations", result, "chats")
+
+		cleanupLocalDb(result).catch(console.error)
 
 		return {
 			conversations: result,
@@ -381,11 +383,21 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 					<span
 						key={index}
 						title={match.indexOf(":") !== -1 ? match : undefined}
+						style={{
+							width: size ? size + "px" : undefined,
+							height: size ? size + "px" : undefined,
+							display: "inline-block"
+						}}
 					>
 						<EmojiElement
 							fallback={match}
 							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
-							size={size + "px"}
+							size={size ? size + "px" : "34px"}
+							style={{
+								width: size ? size + "px" : undefined,
+								height: size ? size + "px" : undefined,
+								display: "inline-block"
+							}}
 						/>
 					</span>
 				)
@@ -395,12 +407,22 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 				<span
 					key={index}
 					title={match.indexOf(":") !== -1 ? match : undefined}
+					style={{
+						width: size ? size * 1.33333 + "px" : undefined,
+						height: size ? size * 1.33333 + "px" : undefined,
+						display: "inline-block"
+					}}
 				>
 					<EmojiElement
 						fallback={match}
 						shortcodes={match.indexOf(":") !== -1 ? match : undefined}
 						native={match.indexOf(":") === -1 ? match : undefined}
-						size={size + "px"}
+						size={size ? size + "px" : "34px"}
+						style={{
+							width: size ? size * 1.33333 + "px" : undefined,
+							height: size ? size * 1.33333 + "px" : undefined,
+							display: "inline-block"
+						}}
 					/>
 				</span>
 			)
@@ -415,4 +437,56 @@ export const parseTwitterStatusIdFromURL = (url: string) => {
 	const ex = url.split("/")
 
 	return ex[ex.length - 1].trim()
+}
+
+export const cleanupLocalDb = async (conversations: ChatConversation[]) => {
+	const keys = await db.keys("chats")
+
+	const existingConversationsUUIDs: string[] = conversations.map(c => c.uuid)
+
+	for (const key of keys) {
+		if (key.startsWith("chatMessages:")) {
+			const noteUUID = key.split(":")[1]
+
+			if (!existingConversationsUUIDs.includes(noteUUID)) {
+				await db.remove(key, "chats")
+			}
+		}
+	}
+}
+
+export const sortAndFilterConversations = (conversations: ChatConversation[], search: string, userId: number) => {
+	return conversations
+		.filter(convo => convo.participants.length >= 2 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
+		.filter(convo => {
+			if (search.length === 0) {
+				return true
+			}
+
+			if (
+				convo.participants
+					.map(p => getUserNameFromParticipant(p))
+					.join(", ")
+					.toLowerCase()
+					.trim()
+					.indexOf(search.toLowerCase().trim()) !== -1
+			) {
+				return true
+			}
+
+			if (convo.lastMessage?.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
+				return true
+			}
+
+			return false
+		})
+		.sort((a, b) => {
+			if (a.lastMessageTimestamp > 0 && b.lastMessageTimestamp > 0) {
+				return b.lastMessageTimestamp - a.lastMessageTimestamp
+			} else if (a.lastMessageTimestamp === 0 && b.lastMessageTimestamp === 0) {
+				return b.createdTimestamp - a.createdTimestamp
+			} else {
+				return b.lastMessageTimestamp - a.lastMessageTimestamp
+			}
+		})
 }

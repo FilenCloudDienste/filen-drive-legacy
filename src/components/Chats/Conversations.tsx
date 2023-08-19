@@ -1,25 +1,24 @@
 import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
-import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
+import { Flex, Avatar, AvatarBadge, Skeleton, Input } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatConversation, chatConversationsUnread, chatConversationsRead, ChatConversationParticipant } from "../../lib/api"
+import { ChatConversation, chatConversationsUnread } from "../../lib/api"
 import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode, randomStringUnsafe } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { validate } from "uuid"
 import Conversation, { ConversationSkeleton } from "./Conversation"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import { fetchUserAccount } from "../../lib/services/user"
 import { UserGetAccount } from "../../types"
-import { getUserNameFromAccount, fetchChatConversations } from "./utils"
+import { getUserNameFromAccount, fetchChatConversations, sortAndFilterConversations } from "./utils"
 import AppText from "../AppText"
 import { HiCog } from "react-icons/hi"
 import { Virtuoso } from "react-virtuoso"
 import { i18n } from "../../i18n"
 import { IoIosAdd } from "react-icons/io"
 import db from "../../lib/db"
-import { decryptChatMessageKey } from "../../lib/worker/worker.com"
 
 export interface MeProps {
 	darkMode: boolean
@@ -192,6 +191,7 @@ const loadingConversations = new Array(5).fill(1).map(() => ({
 	lastMessageSender: 0,
 	lastMessage: null,
 	lastMessageTimestamp: 0,
+	lastMessageUUID: null,
 	ownerId: 0,
 	participants: [],
 	createdTimestamp: 0
@@ -205,8 +205,10 @@ export interface ConversationsProps {
 	conversations: ChatConversation[]
 	setConversations: React.Dispatch<React.SetStateAction<ChatConversation[]>>
 	lang: string
-	currentConversation: ChatConversation | undefined
-	currentConversationMe: ChatConversationParticipant | undefined
+	unreadConversationsMessages: Record<string, number>
+	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
+	conversationsFirstLoadDone: boolean
+	setConversationsFirstLoadDone: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const Conversations = memo(
@@ -218,31 +220,26 @@ export const Conversations = memo(
 		setConversations,
 		lang,
 		conversations,
-		currentConversation,
-		currentConversationMe
+		unreadConversationsMessages,
+		setUnreadConversationsMessages,
+		setConversationsFirstLoadDone,
+		conversationsFirstLoadDone
 	}: ConversationsProps) => {
 		const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
 		const [loading, setLoading] = useState<boolean>(false)
 		const [userId] = useDb("userId", 0)
 		const navigate = useNavigate()
-		const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
 		const windowFocused = useRef<boolean>(true)
 		const userIdRef = useRef<number>(userId)
 		const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
+		const conversationsRef = useRef<ChatConversation[]>(conversations)
+		const initDone = useRef<boolean>(false)
+		const location = useLocation()
+		const [search, setSearch] = useState<string>("")
 
 		const conversationsSorted = useMemo(() => {
-			return conversations
-				.filter(convo => convo.participants.length > 0 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
-				.sort((a, b) => {
-					if (a.lastMessageTimestamp > 0 && b.lastMessageTimestamp > 0) {
-						return b.lastMessageTimestamp - a.lastMessageTimestamp
-					} else if (a.lastMessageTimestamp === 0 && b.lastMessageTimestamp === 0) {
-						return b.createdTimestamp - a.createdTimestamp
-					} else {
-						return b.lastMessageTimestamp - a.lastMessageTimestamp
-					}
-				})
-		}, [conversations])
+			return sortAndFilterConversations(conversations, search, userId)
+		}, [conversations, search, userId])
 
 		const fetchConversations = useCallback(async (refresh: boolean = false) => {
 			const cache = await db.get("chatConversations", "chats")
@@ -263,75 +260,62 @@ export const Conversations = memo(
 				return
 			}
 
-			const promises: Promise<void>[] = []
-			const semaphore = new Semaphore(32)
+			if (!refresh) {
+				const promises: Promise<void>[] = []
+				const semaphore = new Semaphore(32)
 
-			for (const conversation of conversationsRes.conversations) {
-				promises.push(
-					new Promise<void>(async resolve => {
-						await semaphore.acquire()
+				for (const conversation of conversationsRes.conversations) {
+					promises.push(
+						new Promise<void>(async resolve => {
+							await semaphore.acquire()
 
-						const [conversationsUnreadErr, conversationsUnreadRes] = await safeAwait(chatConversationsUnread(conversation.uuid))
+							const [conversationsUnreadErr, conversationsUnreadRes] = await safeAwait(
+								chatConversationsUnread(conversation.uuid)
+							)
 
-						semaphore.release()
+							semaphore.release()
 
-						if (conversationsUnreadErr) {
-							console.error(conversationsUnreadErr)
+							if (conversationsUnreadErr) {
+								console.error(conversationsUnreadErr)
+
+								resolve()
+
+								return
+							}
+
+							setUnreadConversationsMessages(prev => ({
+								...prev,
+								[conversation.uuid]: conversationsUnreadRes
+							}))
 
 							resolve()
+						})
+					)
+				}
 
-							return
-						}
-
-						setUnreadConversationsMessages(prev => ({
-							...prev,
-							[conversation.uuid]: conversationsUnreadRes
-						}))
-
-						resolve()
-					})
-				)
+				Promise.all(promises).catch(console.error)
 			}
-
-			Promise.all(promises).catch(console.error)
 
 			setLoading(false)
 			setConversations(conversationsRes.conversations)
+			setConversationsFirstLoadDone(true)
 
 			if (conversationsRes.cache) {
 				fetchConversations(true)
 			}
 		}, [])
 
-		const openNewConversationModal = useCallback(async () => {
-			if (!currentConversation || !currentConversationMe) {
-				return
-			}
-
-			const privateKey = await db.get("privateKey")
-			const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
-
+		const openNewConversationModal = useCallback(() => {
 			eventListener.emit("openChatAddModal", {
-				uuid: currentConversation.uuid,
-				key,
+				uuid: "",
+				key: "",
 				mode: "new",
-				conversation: currentConversation
+				conversation: undefined
 			})
-		}, [currentConversation, currentConversationMe])
+		}, [])
 
 		const onFocus = useCallback(() => {
 			windowFocused.current = true
-
-			const currentConversationUUID = getCurrentParent(window.location.href)
-
-			if (validate(currentConversationUUID)) {
-				setUnreadConversationsMessages(prev => ({
-					...prev,
-					[currentConversationUUID]: 0
-				}))
-
-				safeAwait(chatConversationsRead(currentConversationUUID))
-			}
 
 			safeAwait(fetchConversations(true))
 		}, [])
@@ -349,7 +333,6 @@ export const Conversations = memo(
 						conversation={convo}
 						userId={userId}
 						unreadConversationsMessages={unreadConversationsMessages}
-						setUnreadConversationsMessages={setUnreadConversationsMessages}
 					/>
 				)
 			},
@@ -374,13 +357,14 @@ export const Conversations = memo(
 
 		useEffect(() => {
 			userIdRef.current = userId
-		}, [userId])
+			conversationsRef.current = conversations
+		}, [userId, conversations])
 
 		useEffect(() => {
-			if (conversationsSorted.length > 0 && !validate(getCurrentParent(window.location.href))) {
+			if (conversationsSorted.length > 0 && !validate(getCurrentParent(location.hash))) {
 				navigate("#/chats/" + conversationsSorted[0].uuid)
 			}
-		}, [conversationsSorted])
+		}, [conversationsSorted, location.hash])
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -397,17 +381,6 @@ export const Conversations = memo(
 								: conversation
 						)
 					)
-
-					if (
-						(getCurrentParent(window.location.href) !== event.data.conversation || !windowFocused.current) &&
-						event.data.senderId !== userIdRef.current
-					) {
-						setUnreadConversationsMessages(prev => ({
-							...prev,
-							[event.data.conversation]:
-								typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
-						}))
-					}
 				} else if (event.type === "chatConversationsNew") {
 					fetchConversations(true)
 				} else if (event.type === "chatConversationDeleted") {
@@ -432,8 +405,19 @@ export const Conversations = memo(
 							)
 						)
 					}
+				} else if (event.type === "chatMessageDelete") {
+					if (conversationsRef.current.filter(c => c.lastMessageUUID === event.data.uuid).length > 0) {
+						fetchConversations(true)
+					}
 				}
 			})
+
+			const updateChatConversationsWithDataListener = eventListener.on(
+				"updateChatConversationsWithData",
+				(convos: ChatConversation[]) => {
+					setConversations(convos)
+				}
+			)
 
 			const updateChatConversationsListener = eventListener.on("updateChatConversations", () => {
 				fetchConversations(true)
@@ -475,11 +459,16 @@ export const Conversations = memo(
 				chatConversationDeleteListener.remove()
 				chatConversationLeaveListener.remove()
 				chatConversationParticipantRemovedListener.remove()
+				updateChatConversationsWithDataListener.remove()
 			}
 		}, [userId])
 
 		useEffect(() => {
-			fetchConversations()
+			if (!initDone.current) {
+				initDone.current = true
+
+				fetchConversations()
+			}
 		}, [])
 
 		return (
@@ -532,10 +521,108 @@ export const Conversations = memo(
 						/>
 					</Flex>
 				</Flex>
-				{loading ? (
+				<Flex
+					width={sizes.conversations + "px"}
+					height="50px"
+					flexDirection="row"
+					justifyContent="space-between"
+					alignItems="center"
+					paddingLeft="15px"
+					paddingRight="15px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
+				>
+					<Input
+						backgroundColor={getColor(darkMode, "backgroundSecondary")}
+						borderRadius="10px"
+						height="30px"
+						border="none"
+						outline="none"
+						shadow="none"
+						marginTop="-12px"
+						spellCheck={false}
+						color={getColor(darkMode, "textPrimary")}
+						placeholder={i18n(lang, "searchInput")}
+						value={search}
+						onChange={e => setSearch(e.target.value)}
+						fontSize={14}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
+						}}
+					/>
+				</Flex>
+				{conversationsFirstLoadDone && conversations.length === 0 ? (
 					<Flex
 						flexDirection="column"
-						height={windowHeight - 50 - (isMobile ? 50 : 60) + "px"}
+						height={windowHeight - 50 - 50 - (isMobile ? 50 : 60) + "px"}
+						width={sizes.conversations + "px"}
+						overflow="hidden"
+						alignItems="center"
+						justifyContent="center"
+						padding="15px"
+						textAlign="center"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							fontSize={16}
+						>
+							{i18n(lang, "chatConversationCreateSidebar")}
+						</AppText>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "linkPrimary")}
+							fontSize={14}
+							cursor="pointer"
+							_hover={{
+								textDecoration: "underline"
+							}}
+							onClick={() => openNewConversationModal()}
+						>
+							{i18n(lang, "chatConversationCreateSidebarCreate")}
+						</AppText>
+					</Flex>
+				) : conversationsSorted.length === 0 && search.length > 0 ? (
+					<Flex
+						flexDirection="column"
+						height={windowHeight - 50 - 50 - (isMobile ? 50 : 60) + "px"}
+						width={sizes.conversations + "px"}
+						overflow="hidden"
+						alignItems="center"
+						justifyContent="center"
+						padding="15px"
+						textAlign="center"
+					>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							fontSize={16}
+						>
+							{i18n(lang, "noConversationFound")}
+						</AppText>
+					</Flex>
+				) : loading ? (
+					<Flex
+						flexDirection="column"
+						height={windowHeight - 50 - 50 - (isMobile ? 50 : 60) + "px"}
 						width={sizes.conversations + "px"}
 						overflow="hidden"
 					>
@@ -551,7 +638,7 @@ export const Conversations = memo(
 				) : (
 					<Virtuoso
 						data={conversationsSorted}
-						height={windowHeight - 50 - (isMobile ? 50 : 60)}
+						height={windowHeight - 50 - 50 - (isMobile ? 50 : 60)}
 						width={sizes.conversations}
 						itemContent={itemContent}
 						computeItemKey={(_, conversation) => conversation.uuid}
@@ -559,7 +646,7 @@ export const Conversations = memo(
 						style={{
 							overflowX: "hidden",
 							overflowY: "auto",
-							height: windowHeight - 50 - (isMobile ? 50 : 60) + "px",
+							height: windowHeight - 50 - 50 - (isMobile ? 50 : 60) + "px",
 							width: sizes.conversations + "px"
 						}}
 					/>

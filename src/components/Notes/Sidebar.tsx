@@ -162,7 +162,7 @@ export const Sidebar = memo(
 		}, [])
 
 		const itemContent = useCallback(
-			(index: number, note: INote) => {
+			(_: number, note: INote) => {
 				return (
 					<Note
 						key={note.uuid}

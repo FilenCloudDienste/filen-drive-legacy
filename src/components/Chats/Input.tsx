@@ -71,7 +71,7 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 
 	useEffect(() => {
 		const chatTypingListener = eventListener.on("socketEvent", (event: SocketEvent) => {
-			if (event.type === "chatTyping" && getCurrentParent(location.hash) === event.data.conversation) {
+			if (event.type === "chatTyping" && getCurrentParent(window.location.href) === event.data.conversation) {
 				clearTimeout(usersTypingTimeout.current[event.data.senderId])
 
 				if (event.data.type === "down") {
@@ -98,7 +98,7 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 				}
 			}
 
-			if (event.type === "chatMessageNew" && getCurrentParent(location.hash) === event.data.conversation) {
+			if (event.type === "chatMessageNew" && getCurrentParent(window.location.href) === event.data.conversation) {
 				clearTimeout(usersTypingTimeout.current[event.data.senderId])
 
 				setUsersTyping(prev => prev.filter(user => user.userId !== event.data.senderId))
@@ -108,7 +108,7 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 		return () => {
 			chatTypingListener.remove()
 		}
-	}, [location.hash])
+	}, [])
 
 	return (
 		<Flex
