@@ -12,6 +12,7 @@ import { SocketEvent } from "../../lib/services/socket"
 import { getCurrentParent, Semaphore, safeAwait } from "../../lib/helpers"
 import { useLocalStorage } from "react-use"
 import useWindowFocus from "use-window-focus"
+import useWindowHeight from "../../lib/hooks/useWindowHeight"
 
 const markNotificationsAsReadMutex = new Semaphore(1)
 
@@ -89,6 +90,7 @@ export const Messages = memo(
 			[conversationUUID]: Date.now() + 1000
 		})
 		const lastFocusTimestampTimerRef = useRef<ReturnType<typeof setTimeout>>()
+		const windowHeight = useWindowHeight()
 
 		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
@@ -235,7 +237,7 @@ export const Messages = memo(
 			lastFocusTimestampTimerRef.current = setTimeout(() => {
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() + 1000
+					[conversationUUID]: Date.now() - 1000
 				}))
 			}, 30000)
 		}, [conversationUUID])
@@ -245,9 +247,13 @@ export const Messages = memo(
 
 			setLastFocusTimestamp(prev => ({
 				...prev,
-				[conversationUUID]: Date.now() + 1000
+				[conversationUUID]: Date.now() - 1000
 			}))
 		}, [conversationUUID])
+
+		useEffect(() => {
+			clearTimeout(lastFocusTimestampTimerRef.current)
+		}, [(lastFocusTimestamp || {})[conversationUUID]])
 
 		useEffect(() => {
 			;(async () => {
@@ -274,6 +280,7 @@ export const Messages = memo(
 
 		useEffect(() => {
 			clearTimeout(initalLoadDoneTimer.current)
+			clearTimeout(lastFocusTimestampTimerRef.current)
 
 			setAtBottom(true)
 			onFocus()
@@ -295,9 +302,11 @@ export const Messages = memo(
 			}, 250)
 
 			return () => {
+				clearTimeout(lastFocusTimestampTimerRef.current)
+
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() + 1000
+					[conversationUUID]: Date.now() - 1000
 				}))
 
 				clearTimeout(initalLoadDoneTimer.current)
@@ -331,7 +340,7 @@ export const Messages = memo(
 			if (!lastFocusTimestamp || typeof lastFocusTimestamp[conversationUUID] !== "number") {
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() + 1000
+					[conversationUUID]: Date.now() - 1000
 				}))
 			}
 
@@ -346,7 +355,7 @@ export const Messages = memo(
 				) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
-						[conversationUUID]: Date.now() + 1000
+						[conversationUUID]: Date.now() - 1000
 					}))
 				}
 
@@ -382,7 +391,7 @@ export const Messages = memo(
 				if (sentMessage.conversation === conversationUUID && sentMessage.senderId === userIdRef.current) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
-						[conversationUUID]: Date.now() + 1000
+						[conversationUUID]: Date.now() - 1000
 					}))
 				}
 			})
@@ -481,6 +490,7 @@ export const Messages = memo(
 				onScroll={scrollEvent}
 				atTopThreshold={300}
 				itemsRendered={itemsRendered}
+				overscan={windowHeight}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",

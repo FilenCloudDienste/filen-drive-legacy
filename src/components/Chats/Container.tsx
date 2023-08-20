@@ -12,6 +12,7 @@ import { decryptChatMessage } from "../../lib/worker/worker.com"
 import Topbar from "./Topbar"
 import { fetchChatMessages } from "./utils"
 import { validate } from "uuid"
+import { useNavigate } from "react-router-dom"
 
 export interface ContainerProps {
 	darkMode: boolean
@@ -58,6 +59,7 @@ export const Container = memo(
 		const scrolledUpRef = useRef<boolean>(false)
 		const windowFocused = useRef<boolean>(true)
 		const [editingMessageUUID, setEditingMessageUUID] = useState<string>("")
+		const navigate = useNavigate()
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -115,6 +117,10 @@ export const Container = memo(
 
 					setLoadingPrevMessages(false)
 
+					if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
+						navigate("/#/chats")
+					}
+
 					return
 				}
 
@@ -157,6 +163,10 @@ export const Container = memo(
 					console.error(messagesErr)
 
 					setLoading(false)
+
+					if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
+						navigate("/#/chats")
+					}
 
 					return
 				}

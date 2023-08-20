@@ -1,7 +1,7 @@
 import { memo, useState, useCallback, useRef, useEffect, Fragment } from "react"
 import { Image, Flex, Link, Spinner, Skeleton } from "@chakra-ui/react"
 import { ChatMessage, messageEmbedDisable } from "../../lib/api"
-import { getAPIV3Server, getRandomArbitrary, randomStringUnsafe, safeAwait, Semaphore, SemaphoreProps } from "../../lib/helpers"
+import { getRandomArbitrary, randomStringUnsafe, safeAwait, Semaphore, SemaphoreProps } from "../../lib/helpers"
 import { parseFilenPublicLink, extractLinksFromString, getMessageDisplayType, isMessageLink } from "./utils"
 import { MessageDisplayType } from "./Container"
 import Linkify from "react-linkify"
@@ -16,6 +16,7 @@ import { parseOGFromURL, corsHead } from "../../lib/worker/worker.com"
 import { MessageText } from "./Message"
 import YouTube from "./Embeds/Youtube"
 import Twitter from "./Embeds/Twitter"
+import { API_V3_DOMAINS } from "../../lib/constants"
 
 const corsMutex: Record<string, SemaphoreProps> = {}
 const EMBED_CONTENT_TYPES_IMAGES = [
@@ -756,7 +757,7 @@ export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessag
 										padding="10px"
 									>
 										<Image
-											src={getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(link)}
+											src={API_V3_DOMAINS[0] + "/v3/cors?url=" + encodeURIComponent(link)}
 											maxHeight="200px"
 											fallback={
 												<Spinner
@@ -832,7 +833,7 @@ export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessag
 											src={
 												(process.env.NODE_ENV === "development"
 													? "http://localhost:3003/d/"
-													: "https://drive.filen.io/d/") +
+													: "https://" + window.location.host + "/d/") +
 												parseFilenPublicLink(link).uuid +
 												"?embed=true&theme=" +
 												(darkMode ? "dark" : "light") +

@@ -769,7 +769,7 @@ export const Input = memo(
 									emojiSuggestionsText.length <= 0 && (
 										<Flex
 											position="absolute"
-											zIndex={1001}
+											zIndex={10}
 											bottom={editorBounds.height + 20 + "px"}
 											width={editorBounds.width}
 											height="47px"
@@ -992,7 +992,7 @@ export const Input = memo(
 								</Menu>
 								<Flex
 									position="absolute"
-									zIndex={100001}
+									zIndex={1001}
 									marginTop="2px"
 									marginLeft={editorBounds.width - 30 + "px"}
 								>
@@ -1176,7 +1176,7 @@ export const Input = memo(
 								fontSize: 14,
 								position: "relative",
 								overflowWrap: "break-word",
-								zIndex: 10001
+								zIndex: 101
 							}}
 						/>
 					</Slate>

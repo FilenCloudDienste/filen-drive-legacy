@@ -1,12 +1,12 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import { Modal, ModalOverlay, ModalContent, Image, Flex } from "@chakra-ui/react"
-import { getAPIV3Server } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
+import { API_V3_DOMAINS } from "../../lib/constants"
 
 export type ChatPreviewType = "image"
 
@@ -72,7 +72,7 @@ const PreviewModal = memo(() => {
 						<Image
 							marginTop="8px"
 							marginBottom="6px"
-							src={getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(message)}
+							src={API_V3_DOMAINS[0] + "/v3/cors?url=" + encodeURIComponent(message)}
 							borderRadius="0px"
 							maxHeight={Math.floor(windowHeight * 0.8) + "px"}
 							onContextMenu={e => e.preventDefault()}

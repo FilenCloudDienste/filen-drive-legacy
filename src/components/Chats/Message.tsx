@@ -253,7 +253,7 @@ export const NewDivider = memo(
 					onClick={() =>
 						setLastFocusTimestamp(prev => ({
 							...prev,
-							[conversationUUID]: Date.now() + 1000
+							[conversationUUID]: Date.now() - 1000
 						}))
 					}
 				>

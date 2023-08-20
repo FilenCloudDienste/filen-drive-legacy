@@ -17,6 +17,7 @@ import Editor from "./Editor"
 import Topbar from "./Topbar"
 import { SocketEvent } from "../../lib/services/socket"
 import useDb from "../../lib/hooks/useDb"
+import { useNavigate } from "react-router-dom"
 
 export const ContentSkeleton = memo(() => {
 	const isMobile = useIsMobile()
@@ -71,6 +72,7 @@ export const Content = memo(
 		const contentRef = useRef<string>("")
 		const [userId] = useDb("userId", 0)
 		const currentNoteRef = useRef<INote | undefined>(currentNote)
+		const navigate = useNavigate()
 
 		const userHasWritePermissions = useMemo(() => {
 			if (!currentNote) {
@@ -106,6 +108,10 @@ export const Content = memo(
 				console.error(contentErr)
 
 				setLoading(false)
+
+				if (contentErr.toString().toLowerCase().indexOf("note not found") !== -1) {
+					navigate("/#/notes")
+				}
 
 				return
 			}
