@@ -123,8 +123,6 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 
 		await Promise.all(promises)
 
-		console.log(notes, tags)
-
 		await db.set(
 			"notesAndTags",
 			{

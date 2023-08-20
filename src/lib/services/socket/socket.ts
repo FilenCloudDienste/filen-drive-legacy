@@ -206,6 +206,13 @@ export interface SocketChatConversationDeleted {
 	uuid: string
 }
 
+export interface SocketChatMessageEdited {
+	conversation: string
+	uuid: string
+	message: string
+	editedTimestamp: number
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -329,6 +336,10 @@ export type SocketEvent =
 	| {
 			type: "chatConversationDeleted"
 			data: SocketChatConversationDeleted
+	  }
+	| {
+			type: "chatMessageEdited"
+			data: SocketChatMessageEdited
 	  }
 
 const waitForLogin = () => {
@@ -595,6 +606,13 @@ export const connect = () => {
 	SOCKET_HANDLE.on("noteNew", (data: SocketNoteNew) => {
 		eventListener.emit("socketEvent", {
 			type: "noteNew",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatMessageEdited", (data: SocketChatMessageEdited) => {
+		eventListener.emit("socketEvent", {
+			type: "chatMessageEdited",
 			data
 		} as SocketEvent)
 	})

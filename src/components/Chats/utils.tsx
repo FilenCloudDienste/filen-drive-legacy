@@ -1,4 +1,4 @@
-import { useEffect, createElement, memo, useRef } from "react"
+import { useEffect, createElement, memo, useRef, useState } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
@@ -384,18 +384,18 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 						key={index}
 						title={match.indexOf(":") !== -1 ? match : undefined}
 						style={{
-							width: size ? size + "px" : undefined,
-							height: size ? size + "px" : undefined,
+							width: size ? size + 2 + "px" : undefined,
+							height: size ? size + 2 + "px" : undefined,
 							display: "inline-block"
 						}}
 					>
 						<EmojiElement
 							fallback={match}
 							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
-							size={size ? size + "px" : "34px"}
+							size={size ? size + 2 + "px" : "34px"}
 							style={{
-								width: size ? size + "px" : undefined,
-								height: size ? size + "px" : undefined,
+								width: size ? size + 2 + "px" : undefined,
+								height: size ? size + 2 + "px" : undefined,
 								display: "inline-block"
 							}}
 						/>
@@ -408,8 +408,8 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 					key={index}
 					title={match.indexOf(":") !== -1 ? match : undefined}
 					style={{
-						width: size ? size * 1.33333 + "px" : undefined,
-						height: size ? size * 1.33333 + "px" : undefined,
+						width: size ? (size + 2) * 1.33333 + "px" : undefined,
+						height: size ? (size + 2) * 1.33333 + "px" : undefined,
 						display: "inline-block"
 					}}
 				>
@@ -417,10 +417,10 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 						fallback={match}
 						shortcodes={match.indexOf(":") !== -1 ? match : undefined}
 						native={match.indexOf(":") === -1 ? match : undefined}
-						size={size ? size + "px" : "34px"}
+						size={size ? size + 2 + "px" : "34px"}
 						style={{
-							width: size ? size * 1.33333 + "px" : undefined,
-							height: size ? size * 1.33333 + "px" : undefined,
+							width: size ? (size + 2) * 1.33333 + "px" : undefined,
+							height: size ? (size + 2) * 1.33333 + "px" : undefined,
 							display: "inline-block"
 						}}
 					/>
@@ -451,6 +451,21 @@ export const cleanupLocalDb = async (conversations: ChatConversation[]) => {
 			if (!existingConversationsUUIDs.includes(noteUUID)) {
 				await db.remove(key, "chats")
 			}
+		}
+	}
+
+	const chatsLastFocusTimestamp: Record<string, number> = JSON.parse(window.localStorage.getItem("chatsLastFocusTimestamp") || "{}")
+
+	for (const key in chatsLastFocusTimestamp) {
+		if (!existingConversationsUUIDs.includes(key)) {
+			window.localStorage.setItem(
+				"chatsLastFocusTimestamp",
+				JSON.stringify(
+					Object.keys(chatsLastFocusTimestamp)
+						.filter(k => k !== key)
+						.reduce((current, k) => Object.assign(current, { [k]: chatsLastFocusTimestamp[k] }), {})
+				)
+			)
 		}
 	}
 }

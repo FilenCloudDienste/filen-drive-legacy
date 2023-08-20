@@ -57,6 +57,7 @@ export const Container = memo(
 		const [scrolledUp, setScrolledUp] = useState<boolean>(false)
 		const scrolledUpRef = useRef<boolean>(false)
 		const windowFocused = useRef<boolean>(true)
+		const [editingMessageUUID, setEditingMessageUUID] = useState<string>("")
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -220,6 +221,8 @@ export const Container = memo(
 								senderNickName: event.data.senderNickName,
 								message,
 								embedDisabled: event.data.embedDisabled,
+								edited: false,
+								editedTimestamp: 0,
 								sentTimestamp: event.data.sentTimestamp
 							},
 							...prev.filter(message => message.uuid !== event.data.uuid)
@@ -230,6 +233,21 @@ export const Container = memo(
 				} else if (event.type === "chatMessageEmbedDisabled") {
 					setMessages(prev =>
 						prev.map(message => (message.uuid === event.data.uuid ? { ...message, embedDisabled: true } : message))
+					)
+				} else if (event.type === "chatMessageEdited") {
+					if (
+						!currentConversation ||
+						!currentConversationMe ||
+						currentConversation.uuid !== event.data.conversation ||
+						currentConversation.uuid !== getCurrentParent(window.location.href)
+					) {
+						return
+					}
+
+					setMessages(prev =>
+						prev.map(m =>
+							m.uuid === event.data.uuid ? { ...m, edited: true, editedTimestamp: event.data.editedTimestamp } : m
+						)
 					)
 				}
 			})
@@ -332,6 +350,7 @@ export const Container = memo(
 							setScrolledUp={setScrolledUp}
 							unreadConversationsMessages={unreadConversationsMessages}
 							setUnreadConversationsMessages={setUnreadConversationsMessages}
+							editingMessageUUID={editingMessageUUID}
 						/>
 					)}
 				</Flex>
@@ -347,11 +366,13 @@ export const Container = memo(
 							isMobile={isMobile}
 							currentConversation={currentConversation}
 							currentConversationMe={currentConversationMe}
+							messages={sortedMessages}
 							setMessages={setMessages}
 							setFailedMessages={setFailedMessages}
 							lang={lang}
 							setEmojiPickerOpen={setEmojiPickerOpen}
 							conversationUUID={currentConversation.uuid}
+							setEditingMessageUUID={setEditingMessageUUID}
 						/>
 					)}
 				</Flex>

@@ -212,12 +212,11 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 						<AppText
 							darkMode={darkMode}
 							isMobile={isMobile}
-							noOfLines={1}
-							fontSize={13}
-							fontWeight="bold"
+							fontSize={11}
+							fontWeight="normal"
 							color="white"
 						>
-							{unreadChatMessages}
+							{unreadChatMessages >= 99 ? 99 : unreadChatMessages}
 						</AppText>
 					</Flex>
 				)}

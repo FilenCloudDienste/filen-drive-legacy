@@ -13,6 +13,8 @@ import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
 import { i18n } from "../../i18n"
 import useDb from "../../lib/hooks/useDb"
+import { getColor } from "../../styles/colors"
+import { show as showToast } from "../Toast/Toast"
 
 const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.Dispatch<React.SetStateAction<string>> }) => {
 	const darkMode = useDarkMode()
@@ -24,10 +26,6 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 		const openChatMessageContextMenuListener = eventListener.on(
 			"openChatMessageContextMenu",
 			({ message, position, event }: { message: ChatMessage; position: { x: number; y: number }; event: KeyboardEvent }) => {
-				if (userId !== message.senderId) {
-					return
-				}
-
 				setSelectedMessage(message)
 				setContextMenuOpen(message.uuid)
 
@@ -65,12 +63,44 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 				{selectedMessage && (
 					<>
 						<ContextMenuItem
-							onClick={e =>
-								eventListener.emit("openDeleteChatMessageModal", { uuid: selectedMessage.uuid, shift: e.event.shiftKey })
+							onClick={() =>
+								navigator.clipboard
+									.writeText(selectedMessage.message)
+									.then(() => {
+										showToast("success", i18n(lang, "copied"), "bottom", 5000)
+									})
+									.catch(err => {
+										console.error(err)
+
+										showToast("error", err.toString(), "bottom", 5000)
+									})
 							}
 						>
-							{i18n(lang, "delete")}
+							{i18n(lang, "copyText")}
 						</ContextMenuItem>
+						{userId === selectedMessage.senderId && (
+							<ContextMenuItem onClick={() => eventListener.emit("editChatMessage", selectedMessage)}>
+								{i18n(lang, "edit")}
+							</ContextMenuItem>
+						)}
+						{userId === selectedMessage.senderId && (
+							<ContextMenuItem
+								onClick={e =>
+									eventListener.emit("openDeleteChatMessageModal", {
+										uuid: selectedMessage.uuid,
+										shift: e.event.shiftKey
+									})
+								}
+							>
+								<span
+									style={{
+										color: getColor(darkMode, "red")
+									}}
+								>
+									{i18n(lang, "delete")}
+								</span>
+							</ContextMenuItem>
+						)}
 					</>
 				)}
 			</ContextMenu>

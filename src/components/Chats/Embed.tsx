@@ -561,9 +561,10 @@ export interface EmbedProps {
 	hoveringMessage: boolean
 	isScrollingChat: boolean
 	failedMessages: string[]
+	lang: string
 }
 
-export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessage, isScrollingChat, failedMessages }: EmbedProps) => {
+export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessage, isScrollingChat, failedMessages, lang }: EmbedProps) => {
 	const links = useRef<string[]>(extractLinksFromString(message.message)).current
 	const initialDisplayAs = useRef<Record<string, MessageDisplayType>>(
 		links.reduce((obj, link) => ({ ...obj, [link]: getMessageDisplayType(link) }), {})
@@ -642,6 +643,7 @@ export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessag
 					failedMessages={failedMessages}
 					darkMode={darkMode}
 					isMobile={isMobile}
+					lang={lang}
 				/>
 			)}
 			{Object.keys(displayAs).map((link, index) => {

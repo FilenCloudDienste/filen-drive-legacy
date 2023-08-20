@@ -9,7 +9,8 @@ import {
 	chatSendTyping,
 	ChatConversationParticipant,
 	enableItemPublicLink,
-	itemPublicLinkInfo
+	itemPublicLinkInfo,
+	editChatMessage
 } from "../../lib/api"
 import db from "../../lib/db"
 import { v4 as uuidv4 } from "uuid"
@@ -18,7 +19,7 @@ import { safeAwait, getCurrentParent, findClosestIndex } from "../../lib/helpers
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
-import { AiOutlineSmile, AiFillPlusCircle } from "react-icons/ai"
+import { AiOutlineSmile, AiFillPlusCircle, AiOutlineCaretDown } from "react-icons/ai"
 import { ErrorBoundary } from "react-error-boundary"
 import { createEditor, Editor, BaseEditor, Transforms } from "slate"
 import useMeasure from "react-use-measure"
@@ -35,6 +36,7 @@ import { ItemProps } from "../../types"
 import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import throttle from "lodash/throttle"
 import { selectFromCloud } from "../SelectFromCloud/SelectFromCloud"
+import useDb from "../../lib/hooks/useDb"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -55,7 +57,7 @@ export interface ChatContainerInputTypingProps {
 	lang: string
 }
 
-export const TYPING_TIMEOUT = 2000
+export const TYPING_TIMEOUT = 3000
 export const TYPING_TIMEOUT_LAG = 30000
 
 export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: ChatContainerInputTypingProps) => {
@@ -175,9 +177,11 @@ export interface InputProps {
 	currentConversation: ChatConversation | undefined
 	currentConversationMe: ChatConversationParticipant | undefined
 	setFailedMessages: React.Dispatch<React.SetStateAction<string[]>>
+	messages: ChatMessage[]
 	setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
 	setEmojiPickerOpen: React.Dispatch<React.SetStateAction<boolean>>
 	conversationUUID: string
+	setEditingMessageUUID: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const Input = memo(
@@ -188,9 +192,11 @@ export const Input = memo(
 		currentConversation,
 		currentConversationMe,
 		setFailedMessages,
+		messages,
 		setMessages,
 		setEmojiPickerOpen,
-		conversationUUID
+		conversationUUID,
+		setEditingMessageUUID
 	}: InputProps) => {
 		const isTyping = useRef<boolean>(false)
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -203,6 +209,10 @@ export const Input = memo(
 		const [emojiSuggestionsPosition, setEmojiSuggestionsPosition] = useState<number>(0)
 		const emojiSuggestionsOpenRef = useRef<boolean>(false)
 		const [inputFocused, setInputFocused] = useState<boolean>(false)
+		const [editMode, setEditMode] = useState<boolean>(false)
+		const messageToEditRef = useRef<ChatMessage | undefined>(undefined)
+		const [userId] = useDb("userId", 0)
+		const [showScrollDownBtn, setShowScrollDownBtn] = useState<boolean>(false)
 
 		const selectItemsFromCloud = useCallback(async () => {
 			const items = await selectFromCloud()
@@ -324,6 +334,19 @@ export const Input = memo(
 
 				ReactEditor.focus(editor)
 				Transforms.insertText(editor, newText)
+				Transforms.select(editor, Editor.end(editor, []))
+			},
+			[editor]
+		)
+
+		const insertText = useCallback(
+			(text: string) => {
+				if (!editor || text.length === 0) {
+					return
+				}
+
+				ReactEditor.focus(editor)
+				Transforms.insertText(editor, text)
 				Transforms.select(editor, Editor.end(editor, []))
 			},
 			[editor]
@@ -457,7 +480,7 @@ export const Input = memo(
 
 			const message = getEditorText()
 
-			if (message.length === 0 || !currentConversation || !currentConversationMe) {
+			if (typeof message !== "string" || message.length === 0 || !currentConversation || !currentConversationMe) {
 				clearEditor()
 
 				return
@@ -476,6 +499,8 @@ export const Input = memo(
 					senderNickName: currentConversationMe!.nickName,
 					message,
 					embedDisabled: false,
+					edited: false,
+					editedTimestamp: 0,
 					sentTimestamp: Date.now()
 				},
 				...prev
@@ -508,12 +533,112 @@ export const Input = memo(
 				return
 			}
 
+			eventListener.emit("chatMessageSent", {
+				conversation: currentConversation!.uuid,
+				uuid,
+				senderId: currentConversationMe!.userId,
+				senderEmail: currentConversationMe!.email,
+				senderAvatar: currentConversationMe!.avatar,
+				senderNickName: currentConversationMe!.nickName,
+				message,
+				embedDisabled: false,
+				edited: false,
+				editedTimestamp: 0,
+				sentTimestamp: Date.now()
+			})
+
 			clearTimeout(isTypingTimer.current)
 
 			isTyping.current = false
 
 			sendTypingEvents()
 		}, [currentConversation, currentConversationMe])
+
+		const editMessage = useCallback(async () => {
+			if (!editor || !editMode) {
+				messageToEditRef.current = undefined
+
+				setEditMode(false)
+				setEditingMessageUUID("")
+
+				return
+			}
+
+			const message = getEditorText()
+
+			if (
+				typeof message !== "string" ||
+				message.length === 0 ||
+				!currentConversation ||
+				!currentConversationMe ||
+				!messageToEditRef.current ||
+				messageToEditRef.current.conversation !== currentConversation.uuid
+			) {
+				messageToEditRef.current = undefined
+
+				setEditMode(false)
+				setEditingMessageUUID("")
+				clearEditor()
+
+				return
+			}
+
+			const uuid = messageToEditRef.current.uuid
+
+			messageToEditRef.current = undefined
+
+			clearEditor()
+			setEditMode(false)
+			setEditingMessageUUID("")
+			setMessages(prev => prev.map(m => (m.uuid === uuid ? { ...m, message, edited: true, editedTimestamp: Date.now() } : m)))
+
+			const privateKey = await db.get("privateKey")
+			const key = await decryptChatMessageKey(currentConversationMe.metadata, privateKey)
+
+			if (key.length === 0) {
+				setFailedMessages(prev => [...prev, uuid])
+
+				return
+			}
+
+			const messageEncrypted = await encryptChatMessage(message, key)
+
+			if (messageEncrypted.length === 0) {
+				setFailedMessages(prev => [...prev, uuid])
+
+				return
+			}
+
+			const [editErr] = await safeAwait(editChatMessage(currentConversation.uuid, uuid, messageEncrypted))
+
+			if (editErr) {
+				setFailedMessages(prev => [...prev, uuid])
+
+				console.error(editErr)
+
+				return
+			}
+
+			clearTimeout(isTypingTimer.current)
+
+			isTyping.current = false
+
+			sendTypingEvents()
+		}, [currentConversation, currentConversationMe, editMode])
+
+		const findLastMessageToEdit = useCallback(() => {
+			if (editMode || getEditorText().length > 0) {
+				return
+			}
+
+			const lastMessagesFromUser = messages.filter(m => m.senderId === userId).sort((a, b) => a.sentTimestamp - b.sentTimestamp)
+
+			if (lastMessagesFromUser.length <= 0) {
+				return
+			}
+
+			eventListener.emit("editChatMessage", lastMessagesFromUser[lastMessagesFromUser.length - 1])
+		}, [messages, editMode, userId])
 
 		const onPaste = useCallback(
 			throttle((e: React.ClipboardEvent<HTMLDivElement>) => {
@@ -591,8 +716,23 @@ export const Input = memo(
 				}
 			)
 
+			const editChatMessageListener = eventListener.on("editChatMessage", (messageToEdit: ChatMessage) => {
+				messageToEditRef.current = messageToEdit
+
+				setEditingMessageUUID(messageToEdit.uuid)
+				setEditMode(true)
+				clearEditor()
+				insertText(messageToEdit.message)
+			})
+
+			const showChatScrollDownBtnListener = eventListener.on("showChatScrollDownBtn", (show: boolean) => {
+				setShowScrollDownBtn(show)
+			})
+
 			return () => {
 				chatAddFilesListener.remove()
+				editChatMessageListener.remove()
+				showChatScrollDownBtnListener.remove()
 			}
 		}, [])
 
@@ -605,6 +745,7 @@ export const Input = memo(
 				<Flex
 					ref={editorRef}
 					marginBottom="24px"
+					paddingTop="2px"
 				>
 					<Slate
 						editor={editor}
@@ -621,6 +762,65 @@ export const Input = memo(
 					>
 						{editorBounds && editorBounds.height > 0 && editorBounds.width > 0 && (
 							<>
+								{messages.length > 0 &&
+									showScrollDownBtn &&
+									emojiSuggestions.length <= 0 &&
+									!emojiSuggestionsOpen &&
+									emojiSuggestionsText.length <= 0 && (
+										<Flex
+											position="absolute"
+											zIndex={1001}
+											bottom={editorBounds.height + 20 + "px"}
+											width={editorBounds.width}
+											height="47px"
+											backgroundColor={getColor(darkMode, "backgroundTertiary")}
+											boxShadow="md"
+											borderRadius="10px"
+											borderBottomRadius="0px"
+											padding="8px"
+											paddingLeft="10px"
+											paddingRight="10px"
+											transition="200ms"
+											maxHeight="350px"
+											overflow="hidden"
+											flexDirection="row"
+											justifyContent="space-between"
+											gap="25px"
+											alignItems="flex-start"
+										>
+											<AppText
+												isMobile={isMobile}
+												darkMode={darkMode}
+												fontSize={13}
+												color={getColor(darkMode, "textSecondary")}
+											>
+												{i18n(lang, "chatViewingOlderMessages")}
+											</AppText>
+											<Flex
+												flexDirection="row"
+												gap="8px"
+												alignItems="center"
+											>
+												<AppText
+													isMobile={isMobile}
+													darkMode={darkMode}
+													fontSize={12}
+													color={getColor(darkMode, "textPrimary")}
+													onClick={() => eventListener.emit("scrollChatToBottom", "smooth")}
+													cursor="pointer"
+												>
+													{i18n(lang, "chatJumpToPresent")}
+												</AppText>
+												<AiOutlineCaretDown
+													size={13}
+													color={getColor(darkMode, "textPrimary")}
+													style={{
+														flexShrink: 0
+													}}
+												/>
+											</Flex>
+										</Flex>
+									)}
 								{emojiSuggestions.length > 0 && emojiSuggestionsOpen && emojiSuggestionsText.length > 0 && inputFocused && (
 									<Flex
 										position="absolute"
@@ -884,8 +1084,38 @@ export const Input = memo(
 											setEmojiSuggestionsPosition(0)
 										}
 									} else {
-										sendMessage()
+										if (editMode) {
+											editMessage()
+										} else {
+											sendMessage()
+										}
 									}
+								}
+
+								if (editMode && getEditorText().length <= 0) {
+									e.preventDefault()
+
+									messageToEditRef.current = undefined
+
+									setEditingMessageUUID("")
+									setEditMode(false)
+								} else {
+									if (e.key === "ArrowUp" && getEditorText().length <= 0) {
+										e.preventDefault()
+
+										findLastMessageToEdit()
+									}
+								}
+
+								if (e.key === "Escape" && editMode) {
+									e.preventDefault()
+
+									clearEditor()
+
+									messageToEditRef.current = undefined
+
+									setEditingMessageUUID("")
+									setEditMode(false)
 								}
 							}}
 							onKeyUp={e => {
@@ -914,6 +1144,15 @@ export const Input = memo(
 										)
 									}
 								}
+
+								if (editMode && getEditorText().length <= 0) {
+									e.preventDefault()
+
+									messageToEditRef.current = undefined
+
+									setEditingMessageUUID("")
+									setEditMode(false)
+								}
 							}}
 							className="slate-editor"
 							autoCorrect="none"
@@ -936,7 +1175,8 @@ export const Input = memo(
 								color: getColor(darkMode, "textPrimary"),
 								fontSize: 14,
 								position: "relative",
-								overflowWrap: "break-word"
+								overflowWrap: "break-word",
+								zIndex: 10001
 							}}
 						/>
 					</Slate>

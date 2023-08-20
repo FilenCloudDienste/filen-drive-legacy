@@ -23,8 +23,6 @@ const ImagePreview = memo(({ image, maxWidth, maxHeight }: { image: string; maxW
 					setImageZoom(prev => {
 						const newZoom = prev + ZOOM_SPEED
 
-						console.log(newZoom)
-
 						return newZoom
 					})
 				} else {

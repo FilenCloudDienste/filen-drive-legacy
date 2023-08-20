@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect } from "react"
+import { memo, useMemo, useState, useEffect, useRef } from "react"
 import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, BlockedContact } from "../../lib/api"
@@ -208,6 +208,71 @@ export const MessageDate = memo(({ darkMode, isMobile, timestamp }: { darkMode: 
 	)
 })
 
+export const NewDivider = memo(
+	({
+		darkMode,
+		isMobile,
+		paddingTop,
+		lang,
+		setLastFocusTimestamp,
+		conversationUUID
+	}: {
+		darkMode: boolean
+		isMobile: boolean
+		paddingTop?: string
+		lang: string
+		setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
+		conversationUUID: string
+	}) => {
+		return (
+			<Flex
+				width="100%"
+				height="20px"
+				flexDirection="row"
+				justifyContent="space-between"
+				gap="0px"
+				paddingLeft="15px"
+				paddingRight="15px"
+				alignItems="center"
+				paddingBottom="15px"
+				paddingTop={paddingTop}
+			>
+				<Flex
+					flex={5}
+					height="1px"
+					backgroundColor={getColor(darkMode, "red")}
+				/>
+				<Flex
+					width="auto"
+					justifyContent="center"
+					paddingLeft="8px"
+					paddingRight="8px"
+					backgroundColor={getColor(darkMode, "red")}
+					borderRadius="5px"
+					cursor="pointer"
+					onClick={() =>
+						setLastFocusTimestamp(prev => ({
+							...prev,
+							[conversationUUID]: Date.now() + 1000
+						}))
+					}
+				>
+					<AppText
+						darkMode={darkMode}
+						isMobile={isMobile}
+						color="white"
+						fontSize={11}
+						as="span"
+						fontWeight="bold"
+					>
+						{i18n(lang, "new").toUpperCase()}
+					</AppText>
+				</Flex>
+			</Flex>
+		)
+	}
+)
+
 export const DateDivider = memo(({ timestamp, darkMode, isMobile }: { timestamp: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
 		<Flex
@@ -256,9 +321,10 @@ export interface MessagTextProps {
 	failedMessages: string[]
 	darkMode: boolean
 	isMobile: boolean
+	lang: string
 }
 
-export const MessageText = memo(({ message, failedMessages, darkMode, isMobile }: MessagTextProps) => {
+export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, lang }: MessagTextProps) => {
 	return (
 		<Flex
 			flexDirection="row"
@@ -284,6 +350,18 @@ export const MessageText = memo(({ message, failedMessages, darkMode, isMobile }
 					content={message.message}
 					darkMode={darkMode}
 				/>
+				{message.edited && (
+					<span
+						style={{
+							fontSize: 11,
+							color: getColor(darkMode, "textSecondary"),
+							fontWeight: "400",
+							paddingLeft: "5px"
+						}}
+					>
+						({i18n(lang, "chatEdited").toLowerCase()})
+					</span>
+				)}
 			</pre>
 		</Flex>
 	)
@@ -338,21 +416,36 @@ export const MessageContent = memo(
 				) : (
 					<>
 						{extractLinksFromString(message.message).length > 0 && !message.embedDisabled ? (
-							<Embed
-								darkMode={darkMode}
-								isMobile={isMobile}
-								message={message}
-								userId={userId}
-								hoveringMessage={hovering}
-								isScrollingChat={isScrollingChat}
-								failedMessages={failedMessages}
-							/>
+							<Flex flexDirection="column">
+								<Embed
+									darkMode={darkMode}
+									isMobile={isMobile}
+									message={message}
+									userId={userId}
+									hoveringMessage={hovering}
+									isScrollingChat={isScrollingChat}
+									failedMessages={failedMessages}
+									lang={lang}
+								/>
+								{message.edited && (
+									<Flex
+										style={{
+											fontSize: 11,
+											color: getColor(darkMode, "textSecondary"),
+											fontWeight: "400"
+										}}
+									>
+										({i18n(lang, "chatEdited").toLowerCase()})
+									</Flex>
+								)}
+							</Flex>
 						) : (
 							<MessageText
 								message={message}
 								failedMessages={failedMessages}
 								darkMode={darkMode}
 								isMobile={isMobile}
+								lang={lang}
 							/>
 						)}
 					</>
@@ -377,6 +470,9 @@ export interface MessageProps {
 	lang: string
 	contextMenuOpen: string
 	blockedContacts: BlockedContact[]
+	lastFocusTimestamp: Record<string, number> | undefined
+	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
+	editingMessageUUID: string
 }
 
 export const Message = memo(
@@ -394,13 +490,16 @@ export const Message = memo(
 		emojiPickerOpen,
 		lang,
 		contextMenuOpen,
-		blockedContacts
+		blockedContacts,
+		lastFocusTimestamp,
+		setLastFocusTimestamp,
+		editingMessageUUID
 	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
 		const hovering = useMemo(() => {
-			return hoveringMessage || contextMenuOpen === message.uuid
-		}, [message, contextMenuOpen, hoveringMessage])
+			return hoveringMessage || contextMenuOpen === message.uuid || editingMessageUUID === message.uuid
+		}, [message, contextMenuOpen, hoveringMessage, editingMessageUUID])
 
 		const blockedContactsIds = useMemo(() => {
 			return blockedContacts.map(c => c.userId)
@@ -525,6 +624,23 @@ export const Message = memo(
 
 		return (
 			<>
+				{lastFocusTimestamp &&
+					typeof lastFocusTimestamp[message.conversation] === "number" &&
+					message.sentTimestamp > lastFocusTimestamp[message.conversation] &&
+					message.senderId !== userId &&
+					!(
+						prevMessage &&
+						prevMessage.sentTimestamp > lastFocusTimestamp[message.conversation] &&
+						prevMessage.senderId !== userId
+					) && (
+						<NewDivider
+							darkMode={darkMode}
+							isMobile={isMobile}
+							lang={lang}
+							setLastFocusTimestamp={setLastFocusTimestamp}
+							conversationUUID={message.conversation}
+						/>
+					)}
 				{!prevMessage && (
 					<Flex
 						flexDirection="column"

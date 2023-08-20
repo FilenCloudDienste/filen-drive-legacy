@@ -2614,6 +2614,8 @@ export interface ChatMessage {
 	senderNickName: string
 	message: string
 	embedDisabled: boolean
+	edited: boolean
+	editedTimestamp: number
 	sentTimestamp: number
 }
 
@@ -2638,6 +2640,22 @@ export const sendChatMessage = async (conversation: string, uuid: string, messag
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/chat/send",
+		data: {
+			conversation,
+			uuid,
+			message
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editChatMessage = async (conversation: string, uuid: string, message: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/edit",
 		data: {
 			conversation,
 			uuid,

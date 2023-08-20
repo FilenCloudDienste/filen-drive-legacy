@@ -487,7 +487,11 @@ const en: {
 	chatMessageHiddenUserBlocked: "Message of blocked contact hidden.",
 	chatConversationCreateSidebar: "No secure chats yet.",
 	chatConversationCreateSidebarCreate: "Start talking",
-	noConversationFound: "No chat found."
+	noConversationFound: "No chat found.",
+	copyText: "Copy text",
+	chatEdited: "edited",
+	chatViewingOlderMessages: "You are viewing older messages",
+	chatJumpToPresent: "Jump to present"
 }
 
 export default en

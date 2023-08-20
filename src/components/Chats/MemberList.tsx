@@ -17,6 +17,8 @@ import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
+import useWindowFocus from "use-window-focus"
+import throttle from "lodash/throttle"
 
 const loadingMembers = new Array(5).fill(1).map(() => ({
 	userId: 0,
@@ -44,6 +46,8 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	const [onlineUsers, setOnlineUsers] = useState<OnlineUsers>({})
 	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 	const lastUserCountRef = useRef<number>(currentConversation?.participants.length || 0)
+	const isFocused = useWindowFocus()
+	const convoRef = useRef<ChatConversation | undefined>(currentConversation)
 
 	const usersSorted = useMemo(() => {
 		if (!currentConversation || !onlineUsers || Object.keys(onlineUsers).length === 0) {
@@ -80,27 +84,30 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		})
 	}, [currentConversation, onlineUsers])
 
-	const updateOnlineUsers = useCallback(async () => {
-		if (!currentConversation) {
-			return
-		}
+	const updateOnlineUsers = useCallback(
+		throttle(async (convo: ChatConversation | undefined) => {
+			if (!convo) {
+				return
+			}
 
-		const [err, res] = await safeAwait(chatConversationsOnline(currentConversation.uuid))
+			const [err, res] = await safeAwait(chatConversationsOnline(convo.uuid))
 
-		if (err) {
-			console.error(err)
+			if (err) {
+				console.error(err)
 
-			return
-		}
+				return
+			}
 
-		const online: Record<string, ChatConversationsOnline> = {}
+			const online: Record<string, ChatConversationsOnline> = {}
 
-		for (const user of res) {
-			online[user.userId] = user
-		}
+			for (const user of res) {
+				online[user.userId] = user
+			}
 
-		setOnlineUsers(online)
-	}, [currentConversation])
+			setOnlineUsers(online)
+		}, 1000),
+		[]
+	)
 
 	const addUser = useCallback(async () => {
 		if (!currentConversation || !currentConversationMe) {
@@ -143,23 +150,35 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		) {
 			lastUserCountRef.current = currentConversation.participants.length
 
-			updateOnlineUsers()
+			updateOnlineUsers(currentConversation)
 		}
 	}, [currentConversation])
 
 	useEffect(() => {
-		updateOnlineUsers()
+		if (isFocused && currentConversation) {
+			updateOnlineUsers(currentConversation)
+		}
+	}, [isFocused, currentConversation])
+
+	useEffect(() => {
+		convoRef.current = currentConversation
+
+		if (currentConversation) {
+			updateOnlineUsers(currentConversation)
+		}
 	}, [currentConversation?.uuid])
 
 	useEffect(() => {
-		const updateOnlineUsersInterval = setInterval(updateOnlineUsers, 15000)
+		const updateOnlineUsersInterval = setInterval(() => {
+			updateOnlineUsers(convoRef.current)
+		}, 15000)
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
-			updateOnlineUsers()
+			updateOnlineUsers(convoRef.current)
 		})
 
 		const updateChatOnlineUsersListener = eventListener.on("updateChatOnlineUsers", () => {
-			updateOnlineUsers()
+			updateOnlineUsers(convoRef.current)
 		})
 
 		const chatSettingsChangedListener = eventListener.on(
