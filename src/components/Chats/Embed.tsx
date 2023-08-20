@@ -242,6 +242,7 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData,
 								endColor={getColor(darkMode, "backgroundSecondary")}
 								borderRadius="5px"
 								width="80%"
+								height="20px"
 							>
 								<AppText
 									darkMode={darkMode}
