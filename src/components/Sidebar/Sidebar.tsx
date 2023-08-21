@@ -385,7 +385,7 @@ export const CloudTreeItem = memo(
 			return hovering || active
 		}, [hovering, active])
 
-		const handleItemOnDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
+		const handleItemOnDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
 			setHovering(false)
 
 			clearTimeout(dropNavigationTimer.current)
@@ -393,8 +393,9 @@ export const CloudTreeItem = memo(
 			dropNavigationTimer.current = undefined
 
 			const droppedItems: ItemProps[] = memoryCache.get("draggedItems") || []
+			const moveToParentUUID = parent.uuid === "base" || parent.uuid === "cloudDrive" ? await db.get("defaultDriveUUID") : parent.uuid
 
-			moveToParent(droppedItems, parent.uuid)
+			moveToParent(droppedItems, moveToParentUUID)
 		}, [])
 
 		const canMove = useCallback(
