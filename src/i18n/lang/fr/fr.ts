@@ -500,7 +500,11 @@ const fr: {
 	chatMessageHiddenUserBlocked: "Les messages des utilisateurs bloqués sont cachés.",
 	chatConversationCreateSidebar: "Aucune conversation sécurisée pour le moment.",
 	chatConversationCreateSidebarCreate: "Démarrer une conversation",
-	noConversationFound: "Aucune conversation trouvée."
+	noConversationFound: "Aucune conversation trouvée.",
+	copyText: "Copier le texte",
+	chatEdited: "modifié",
+	chatViewingOlderMessages: "Vous consultez d'anciens messages",
+	chatJumpToPresent: "Revenir aux derniers messages"
 }
 
 export default fr
