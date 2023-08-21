@@ -333,6 +333,7 @@ export const Conversations = memo(
 						conversation={convo}
 						userId={userId}
 						unreadConversationsMessages={unreadConversationsMessages}
+						setUnreadConversationsMessages={setUnreadConversationsMessages}
 					/>
 				)
 			},
