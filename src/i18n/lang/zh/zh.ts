@@ -429,7 +429,7 @@ const zh: {
 	blockUser: "拉黑",
 	removeUser: "移除",
 	contactsIcomingRequests: "传入的请求",
-	contactsOutgoingRequests: "传出的请求",
+	contactsOutgoingRequests: "发出的请求",
 	noteHistoryModal: "笔记历史",
 	noteHistoryRestore: "恢复此版本",
 	searchInput: "搜索...",
@@ -484,7 +484,11 @@ const zh: {
 	chatMessageHiddenUserBlocked: "被拉黑的联系人的消息已隐藏。",
 	chatConversationCreateSidebar: "还没有安全聊天。",
 	chatConversationCreateSidebarCreate: "开始聊天",
-	noConversationFound: "没有找到聊天记录。"
+	noConversationFound: "没有找到聊天记录。",
+	copyText: "复制文本",
+	chatEdited: "已修改",
+	chatViewingOlderMessages: "您正在查看较旧的消息",
+	chatJumpToPresent: "跳转至当前内容"
 }
 
 export default zh
