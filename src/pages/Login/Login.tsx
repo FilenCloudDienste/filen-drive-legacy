@@ -18,11 +18,18 @@ import db from "../../lib/db"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import cookies from "../../lib/cookies"
 import { i18n } from "../../i18n"
+import { VscEye, VscEyeClosed } from 'react-icons/vsc';
+import {
+	Button as ChakraButton,
+	InputGroup as ChakraInputGroup,
+	InputRightElement as ChakraInputRightElement,
+} from '@chakra-ui/react'
 
 const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const [tfa, setTfa] = useState<string>("")
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 	const [showTfa, setShowTfa] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(false)
 	const navigate = useNavigate()
@@ -159,24 +166,35 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 					color: getColor(darkMode, "textSecondary")
 				}}
 			/>
-			<Input
-				darkMode={darkMode}
-				isMobile={isMobile}
-				value={password}
-				onChange={e => setPassword(e.target.value)}
-				marginTop="10px"
-				placeholder={i18n(lang, "password")}
-				type="password"
-				onKeyDown={e => {
-					if (e.which == 13) {
-						login()
-					}
-				}}
-				color={getColor(darkMode, "textSecondary")}
-				_placeholder={{
-					color: getColor(darkMode, "textSecondary")
-				}}
-			/>
+			<ChakraInputGroup>
+				<Input
+					darkMode={darkMode}
+					isMobile={isMobile}
+					value={password}
+					onChange={e => setPassword(e.target.value)}
+					marginTop="10px"
+					placeholder={i18n(lang, "password")}
+					type={showPassword ? "text" : "password"}
+					onKeyDown={e => {
+						if (e.which == 13) {
+							login()
+						}
+					}}
+					color={getColor(darkMode, "textSecondary")}
+					_placeholder={{
+						color: getColor(darkMode, "textSecondary")
+					}}
+				/>
+				<ChakraInputRightElement width='2.5em'>
+					<ChakraButton
+						marginTop="20px"
+						size='xs'
+						onClick={() => setShowPassword(!showPassword)}
+					>
+						{showPassword ? <VscEye/> : <VscEyeClosed/>}
+					</ChakraButton>
+				</ChakraInputRightElement>
+			</ChakraInputGroup>
 			{showTfa && (
 				<Input
 					darkMode={darkMode}
