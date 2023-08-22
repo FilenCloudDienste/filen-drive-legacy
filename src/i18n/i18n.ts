@@ -1,3 +1,4 @@
+import cs from "./lang/cs"
 import en from "./lang/en"
 import de from "./lang/de"
 import ja from "./lang/ja"
@@ -13,6 +14,7 @@ import it from "./lang/it"
 import pt from "./lang/pt"
 
 const translations: Record<string, Record<string, string>> = {
+	cs,
 	en,
 	de,
 	ja,
