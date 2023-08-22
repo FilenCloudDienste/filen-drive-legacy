@@ -326,7 +326,8 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 						cursor="pointer"
 						color={getColor(darkMode, "textSecondary")}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 						onClick={() => setOpen(false)}
 						marginRight="20px"
@@ -339,7 +340,8 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 						cursor="pointer"
 						color={getColor(darkMode, "textSecondary")}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 						onClick={() => {
 							eventListener.emit("closePreviewModal")

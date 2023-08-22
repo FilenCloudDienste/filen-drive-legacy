@@ -121,9 +121,11 @@ export const Conversation = memo(
 		const [hoveringDelete, setHoveringDelete] = useState<boolean>(false)
 
 		const conversationParticipantsFilteredWithoutMe = useMemo(() => {
-			return conversation.participants
-				.filter(participant => participant.userId !== userId)
-				.sort((a, b) => a.email.localeCompare(b.email))
+			const filtered = conversation.participants.filter(participant => participant.userId !== userId)
+
+			return (conversation.participants.length <= 1 ? conversation.participants : filtered).sort((a, b) =>
+				a.email.localeCompare(b.email)
+			)
 		}, [conversation.participants, userId])
 
 		const conversationMe = useMemo(() => {

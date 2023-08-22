@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useRef } from "react"
+import { memo, useMemo, useState, useEffect } from "react"
 import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { ChatMessage, BlockedContact } from "../../lib/api"
@@ -17,6 +17,7 @@ import { DisplayMessageAs } from "./Container"
 import Embed from "./Embed"
 import { i18n } from "../../i18n"
 import { AiOutlineLock, AiOutlineCheckCircle } from "react-icons/ai"
+import { isMessageLink } from "./utils"
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -427,7 +428,7 @@ export const MessageContent = memo(
 									failedMessages={failedMessages}
 									lang={lang}
 								/>
-								{message.edited && (
+								{message.edited && isMessageLink(message.message) && (
 									<Flex
 										style={{
 											fontSize: 11,

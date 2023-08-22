@@ -168,6 +168,9 @@ const RemoveSharedInModal = memo(({ darkMode, isMobile, setItems, lang }: Remove
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => removeSharedIn()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "remove")}
 						</AppText>

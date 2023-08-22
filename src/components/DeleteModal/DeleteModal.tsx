@@ -177,6 +177,9 @@ const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setIt
 							color="red"
 							cursor="pointer"
 							onClick={() => deleteItems()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "delete")}
 						</AppText>

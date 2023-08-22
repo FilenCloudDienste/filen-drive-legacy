@@ -472,7 +472,7 @@ export const cleanupLocalDb = async (conversations: ChatConversation[]) => {
 
 export const sortAndFilterConversations = (conversations: ChatConversation[], search: string, userId: number) => {
 	return conversations
-		.filter(convo => convo.participants.length >= 2 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
+		.filter(convo => convo.participants.length >= 1 && (convo.lastMessageTimestamp > 0 || userId === convo.ownerId))
 		.filter(convo => {
 			if (search.length === 0) {
 				return true

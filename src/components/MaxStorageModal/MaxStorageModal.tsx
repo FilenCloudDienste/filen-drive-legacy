@@ -96,7 +96,8 @@ const MaxStorageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean;
 						cursor="pointer"
 						onClick={() => setOpen(false)}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 					>
 						{i18n(lang, "close")}

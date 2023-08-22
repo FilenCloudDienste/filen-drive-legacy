@@ -490,7 +490,7 @@ export const Messages = memo(
 				onScroll={scrollEvent}
 				atTopThreshold={300}
 				itemsRendered={itemsRendered}
-				overscan={windowHeight}
+				overscan={Math.round(windowHeight * 2)}
 				style={{
 					overflowX: "hidden",
 					overflowY: "auto",

@@ -572,7 +572,8 @@ export const Input = memo(
 				!currentConversation ||
 				!currentConversationMe ||
 				!messageToEditRef.current ||
-				messageToEditRef.current.conversation !== currentConversation.uuid
+				messageToEditRef.current.conversation !== currentConversation.uuid ||
+				JSON.stringify(message) === JSON.stringify(messageToEditRef.current.message)
 			) {
 				messageToEditRef.current = undefined
 

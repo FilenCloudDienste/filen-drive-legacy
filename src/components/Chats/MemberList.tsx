@@ -43,34 +43,43 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 	const lang = useLang()
 	const darkMode = useDarkMode()
 	const isMobile = useIsMobile()
-	const [onlineUsers, setOnlineUsers] = useState<OnlineUsers>({})
+	const [onlineUsers, setOnlineUsers] = useState<Record<string, OnlineUsers>>({})
 	const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
 	const lastUserCountRef = useRef<number>(currentConversation?.participants.length || 0)
 	const isFocused = useWindowFocus()
 	const convoRef = useRef<ChatConversation | undefined>(currentConversation)
 
 	const usersSorted = useMemo(() => {
-		if (!currentConversation || !onlineUsers || Object.keys(onlineUsers).length === 0) {
+		if (
+			!currentConversation ||
+			!onlineUsers ||
+			!onlineUsers[currentConversation.uuid] ||
+			Object.keys(onlineUsers[currentConversation.uuid]).length === 0
+		) {
 			return []
 		}
 
 		return currentConversation.participants.sort((a, b) => {
 			const isOnlineA =
-				onlineUsers[a.userId] && onlineUsers[a.userId].appearOffline
+				onlineUsers[currentConversation.uuid] &&
+				onlineUsers[currentConversation.uuid][a.userId] &&
+				onlineUsers[currentConversation.uuid][a.userId].appearOffline
 					? -1
-					: onlineUsers[a.userId] &&
-					  typeof onlineUsers[a.userId].lastActive === "number" &&
-					  onlineUsers[a.userId].lastActive > 0 &&
-					  onlineUsers[a.userId].lastActive > Date.now() - ONLINE_TIMEOUT
+					: onlineUsers[currentConversation.uuid][a.userId] &&
+					  typeof onlineUsers[currentConversation.uuid][a.userId].lastActive === "number" &&
+					  onlineUsers[currentConversation.uuid][a.userId].lastActive > 0 &&
+					  onlineUsers[currentConversation.uuid][a.userId].lastActive > Date.now() - ONLINE_TIMEOUT
 					? 1
 					: 0
 			const isOnlineB =
-				onlineUsers[b.userId] && onlineUsers[b.userId].appearOffline
+				onlineUsers[currentConversation.uuid] &&
+				onlineUsers[currentConversation.uuid][b.userId] &&
+				onlineUsers[currentConversation.uuid][b.userId].appearOffline
 					? -1
-					: onlineUsers[b.userId] &&
-					  typeof onlineUsers[b.userId].lastActive === "number" &&
-					  onlineUsers[b.userId].lastActive > 0 &&
-					  onlineUsers[b.userId].lastActive > Date.now() - ONLINE_TIMEOUT
+					: onlineUsers[currentConversation.uuid][b.userId] &&
+					  typeof onlineUsers[currentConversation.uuid][b.userId].lastActive === "number" &&
+					  onlineUsers[currentConversation.uuid][b.userId].lastActive > 0 &&
+					  onlineUsers[currentConversation.uuid][b.userId].lastActive > Date.now() - ONLINE_TIMEOUT
 					? 1
 					: 0
 
@@ -82,7 +91,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 				return a.email.localeCompare(b.email)
 			}
 		})
-	}, [currentConversation, onlineUsers])
+	}, [currentConversation, (onlineUsers || {})[currentConversation?.uuid || ""]])
 
 	const updateOnlineUsers = useCallback(
 		throttle(async (convo: ChatConversation | undefined) => {
@@ -104,7 +113,10 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 				online[user.userId] = user
 			}
 
-			setOnlineUsers(online)
+			setOnlineUsers(prev => ({
+				...prev,
+				[convo.uuid]: online
+			}))
 		}, 1000),
 		[]
 	)
@@ -132,7 +144,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 					key={participant.userId}
 					isMobile={isMobile}
 					darkMode={darkMode}
-					onlineUsers={onlineUsers}
+					onlineUsers={(onlineUsers || {})[currentConversation?.uuid || ""]}
 					user={participant}
 					currentConversation={currentConversation}
 					currentConversationMe={currentConversationMe}
@@ -184,15 +196,24 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 		const chatSettingsChangedListener = eventListener.on(
 			"chatSettingsChanged",
 			async ({ appearOffline }: { appearOffline: boolean }) => {
-				const userId = await db.get("userId")
+				if (currentConversation) {
+					const userId = await db.get("userId")
 
-				setOnlineUsers(prev => ({
-					...prev,
-					[userId]: {
-						...prev[userId],
-						appearOffline
-					}
-				}))
+					setOnlineUsers(prev =>
+						prev
+							? {
+									...prev,
+									[currentConversation.uuid]: {
+										...prev[currentConversation.uuid],
+										[userId]: {
+											...prev[currentConversation.uuid][userId],
+											appearOffline
+										}
+									}
+							  }
+							: prev
+					)
+				}
 			}
 		)
 
@@ -203,7 +224,7 @@ export const MemberList = memo(({ sizes, currentConversation, currentConversatio
 			updateChatOnlineUsersListener.remove()
 			chatSettingsChangedListener.remove()
 		}
-	}, [])
+	}, [currentConversation])
 
 	if (isMobile) {
 		return null

@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react"
-import { Flex } from "@chakra-ui/react"
+import { Flex, Tooltip } from "@chakra-ui/react"
 import { ListFooterProps, ItemProps } from "../../types"
 import AppText from "../AppText"
 import { getColor } from "../../styles/colors"
@@ -144,184 +144,254 @@ const ListFooter = memo(
 				</Flex>
 				{!isMobile && selectedCount > 0 && (
 					<Flex>
-						<Flex
-							backgroundColor="transparent"
-							color={getColor(darkMode, "textSecondary")}
-							_hover={{
-								backgroundColor: getColor(darkMode, "backgroundPrimary"),
-								color: getColor(darkMode, "textPrimary")
-							}}
-							padding="5px"
-							paddingLeft="10px"
-							paddingRight="10px"
+						<Tooltip
+							label={i18n(lang, "download")}
+							placement="top"
 							borderRadius="5px"
-							cursor="pointer"
-							onClick={() => {
-								if (folderCount > 0 || fileCount >= 2) {
-									const downloadingToast = showToast("loading", "Preparing download", "bottom", ONE_YEAR)
-
-									zipDownload(selected, () => {
-										dismissToast(downloadingToast)
-									}).catch(err => {
-										console.error(err)
-
-										showToast("error", err.toString(), "bottom", 5000)
-
-										dismissToast(downloadingToast)
-									})
-								} else {
-									const downloadingToast = showToast("loading", "Preparing download", "bottom", ONE_YEAR)
-
-									normalDownload(selected, () => {
-										dismissToast(downloadingToast)
-									}).catch(err => {
-										console.error(err)
-
-										showToast("error", err.toString(), "bottom", 5000)
-
-										dismissToast(downloadingToast)
-									})
-								}
-							}}
+							backgroundColor={getColor(darkMode, "backgroundTertiary")}
+							boxShadow="md"
+							color={getColor(darkMode, "textSecondary")}
+							hasArrow={true}
 						>
-							<MdOutlineDownloading fontSize={24} />
-						</Flex>
+							<Flex
+								backgroundColor="transparent"
+								color={getColor(darkMode, "textSecondary")}
+								_hover={{
+									backgroundColor: getColor(darkMode, "backgroundPrimary"),
+									color: getColor(darkMode, "textPrimary")
+								}}
+								padding="5px"
+								paddingLeft="10px"
+								paddingRight="10px"
+								borderRadius="full"
+								cursor="pointer"
+								onClick={() => {
+									if (folderCount > 0 || fileCount >= 2) {
+										const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
+
+										zipDownload(selected, () => {
+											dismissToast(downloadingToast)
+										}).catch(err => {
+											console.error(err)
+
+											showToast("error", err.toString(), "bottom", 5000)
+
+											dismissToast(downloadingToast)
+										})
+									} else {
+										const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
+
+										normalDownload(selected, () => {
+											dismissToast(downloadingToast)
+										}).catch(err => {
+											console.error(err)
+
+											showToast("error", err.toString(), "bottom", 5000)
+
+											dismissToast(downloadingToast)
+										})
+									}
+								}}
+							>
+								<MdOutlineDownloading fontSize={24} />
+							</Flex>
+						</Tooltip>
 						{location.hash.indexOf("trash") == -1 &&
 							location.hash.indexOf("shared-in") == -1 &&
 							location.pathname.indexOf("/f/") == -1 && (
-								<Flex
-									backgroundColor="transparent"
-									color={getColor(darkMode, "textSecondary")}
-									_hover={{
-										backgroundColor: getColor(darkMode, "backgroundPrimary"),
-										color: getColor(darkMode, "textPrimary")
-									}}
-									padding="5px"
-									paddingLeft="10px"
-									paddingRight="10px"
+								<Tooltip
+									label={i18n(lang, "share")}
+									placement="top"
 									borderRadius="5px"
-									cursor="pointer"
-									onClick={() => {
-										eventListener.emit("openShareModal", {
-											items: selected
-										})
-									}}
+									backgroundColor={getColor(darkMode, "backgroundTertiary")}
+									boxShadow="md"
+									color={getColor(darkMode, "textSecondary")}
+									hasArrow={true}
 								>
-									<MdShare fontSize={22} />
-								</Flex>
+									<Flex
+										backgroundColor="transparent"
+										color={getColor(darkMode, "textSecondary")}
+										_hover={{
+											backgroundColor: getColor(darkMode, "backgroundPrimary"),
+											color: getColor(darkMode, "textPrimary")
+										}}
+										padding="5px"
+										paddingLeft="10px"
+										paddingRight="10px"
+										borderRadius="full"
+										cursor="pointer"
+										onClick={() => {
+											eventListener.emit("openShareModal", {
+												items: selected
+											})
+										}}
+									>
+										<MdShare fontSize={22} />
+									</Flex>
+								</Tooltip>
 							)}
 						{favoriteEnabledCount > 0 &&
 							location.hash.indexOf("trash") == -1 &&
 							location.hash.indexOf("shared-in") == -1 &&
 							location.pathname.indexOf("/f/") == -1 && (
-								<Flex
-									backgroundColor="transparent"
-									color={getColor(darkMode, "textSecondary")}
-									_hover={{
-										backgroundColor: getColor(darkMode, "backgroundPrimary"),
-										color: getColor(darkMode, "textPrimary")
-									}}
-									padding="5px"
-									paddingLeft="10px"
-									paddingRight="10px"
+								<Tooltip
+									label={i18n(lang, "unfavorite")}
+									placement="top"
 									borderRadius="5px"
-									cursor="pointer"
-									onClick={() => markAsFavorite(selected, 0)}
+									backgroundColor={getColor(darkMode, "backgroundTertiary")}
+									boxShadow="md"
+									color={getColor(darkMode, "textSecondary")}
+									hasArrow={true}
 								>
-									<MdFavoriteBorder fontSize={22} />
-								</Flex>
+									<Flex
+										backgroundColor="transparent"
+										color={getColor(darkMode, "textSecondary")}
+										_hover={{
+											backgroundColor: getColor(darkMode, "backgroundPrimary"),
+											color: getColor(darkMode, "textPrimary")
+										}}
+										padding="5px"
+										paddingLeft="10px"
+										paddingRight="10px"
+										borderRadius="full"
+										cursor="pointer"
+										onClick={() => markAsFavorite(selected, 0)}
+									>
+										<MdFavoriteBorder fontSize={22} />
+									</Flex>
+								</Tooltip>
 							)}
 						{favoriteDisabledCount > 0 &&
 							location.hash.indexOf("trash") == -1 &&
 							location.hash.indexOf("shared-in") == -1 &&
 							location.pathname.indexOf("/f/") == -1 && (
-								<Flex
-									backgroundColor="transparent"
-									color={getColor(darkMode, "textSecondary")}
-									_hover={{
-										backgroundColor: getColor(darkMode, "backgroundPrimary"),
-										color: getColor(darkMode, "textPrimary")
-									}}
-									padding="5px"
-									paddingLeft="10px"
-									paddingRight="10px"
+								<Tooltip
+									label={i18n(lang, "favorite")}
+									placement="top"
 									borderRadius="5px"
-									cursor="pointer"
-									onClick={() => markAsFavorite(selected, 1)}
+									backgroundColor={getColor(darkMode, "backgroundTertiary")}
+									boxShadow="md"
+									color={getColor(darkMode, "textSecondary")}
+									hasArrow={true}
 								>
-									<MdFavorite fontSize={22} />
-								</Flex>
+									<Flex
+										backgroundColor="transparent"
+										color={getColor(darkMode, "textSecondary")}
+										_hover={{
+											backgroundColor: getColor(darkMode, "backgroundPrimary"),
+											color: getColor(darkMode, "textPrimary")
+										}}
+										padding="5px"
+										paddingLeft="10px"
+										paddingRight="10px"
+										borderRadius="full"
+										cursor="pointer"
+										onClick={() => markAsFavorite(selected, 1)}
+									>
+										<MdFavorite fontSize={22} />
+									</Flex>
+								</Tooltip>
 							)}
 						{(fileCount == 1 || folderCount == 1) &&
 							location.hash.indexOf("trash") == -1 &&
 							location.hash.indexOf("shared-in") == -1 &&
 							location.pathname.indexOf("/f/") == -1 && (
-								<Flex
-									backgroundColor="transparent"
-									color={getColor(darkMode, "textSecondary")}
-									_hover={{
-										backgroundColor: getColor(darkMode, "backgroundPrimary"),
-										color: getColor(darkMode, "textPrimary")
-									}}
-									padding="5px"
-									paddingLeft="10px"
-									paddingRight="10px"
+								<Tooltip
+									label={i18n(lang, "rename")}
+									placement="top"
 									borderRadius="5px"
-									cursor="pointer"
-									onClick={() => {
-										eventListener.emit("openRenameModal", {
-											item: selected[0]
-										})
-									}}
+									backgroundColor={getColor(darkMode, "backgroundTertiary")}
+									boxShadow="md"
+									color={getColor(darkMode, "textSecondary")}
+									hasArrow={true}
 								>
-									<MdEditNote fontSize={22} />
-								</Flex>
+									<Flex
+										backgroundColor="transparent"
+										color={getColor(darkMode, "textSecondary")}
+										_hover={{
+											backgroundColor: getColor(darkMode, "backgroundPrimary"),
+											color: getColor(darkMode, "textPrimary")
+										}}
+										padding="5px"
+										paddingLeft="10px"
+										paddingRight="10px"
+										borderRadius="full"
+										cursor="pointer"
+										onClick={() => {
+											eventListener.emit("openRenameModal", {
+												item: selected[0]
+											})
+										}}
+									>
+										<MdEditNote fontSize={22} />
+									</Flex>
+								</Tooltip>
 							)}
 						{fileCount + folderCount > 0 &&
 							location.hash.indexOf("trash") == -1 &&
 							location.hash.indexOf("shared-in") == -1 &&
 							location.pathname.indexOf("/f/") == -1 && (
 								<>
-									<Flex
-										backgroundColor="transparent"
-										color={getColor(darkMode, "textSecondary")}
-										_hover={{
-											backgroundColor: getColor(darkMode, "backgroundPrimary"),
-											color: getColor(darkMode, "textPrimary")
-										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
+									<Tooltip
+										label={i18n(lang, "move")}
+										placement="top"
 										borderRadius="5px"
-										cursor="pointer"
-										onClick={() => {
-											eventListener.emit("openMoveModal", {
-												items: selected
-											})
-										}}
-									>
-										<IoMove fontSize={22} />
-									</Flex>
-									<Flex
-										backgroundColor="transparent"
+										backgroundColor={getColor(darkMode, "backgroundTertiary")}
+										boxShadow="md"
 										color={getColor(darkMode, "textSecondary")}
-										_hover={{
-											backgroundColor: getColor(darkMode, "backgroundPrimary"),
-											color: getColor(darkMode, "textPrimary")
-										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
-										borderRadius="5px"
-										cursor="pointer"
-										onClick={() => {
-											eventListener.emit("openDeleteModal", {
-												items: selected
-											})
-										}}
+										hasArrow={true}
 									>
-										<IoTrashBinOutline fontSize={22} />
-									</Flex>
+										<Flex
+											backgroundColor="transparent"
+											color={getColor(darkMode, "textSecondary")}
+											_hover={{
+												backgroundColor: getColor(darkMode, "backgroundPrimary"),
+												color: getColor(darkMode, "textPrimary")
+											}}
+											padding="5px"
+											paddingLeft="10px"
+											paddingRight="10px"
+											borderRadius="full"
+											cursor="pointer"
+											onClick={() => {
+												eventListener.emit("openMoveModal", {
+													items: selected
+												})
+											}}
+										>
+											<IoMove fontSize={22} />
+										</Flex>
+									</Tooltip>
+									<Tooltip
+										label={i18n(lang, "trash")}
+										placement="top"
+										borderRadius="5px"
+										backgroundColor={getColor(darkMode, "backgroundTertiary")}
+										boxShadow="md"
+										color={getColor(darkMode, "textSecondary")}
+										hasArrow={true}
+									>
+										<Flex
+											backgroundColor="transparent"
+											color={getColor(darkMode, "textSecondary")}
+											_hover={{
+												backgroundColor: getColor(darkMode, "backgroundPrimary"),
+												color: getColor(darkMode, "textPrimary")
+											}}
+											padding="5px"
+											paddingLeft="10px"
+											paddingRight="10px"
+											borderRadius="full"
+											cursor="pointer"
+											onClick={() => {
+												eventListener.emit("openDeleteModal", {
+													items: selected
+												})
+											}}
+										>
+											<IoTrashBinOutline fontSize={22} />
+										</Flex>
+									</Tooltip>
 								</>
 							)}
 					</Flex>

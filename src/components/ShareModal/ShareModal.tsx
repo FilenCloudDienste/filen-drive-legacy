@@ -155,6 +155,9 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => share()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "share")}
 						</AppText>

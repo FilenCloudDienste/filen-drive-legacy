@@ -171,6 +171,9 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => create()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "create")}
 						</AppText>

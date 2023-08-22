@@ -84,7 +84,7 @@ export const YouTube = memo(
 										height="300px"
 										src={"https://www.youtube.com/embed/" + parseYouTubeVideoId(link) + "?autoplay=1"}
 										title={"YouTube - " + info.author_name + " - " + info.title}
-										loading="lazy"
+										loading="eager"
 										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 										allowFullScreen={true}
 										sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-presentation"

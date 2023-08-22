@@ -19,14 +19,7 @@ import {
 } from "../../lib/helpers"
 import { IoFolder } from "react-icons/io5"
 import { useLocation, useNavigate } from "react-router-dom"
-import {
-	GRID_CELL_WIDTH,
-	GRID_CELL_HEIGHT,
-	LIST_ITEM_HEIGHT,
-	PREVIEW_MAX_SIZE,
-	THEME_COLOR,
-	DROP_NAVIGATION_TIMEOUT
-} from "../../lib/constants"
+import { GRID_CELL_WIDTH, GRID_CELL_HEIGHT, LIST_ITEM_HEIGHT, PREVIEW_MAX_SIZE, DROP_NAVIGATION_TIMEOUT } from "../../lib/constants"
 import { BsThreeDots } from "react-icons/bs"
 import { generateThumbnail } from "../../lib/services/thumbnails"
 import memoryCache from "../../lib/memoryCache"
@@ -752,7 +745,9 @@ const ItemBody = memo(
 							alignItems="center"
 							justifyContent="center"
 							cursor="pointer"
-							border={bgHover ? "1px solid " + THEME_COLOR : "1px solid " + getColor(darkMode, "borderPrimary")}
+							border={
+								bgHover ? "1px solid " + getColor(darkMode, "purple") : "1px solid " + getColor(darkMode, "borderPrimary")
+							}
 							backgroundColor={bgHover ? getColor(darkMode, "backgroundSecondary") : undefined}
 							{...interactionProps}
 						>
@@ -814,10 +809,14 @@ const ItemBody = memo(
 									backgroundColor={
 										item.type === "folder" || thumbnail.length === 0
 											? undefined
+											: bgHover
+											? getColor(darkMode, "backgroundTertiary")
 											: getColor(darkMode, "backgroundSecondary")
 									}
 									padding="5px"
-									borderRadius="10px"
+									paddingLeft="10px"
+									paddingRight="10px"
+									borderRadius="15px"
 								>
 									<AppText
 										darkMode={darkMode}

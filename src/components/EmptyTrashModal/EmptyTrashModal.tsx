@@ -110,6 +110,9 @@ const EmptryTrashModal = memo(({ darkMode, isMobile, setItems, lang }: DeletePer
 							color="red.500"
 							cursor="pointer"
 							onClick={() => empty()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "delete")}
 						</AppText>

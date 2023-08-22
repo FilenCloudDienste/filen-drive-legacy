@@ -114,6 +114,9 @@ export const AddContactModal = memo(() => {
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => add()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "add")}
 						</AppText>

@@ -213,6 +213,9 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => rename()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "save")}
 						</AppText>

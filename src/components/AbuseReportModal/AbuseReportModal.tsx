@@ -267,7 +267,8 @@ const AbuseReportModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							_hover={{
-								color: getColor(darkMode, "linkPrimary")
+								color: getColor(darkMode, "linkPrimary"),
+								textDecoration: "underline"
 							}}
 							onClick={() => submit()}
 						>

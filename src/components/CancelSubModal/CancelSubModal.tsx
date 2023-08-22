@@ -88,6 +88,9 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; 
 						color="red.500"
 						cursor="pointer"
 						onClick={() => cancel()}
+						_hover={{
+							textDecoration: "underline"
+						}}
 					>
 						{i18n(lang, "cancel")}
 					</AppText>

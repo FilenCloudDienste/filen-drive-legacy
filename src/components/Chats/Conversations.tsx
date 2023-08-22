@@ -546,8 +546,14 @@ export const Conversations = memo(
 						value={search}
 						onChange={e => setSearch(e.target.value)}
 						fontSize={14}
+						disabled={conversations.length === 0}
 						_placeholder={{
 							color: getColor(darkMode, "textSecondary")
+						}}
+						_disabled={{
+							color: getColor(darkMode, "textPrimary"),
+							backgroundColor: getColor(darkMode, "backgroundSecondary"),
+							cursor: "not-allowed"
 						}}
 						_hover={{
 							shadow: "none",

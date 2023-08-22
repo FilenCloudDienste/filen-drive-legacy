@@ -711,6 +711,9 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 									color={getColor(darkMode, "linkPrimary")}
 									cursor="pointer"
 									onClick={() => save()}
+									_hover={{
+										textDecoration: "underline"
+									}}
 								>
 									{i18n(lang, "save")}
 								</AppText>

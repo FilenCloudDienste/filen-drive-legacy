@@ -457,6 +457,9 @@ const MoveModal = memo(({ darkMode, isMobile, lang }: MoveModalProps) => {
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => move()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(
 								lang,

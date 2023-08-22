@@ -316,6 +316,9 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => save()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "save")}
 						</AppText>
@@ -699,6 +702,9 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => save()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "save")}
 						</AppText>
@@ -793,6 +799,9 @@ export const DeleteVersionedModal = memo(({ darkMode, isMobile, lang }: { darkMo
 							color="red"
 							cursor="pointer"
 							onClick={() => deleteVersionedFiles()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "delete")}
 						</AppText>
@@ -883,6 +892,9 @@ export const DeleteAllModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 							color="red"
 							cursor="pointer"
 							onClick={() => deleteAllFiles()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "delete")}
 						</AppText>
@@ -1103,6 +1115,9 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => save()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "save")}
 						</AppText>
@@ -1259,6 +1274,9 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 								} else {
 									deleteIt()
 								}
+							}}
+							_hover={{
+								textDecoration: "underline"
 							}}
 						>
 							{i18n(lang, "delete")}
@@ -1465,6 +1483,9 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => enable()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "enable")}
 						</AppText>
@@ -1572,9 +1593,12 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
 						color={getColor(darkMode, "linkPrimary")}
 						cursor="pointer"
 						onClick={() => {
-							if (window.confirm("I have savely stored my 2FA recovery key")) {
+							if (window.confirm(i18n(lang, "twoFactorConfirmAlert"))) {
 								setOpen(false)
 							}
+						}}
+						_hover={{
+							textDecoration: "underline"
 						}}
 					>
 						{i18n(lang, "close")}
@@ -1691,6 +1715,9 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 							color="red"
 							cursor="pointer"
 							onClick={() => disable()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "disable")}
 						</AppText>
@@ -1849,7 +1876,8 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 						cursor="pointer"
 						onClick={() => setOpen(false)}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 					>
 						{i18n(lang, "close")}
@@ -1981,7 +2009,8 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
 						cursor="pointer"
 						onClick={() => setOpen(false)}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 					>
 						{i18n(lang, "close")}

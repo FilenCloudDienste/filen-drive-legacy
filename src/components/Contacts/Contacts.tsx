@@ -4,15 +4,7 @@ import useWindowWidth from "../../lib/hooks/useWindowWidth"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import { getColor } from "../../styles/colors"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import {
-	Contact as IContact,
-	contacts as getContacts,
-	contactsRequestsIn,
-	contactsRequestsOut,
-	ContactRequest,
-	BlockedContact,
-	contactsBlocked
-} from "../../lib/api"
+import { Contact as IContact, ContactRequest, BlockedContact } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import { show as showToast } from "../Toast/Toast"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
@@ -81,7 +73,18 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 
 	const contactsSorted = useMemo(() => {
 		const sorted = contacts
-			.sort((a, b) => a.email.localeCompare(b.email))
+			.sort((a, b) => {
+				const isOnlineA = a.lastActive > Date.now() - ONLINE_TIMEOUT
+				const isOnlineB = b.lastActive > Date.now() - ONLINE_TIMEOUT
+
+				if (isOnlineA > isOnlineB) {
+					return -1
+				} else if (isOnlineA < isOnlineB) {
+					return 1
+				} else {
+					return a.email.localeCompare(b.email)
+				}
+			})
 			.filter(contact => {
 				if (search.length === 0) {
 					return true
@@ -192,6 +195,7 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 
 	useEffect(() => {
 		loadContacts()
+		setSearch("")
 	}, [location.hash])
 
 	useEffect(() => {

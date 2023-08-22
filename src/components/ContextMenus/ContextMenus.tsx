@@ -698,7 +698,8 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 									/>
 								</ContextMenuSubmenu>
 							)}
-							<ContextMenuItem onClick={() => deleteItems()}>{i18n(lang, "delete")}</ContextMenuItem>
+							<ContextMenuSeparator />
+							<ContextMenuItem onClick={() => deleteItems()}>{i18n(lang, "trash")}</ContextMenuItem>
 						</>
 					)}
 				{location.hash.indexOf("trash") !== -1 && location.pathname.indexOf("/f/") == -1 && (
@@ -871,7 +872,8 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 								/>
 							</ContextMenuSubmenu>
 						)}
-						<ContextMenuItem onClick={() => deleteItems(activeItem)}>{i18n(lang, "delete")}</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => deleteItems(activeItem)}>{i18n(lang, "trash")}</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>

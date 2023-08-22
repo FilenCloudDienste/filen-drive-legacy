@@ -87,7 +87,8 @@ export const RegisterDoneModal = memo(({ darkMode, isMobile, lang }: { darkMode:
 						cursor="pointer"
 						onClick={() => setOpen(false)}
 						_hover={{
-							color: getColor(darkMode, "textPrimary")
+							color: getColor(darkMode, "textPrimary"),
+							textDecoration: "underline"
 						}}
 					>
 						{i18n(lang, "gotIt")}

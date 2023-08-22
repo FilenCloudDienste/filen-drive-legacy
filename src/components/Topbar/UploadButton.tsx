@@ -23,19 +23,31 @@ const UploadButton = memo(({ darkMode, isMobile, lang, enabled }: UploadButtonPr
 							{...props}
 						>
 							<Button
-								backgroundColor={darkMode ? "white" : "gray"}
-								color={darkMode ? "black" : "white"}
-								height="28px"
-								paddingLeft="10px"
-								paddingRight="10px"
+								borderRadius="5px"
+								backgroundColor={darkMode ? "white" : getColor(darkMode, "backgroundSecondary")}
+								color="black"
+								autoFocus={false}
+								fontWeight="bold"
 								fontSize={13}
-								border={"1px solid " + (darkMode ? "white" : "gray")}
+								padding="10px"
+								height="26px"
+								border="1px solid transparent"
 								marginRight="15px"
 								disabled={!enabled}
 								_hover={{
-									backgroundColor: getColor(darkMode, "backgroundSecondary"),
-									border: "1px solid " + (darkMode ? "white" : "gray"),
-									color: darkMode ? "white" : "gray"
+									backgroundColor: "transparent",
+									border: "1px solid " + (darkMode ? "white" : "black"),
+									color: darkMode ? "white" : "black"
+								}}
+								_active={{
+									backgroundColor: "transparent",
+									border: "1px solid " + (darkMode ? "white" : "black"),
+									color: darkMode ? "white" : "black"
+								}}
+								_focus={{
+									backgroundColor: "transparent",
+									border: "1px solid " + (darkMode ? "white" : "black"),
+									color: darkMode ? "white" : "black"
 								}}
 							>
 								{i18n(lang, "new")}

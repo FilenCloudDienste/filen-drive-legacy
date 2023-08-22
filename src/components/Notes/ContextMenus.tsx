@@ -620,13 +620,31 @@ const ContextMenus = memo(
 										label="Type"
 										arrow={<IoChevronForward fontSize={16} />}
 									>
-										<ContextMenuItem onClick={() => changeType("text")}>{i18n(lang, "noteTypeText")}</ContextMenuItem>
-										<ContextMenuItem onClick={() => changeType("rich")}>{i18n(lang, "noteTypeRich")}</ContextMenuItem>
-										<ContextMenuItem onClick={() => changeType("checklist")}>
-											{i18n(lang, "noteTypeChecklist")}
+										<ContextMenuItem onClick={() => changeType("text")}>
+											<Flex color={selectedNote.type === "text" ? getColor(darkMode, "purple") : undefined}>
+												{i18n(lang, "noteTypeText")}
+											</Flex>
 										</ContextMenuItem>
-										<ContextMenuItem onClick={() => changeType("md")}>{i18n(lang, "noteTypeMd")}</ContextMenuItem>
-										<ContextMenuItem onClick={() => changeType("code")}>{i18n(lang, "noteTypeCode")}</ContextMenuItem>
+										<ContextMenuItem onClick={() => changeType("rich")}>
+											<Flex color={selectedNote.type === "rich" ? getColor(darkMode, "purple") : undefined}>
+												{i18n(lang, "noteTypeRich")}
+											</Flex>
+										</ContextMenuItem>
+										<ContextMenuItem onClick={() => changeType("checklist")}>
+											<Flex color={selectedNote.type === "checklist" ? getColor(darkMode, "purple") : undefined}>
+												{i18n(lang, "noteTypeChecklist")}
+											</Flex>
+										</ContextMenuItem>
+										<ContextMenuItem onClick={() => changeType("md")}>
+											<Flex color={selectedNote.type === "md" ? getColor(darkMode, "purple") : undefined}>
+												{i18n(lang, "noteTypeMd")}
+											</Flex>
+										</ContextMenuItem>
+										<ContextMenuItem onClick={() => changeType("code")}>
+											<Flex color={selectedNote.type === "code" ? getColor(darkMode, "purple") : undefined}>
+												{i18n(lang, "noteTypeCode")}
+											</Flex>
+										</ContextMenuItem>
 									</ContextMenuSubmenu>
 									<ContextMenuSeparator />
 								</>

@@ -830,7 +830,7 @@ export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessag
 										<iframe
 											width="100%"
 											height="300px"
-											loading="lazy"
+											loading="eager"
 											src={
 												(process.env.NODE_ENV === "development"
 													? "http://localhost:3003/d/"

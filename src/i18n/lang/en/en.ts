@@ -491,7 +491,8 @@ const en: {
 	copyText: "Copy text",
 	chatEdited: "edited",
 	chatViewingOlderMessages: "You are viewing older messages",
-	chatJumpToPresent: "Jump to present"
+	chatJumpToPresent: "Jump to present",
+	twoFactorConfirmAlert: "I have savely stored my 2FA recovery key"
 }
 
 export default en

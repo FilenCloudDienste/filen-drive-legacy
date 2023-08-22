@@ -336,6 +336,12 @@ export const Sidebar = memo(
 								value={search}
 								onChange={e => setSearch(e.target.value)}
 								fontSize={14}
+								disabled={notes.length === 0}
+								_disabled={{
+									color: getColor(darkMode, "textPrimary"),
+									backgroundColor: getColor(darkMode, "backgroundSecondary"),
+									cursor: "not-allowed"
+								}}
 								_placeholder={{
 									color: getColor(darkMode, "textSecondary")
 								}}

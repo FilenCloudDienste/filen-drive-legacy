@@ -181,6 +181,9 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => stopSharing()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "stopSharing")}
 						</AppText>

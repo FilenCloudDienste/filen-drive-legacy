@@ -236,6 +236,9 @@ export const CreateTextFileModal = memo(
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							onClick={() => create()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "create")}
 						</AppText>

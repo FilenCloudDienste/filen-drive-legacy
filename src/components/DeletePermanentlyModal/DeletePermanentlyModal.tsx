@@ -169,6 +169,9 @@ const DeletePermanentlyModal = memo(({ darkMode, isMobile, setItems, lang }: Del
 							color="red.500"
 							cursor="pointer"
 							onClick={() => deletePermanently()}
+							_hover={{
+								textDecoration: "underline"
+							}}
 						>
 							{i18n(lang, "delete")}
 						</AppText>
