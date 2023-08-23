@@ -502,7 +502,7 @@ const ru: {
 	chatConversationCreateSidebarCreate: "Начать разговор",
 	noConversationFound: "Чаты не найдены.",
 	copyText: "Копировать текст",
-	chatEdited: "изменено",
+	chatEdited: "отредактировано",
 	chatViewingOlderMessages: "Вы смотрите старые сообщения",
 	chatJumpToPresent: "Вернуться к последним",
 	twoFactorConfirmAlert: "Я безопасно сохранил(-а) свой ключ восстановления двухфакторной аутентификации",
