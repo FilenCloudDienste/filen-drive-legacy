@@ -489,7 +489,12 @@ const zh: {
 	chatEdited: "已修改",
 	chatViewingOlderMessages: "您正在查看较旧的消息",
 	chatJumpToPresent: "跳转至当前内容",
-	twoFactorConfirmAlert: "我已妥善保存我的 2FA 恢复密钥"
+	twoFactorConfirmAlert: "我已妥善保存我的 2FA 恢复密钥",
+	chatIsTyping: "正在输入",
+	chatConversationEditName: "编辑名称",
+	copyId: "复制 ID",
+	replyToChatMessage: "回复",
+	chatReplyingTo: "正在回复给"
 }
 
 export default zh
