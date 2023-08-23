@@ -60,6 +60,7 @@ export const Container = memo(
 		const windowFocused = useRef<boolean>(true)
 		const [editingMessageUUID, setEditingMessageUUID] = useState<string>("")
 		const navigate = useNavigate()
+		const [replyMessageUUID, setReplyMessageUUID] = useState<string>("")
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -219,6 +220,10 @@ export const Container = memo(
 
 					const privateKey = await db.get("privateKey")
 					const message = await decryptChatMessage(event.data.message, currentConversationMe.metadata, privateKey)
+					const replyToMessageDecrypted =
+						event.data.replyTo.uuid.length > 0 && event.data.replyTo.message.length > 0
+							? await decryptChatMessage(event.data.replyTo.message, currentConversationMe.metadata, privateKey)
+							: ""
 
 					if (message.length > 0) {
 						setMessages(prev => [
@@ -230,6 +235,10 @@ export const Container = memo(
 								senderAvatar: event.data.senderAvatar,
 								senderNickName: event.data.senderNickName,
 								message,
+								replyTo: {
+									...event.data.replyTo,
+									message: replyToMessageDecrypted
+								},
 								embedDisabled: event.data.embedDisabled,
 								edited: false,
 								editedTimestamp: 0,
@@ -361,6 +370,7 @@ export const Container = memo(
 							unreadConversationsMessages={unreadConversationsMessages}
 							setUnreadConversationsMessages={setUnreadConversationsMessages}
 							editingMessageUUID={editingMessageUUID}
+							replyMessageUUID={replyMessageUUID}
 						/>
 					)}
 				</Flex>
@@ -383,6 +393,7 @@ export const Container = memo(
 							setEmojiPickerOpen={setEmojiPickerOpen}
 							conversationUUID={currentConversation.uuid}
 							setEditingMessageUUID={setEditingMessageUUID}
+							setReplyMessageUUID={setReplyMessageUUID}
 						/>
 					)}
 				</Flex>

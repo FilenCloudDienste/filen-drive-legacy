@@ -19,6 +19,7 @@ import { Virtuoso } from "react-virtuoso"
 import { i18n } from "../../i18n"
 import { IoIosAdd } from "react-icons/io"
 import db from "../../lib/db"
+import { decryptChatMessage, decryptChatConversationName } from "../../lib/worker/worker.com"
 
 export interface MeProps {
 	darkMode: boolean
@@ -193,6 +194,7 @@ const loadingConversations = new Array(5).fill(1).map(() => ({
 	lastMessageTimestamp: 0,
 	lastMessageUUID: null,
 	ownerId: 0,
+	name: "",
 	participants: [],
 	createdTimestamp: 0
 })) as ChatConversation[]
@@ -225,7 +227,6 @@ export const Conversations = memo(
 		setConversationsFirstLoadDone,
 		conversationsFirstLoadDone
 	}: ConversationsProps) => {
-		const conversationsTimestamp = useRef<number>(Date.now() + 3600000)
 		const [loading, setLoading] = useState<boolean>(false)
 		const [userId] = useDb("userId", 0)
 		const navigate = useNavigate()
@@ -250,7 +251,7 @@ export const Conversations = memo(
 				setConversations([])
 			}
 
-			const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(conversationsTimestamp.current, refresh))
+			const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(refresh))
 
 			if (conversationsErr) {
 				setLoading(false)
@@ -370,18 +371,39 @@ export const Conversations = memo(
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 				if (event.type === "chatMessageNew") {
-					setConversations(prev =>
-						prev.map(conversation =>
-							conversation.uuid === event.data.conversation
-								? {
-										...conversation,
-										lastMessage: event.data.message,
-										lastMessageSender: event.data.senderId,
-										lastMessageTimestamp: event.data.sentTimestamp
-								  }
-								: conversation
+					if (conversationsRef.current) {
+						const [privateKey, userId] = await Promise.all([db.get("privateKey"), db.get("userId")])
+						const convo = conversationsRef.current.filter(c => c.uuid === event.data.conversation)
+
+						if (convo.length !== 1) {
+							return
+						}
+
+						const metadata = convo[0].participants.filter(p => p.userId === userId)
+
+						if (metadata.length !== 1) {
+							return
+						}
+
+						const messageDecrypted = await decryptChatMessage(event.data.message, metadata[0].metadata, privateKey)
+
+						if (messageDecrypted.length === 0) {
+							return
+						}
+
+						setConversations(prev =>
+							prev.map(conversation =>
+								conversation.uuid === event.data.conversation
+									? {
+											...conversation,
+											lastMessage: messageDecrypted,
+											lastMessageSender: event.data.senderId,
+											lastMessageTimestamp: event.data.sentTimestamp
+									  }
+									: conversation
+							)
 						)
-					)
+					}
 				} else if (event.type === "chatConversationsNew") {
 					fetchConversations(true)
 				} else if (event.type === "chatConversationDeleted") {
@@ -409,6 +431,53 @@ export const Conversations = memo(
 				} else if (event.type === "chatMessageDelete") {
 					if (conversationsRef.current.filter(c => c.lastMessageUUID === event.data.uuid).length > 0) {
 						fetchConversations(true)
+					}
+				} else if (event.type === "chatConversationNameEdited") {
+					if (event.data.name.length === 0) {
+						setConversations(prev =>
+							prev.map(conversation =>
+								conversation.uuid === event.data.uuid
+									? {
+											...conversation,
+											name: ""
+									  }
+									: conversation
+							)
+						)
+
+						return
+					}
+
+					if (conversationsRef.current) {
+						const [privateKey, userId] = await Promise.all([db.get("privateKey"), db.get("userId")])
+						const convo = conversationsRef.current.filter(c => c.uuid === event.data.uuid)
+
+						if (convo.length !== 1) {
+							return
+						}
+
+						const metadata = convo[0].participants.filter(p => p.userId === userId)
+
+						if (metadata.length !== 1) {
+							return
+						}
+
+						const nameDecrypted = await decryptChatConversationName(event.data.name, metadata[0].metadata, privateKey)
+
+						if (nameDecrypted.length === 0) {
+							return
+						}
+
+						setConversations(prev =>
+							prev.map(conversation =>
+								conversation.uuid === event.data.uuid
+									? {
+											...conversation,
+											name: nameDecrypted
+									  }
+									: conversation
+							)
+						)
 					}
 				}
 			})
@@ -453,6 +522,22 @@ export const Conversations = memo(
 				}
 			)
 
+			const chatConversationNameEditedListener = eventListener.on(
+				"chatConversationNameEdited",
+				({ uuid, name }: { uuid: string; name: string }) => {
+					setConversations(prev =>
+						prev.map(conversation =>
+							conversation.uuid === uuid
+								? {
+										...conversation,
+										name
+								  }
+								: conversation
+						)
+					)
+				}
+			)
+
 			return () => {
 				socketEventListener.remove()
 				updateChatConversationsListener.remove()
@@ -461,6 +546,7 @@ export const Conversations = memo(
 				chatConversationLeaveListener.remove()
 				chatConversationParticipantRemovedListener.remove()
 				updateChatConversationsWithDataListener.remove()
+				chatConversationNameEditedListener.remove()
 			}
 		}, [userId])
 

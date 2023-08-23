@@ -1,21 +1,25 @@
-import { useEffect, createElement, memo, useRef, useState } from "react"
+import { useEffect, createElement, memo, useRef } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
-import { decryptChatMessage } from "../../lib/worker/worker.com"
+import { decryptChatMessage, decryptChatConversationName } from "../../lib/worker/worker.com"
 import { validate } from "uuid"
 import { MessageDisplayType } from "./Container"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { Emoji } from "emoji-mart"
 import { getColor } from "../../styles/colors"
-import { Link } from "@chakra-ui/react"
+import { Link, Flex } from "@chakra-ui/react"
 import { customEmojis } from "./customEmojis"
 
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
+}
+
+export const getUserNameFromReplyTo = (message: ChatMessage): string => {
+	return message.replyTo.senderNickName.length > 0 ? message.replyTo.senderNickName : message.replyTo.senderEmail
 }
 
 export const getUserNameFromParticipant = (participant: ChatConversationParticipant): string => {
@@ -80,19 +84,40 @@ export interface FetchChatConversationsResult {
 	conversations: ChatConversation[]
 }
 
-export const fetchChatConversations = async (
-	timestamp: number = Date.now() + 3600000,
-	skipCache: boolean = false
-): Promise<FetchChatConversationsResult> => {
+export const fetchChatConversations = async (skipCache: boolean = false): Promise<FetchChatConversationsResult> => {
 	const refresh = async (): Promise<FetchChatConversationsResult> => {
-		const result = await chatConversations(timestamp)
+		const conversationsDecrypted: ChatConversation[] = []
+		const [result, privateKey, userId] = await Promise.all([chatConversations(), db.get("privateKey"), db.get("userId")])
 
-		await db.set("chatConversations", result, "chats")
+		for (const conversation of result) {
+			const metadata = conversation.participants.filter(p => p.userId === userId)
 
-		cleanupLocalDb(result).catch(console.error)
+			if (metadata.length !== 1) {
+				continue
+			}
+
+			const nameDecrypted =
+				typeof conversation.name === "string" && conversation.name.length > 0
+					? await decryptChatConversationName(conversation.name, metadata[0].metadata, privateKey)
+					: ""
+			const messageDecrypted =
+				typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0
+					? await decryptChatMessage(conversation.lastMessage, metadata[0].metadata, privateKey)
+					: ""
+
+			conversationsDecrypted.push({
+				...conversation,
+				name: nameDecrypted,
+				lastMessage: messageDecrypted
+			})
+		}
+
+		await db.set("chatConversations", conversationsDecrypted, "chats")
+
+		cleanupLocalDb(conversationsDecrypted).catch(console.error)
 
 		return {
-			conversations: result,
+			conversations: conversationsDecrypted,
 			cache: false
 		}
 	}
@@ -131,6 +156,10 @@ export const fetchChatMessages = async (
 
 		for (const message of result) {
 			const messageDecrypted = await decryptChatMessage(message.message, metadata, privateKey)
+			const replyToMessageDecrypted =
+				message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0
+					? await decryptChatMessage(message.replyTo.message, metadata, privateKey)
+					: ""
 
 			if (messageDecrypted.length === 0) {
 				continue
@@ -138,7 +167,11 @@ export const fetchChatMessages = async (
 
 			messagesDecrypted.push({
 				...message,
-				message: messageDecrypted
+				message: messageDecrypted,
+				replyTo: {
+					...message.replyTo,
+					message: replyToMessageDecrypted
+				}
 			})
 		}
 
@@ -287,7 +320,7 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 	)
 	const emojiCount = content.match(emojiRegex)
 
-	let size: number | undefined = 34
+	let size: number | undefined = 32
 
 	if (emojiCount) {
 		const emojiCountJoined = emojiCount.join("")
@@ -367,64 +400,58 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 
 			if (match.indexOf("\n") !== -1) {
 				return (
-					<div
+					<Flex
 						key={index}
-						style={{
-							height: "8px"
-						}}
-					>
-						<br />
-					</div>
+						height="5px"
+						width="100%"
+						flexBasis="100%"
+					/>
 				)
 			}
 
 			if (customEmojisList.includes(match.split(":").join("").trim())) {
 				return (
-					<span
+					<Flex
 						key={index}
 						title={match.indexOf(":") !== -1 ? match : undefined}
-						style={{
-							width: size ? size + 2 + "px" : undefined,
-							height: size ? size + 2 + "px" : undefined,
-							display: "inline-block"
-						}}
+						width={size ? size + 6 + "px" : undefined}
+						height={size ? size + "px" : undefined}
+						alignItems="center"
+						justifyContent="center"
 					>
 						<EmojiElement
 							fallback={match}
 							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
-							size={size ? size + 2 + "px" : "34px"}
+							size={size ? size + "px" : "34px"}
 							style={{
-								width: size ? size + 2 + "px" : undefined,
-								height: size ? size + 2 + "px" : undefined,
+								width: size ? size + "px" : undefined,
+								height: size ? size + "px" : undefined,
 								display: "inline-block"
 							}}
 						/>
-					</span>
+					</Flex>
 				)
 			}
 
 			return (
-				<span
+				<Flex
 					key={index}
 					title={match.indexOf(":") !== -1 ? match : undefined}
-					style={{
-						width: size ? (size + 2) * 1.33333 + "px" : undefined,
-						height: size ? (size + 2) * 1.33333 + "px" : undefined,
-						display: "inline-block"
-					}}
+					width={size ? size + 6 + "px" : undefined}
+					height={size ? size + "px" : undefined}
+					alignItems="center"
+					justifyContent="center"
 				>
 					<EmojiElement
 						fallback={match}
 						shortcodes={match.indexOf(":") !== -1 ? match : undefined}
 						native={match.indexOf(":") === -1 ? match : undefined}
-						size={size ? size + 2 + "px" : "34px"}
+						size={size ? size + "px" : "34px"}
 						style={{
-							width: size ? (size + 2) * 1.33333 + "px" : undefined,
-							height: size ? (size + 2) * 1.33333 + "px" : undefined,
 							display: "inline-block"
 						}}
 					/>
-				</span>
+				</Flex>
 			)
 		},
 		input: content
@@ -432,6 +459,97 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 
 	return <>{replaced}</>
 })
+
+export const ReplaceInlineMessageWithComponents = memo(
+	({ content, darkMode, emojiSize, hideLinks }: { content: string; darkMode: boolean; emojiSize?: number; hideLinks?: boolean }) => {
+		const lineBreakRegex = /\n/
+		const codeRegex = /```([\s\S]*?)```/
+		const linkRegex = /(https?:\/\/\S+)/
+		const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
+		const regex = new RegExp(
+			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}`
+		)
+		const size = emojiSize ? emojiSize : 16
+
+		const replaced = regexifyString({
+			pattern: regex,
+			decorator: (match, index) => {
+				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+					if (hideLinks) {
+						return <>{match}</>
+					}
+
+					return (
+						<Link
+							key={index}
+							color={getColor(darkMode, "linkPrimary")}
+							cursor="pointer"
+							href={match}
+							target="_blank"
+							rel="noreferrer"
+							_hover={{
+								textDecoration: "underline"
+							}}
+							className="user-select-text"
+							userSelect="text"
+							onContextMenu={e => e.stopPropagation()}
+						>
+							{match}
+						</Link>
+					)
+				}
+
+				if (customEmojisList.includes(match.split(":").join("").trim())) {
+					return (
+						<Flex
+							key={index}
+							title={match.indexOf(":") !== -1 ? match : undefined}
+							width={size ? size + 6 + "px" : undefined}
+							height={size ? size + "px" : undefined}
+							alignItems="center"
+							justifyContent="center"
+						>
+							<EmojiElement
+								fallback={match}
+								shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+								size={size ? size + "px" : "34px"}
+								style={{
+									width: size ? size + "px" : undefined,
+									height: size ? size + "px" : undefined,
+									display: "inline-block"
+								}}
+							/>
+						</Flex>
+					)
+				}
+
+				return (
+					<Flex
+						key={index}
+						title={match.indexOf(":") !== -1 ? match : undefined}
+						width={size ? size + 6 + "px" : undefined}
+						height={size ? size + "px" : undefined}
+						alignItems="center"
+						justifyContent="center"
+					>
+						<EmojiElement
+							fallback={match}
+							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+							native={match.indexOf(":") === -1 ? match : undefined}
+							size={size ? size + "px" : "34px"}
+							style={{
+								display: "inline-block"
+							}}
+						/>
+					</Flex>
+				)
+			},
+			input: content.split("\n").join(" ")
+		})
+
+		return <>{replaced}</>
+	}
+)
 
 export const parseTwitterStatusIdFromURL = (url: string) => {
 	const ex = url.split("/")

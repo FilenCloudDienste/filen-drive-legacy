@@ -24,6 +24,7 @@ import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { i18n } from "../../i18n"
 import eventListener from "../../lib/eventListener"
+import EditConversationNameModal from "./EditConversationNameModal"
 
 export interface ChatsProps {
 	darkMode: boolean
@@ -255,6 +256,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 				isMobile={isMobile}
 				lang={lang}
 			/>
+			<EditConversationNameModal />
 		</Flex>
 	)
 })

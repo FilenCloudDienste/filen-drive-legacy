@@ -2587,11 +2587,12 @@ export interface ChatConversation {
 	lastMessageTimestamp: number
 	lastMessageUUID: string | null
 	ownerId: number
+	name: string | null
 	participants: ChatConversationParticipant[]
 	createdTimestamp: number
 }
 
-export const chatConversations = async (timestamp: number): Promise<ChatConversation[]> => {
+export const chatConversations = async (): Promise<ChatConversation[]> => {
 	const response = await apiRequest({
 		method: "GET",
 		endpoint: "/v3/chat/conversations",
@@ -2613,6 +2614,14 @@ export interface ChatMessage {
 	senderAvatar: string | null
 	senderNickName: string
 	message: string
+	replyTo: {
+		uuid: string
+		senderId: number
+		senderEmail: string
+		senderAvatar: string
+		senderNickName: string
+		message: string
+	}
 	embedDisabled: boolean
 	edited: boolean
 	editedTimestamp: number
@@ -2636,14 +2645,30 @@ export const chatMessages = async (conversation: string, timestamp: number): Pro
 	return response.data
 }
 
-export const sendChatMessage = async (conversation: string, uuid: string, message: string): Promise<void> => {
+export const chatConversationNameEdit = async (uuid: string, name: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/name/edit",
+		data: {
+			uuid,
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const sendChatMessage = async (conversation: string, uuid: string, message: string, replyTo: string): Promise<void> => {
 	const response = await apiRequest({
 		method: "POST",
 		endpoint: "/v3/chat/send",
 		data: {
 			conversation,
 			uuid,
-			message
+			message,
+			replyTo
 		}
 	})
 

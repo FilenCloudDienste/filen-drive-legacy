@@ -45,6 +45,7 @@ export interface MessagesProps {
 	unreadConversationsMessages: Record<string, number>
 	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 	editingMessageUUID: string
+	replyMessageUUID: string
 }
 
 export const Messages = memo(
@@ -66,7 +67,8 @@ export const Messages = memo(
 		setScrolledUp,
 		unreadConversationsMessages,
 		setUnreadConversationsMessages,
-		editingMessageUUID
+		editingMessageUUID,
+		replyMessageUUID
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
@@ -146,7 +148,7 @@ export const Messages = memo(
 		const itemsRendered = useCallback(
 			(items: ListItem<ChatMessage>[]) => {
 				if (items.length > 0 && messages.length > 0) {
-					eventListener.emit("showChatScrollDownBtn", messages.length - (items[items.length - 1].originalIndex || 0) > 150)
+					eventListener.emit("showChatScrollDownBtn", messages.length - (items[items.length - 1].originalIndex || 0) > 100)
 				}
 			},
 			[messages]
@@ -181,6 +183,7 @@ export const Messages = memo(
 							lastFocusTimestamp={lastFocusTimestamp}
 							setLastFocusTimestamp={setLastFocusTimestamp}
 							editingMessageUUID={editingMessageUUID}
+							replyMessageUUID={replyMessageUUID}
 						/>
 					</div>
 				)
@@ -200,7 +203,8 @@ export const Messages = memo(
 				blockedContacts,
 				lastFocusTimestamp,
 				setLastFocusTimestamp,
-				editingMessageUUID
+				editingMessageUUID,
+				replyMessageUUID
 			]
 		)
 
@@ -237,7 +241,7 @@ export const Messages = memo(
 			lastFocusTimestampTimerRef.current = setTimeout(() => {
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() - 1000
+					[conversationUUID]: Date.now()
 				}))
 			}, 30000)
 		}, [conversationUUID])
@@ -247,7 +251,7 @@ export const Messages = memo(
 
 			setLastFocusTimestamp(prev => ({
 				...prev,
-				[conversationUUID]: Date.now() - 1000
+				[conversationUUID]: Date.now()
 			}))
 		}, [conversationUUID])
 
@@ -306,7 +310,7 @@ export const Messages = memo(
 
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() - 1000
+					[conversationUUID]: Date.now()
 				}))
 
 				clearTimeout(initalLoadDoneTimer.current)
@@ -340,7 +344,7 @@ export const Messages = memo(
 			if (!lastFocusTimestamp || typeof lastFocusTimestamp[conversationUUID] !== "number") {
 				setLastFocusTimestamp(prev => ({
 					...prev,
-					[conversationUUID]: Date.now() - 1000
+					[conversationUUID]: Date.now()
 				}))
 			}
 
@@ -355,7 +359,7 @@ export const Messages = memo(
 				) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
-						[conversationUUID]: Date.now() - 1000
+						[conversationUUID]: Date.now()
 					}))
 				}
 
@@ -391,7 +395,7 @@ export const Messages = memo(
 				if (sentMessage.conversation === conversationUUID && sentMessage.senderId === userIdRef.current) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
-						[conversationUUID]: Date.now() - 1000
+						[conversationUUID]: Date.now()
 					}))
 				}
 			})

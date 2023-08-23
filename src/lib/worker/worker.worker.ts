@@ -1294,6 +1294,38 @@ export const corsGet = async (url: string): Promise<Record<string, string>> => {
 	return response.data
 }
 
+export const decryptChatConversationName = async (name: string, metadata: string, privateKey: string): Promise<string> => {
+	try {
+		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
+
+		if (keyDecrypted.length === 0) {
+			return ""
+		}
+
+		const nameDecrypted = await decryptMetadata(name, keyDecrypted)
+
+		if (!nameDecrypted) {
+			return ""
+		}
+
+		const parsedMessage = JSON.parse(nameDecrypted)
+
+		if (typeof parsedMessage.name !== "string") {
+			return ""
+		}
+
+		return parsedMessage.name
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptChatConversationName = async (name: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
 export const api = {
 	apiRequest,
 	deriveKeyFromPassword,
@@ -1335,7 +1367,9 @@ export const api = {
 	decryptNoteTagName,
 	parseOGFromURL,
 	corsHead,
-	corsGet
+	corsGet,
+	decryptChatConversationName,
+	encryptChatConversationName
 }
 
 expose(api)

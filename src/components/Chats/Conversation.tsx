@@ -4,10 +4,8 @@ import { getColor } from "../../styles/colors"
 import { Flex, Avatar, AvatarBadge, Skeleton } from "@chakra-ui/react"
 import { useNavigate } from "react-router-dom"
 import AppText from "../AppText"
-import { decryptChatMessage } from "../../lib/worker/worker.com"
-import db from "../../lib/db"
 import { getCurrentParent, getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode, safeAwait, Semaphore } from "../../lib/helpers"
-import { getUserNameFromParticipant } from "./utils"
+import { getUserNameFromParticipant, ReplaceInlineMessageWithComponents } from "./utils"
 import { IoCloseOutline, IoTrashOutline } from "react-icons/io5"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
@@ -116,7 +114,6 @@ export const Conversation = memo(
 		const darkMode = useDarkMode()
 		const lang = useLang()
 		const navigate = useNavigate()
-		const [lastMessageDecrypted, setLastMessageDecrypted] = useState<string>("")
 		const [hovering, setHovering] = useState<boolean>(false)
 		const [hoveringDelete, setHoveringDelete] = useState<boolean>(false)
 
@@ -128,39 +125,21 @@ export const Conversation = memo(
 			)
 		}, [conversation.participants, userId])
 
-		const conversationMe = useMemo(() => {
-			const filtered = conversation.participants.filter(participant => participant.userId === userId)
-
-			if (filtered.length === 0) {
-				return null
-			}
-
-			return filtered[0]
-		}, [conversation.participants, userId])
-
-		const lastMessageIncludingSender = useMemo(() => {
-			let message = ""
-
+		const youOrElse = useMemo(() => {
 			if (conversation.lastMessageSender === userId) {
-				message = i18n(lang, "chatYou") + ": "
+				return i18n(lang, "chatYou") + ": "
 			} else {
 				const senderFromList = conversationParticipantsFilteredWithoutMe.filter(
 					participant => participant.userId === conversation.lastMessageSender
 				)
 
 				if (senderFromList.length === 1) {
-					message = getUserNameFromParticipant(senderFromList[0]) + ": "
+					return getUserNameFromParticipant(senderFromList[0]) + ": "
+				} else {
+					return ""
 				}
 			}
-
-			if (typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && lastMessageDecrypted.length > 0) {
-				message = message + lastMessageDecrypted
-			} else {
-				message = message + i18n(lang, "chatNoMessagesYet")
-			}
-
-			return message.split("`").join("")
-		}, [lang, conversationParticipantsFilteredWithoutMe, lastMessageDecrypted, userId])
+		}, [lang, conversationParticipantsFilteredWithoutMe, conversation, userId])
 
 		const updateUnread = useCallback(async () => {
 			await updateUnreadMutex.acquire()
@@ -182,23 +161,6 @@ export const Conversation = memo(
 		}, [conversation])
 
 		useEffect(() => {
-			;(async () => {
-				if (!conversationMe || typeof conversation.lastMessage !== "string" || conversation.lastMessage.length === 0) {
-					return
-				}
-
-				const privateKey = await db.get("privateKey")
-				const decryptedMessage = await decryptChatMessage(conversation.lastMessage, conversationMe.metadata, privateKey)
-
-				if (decryptedMessage.length === 0) {
-					return
-				}
-
-				setLastMessageDecrypted(decryptedMessage)
-			})()
-		}, [conversation.lastMessage, conversationMe])
-
-		useEffect(() => {
 			const updateUnreadInterval = setInterval(updateUnread, 5000)
 
 			return () => {
@@ -213,6 +175,18 @@ export const Conversation = memo(
 				paddingBottom="0px"
 				onMouseEnter={() => setHovering(true)}
 				onMouseLeave={() => setHovering(false)}
+				onContextMenu={e => {
+					e.preventDefault()
+
+					eventListener.emit("openChatConversationContextMenu", {
+						conversation,
+						event: e,
+						position: {
+							x: e.nativeEvent.clientX,
+							y: e.nativeEvent.clientY
+						}
+					})
+				}}
 			>
 				<Flex
 					flexDirection="row"
@@ -319,22 +293,58 @@ export const Conversation = memo(
 								}
 								marginLeft="10px"
 								fontSize={15}
+								flexShrink={0}
 							>
-								{conversationParticipantsFilteredWithoutMe
-									.map(participant => striptags(getUserNameFromParticipant(participant)))
-									.join(", ")}
+								{typeof conversation.name === "string" && conversation.name.length > 0
+									? conversation.name
+									: conversationParticipantsFilteredWithoutMe
+											.map(participant => striptags(getUserNameFromParticipant(participant)))
+											.join(", ")}
 							</AppText>
-							<AppText
-								darkMode={darkMode}
-								isMobile={isMobile}
-								noOfLines={1}
-								wordBreak="break-all"
-								color={getColor(darkMode, "textSecondary")}
-								marginLeft="10px"
-								fontSize={12}
+							<Flex
+								flexDirection="row"
+								gap="5px"
 							>
-								{lastMessageIncludingSender}
-							</AppText>
+								<AppText
+									darkMode={darkMode}
+									isMobile={isMobile}
+									noOfLines={1}
+									wordBreak="break-all"
+									color={getColor(darkMode, "textSecondary")}
+									marginLeft="10px"
+									fontSize={12}
+									flexShrink={0}
+								>
+									{typeof conversation.lastMessage !== "string" || conversation.lastMessage.length === 0 ? (
+										<>&nbsp;</>
+									) : (
+										youOrElse
+									)}
+								</AppText>
+								{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
+									<Flex
+										color={getColor(darkMode, "textSecondary")}
+										fontSize={12}
+										className="user-select-text"
+										userSelect="text"
+										gap="4px"
+										flexDirection="row"
+										maxHeight="18px"
+										overflow="hidden"
+										textOverflow="ellipsis"
+										flexGrow={0}
+										flexFlow="row wrap"
+										alignItems="center"
+									>
+										<ReplaceInlineMessageWithComponents
+											darkMode={darkMode}
+											content={conversation.lastMessage.split("`").join("")}
+											hideLinks={true}
+											emojiSize={14}
+										/>
+									</Flex>
+								)}
+							</Flex>
 						</Flex>
 					</Flex>
 					<Flex>

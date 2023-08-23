@@ -19,7 +19,7 @@ import { safeAwait, getCurrentParent, findClosestIndex } from "../../lib/helpers
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
-import { AiOutlineSmile, AiFillPlusCircle, AiOutlineCaretDown } from "react-icons/ai"
+import { AiOutlineSmile, AiFillPlusCircle, AiOutlineCaretDown, AiFillCloseCircle } from "react-icons/ai"
 import { ErrorBoundary } from "react-error-boundary"
 import { createEditor, Editor, BaseEditor, Transforms } from "slate"
 import useMeasure from "react-use-measure"
@@ -37,6 +37,7 @@ import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import throttle from "lodash/throttle"
 import { selectFromCloud } from "../SelectFromCloud/SelectFromCloud"
 import useDb from "../../lib/hooks/useDb"
+import { getUserNameFromMessage } from "./utils"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -57,7 +58,7 @@ export interface ChatContainerInputTypingProps {
 	lang: string
 }
 
-export const TYPING_TIMEOUT = 3000
+export const TYPING_TIMEOUT = 2000
 export const TYPING_TIMEOUT_LAG = 30000
 
 export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: ChatContainerInputTypingProps) => {
@@ -68,7 +69,9 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 	useEffect(() => {
 		setUsersTyping([])
 
-		usersTypingTimeout.current = {}
+		for (const key in usersTypingTimeout.current) {
+			clearTimeout(usersTypingTimeout.current[key])
+		}
 	}, [location.hash])
 
 	useEffect(() => {
@@ -108,6 +111,12 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 		})
 
 		return () => {
+			setUsersTyping([])
+
+			for (const key in usersTypingTimeout.current) {
+				clearTimeout(usersTypingTimeout.current[key])
+			}
+
 			chatTypingListener.remove()
 		}
 	}, [])
@@ -161,7 +170,7 @@ export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: Chat
 							wordBreak="break-word"
 							marginLeft="3px"
 						>
-							{" is typing..."}
+							{" " + i18n(lang, "chatIsTyping").toLowerCase() + "..."}
 						</AppText>
 					</>
 				)}
@@ -182,6 +191,7 @@ export interface InputProps {
 	setEmojiPickerOpen: React.Dispatch<React.SetStateAction<boolean>>
 	conversationUUID: string
 	setEditingMessageUUID: React.Dispatch<React.SetStateAction<string>>
+	setReplyMessageUUID: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const Input = memo(
@@ -196,7 +206,8 @@ export const Input = memo(
 		setMessages,
 		setEmojiPickerOpen,
 		conversationUUID,
-		setEditingMessageUUID
+		setEditingMessageUUID,
+		setReplyMessageUUID
 	}: InputProps) => {
 		const isTyping = useRef<boolean>(false)
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -213,6 +224,7 @@ export const Input = memo(
 		const messageToEditRef = useRef<ChatMessage | undefined>(undefined)
 		const [userId] = useDb("userId", 0)
 		const [showScrollDownBtn, setShowScrollDownBtn] = useState<boolean>(false)
+		const [replyToMessage, setReplyToMessage] = useState<ChatMessage | undefined>(undefined)
 
 		const selectItemsFromCloud = useCallback(async () => {
 			const items = await selectFromCloud()
@@ -306,6 +318,15 @@ export const Input = memo(
 			return message
 		}, [editor])
 
+		const focusEditor = useCallback(() => {
+			if (!editor) {
+				return
+			}
+
+			ReactEditor.focus(editor)
+			Transforms.select(editor, Editor.end(editor, []))
+		}, [editor])
+
 		const insertEmoji = useCallback(
 			(emoji: string) => {
 				if (!editor || emoji.length === 0) {
@@ -315,7 +336,8 @@ export const Input = memo(
 				const currentText = getEditorText()
 				const newText = currentText.length === 0 || currentText.endsWith(" ") ? emoji + " " : " " + emoji + " "
 
-				ReactEditor.focus(editor)
+				focusEditor()
+
 				Transforms.insertText(editor, newText)
 				Transforms.select(editor, Editor.end(editor, []))
 			},
@@ -332,7 +354,8 @@ export const Input = memo(
 				const newText =
 					currentText.length === 0 || currentText.endsWith("\n") ? links.join("\n") + "\n\n" : "\n" + links.join("\n") + "\n\n"
 
-				ReactEditor.focus(editor)
+				focusEditor()
+
 				Transforms.insertText(editor, newText)
 				Transforms.select(editor, Editor.end(editor, []))
 			},
@@ -345,7 +368,8 @@ export const Input = memo(
 					return
 				}
 
-				ReactEditor.focus(editor)
+				focusEditor()
+
 				Transforms.insertText(editor, text)
 				Transforms.select(editor, Editor.end(editor, []))
 			},
@@ -487,7 +511,9 @@ export const Input = memo(
 			}
 
 			const uuid = uuidv4()
+			const replyMessage = replyToMessage
 
+			setReplyToMessage(undefined)
 			clearEditor()
 			setMessages(prev => [
 				{
@@ -498,6 +524,20 @@ export const Input = memo(
 					senderAvatar: currentConversationMe!.avatar,
 					senderNickName: currentConversationMe!.nickName,
 					message,
+					replyTo: {
+						uuid: typeof replyMessage !== "undefined" ? replyMessage.uuid : "",
+						senderId: typeof replyMessage !== "undefined" ? replyMessage.senderId : 0,
+						senderEmail: typeof replyMessage !== "undefined" ? replyMessage.senderEmail : "",
+						senderAvatar:
+							typeof replyMessage !== "undefined" && typeof replyMessage.senderAvatar === "string"
+								? replyMessage.senderAvatar
+								: "",
+						senderNickName:
+							typeof replyMessage !== "undefined" && typeof replyMessage.senderNickName === "string"
+								? replyMessage.senderNickName
+								: "",
+						message: typeof replyMessage !== "undefined" ? replyMessage.message : ""
+					},
 					embedDisabled: false,
 					edited: false,
 					editedTimestamp: 0,
@@ -523,7 +563,14 @@ export const Input = memo(
 				return
 			}
 
-			const [sendErr] = await safeAwait(sendChatMessage(currentConversation.uuid, uuid, messageEncrypted))
+			const [sendErr] = await safeAwait(
+				sendChatMessage(
+					currentConversation.uuid,
+					uuid,
+					messageEncrypted,
+					typeof replyMessage !== "undefined" ? replyMessage.uuid : ""
+				)
+			)
 
 			if (sendErr) {
 				setFailedMessages(prev => [...prev, uuid])
@@ -533,6 +580,7 @@ export const Input = memo(
 				return
 			}
 
+			eventListener.emit("scrollChatToBottom")
 			eventListener.emit("chatMessageSent", {
 				conversation: currentConversation!.uuid,
 				uuid,
@@ -541,6 +589,20 @@ export const Input = memo(
 				senderAvatar: currentConversationMe!.avatar,
 				senderNickName: currentConversationMe!.nickName,
 				message,
+				replyTo: {
+					uuid: typeof replyMessage !== "undefined" ? replyMessage.uuid : "",
+					senderId: typeof replyMessage !== "undefined" ? replyMessage.senderId : 0,
+					senderEmail: typeof replyMessage !== "undefined" ? replyMessage.senderEmail : "",
+					senderAvatar:
+						typeof replyMessage !== "undefined" && typeof replyMessage.senderAvatar === "string"
+							? replyMessage.senderAvatar
+							: "",
+					senderNickName:
+						typeof replyMessage !== "undefined" && typeof replyMessage.senderNickName === "string"
+							? replyMessage.senderNickName
+							: "",
+					message: typeof replyMessage !== "undefined" ? replyMessage.message : ""
+				},
 				embedDisabled: false,
 				edited: false,
 				editedTimestamp: 0,
@@ -552,7 +614,7 @@ export const Input = memo(
 			isTyping.current = false
 
 			sendTypingEvents()
-		}, [currentConversation, currentConversationMe])
+		}, [currentConversation, currentConversationMe, replyToMessage])
 
 		const editMessage = useCallback(async () => {
 			if (!editor || !editMode) {
@@ -686,6 +748,38 @@ export const Input = memo(
 			[]
 		)
 
+		const windowOnKeyDown = useCallback(
+			(e: KeyboardEvent) => {
+				if (e.key === "Escape" && editMode) {
+					e.preventDefault()
+
+					clearEditor()
+
+					messageToEditRef.current = undefined
+
+					setEditingMessageUUID("")
+					setEditMode(false)
+				}
+
+				if (e.key === "Escape" && typeof replyToMessage !== "undefined") {
+					e.preventDefault()
+
+					setReplyToMessage(undefined)
+				}
+			},
+			[editMode, replyToMessage]
+		)
+
+		useEffect(() => {
+			setReplyMessageUUID(typeof replyToMessage === "undefined" ? "" : replyToMessage.uuid)
+		}, [replyToMessage])
+
+		useEffect(() => {
+			if (!editMode) {
+				setEditingMessageUUID("")
+			}
+		}, [editMode])
+
 		useEffect(() => {
 			setEmojiSuggestionsPosition(0)
 		}, [emojiSuggestions.length])
@@ -702,6 +796,8 @@ export const Input = memo(
 		}, [editorBounds.height])
 
 		useEffect(() => {
+			window.addEventListener("keydown", windowOnKeyDown)
+
 			const chatAddFilesListener = eventListener.on(
 				"chatAddFiles",
 				({ conversation, items }: { conversation: string; items: ItemProps[] }) => {
@@ -724,16 +820,25 @@ export const Input = memo(
 				setEditMode(true)
 				clearEditor()
 				insertText(messageToEdit.message)
+				focusEditor()
 			})
 
 			const showChatScrollDownBtnListener = eventListener.on("showChatScrollDownBtn", (show: boolean) => {
 				setShowScrollDownBtn(show)
 			})
 
+			const replyToChatMessageListener = eventListener.on("replyToChatMessage", (message: ChatMessage) => {
+				setReplyToMessage(message)
+				focusEditor()
+			})
+
 			return () => {
+				window.removeEventListener("keydown", windowOnKeyDown)
+
 				chatAddFilesListener.remove()
 				editChatMessageListener.remove()
 				showChatScrollDownBtnListener.remove()
+				replyToChatMessageListener.remove()
 			}
 		}, [])
 
@@ -763,6 +868,74 @@ export const Input = memo(
 					>
 						{editorBounds && editorBounds.height > 0 && editorBounds.width > 0 && (
 							<>
+								{typeof replyToMessage !== "undefined" && (
+									<Flex
+										position="absolute"
+										zIndex={50}
+										bottom={editorBounds.height + 20 + "px"}
+										width={editorBounds.width}
+										height="47px"
+										backgroundColor={getColor(darkMode, "backgroundTertiary")}
+										boxShadow="md"
+										borderRadius="10px"
+										borderBottomRadius="0px"
+										padding="8px"
+										paddingLeft="10px"
+										paddingRight="10px"
+										transition="200ms"
+										maxHeight="350px"
+										overflow="hidden"
+										flexDirection="row"
+										justifyContent="space-between"
+										gap="25px"
+										alignItems="flex-start"
+									>
+										<Flex
+											flexDirection="row"
+											alignItems="center"
+											gap="5px"
+										>
+											<AppText
+												isMobile={isMobile}
+												darkMode={darkMode}
+												fontSize={13}
+												noOfLines={1}
+												wordBreak="break-all"
+												color={getColor(darkMode, "textSecondary")}
+											>
+												{i18n(lang, "chatReplyingTo")}
+											</AppText>
+											<AppText
+												isMobile={isMobile}
+												darkMode={darkMode}
+												fontSize={13}
+												noOfLines={1}
+												wordBreak="break-all"
+												color={getColor(darkMode, "textPrimary")}
+											>
+												{getUserNameFromMessage(replyToMessage)}
+											</AppText>
+										</Flex>
+										<Flex
+											flexDirection="row"
+											alignItems="center"
+											onClick={() => setReplyToMessage(undefined)}
+											color={getColor(darkMode, "textSecondary")}
+											_hover={{
+												color: getColor(darkMode, "textPrimary")
+											}}
+										>
+											<AiFillCloseCircle
+												size={20}
+												onClick={() => setReplyToMessage(undefined)}
+												style={{
+													flexShrink: 0,
+													cursor: "pointer"
+												}}
+											/>
+										</Flex>
+									</Flex>
+								)}
 								{messages.length > 0 &&
 									showScrollDownBtn &&
 									emojiSuggestions.length <= 0 &&
@@ -794,6 +967,8 @@ export const Input = memo(
 												darkMode={darkMode}
 												fontSize={13}
 												color={getColor(darkMode, "textSecondary")}
+												noOfLines={1}
+												wordBreak="break-all"
 											>
 												{i18n(lang, "chatViewingOlderMessages")}
 											</AppText>
@@ -809,11 +984,14 @@ export const Input = memo(
 													color={getColor(darkMode, "textPrimary")}
 													onClick={() => eventListener.emit("scrollChatToBottom", "smooth")}
 													cursor="pointer"
+													noOfLines={1}
+													wordBreak="break-all"
 												>
 													{i18n(lang, "chatJumpToPresent")}
 												</AppText>
 												<AiOutlineCaretDown
 													size={13}
+													onClick={() => eventListener.emit("scrollChatToBottom", "smooth")}
 													color={getColor(darkMode, "textPrimary")}
 													style={{
 														flexShrink: 0
@@ -1117,6 +1295,12 @@ export const Input = memo(
 
 									setEditingMessageUUID("")
 									setEditMode(false)
+								}
+
+								if (e.key === "Escape" && typeof replyToMessage !== "undefined") {
+									e.preventDefault()
+
+									setReplyToMessage(undefined)
 								}
 							}}
 							onKeyUp={e => {

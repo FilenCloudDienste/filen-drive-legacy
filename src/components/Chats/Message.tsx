@@ -11,13 +11,16 @@ import {
 	formatMessageDate,
 	isTimestampSameDay,
 	ReplaceMessageWithComponents,
-	extractLinksFromString
+	extractLinksFromString,
+	getUserNameFromReplyTo,
+	ReplaceInlineMessageWithComponents
 } from "./utils"
 import { DisplayMessageAs } from "./Container"
 import Embed from "./Embed"
 import { i18n } from "../../i18n"
 import { AiOutlineLock, AiOutlineCheckCircle } from "react-icons/ai"
 import { isMessageLink } from "./utils"
+import { VscReply } from "react-icons/vsc"
 
 export const MessageSkeleton = memo(({ index, darkMode, isMobile }: { index: number; darkMode: boolean; isMobile: boolean }) => {
 	return (
@@ -254,7 +257,7 @@ export const NewDivider = memo(
 					onClick={() =>
 						setLastFocusTimestamp(prev => ({
 							...prev,
-							[conversationUUID]: Date.now() - 1000
+							[conversationUUID]: Date.now()
 						}))
 					}
 				>
@@ -317,6 +320,94 @@ export const DateDivider = memo(({ timestamp, darkMode, isMobile }: { timestamp:
 	)
 })
 
+export interface ReplyToProps {
+	darkMode: boolean
+	isMobile: boolean
+	message: ChatMessage
+	hideArrow: boolean
+}
+
+export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow }: ReplyToProps) => {
+	return (
+		<Flex
+			flexDirection="row"
+			gap="7px"
+			alignItems="center"
+			paddingBottom="7px"
+			paddingLeft={hideArrow ? "38px" : "23px"}
+			paddingTop={hideArrow ? "3px" : "2px"}
+		>
+			{!hideArrow && (
+				<VscReply
+					size={17}
+					color={getColor(darkMode, "textSecondary")}
+					style={{
+						transform: "scaleX(-1)",
+						flexShrink: 0
+					}}
+				/>
+			)}
+			<Avatar
+				name={
+					typeof message.replyTo.senderAvatar === "string" && message.replyTo.senderAvatar.indexOf("https://") !== -1
+						? undefined
+						: message.replyTo.senderEmail
+				}
+				src={
+					typeof message.replyTo.senderAvatar === "string" && message.replyTo.senderAvatar.indexOf("https://") !== -1
+						? message.replyTo.senderAvatar
+						: undefined
+				}
+				bg={generateAvatarColorCode(message.replyTo.senderEmail, darkMode)}
+				width="16px"
+				height="16px"
+				borderRadius="full"
+				border="none"
+				userSelect="none"
+				flexShrink={0}
+			/>
+			<AppText
+				darkMode={darkMode}
+				isMobile={isMobile}
+				noOfLines={1}
+				wordBreak="break-all"
+				color={getColor(darkMode, "textPrimary")}
+				fontSize={13}
+				className="user-select-text"
+				userSelect="text"
+				as="span"
+				flexShrink={0}
+				cursor="pointer"
+				onClick={() => eventListener.emit("openChatUserModal", message.replyTo.senderId)}
+				_hover={{
+					textDecoration: "underline"
+				}}
+			>
+				{striptags(getUserNameFromReplyTo(message))}
+			</AppText>
+			<Flex
+				color={getColor(darkMode, "textSecondary")}
+				fontSize={13}
+				className="user-select-text"
+				userSelect="text"
+				onClick={() => eventListener.emit("scrollToMessageUUID", message.replyTo.uuid)}
+				gap="4px"
+				flexDirection="row"
+				maxHeight="20px"
+				overflow="hidden"
+				textOverflow="ellipsis"
+				flexGrow={0}
+				flexFlow="row wrap"
+			>
+				<ReplaceInlineMessageWithComponents
+					darkMode={darkMode}
+					content={striptags(message.replyTo.message).split("`").join("")}
+				/>
+			</Flex>
+		</Flex>
+	)
+})
+
 export interface MessagTextProps {
 	message: ChatMessage
 	failedMessages: string[]
@@ -336,34 +427,30 @@ export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, 
 			className="user-select-text"
 			userSelect="text"
 		>
-			<pre
+			<Flex
 				className="user-select-text"
-				style={{
-					maxWidth: "100%",
-					whiteSpace: "pre-wrap",
-					overflow: "hidden",
-					margin: "0px",
-					textIndent: 0,
-					userSelect: "text"
-				}}
+				flexDirection="row"
+				flexFlow="row wrap"
+				flexWrap="wrap"
+				whiteSpace="pre-wrap"
 			>
 				<ReplaceMessageWithComponents
 					content={message.message}
 					darkMode={darkMode}
 				/>
 				{message.edited && (
-					<span
-						style={{
-							fontSize: 11,
-							color: getColor(darkMode, "textSecondary"),
-							fontWeight: "400",
-							paddingLeft: "5px"
-						}}
+					<Flex
+						fontSize={11}
+						color={getColor(darkMode, "textSecondary")}
+						fontWeight="400"
+						paddingLeft="6px"
+						paddingTop="2px"
+						alignItems="center"
 					>
 						({i18n(lang, "chatEdited").toLowerCase()})
-					</span>
+					</Flex>
 				)}
-			</pre>
+			</Flex>
 		</Flex>
 	)
 })
@@ -388,6 +475,8 @@ export const MessageContent = memo(
 				wordBreak="break-all"
 				className="user-select-text"
 				userSelect="text"
+				paddingTop="3px"
+				paddingBottom="3px"
 			>
 				{isBlocked ? (
 					<Flex
@@ -430,11 +519,10 @@ export const MessageContent = memo(
 								/>
 								{message.edited && isMessageLink(message.message) && (
 									<Flex
-										style={{
-											fontSize: 11,
-											color: getColor(darkMode, "textSecondary"),
-											fontWeight: "400"
-										}}
+										fontSize={11}
+										color={getColor(darkMode, "textSecondary")}
+										fontWeight="400"
+										alignItems="center"
 									>
 										({i18n(lang, "chatEdited").toLowerCase()})
 									</Flex>
@@ -474,6 +562,7 @@ export interface MessageProps {
 	lastFocusTimestamp: Record<string, number> | undefined
 	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
 	editingMessageUUID: string
+	replyMessageUUID: string
 }
 
 export const Message = memo(
@@ -494,13 +583,19 @@ export const Message = memo(
 		blockedContacts,
 		lastFocusTimestamp,
 		setLastFocusTimestamp,
-		editingMessageUUID
+		editingMessageUUID,
+		replyMessageUUID
 	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
 		const hovering = useMemo(() => {
-			return hoveringMessage || contextMenuOpen === message.uuid || editingMessageUUID === message.uuid
-		}, [message, contextMenuOpen, hoveringMessage, editingMessageUUID])
+			return (
+				hoveringMessage ||
+				contextMenuOpen === message.uuid ||
+				editingMessageUUID === message.uuid ||
+				replyMessageUUID === message.uuid
+			)
+		}, [message, contextMenuOpen, hoveringMessage, editingMessageUUID, replyMessageUUID])
 
 		const blockedContactsIds = useMemo(() => {
 			return blockedContacts.map(c => c.userId)
@@ -553,7 +648,11 @@ export const Message = memo(
 
 		if (groupWithPrevMessage) {
 			return (
-				<>
+				<Flex
+					flexDirection="column"
+					paddingTop="3px"
+					paddingBottom={!nextMessage ? "15px" : "3px"}
+				>
 					<Flex
 						onContextMenu={e => {
 							e.preventDefault()
@@ -568,46 +667,69 @@ export const Message = memo(
 							})
 						}}
 						flexDirection="column"
-						paddingTop="3px"
-						paddingBottom={!nextMessage ? "15px" : "3px"}
 						onMouseEnter={() => setHoveringMessage(true)}
 						onMouseLeave={() => setHoveringMessage(false)}
-						backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
+						backgroundColor={
+							hovering && !isScrollingChat
+								? getColor(darkMode, "backgroundSecondary")
+								: getColor(darkMode, "backgroundPrimary")
+						}
 					>
 						<Flex
-							flexDirection="row"
+							flexDirection="column"
 							paddingLeft="25px"
 							paddingRight="15px"
+							backgroundColor={
+								message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+									? "rgba(255, 255, 0, 0.04)"
+									: undefined
+							}
+							borderLeft={
+								message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+									? "3px solid " + getColor(darkMode, "yellow")
+									: undefined
+							}
 						>
-							<Flex
-								color={getColor(darkMode, "textSecondary")}
-								fontSize={10}
-								width="37px"
-								flexShrink={0}
-								paddingTop="4px"
-							>
-								{hovering &&
-									new Date(message.sentTimestamp).toLocaleTimeString("de-DE", {
-										hour: "2-digit",
-										minute: "2-digit"
-									})}
-							</Flex>
-							<Flex
-								flexDirection="column"
-								className="user-select-text"
-								userSelect="text"
-							>
-								<MessageContent
-									message={message}
+							{message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && (
+								<ReplyTo
 									darkMode={darkMode}
 									isMobile={isMobile}
-									failedMessages={failedMessages}
-									hovering={hovering}
-									userId={userId}
-									isScrollingChat={isScrollingChat}
-									isBlocked={isBlocked}
-									lang={lang}
+									message={message}
+									hideArrow={true}
 								/>
+							)}
+							<Flex flexDirection="row">
+								<Flex
+									color={getColor(darkMode, "textSecondary")}
+									fontSize={10}
+									width="37px"
+									flexShrink={0}
+									paddingTop="6px"
+								>
+									{hovering &&
+										!isScrollingChat &&
+										new Date(message.sentTimestamp).toLocaleTimeString("de-DE", {
+											hour: "2-digit",
+											minute: "2-digit"
+										})}
+								</Flex>
+								<Flex
+									flexDirection="column"
+									className="user-select-text"
+									userSelect="text"
+								>
+									<MessageContent
+										message={message}
+										darkMode={darkMode}
+										isMobile={isMobile}
+										failedMessages={failedMessages}
+										hovering={hovering}
+										userId={userId}
+										isScrollingChat={isScrollingChat}
+										isBlocked={isBlocked}
+										lang={lang}
+									/>
+								</Flex>
 							</Flex>
 						</Flex>
 					</Flex>
@@ -619,12 +741,16 @@ export const Message = memo(
 							backgroundColor="transparent"
 						/>
 					)}
-				</>
+				</Flex>
 			)
 		}
 
 		return (
-			<>
+			<Flex
+				flexDirection="column"
+				width="100%"
+				paddingBottom={!nextMessage ? "15px" : undefined}
+			>
 				{lastFocusTimestamp &&
 					typeof lastFocusTimestamp[message.conversation] === "number" &&
 					message.sentTimestamp > lastFocusTimestamp[message.conversation] &&
@@ -669,7 +795,6 @@ export const Message = memo(
 				<Flex
 					flexDirection="column"
 					width="100%"
-					paddingBottom={!nextMessage ? "15px" : undefined}
 					className="user-select-text"
 					userSelect="text"
 					onContextMenu={e => {
@@ -686,10 +811,12 @@ export const Message = memo(
 					}}
 					onMouseEnter={() => setHoveringMessage(true)}
 					onMouseLeave={() => setHoveringMessage(false)}
-					backgroundColor={hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : "transparent"}
+					backgroundColor={
+						hovering && !isScrollingChat ? getColor(darkMode, "backgroundSecondary") : getColor(darkMode, "backgroundPrimary")
+					}
 				>
 					<Flex
-						flexDirection="row"
+						flexDirection="column"
 						paddingTop={!prevMessage ? "15px" : "3px"}
 						paddingBottom="3px"
 						paddingRight="15px"
@@ -697,76 +824,96 @@ export const Message = memo(
 						width="100%"
 						className="user-select-text"
 						userSelect="text"
+						backgroundColor={
+							message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+								? "rgba(255, 255, 0, 0.04)"
+								: undefined
+						}
+						borderLeft={
+							message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+								? "3px solid " + getColor(darkMode, "yellow")
+								: undefined
+						}
 					>
-						<Flex>
-							<Avatar
-								name={
-									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-										? undefined
-										: message.senderEmail
-								}
-								src={
-									typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
-										? message.senderAvatar
-										: undefined
-								}
-								bg={generateAvatarColorCode(message.senderEmail, darkMode)}
-								width="32px"
-								height="32px"
-								borderRadius="full"
-								border="none"
-								userSelect="none"
+						{message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && (
+							<ReplyTo
+								darkMode={darkMode}
+								isMobile={isMobile}
+								message={message}
+								hideArrow={false}
 							/>
-						</Flex>
-						<Flex
-							flexDirection="column"
-							paddingLeft="15px"
-							className="user-select-text"
-							userSelect="text"
-						>
+						)}
+						<Flex flexDirection="row">
+							<Flex>
+								<Avatar
+									name={
+										typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+											? undefined
+											: message.senderEmail
+									}
+									src={
+										typeof message.senderAvatar === "string" && message.senderAvatar.indexOf("https://") !== -1
+											? message.senderAvatar
+											: undefined
+									}
+									bg={generateAvatarColorCode(message.senderEmail, darkMode)}
+									width="32px"
+									height="32px"
+									borderRadius="full"
+									border="none"
+									userSelect="none"
+								/>
+							</Flex>
 							<Flex
-								flexDirection="row"
-								alignItems="center"
+								flexDirection="column"
+								paddingLeft="15px"
 								className="user-select-text"
 								userSelect="text"
 							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									noOfLines={1}
-									wordBreak="break-all"
-									color={getColor(darkMode, "textPrimary")}
-									fontSize={15}
+								<Flex
+									flexDirection="row"
+									alignItems="center"
 									className="user-select-text"
 									userSelect="text"
-									as="span"
-									cursor="pointer"
-									onClick={() => eventListener.emit("openChatUserModal", message.senderId)}
-									_hover={{
-										textDecoration: "underline"
-									}}
 								>
-									{striptags(getUserNameFromMessage(message))}
-								</AppText>
-								{!isMobile && (
-									<MessageDate
+									<AppText
 										darkMode={darkMode}
 										isMobile={isMobile}
-										timestamp={message.sentTimestamp}
-									/>
-								)}
+										noOfLines={1}
+										wordBreak="break-all"
+										color={getColor(darkMode, "textPrimary")}
+										fontSize={15}
+										className="user-select-text"
+										userSelect="text"
+										as="span"
+										cursor="pointer"
+										onClick={() => eventListener.emit("openChatUserModal", message.senderId)}
+										_hover={{
+											textDecoration: "underline"
+										}}
+									>
+										{striptags(getUserNameFromMessage(message))}
+									</AppText>
+									{!isMobile && (
+										<MessageDate
+											darkMode={darkMode}
+											isMobile={isMobile}
+											timestamp={message.sentTimestamp}
+										/>
+									)}
+								</Flex>
+								<MessageContent
+									message={message}
+									darkMode={darkMode}
+									isMobile={isMobile}
+									failedMessages={failedMessages}
+									hovering={hovering}
+									userId={userId}
+									isScrollingChat={isScrollingChat}
+									isBlocked={isBlocked}
+									lang={lang}
+								/>
 							</Flex>
-							<MessageContent
-								message={message}
-								darkMode={darkMode}
-								isMobile={isMobile}
-								failedMessages={failedMessages}
-								hovering={hovering}
-								userId={userId}
-								isScrollingChat={isScrollingChat}
-								isBlocked={isBlocked}
-								lang={lang}
-							/>
 						</Flex>
 					</Flex>
 				</Flex>
@@ -778,7 +925,7 @@ export const Message = memo(
 						backgroundColor="transparent"
 					/>
 				)}
-			</>
+			</Flex>
 		)
 	}
 )

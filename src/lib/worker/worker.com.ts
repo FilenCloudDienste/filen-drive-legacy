@@ -255,3 +255,11 @@ export const corsHead = memoize(async (url: string): Promise<Record<string, stri
 export const corsGet = async (url: string): Promise<any> => {
 	return await getWorkerAPI().corsGet(url)
 }
+
+export const decryptChatConversationName = async (name: string, metadata: string, privateKey: string): Promise<string> => {
+	return await getWorkerAPI().decryptChatConversationName(name, metadata, privateKey)
+}
+
+export const encryptChatConversationName = async (name: string, key: string): Promise<string> => {
+	return await getWorkerAPI().encryptChatConversationName(name, key)
+}

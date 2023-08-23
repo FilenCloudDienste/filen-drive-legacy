@@ -139,7 +139,11 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 					marginLeft="10px"
 					fontWeight="bold"
 				>
-					{conversationParticipantsFilteredWithoutMe.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
+					{typeof currentConversation.name === "string" && currentConversation.name.length > 0
+						? currentConversation.name
+						: conversationParticipantsFilteredWithoutMe.length > 0
+						? conversationParticipantsFilteredWithoutMe.map(user => striptags(getUserNameFromParticipant(user))).join(", ")
+						: currentConversation.participants.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
 				</AppText>
 			</Flex>
 		</Flex>

@@ -7,7 +7,6 @@ import ModalCloseButton from "../ModalCloseButton"
 import {
 	getPublicKeyFromEmail,
 	chatConversationsParticipantsAdd,
-	chatConversations,
 	Contact as IContact,
 	contacts as getContacts,
 	ChatConversation,
@@ -19,13 +18,14 @@ import eventListener from "../../lib/eventListener"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useLang from "../../lib/hooks/useLang"
-import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
+import { show as showToast } from "../Toast/Toast"
 import { Virtuoso } from "react-virtuoso"
 import striptags from "striptags"
 import { IoAddOutline, IoCloseOutline } from "react-icons/io5"
 import { v4 as uuidv4 } from "uuid"
 import db from "../../lib/db"
 import { useNavigate } from "react-router-dom"
+import { fetchChatConversations } from "./utils"
 
 const Contact = memo(
 	({
@@ -322,7 +322,7 @@ const AddModal = memo(() => {
 			return
 		}
 
-		const [conversationsErr, conversationsRes] = await safeAwait(chatConversations(Date.now() + 86400000))
+		const [conversationsErr, conversationsRes] = await safeAwait(fetchChatConversations(true))
 
 		if (conversationsErr) {
 			console.error(conversationsErr)
@@ -335,7 +335,7 @@ const AddModal = memo(() => {
 		}
 
 		eventListener.emit("updateChatConversations")
-		eventListener.emit("updateChatConversationsWithData", conversationsRes)
+		eventListener.emit("updateChatConversationsWithData", conversationsRes.conversations)
 
 		if (mode === "new") {
 			navigate("#/chats/" + newUUID)

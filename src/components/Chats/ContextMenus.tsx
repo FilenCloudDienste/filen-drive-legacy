@@ -1,13 +1,6 @@
 import { memo, useState, useEffect } from "react"
-import {
-	Menu as ContextMenu,
-	Item as ContextMenuItem,
-	Separator as ContextMenuSeparator,
-	Submenu as ContextMenuSubmenu,
-	contextMenu,
-	animation
-} from "react-contexify"
-import { ChatMessage } from "../../lib/api"
+import { Menu as ContextMenu, Item as ContextMenuItem, contextMenu, animation, Separator as ContextMenuSeparator } from "react-contexify"
+import { ChatMessage, ChatConversation } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
@@ -20,6 +13,7 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [selectedMessage, setSelectedMessage] = useState<ChatMessage | undefined>(undefined)
+	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
 	const [userId] = useDb("userId", 0)
 
 	useEffect(() => {
@@ -37,8 +31,30 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 			}
 		)
 
+		const openChatConversationContextMenuListener = eventListener.on(
+			"openChatConversationContextMenu",
+			({
+				conversation,
+				position,
+				event
+			}: {
+				conversation: ChatConversation
+				position: { x: number; y: number }
+				event: KeyboardEvent
+			}) => {
+				setSelectedConversation(conversation)
+
+				contextMenu.show({
+					id: "chatConversationContextMenu",
+					event,
+					position
+				})
+			}
+		)
+
 		return () => {
 			openChatMessageContextMenuListener.remove()
+			openChatConversationContextMenuListener.remove()
 		}
 	}, [userId])
 
@@ -62,18 +78,16 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 			>
 				{selectedMessage && (
 					<>
+						<ContextMenuItem onClick={() => eventListener.emit("replyToChatMessage", selectedMessage)}>
+							{i18n(lang, "replyToChatMessage")}
+						</ContextMenuItem>
 						<ContextMenuItem
 							onClick={() =>
-								navigator.clipboard
-									.writeText(selectedMessage.message)
-									.then(() => {
-										showToast("success", i18n(lang, "copied"), "bottom", 5000)
-									})
-									.catch(err => {
-										console.error(err)
+								navigator.clipboard.writeText(selectedMessage.message).catch(err => {
+									console.error(err)
 
-										showToast("error", err.toString(), "bottom", 5000)
-									})
+									showToast("error", err.toString(), "bottom", 5000)
+								})
 							}
 						>
 							{i18n(lang, "copyText")}
@@ -101,6 +115,69 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 								</span>
 							</ContextMenuItem>
 						)}
+						<ContextMenuSeparator />
+						<ContextMenuItem
+							onClick={() =>
+								navigator.clipboard.writeText(selectedMessage.uuid).catch(err => {
+									console.error(err)
+
+									showToast("error", err.toString(), "bottom", 5000)
+								})
+							}
+						>
+							{i18n(lang, "copyId")}
+						</ContextMenuItem>
+					</>
+				)}
+			</ContextMenu>
+			<ContextMenu
+				id="chatConversationContextMenu"
+				animation={{
+					enter: animation.fade,
+					exit: false
+				}}
+				theme={darkMode ? "filendark" : "filenlight"}
+			>
+				{selectedConversation && (
+					<>
+						{selectedConversation.ownerId === userId && (
+							<>
+								<ContextMenuItem
+									onClick={() => eventListener.emit("openChatConversationEditNameModal", selectedConversation)}
+								>
+									{i18n(lang, "chatConversationEditName")}
+								</ContextMenuItem>
+							</>
+						)}
+						<ContextMenuItem
+							onClick={() => {
+								if (selectedConversation.ownerId === userId) {
+									eventListener.emit("openDeleteChatConversationModal", selectedConversation)
+								} else {
+									eventListener.emit("openLeaveChatConversationModal", selectedConversation)
+								}
+							}}
+						>
+							<span
+								style={{
+									color: getColor(darkMode, "red")
+								}}
+							>
+								{selectedConversation.ownerId === userId ? i18n(lang, "delete") : i18n(lang, "leave")}
+							</span>
+						</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem
+							onClick={() =>
+								navigator.clipboard.writeText(selectedConversation.uuid).catch(err => {
+									console.error(err)
+
+									showToast("error", err.toString(), "bottom", 5000)
+								})
+							}
+						>
+							{i18n(lang, "copyId")}
+						</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>
