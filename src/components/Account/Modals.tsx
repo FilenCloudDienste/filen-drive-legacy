@@ -120,6 +120,10 @@ export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 							{
 								code: "pt",
 								name: "Português"
+							},
+							{
+								code: "cs",
+								name: "Čeština"
 							}
 						].map(language => {
 							return (

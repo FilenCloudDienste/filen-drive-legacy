@@ -1,4 +1,3 @@
-import cs from "./lang/cs"
 import en from "./lang/en"
 import de from "./lang/de"
 import ja from "./lang/ja"
@@ -12,9 +11,9 @@ import ko from "./lang/ko"
 import tr from "./lang/tr"
 import it from "./lang/it"
 import pt from "./lang/pt"
+import cs from "./lang/cs"
 
 const translations: Record<string, Record<string, string>> = {
-	cs,
 	en,
 	de,
 	ja,
@@ -27,7 +26,8 @@ const translations: Record<string, Record<string, string>> = {
 	ko,
 	tr,
 	it,
-	pt
+	pt,
+	cs
 }
 
 export const i18n = (
