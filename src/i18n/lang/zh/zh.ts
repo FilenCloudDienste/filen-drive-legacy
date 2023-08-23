@@ -488,7 +488,8 @@ const zh: {
 	copyText: "复制文本",
 	chatEdited: "已修改",
 	chatViewingOlderMessages: "您正在查看较旧的消息",
-	chatJumpToPresent: "跳转至当前内容"
+	chatJumpToPresent: "跳转至当前内容",
+	twoFactorConfirmAlert: "我已妥善保存我的 2FA 恢复密钥"
 }
 
 export default zh
