@@ -499,7 +499,17 @@ const uk: {
 	chatMessageHiddenUserBlocked: "Повідомлення від заблокованого контакту приховано.",
 	chatConversationCreateSidebar: "Захищених чатів ще немає.",
 	chatConversationCreateSidebarCreate: "Почати розмову",
-	noConversationFound: "Чатів не знайдено."
+	noConversationFound: "Чатів не знайдено.",
+	copyText: "Копіювати текст",
+	chatEdited: "редаговано",
+	chatViewingOlderMessages: "Ви переглядаєте старі повідомлення",
+	chatJumpToPresent: "Повернутися до останніх",
+	twoFactorConfirmAlert: "Я безпечно зберіг(-ла) свій ключ відновлення двофакторної аутентифікації",
+	chatIsTyping: "друкує",
+	chatConversationEditName: "Редагувати назву",
+	copyId: "Скопіювати ID",
+	replyToChatMessage: "Відповісти",
+	chatReplyingTo: "Відповідь на"
 }
 
 export default uk
