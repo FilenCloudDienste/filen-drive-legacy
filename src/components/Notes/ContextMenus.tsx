@@ -427,7 +427,7 @@ const ContextMenus = memo(
 
 			eventListener.emit("openNoteHistoryModal", {
 				note: selectedNote,
-				history: historyRes.sort((a, b) => b.editedTimestamp - a.editedTimestamp)
+				history: historyRes.sort((a, b) => b.editedTimestamp - a.editedTimestamp).filter(h => h.content.length > 0)
 			})
 		}, [selectedNote])
 

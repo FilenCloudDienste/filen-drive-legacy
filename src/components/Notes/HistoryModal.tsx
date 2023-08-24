@@ -184,7 +184,7 @@ export const HistoryModal = memo(() => {
 													content={history[selectedIndex].content}
 													setContent={() => {}}
 													currentNote={selectedNote}
-													type={history[0].type}
+													type={history[selectedIndex].type}
 													onBlur={() => {}}
 													showMarkdownPreview={true}
 													onContentChange={() => {}}

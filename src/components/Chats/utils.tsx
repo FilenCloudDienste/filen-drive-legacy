@@ -337,43 +337,50 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 				const code = match.split("```").join("")
 
 				return (
-					<div
-						key={index}
-						style={{
-							paddingTop: "5px",
-							paddingBottom: "5px"
-						}}
-					>
-						<pre
-							style={{
-								maxWidth: "100%",
-								whiteSpace: "pre-wrap",
-								overflow: "hidden",
-								margin: "0px",
-								textIndent: 0,
-								backgroundColor: getColor(darkMode, "backgroundTertiary"),
-								borderRadius: "5px",
-								paddingLeft: "10px",
-								paddingRight: "10px",
-								paddingBottom: "10px",
-								paddingTop: "10px",
-								fontWeight: "bold",
-								color: getColor(darkMode, "textSecondary"),
-								border: "1px solid " + getColor(darkMode, "borderPrimary")
-							}}
+					<>
+						<Flex
+							key={index}
+							paddingTop="5px"
+							paddingBottom="5px"
+							flexDirection="column"
 						>
-							<code
+							<pre
 								style={{
 									maxWidth: "100%",
 									whiteSpace: "pre-wrap",
 									overflow: "hidden",
-									margin: "0px"
+									margin: "0px",
+									textIndent: 0,
+									backgroundColor: getColor(darkMode, "backgroundTertiary"),
+									borderRadius: "5px",
+									paddingLeft: "10px",
+									paddingRight: "10px",
+									paddingBottom: "10px",
+									paddingTop: "10px",
+									fontWeight: "bold",
+									color: getColor(darkMode, "textSecondary"),
+									border: "1px solid " + getColor(darkMode, "borderPrimary")
 								}}
 							>
-								{code.startsWith("\n") ? code.slice(1, code.length) : code}
-							</code>
-						</pre>
-					</div>
+								<code
+									style={{
+										maxWidth: "100%",
+										whiteSpace: "pre-wrap",
+										overflow: "hidden",
+										margin: "0px"
+									}}
+								>
+									{code.startsWith("\n") ? code.slice(1, code.length) : code}
+								</code>
+							</pre>
+						</Flex>
+						<Flex
+							key={index}
+							height="5px"
+							width="100%"
+							flexBasis="100%"
+						/>
+					</>
 				)
 			}
 

@@ -17,7 +17,6 @@ import { v4 as uuidv4 } from "uuid"
 import { encryptChatMessage, decryptChatMessageKey } from "../../lib/worker/worker.com"
 import { safeAwait, getCurrentParent, findClosestIndex } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
-import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
 import { AiOutlineSmile, AiFillPlusCircle, AiOutlineCaretDown, AiFillCloseCircle } from "react-icons/ai"
 import { ErrorBoundary } from "react-error-boundary"
@@ -26,8 +25,6 @@ import useMeasure from "react-use-measure"
 import { ReactEditor } from "slate-react"
 import { Slate, Editable, withReact } from "slate-react"
 import { withHistory } from "slate-history"
-import { IoEllipsisHorizontalOutline } from "react-icons/io5"
-import { useLocation } from "react-router-dom"
 import { SearchIndex } from "emoji-mart"
 import { EmojiElement } from "./utils"
 import { custom as customEmojis } from "./customEmojis"
@@ -38,6 +35,8 @@ import throttle from "lodash/throttle"
 import { selectFromCloud } from "../SelectFromCloud/SelectFromCloud"
 import useDb from "../../lib/hooks/useDb"
 import { getUserNameFromMessage } from "./utils"
+import InputTyping, { TYPING_TIMEOUT } from "./InputTyping"
+import { validate } from "uuid"
 
 type CustomElement = { type: "paragraph"; children: CustomText[] }
 type CustomText = { text: string }
@@ -51,133 +50,6 @@ declare module "slate" {
 }
 
 const EmojiPicker = lazy(() => import("@emoji-mart/react"))
-
-export interface ChatContainerInputTypingProps {
-	darkMode: boolean
-	isMobile: boolean
-	lang: string
-}
-
-export const TYPING_TIMEOUT = 2000
-export const TYPING_TIMEOUT_LAG = 30000
-
-export const ChatContainerInputTyping = memo(({ darkMode, isMobile, lang }: ChatContainerInputTypingProps) => {
-	const [usersTyping, setUsersTyping] = useState<ChatConversationParticipant[]>([])
-	const usersTypingTimeout = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-	const location = useLocation()
-
-	useEffect(() => {
-		setUsersTyping([])
-
-		for (const key in usersTypingTimeout.current) {
-			clearTimeout(usersTypingTimeout.current[key])
-		}
-	}, [location.hash])
-
-	useEffect(() => {
-		const chatTypingListener = eventListener.on("socketEvent", (event: SocketEvent) => {
-			if (event.type === "chatTyping" && getCurrentParent(window.location.href) === event.data.conversation) {
-				clearTimeout(usersTypingTimeout.current[event.data.senderId])
-
-				if (event.data.type === "down") {
-					setUsersTyping(prev =>
-						[
-							...prev.filter(user => user.userId !== event.data.senderId),
-							{
-								userId: event.data.senderId,
-								email: event.data.senderEmail,
-								avatar: event.data.senderAvatar,
-								nickName: event.data.senderNickName,
-								metadata: "",
-								permissionsAdd: false,
-								addedTimestamp: 0
-							}
-						].sort((a, b) => a.email.localeCompare(b.email))
-					)
-
-					usersTypingTimeout.current[event.data.senderId] = setTimeout(() => {
-						setUsersTyping(prev => prev.filter(user => user.userId !== event.data.senderId))
-					}, TYPING_TIMEOUT_LAG)
-				} else {
-					setUsersTyping(prev => prev.filter(user => user.userId !== event.data.senderId))
-				}
-			}
-
-			if (event.type === "chatMessageNew" && getCurrentParent(window.location.href) === event.data.conversation) {
-				clearTimeout(usersTypingTimeout.current[event.data.senderId])
-
-				setUsersTyping(prev => prev.filter(user => user.userId !== event.data.senderId))
-			}
-		})
-
-		return () => {
-			setUsersTyping([])
-
-			for (const key in usersTypingTimeout.current) {
-				clearTimeout(usersTypingTimeout.current[key])
-			}
-
-			chatTypingListener.remove()
-		}
-	}, [])
-
-	return (
-		<Flex
-			key={"typing-" + location.hash}
-			flexDirection="row"
-			overflow="hidden"
-			marginTop="-10px"
-			height="20px"
-		>
-			<Flex
-				position="absolute"
-				marginTop="-8px"
-				alignItems="center"
-			>
-				{usersTyping.length === 0 ? (
-					<AppText
-						darkMode={darkMode}
-						isMobile={isMobile}
-						color="transparent"
-						fontSize={12}
-						wordBreak="break-word"
-						marginLeft="3px"
-					>
-						&nsbp;
-					</AppText>
-				) : (
-					<>
-						<IoEllipsisHorizontalOutline
-							color={getColor(darkMode, "textPrimary")}
-							fontSize={20}
-						/>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textPrimary")}
-							fontSize={12}
-							wordBreak="break-word"
-							fontWeight="bold"
-							marginLeft="5px"
-						>
-							{usersTyping.map(user => user.email).join(", ")}
-						</AppText>
-						<AppText
-							darkMode={darkMode}
-							isMobile={isMobile}
-							color={getColor(darkMode, "textSecondary")}
-							fontSize={12}
-							wordBreak="break-word"
-							marginLeft="3px"
-						>
-							{" " + i18n(lang, "chatIsTyping").toLowerCase() + "..."}
-						</AppText>
-					</>
-				)}
-			</Flex>
-		</Flex>
-	)
-})
 
 export interface InputProps {
 	darkMode: boolean
@@ -266,7 +138,9 @@ export const Input = memo(
 		}, [])
 
 		const sendTypingEvents = useCallback(async () => {
-			if (!currentConversation) {
+			const uuid = getCurrentParent(window.location.href)
+
+			if (!validate(uuid)) {
 				return
 			}
 
@@ -278,12 +152,12 @@ export const Input = memo(
 
 			lastTypingType.current = type
 
-			const [sendErr] = await safeAwait(chatSendTyping(currentConversation.uuid, type))
+			const [sendErr] = await safeAwait(chatSendTyping(uuid, type))
 
 			if (sendErr) {
 				console.error(sendErr)
 			}
-		}, [currentConversation])
+		}, [])
 
 		const onKeyDownOrUp = useCallback(async () => {
 			isTyping.current = true
@@ -1366,7 +1240,7 @@ export const Input = memo(
 						/>
 					</Slate>
 				</Flex>
-				<ChatContainerInputTyping
+				<InputTyping
 					darkMode={darkMode}
 					isMobile={isMobile}
 					lang={lang}

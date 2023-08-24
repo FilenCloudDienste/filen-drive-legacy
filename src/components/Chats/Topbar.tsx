@@ -7,6 +7,7 @@ import AppText from "../AppText"
 import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import { getUserNameFromParticipant } from "./utils"
 import striptags from "striptags"
+import eventListener from "../../lib/eventListener"
 
 export interface TopbarProps {
 	darkMode: boolean
@@ -97,6 +98,14 @@ export const Topbar = memo(({ darkMode, isMobile, currentConversation, currentCo
 			<Flex
 				flexDirection="row"
 				alignItems="center"
+				cursor={userId === currentConversation.ownerId ? "pointer" : undefined}
+				onClick={() => {
+					if (userId !== currentConversation.ownerId) {
+						return
+					}
+
+					eventListener.emit("openChatConversationEditNameModal", currentConversation)
+				}}
 			>
 				{conversationParticipantsFilteredWithoutMe.length > 1 ? (
 					<Avatar
