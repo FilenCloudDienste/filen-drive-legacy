@@ -335,6 +335,7 @@ export const Conversation = memo(
 										flexGrow={0}
 										flexFlow="row wrap"
 										alignItems="center"
+										maxWidth="100%"
 									>
 										<ReplaceInlineMessageWithComponents
 											darkMode={darkMode}

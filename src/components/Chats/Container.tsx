@@ -13,6 +13,8 @@ import Topbar from "./Topbar"
 import { fetchChatMessages } from "./utils"
 import { validate } from "uuid"
 import { useNavigate } from "react-router-dom"
+import { useLocalStorage } from "react-use"
+import useWindowFocus from "use-window-focus"
 
 export interface ContainerProps {
 	darkMode: boolean
@@ -56,11 +58,13 @@ export const Container = memo(
 		const lastPreviousFetchTimestamp = useRef<number>(0)
 		const [firstMessageIndex, setFirstMessageIndex] = useState<number>(0)
 		const [scrolledUp, setScrolledUp] = useState<boolean>(false)
+		const isFocused = useWindowFocus()
 		const scrolledUpRef = useRef<boolean>(false)
-		const windowFocused = useRef<boolean>(true)
+		const windowFocused = useRef<boolean>(isFocused)
 		const [editingMessageUUID, setEditingMessageUUID] = useState<string>("")
 		const navigate = useNavigate()
 		const [replyMessageUUID, setReplyMessageUUID] = useState<string>("")
+		const [lastFocusTimestamp, setLastFocusTimestamp] = useLocalStorage<Record<string, number>>("chatsLastFocusTimestamp", {})
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -187,18 +191,12 @@ export const Container = memo(
 		)
 
 		const onFocus = useCallback(async () => {
-			windowFocused.current = true
-
 			const uuid = getCurrentParent(window.location.href)
 
 			if (validate(uuid)) {
 				safeAwait(fetchMessages(true))
 			}
 		}, [currentConversation, scrolledUp])
-
-		const onBlur = useCallback(() => {
-			windowFocused.current = false
-		}, [])
 
 		useEffect(() => {
 			if (messages.length > 0) {
@@ -217,6 +215,16 @@ export const Container = memo(
 					) {
 						return
 					}
+
+					/*if (windowFocused.current) {
+						setLastFocusTimestamp(prev => ({
+							...prev,
+							[event.data.conversation]:
+								event.data.editedTimestamp > event.data.sentTimestamp
+									? event.data.editedTimestamp
+									: event.data.sentTimestamp
+						}))
+					}*/
 
 					const privateKey = await db.get("privateKey")
 					const message = await decryptChatMessage(event.data.message, currentConversationMe.metadata, privateKey)
@@ -297,6 +305,10 @@ export const Container = memo(
 		}, [currentConversation, currentConversationMe])
 
 		useEffect(() => {
+			windowFocused.current = isFocused
+		}, [isFocused])
+
+		useEffect(() => {
 			if (messages.length > 0) {
 				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
@@ -304,11 +316,9 @@ export const Container = memo(
 
 		useEffect(() => {
 			window.addEventListener("focus", onFocus)
-			window.addEventListener("blur", onBlur)
 
 			return () => {
 				window.removeEventListener("focus", onFocus)
-				window.removeEventListener("blur", onBlur)
 			}
 		}, [])
 
@@ -317,7 +327,6 @@ export const Container = memo(
 		}, [scrolledUp])
 
 		useEffect(() => {
-			windowFocused.current = true
 			lastPreviousFetchTimestamp.current = 0
 
 			setMessages([])
@@ -371,6 +380,8 @@ export const Container = memo(
 							setUnreadConversationsMessages={setUnreadConversationsMessages}
 							editingMessageUUID={editingMessageUUID}
 							replyMessageUUID={replyMessageUUID}
+							lastFocusTimestamp={lastFocusTimestamp}
+							setLastFocusTimestamp={setLastFocusTimestamp}
 						/>
 					)}
 				</Flex>

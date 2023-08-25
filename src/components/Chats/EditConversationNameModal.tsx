@@ -29,12 +29,6 @@ export const EditConversationNameModal = memo(() => {
 			return
 		}
 
-		if (name.trim() === conversationRef.current.name) {
-			setOpen(false)
-
-			return
-		}
-
 		setEditing(true)
 
 		const [privateKey, userId] = await Promise.all([db.get("privateKey"), db.get("userId")])

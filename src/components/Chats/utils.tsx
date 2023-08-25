@@ -1,4 +1,4 @@
-import { useEffect, createElement, memo, useRef } from "react"
+import { useEffect, createElement, memo, useRef, Fragment } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
@@ -337,9 +337,8 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 				const code = match.split("```").join("")
 
 				return (
-					<>
+					<Fragment key={match + ":" + index}>
 						<Flex
-							key={index}
 							paddingTop="5px"
 							paddingBottom="5px"
 							flexDirection="column"
@@ -375,19 +374,18 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 							</pre>
 						</Flex>
 						<Flex
-							key={index}
 							height="5px"
 							width="100%"
 							flexBasis="100%"
 						/>
-					</>
+					</Fragment>
 				)
 			}
 
 			if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
 				return (
 					<Link
-						key={index}
+						key={match + ":" + index}
 						color={getColor(darkMode, "linkPrimary")}
 						cursor="pointer"
 						href={match}
@@ -408,7 +406,7 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 			if (match.indexOf("\n") !== -1) {
 				return (
 					<Flex
-						key={index}
+						key={match + ":" + index}
 						height="5px"
 						width="100%"
 						flexBasis="100%"
@@ -419,7 +417,7 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 			if (customEmojisList.includes(match.split(":").join("").trim())) {
 				return (
 					<Flex
-						key={index}
+						key={match + ":" + index}
 						title={match.indexOf(":") !== -1 ? match : undefined}
 						width={size ? size + 6 + "px" : undefined}
 						height={size ? size + "px" : undefined}
@@ -442,7 +440,7 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 
 			return (
 				<Flex
-					key={index}
+					key={match + ":" + index}
 					title={match.indexOf(":") !== -1 ? match : undefined}
 					width={size ? size + 6 + "px" : undefined}
 					height={size ? size + "px" : undefined}
@@ -483,12 +481,12 @@ export const ReplaceInlineMessageWithComponents = memo(
 			decorator: (match, index) => {
 				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
 					if (hideLinks) {
-						return <>{match}</>
+						return <Fragment key={match + ":" + index}>{match}</Fragment>
 					}
 
 					return (
 						<Link
-							key={index}
+							key={match + ":" + index}
 							color={getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							href={match}
@@ -509,9 +507,9 @@ export const ReplaceInlineMessageWithComponents = memo(
 				if (customEmojisList.includes(match.split(":").join("").trim())) {
 					return (
 						<Flex
-							key={index}
+							key={match + ":" + index}
 							title={match.indexOf(":") !== -1 ? match : undefined}
-							width={size ? size + 6 + "px" : undefined}
+							width={size ? size + 2 + "px" : undefined}
 							height={size ? size + "px" : undefined}
 							alignItems="center"
 							justifyContent="center"
@@ -532,9 +530,9 @@ export const ReplaceInlineMessageWithComponents = memo(
 
 				return (
 					<Flex
-						key={index}
+						key={match + ":" + index}
 						title={match.indexOf(":") !== -1 ? match : undefined}
-						width={size ? size + 6 + "px" : undefined}
+						width={size ? size + 2 + "px" : undefined}
 						height={size ? size + "px" : undefined}
 						alignItems="center"
 						justifyContent="center"

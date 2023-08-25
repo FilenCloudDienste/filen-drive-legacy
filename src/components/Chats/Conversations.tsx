@@ -2,7 +2,7 @@ import { memo, useEffect, useCallback, useRef, useState, useMemo } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex, Avatar, AvatarBadge, Skeleton, Input } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatConversation, chatConversationsUnread } from "../../lib/api"
+import { ChatConversation, chatConversationsUnread, ChatMessage } from "../../lib/api"
 import { safeAwait, getCurrentParent, Semaphore, generateAvatarColorCode, randomStringUnsafe } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -538,6 +538,21 @@ export const Conversations = memo(
 				}
 			)
 
+			const chatMessageSentListener = eventListener.on("chatMessageSent", (sentMessage: ChatMessage) => {
+				setConversations(prev =>
+					prev.map(conversation =>
+						conversation.uuid === sentMessage.conversation
+							? {
+									...conversation,
+									lastMessage: sentMessage.message,
+									lastMessageSender: sentMessage.senderId,
+									lastMessageTimestamp: sentMessage.sentTimestamp
+							  }
+							: conversation
+					)
+				)
+			})
+
 			return () => {
 				socketEventListener.remove()
 				updateChatConversationsListener.remove()
@@ -547,6 +562,7 @@ export const Conversations = memo(
 				chatConversationParticipantRemovedListener.remove()
 				updateChatConversationsWithDataListener.remove()
 				chatConversationNameEditedListener.remove()
+				chatMessageSentListener.remove()
 			}
 		}, [userId])
 

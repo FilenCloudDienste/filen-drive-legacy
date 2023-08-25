@@ -46,6 +46,8 @@ export interface MessagesProps {
 	setUnreadConversationsMessages: React.Dispatch<React.SetStateAction<Record<string, number>>>
 	editingMessageUUID: string
 	replyMessageUUID: string
+	lastFocusTimestamp: Record<string, number> | undefined
+	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
 }
 
 export const Messages = memo(
@@ -68,7 +70,9 @@ export const Messages = memo(
 		unreadConversationsMessages,
 		setUnreadConversationsMessages,
 		editingMessageUUID,
-		replyMessageUUID
+		replyMessageUUID,
+		lastFocusTimestamp,
+		setLastFocusTimestamp
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
@@ -88,9 +92,6 @@ export const Messages = memo(
 		const messagesRef = useRef<ChatMessage[]>(messages)
 		const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
 		const mountedRef = useRef<boolean>(false)
-		const [lastFocusTimestamp, setLastFocusTimestamp] = useLocalStorage<Record<string, number>>("chatsLastFocusTimestamp", {
-			[conversationUUID]: Date.now() + 1000
-		})
 		const lastFocusTimestampTimerRef = useRef<ReturnType<typeof setTimeout>>()
 		const windowHeight = useWindowHeight()
 
@@ -236,6 +237,8 @@ export const Messages = memo(
 		}, [])
 
 		const onFocus = useCallback(() => {
+			return
+
 			clearTimeout(lastFocusTimestampTimerRef.current)
 
 			lastFocusTimestampTimerRef.current = setTimeout(() => {
@@ -244,15 +247,6 @@ export const Messages = memo(
 					[conversationUUID]: Date.now()
 				}))
 			}, 30000)
-		}, [conversationUUID])
-
-		const onBlur = useCallback(() => {
-			clearTimeout(lastFocusTimestampTimerRef.current)
-
-			setLastFocusTimestamp(prev => ({
-				...prev,
-				[conversationUUID]: Date.now()
-			}))
 		}, [conversationUUID])
 
 		useEffect(() => {
@@ -307,13 +301,12 @@ export const Messages = memo(
 
 			return () => {
 				clearTimeout(lastFocusTimestampTimerRef.current)
+				clearTimeout(initalLoadDoneTimer.current)
 
 				setLastFocusTimestamp(prev => ({
 					...prev,
 					[conversationUUID]: Date.now()
 				}))
-
-				clearTimeout(initalLoadDoneTimer.current)
 			}
 		}, [location.hash, conversationUUID, messages[0]?.conversation])
 
@@ -348,7 +341,6 @@ export const Messages = memo(
 				}))
 			}
 
-			window.addEventListener("blur", onBlur)
 			window.addEventListener("focus", onFocus)
 
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -403,7 +395,6 @@ export const Messages = memo(
 			return () => {
 				clearTimeout(lastFocusTimestampTimerRef.current)
 
-				window.removeEventListener("blur", onBlur)
 				window.removeEventListener("focus", onFocus)
 
 				scrollChatToBottomListener.remove()
