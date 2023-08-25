@@ -500,7 +500,17 @@ const ru: {
 	chatMessageHiddenUserBlocked: "Сообщение заблокированного контакта скрыто.",
 	chatConversationCreateSidebar: "Безопасных чатов пока нет.",
 	chatConversationCreateSidebarCreate: "Начать разговор",
-	noConversationFound: "Чаты не найдены."
+	noConversationFound: "Чаты не найдены.",
+	copyText: "Копировать текст",
+	chatEdited: "отредактировано",
+	chatViewingOlderMessages: "Вы смотрите старые сообщения",
+	chatJumpToPresent: "Вернуться к последним",
+	twoFactorConfirmAlert: "Я безопасно сохранил(-а) свой ключ восстановления двухфакторной аутентификации",
+	chatIsTyping: "печатает",
+	chatConversationEditName: "Редактировать название",
+	copyId: "Скопировать ID",
+	replyToChatMessage: "Ответить",
+	chatReplyingTo: "Ответ на"
 }
 
 export default ru
