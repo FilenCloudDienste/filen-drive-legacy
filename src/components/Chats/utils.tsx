@@ -88,30 +88,46 @@ export const fetchChatConversations = async (skipCache: boolean = false): Promis
 	const refresh = async (): Promise<FetchChatConversationsResult> => {
 		const conversationsDecrypted: ChatConversation[] = []
 		const [result, privateKey, userId] = await Promise.all([chatConversations(), db.get("privateKey"), db.get("userId")])
+		const promises: Promise<void>[] = []
 
 		for (const conversation of result) {
-			const metadata = conversation.participants.filter(p => p.userId === userId)
+			promises.push(
+				new Promise(async (resolve, reject) => {
+					try {
+						const metadata = conversation.participants.filter(p => p.userId === userId)
 
-			if (metadata.length !== 1) {
-				continue
-			}
+						if (metadata.length !== 1) {
+							resolve()
 
-			const nameDecrypted =
-				typeof conversation.name === "string" && conversation.name.length > 0
-					? await decryptChatConversationName(conversation.name, metadata[0].metadata, privateKey)
-					: ""
-			const messageDecrypted =
-				typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0
-					? await decryptChatMessage(conversation.lastMessage, metadata[0].metadata, privateKey)
-					: ""
+							return
+						}
 
-			conversationsDecrypted.push({
-				...conversation,
-				name: nameDecrypted,
-				lastMessage: messageDecrypted
-			})
+						const nameDecrypted =
+							typeof conversation.name === "string" && conversation.name.length > 0
+								? await decryptChatConversationName(conversation.name, metadata[0].metadata, privateKey)
+								: ""
+						const messageDecrypted =
+							typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0
+								? await decryptChatMessage(conversation.lastMessage, metadata[0].metadata, privateKey)
+								: ""
+
+						conversationsDecrypted.push({
+							...conversation,
+							name: nameDecrypted,
+							lastMessage: messageDecrypted
+						})
+					} catch (e) {
+						reject(e)
+
+						return
+					}
+
+					resolve()
+				})
+			)
 		}
 
+		await Promise.all(promises)
 		await db.set("chatConversations", conversationsDecrypted, "chats")
 
 		cleanupLocalDb(conversationsDecrypted).catch(console.error)
@@ -153,27 +169,44 @@ export const fetchChatMessages = async (
 	const refresh = async (): Promise<FetchChatMessagesResult> => {
 		const messagesDecrypted: ChatMessage[] = []
 		const [result, privateKey] = await Promise.all([chatMessages(conversationUUID, timestamp), db.get("privateKey")])
+		const promises: Promise<void>[] = []
 
 		for (const message of result) {
-			const messageDecrypted = await decryptChatMessage(message.message, metadata, privateKey)
-			const replyToMessageDecrypted =
-				message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0
-					? await decryptChatMessage(message.replyTo.message, metadata, privateKey)
-					: ""
+			promises.push(
+				new Promise(async (resolve, reject) => {
+					try {
+						const messageDecrypted = await decryptChatMessage(message.message, metadata, privateKey)
+						const replyToMessageDecrypted =
+							message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0
+								? await decryptChatMessage(message.replyTo.message, metadata, privateKey)
+								: ""
 
-			if (messageDecrypted.length === 0) {
-				continue
-			}
+						if (messageDecrypted.length === 0) {
+							resolve()
 
-			messagesDecrypted.push({
-				...message,
-				message: messageDecrypted,
-				replyTo: {
-					...message.replyTo,
-					message: replyToMessageDecrypted
-				}
-			})
+							return
+						}
+
+						messagesDecrypted.push({
+							...message,
+							message: messageDecrypted,
+							replyTo: {
+								...message.replyTo,
+								message: replyToMessageDecrypted
+							}
+						})
+					} catch (e) {
+						reject(e)
+
+						return
+					}
+
+					resolve()
+				})
+			)
 		}
+
+		await Promise.all(promises)
 
 		if (saveToLocalDb) {
 			await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
