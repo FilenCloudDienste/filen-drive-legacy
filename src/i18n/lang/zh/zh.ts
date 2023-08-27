@@ -501,7 +501,8 @@ const zh: {
 	profileAddContact: "发送联系请求",
 	profileBlockContact: "黑名单",
 	profileUnblockContact: "取消拉黑",
-	profile: "资料"
+	profile: "资料",
+	chatMessageLimitReached: "消息限制为 __LIMIT__ 个字符"
 }
 
 export default zh
