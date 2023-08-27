@@ -284,9 +284,15 @@ export const Container = memo(
 
 		useEffect(() => {
 			if (messages.length > 0) {
-				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
+				const failed: Record<string, boolean> = failedMessages.reduce((prev, current) => ({ ...prev, [current]: true }), {})
+
+				db.set(
+					"chatMessages:" + messages[0].conversation,
+					sortedMessages.filter(message => !failed[message.uuid]),
+					"chats"
+				).catch(console.error)
 			}
-		}, [JSON.stringify(messages)])
+		}, [JSON.stringify(messages), failedMessages])
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {

@@ -504,7 +504,8 @@ const en: {
 	profileAddContact: "Send contact request",
 	profileBlockContact: "Block",
 	profileUnblockContact: "Unblock",
-	profile: "Profile"
+	profile: "Profile",
+	chatMessageLimitReached: "Message limit is __LIMIT__ characters"
 }
 
 export default en

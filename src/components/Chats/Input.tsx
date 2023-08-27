@@ -512,6 +512,12 @@ export const Input = memo(
 				return
 			}
 
+			if (message.length > 2000) {
+				showToast("error", i18n(lang, "chatMessageLimitReached", true, ["__LIMIT__"], ["2000"]))
+
+				return
+			}
+
 			const uuid = uuidv4()
 			const replyMessage = replyToMessage
 
@@ -644,6 +650,12 @@ export const Input = memo(
 				setEditMode(false)
 				setEditingMessageUUID("")
 				clearEditor()
+
+				return
+			}
+
+			if (message.length > 2000) {
+				showToast("error", i18n(lang, "chatMessageLimitReached", true, ["__LIMIT__"], ["2000"]))
 
 				return
 			}
@@ -1532,6 +1544,7 @@ export const Input = memo(
 							autoFocus={false}
 							autoComplete="none"
 							spellCheck={false}
+							maxLength={2000}
 							style={{
 								backgroundColor: getColor(darkMode, "backgroundSecondary"),
 								width: "100%",
