@@ -1,9 +1,6 @@
 import { memo, useState, useMemo, useEffect, useCallback } from "react"
 import { Flex, Tabs, TabList, TabPanel, TabPanels, Tab, Badge } from "@chakra-ui/react"
-import useWindowWidth from "../../lib/hooks/useWindowWidth"
-import useIsMobile from "../../lib/hooks/useIsMobile"
 import { getColor } from "../../styles/colors"
-import useDarkMode from "../../lib/hooks/useDarkMode"
 import { Contact as IContact, ContactRequest, BlockedContact } from "../../lib/api"
 import { safeAwait } from "../../lib/helpers"
 import { show as showToast } from "../Toast/Toast"
@@ -16,18 +13,22 @@ import ContextMenus from "./ContextMenus"
 import RequestsList from "./RequestsList"
 import eventListener from "../../lib/eventListener"
 import BlockedList from "./BlockedList"
-import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import AppText from "../AppText"
 import db from "../../lib/db"
 import BlockModal from "./BlockModal"
 import RemoveModal from "./RemoveModal"
 
-export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
-	const windowWidth = useWindowWidth()
+export interface ContactsProps {
+	sidebarWidth: number
+	windowWidth: number
+	darkMode: boolean
+	isMobile: boolean
+	lang: string
+}
+
+export const Contacts = memo(({ sidebarWidth, windowWidth, darkMode, isMobile, lang }: ContactsProps) => {
 	const [search, setSearch] = useState<string>("")
-	const darkMode = useDarkMode()
-	const isMobile = useIsMobile()
 	const [loadingContacts, setLoadingContacts] = useState<boolean>(true)
 	const [contacts, setContacts] = useState<IContact[]>([])
 	const [incomingRequests, setIncomingRequests] = useState<ContactRequest[]>([])
@@ -35,7 +36,6 @@ export const Contacts = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 	const [blocked, setBlocked] = useState<BlockedContact[]>([])
 	const location = useLocation()
 	const navigate = useNavigate()
-	const lang = useLang()
 
 	const activeTabIndex = useMemo(() => {
 		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]

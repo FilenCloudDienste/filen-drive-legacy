@@ -125,20 +125,20 @@ export const EditConversationNameModal = memo(() => {
 						onChange={e => setName(e.target.value)}
 						autoFocus={false}
 						spellCheck={false}
-						border="none"
-						borderRadius="10px"
 						width="100%"
 						height="40px"
-						backgroundColor={getColor(darkMode, "backgroundPrimary")}
-						color={getColor(darkMode, "textPrimary")}
-						_placeholder={{
-							color: getColor(darkMode, "textSecondary")
-						}}
 						placeholder={i18n(lang, "renameNewName")}
 						paddingLeft="10px"
 						paddingRight="10px"
 						shadow="none"
 						outline="none"
+						border="none"
+						borderRadius="10px"
+						backgroundColor={getColor(darkMode, "backgroundPrimary")}
+						color={getColor(darkMode, "textPrimary")}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
 						_hover={{
 							shadow: "none",
 							outline: "none"

@@ -147,16 +147,17 @@ export const RenameTagModal = memo(
 									rename()
 								}
 							}}
-							color={getColor(darkMode, "textPrimary")}
-							border={"1px solid " + getColor(darkMode, "borderPrimary") + " !important"}
 							placeholder={i18n(lang, "notesTagsCreateRenamePlaceholder")}
+							paddingLeft="10px"
+							paddingRight="10px"
 							shadow="none"
 							outline="none"
+							border="none"
 							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
-								color: "gray",
-								shadow: "none",
-								outline: "none"
+								color: getColor(darkMode, "textSecondary")
 							}}
 							_hover={{
 								shadow: "none",

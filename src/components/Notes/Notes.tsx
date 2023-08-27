@@ -1,8 +1,5 @@
 import { memo, useState, useMemo, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
-import useWindowHeight from "../../lib/hooks/useWindowHeight"
-import useWindowWidth from "../../lib/hooks/useWindowWidth"
-import useIsMobile from "../../lib/hooks/useIsMobile"
 import { Note as INote, Contact as IContact, NoteTag } from "../../lib/api"
 import Sidebar from "./Sidebar"
 import Content from "./Content"
@@ -30,12 +27,12 @@ export interface NotesSizes {
 
 export interface NotesProps {
 	sidebarWidth: number
+	windowWidth: number
+	isMobile: boolean
+	windowHeight: number
 }
 
-export const Notes = memo(({ sidebarWidth }: NotesProps) => {
-	const windowWidth = useWindowWidth()
-	const isMobile = useIsMobile()
-	const windowHeight = useWindowHeight()
+export const Notes = memo(({ sidebarWidth, windowWidth, isMobile, windowHeight }: NotesProps) => {
 	const [currentNoteUUID, setCurrentNoteUUID] = useState<string>("")
 	const [notes, setNotes] = useState<INote[]>([])
 	const location = useLocation()

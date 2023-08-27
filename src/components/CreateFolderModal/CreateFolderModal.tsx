@@ -144,14 +144,37 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 						onChange={e => setNewName(e.target.value)}
 						isDisabled={loading}
 						ref={inputRef}
-						color={getColor(darkMode, "textSecondary")}
-						_placeholder={{
-							color: getColor(darkMode, "textSecondary")
-						}}
 						onKeyDown={e => {
 							if (e.which == 13) {
 								create()
 							}
+						}}
+						paddingLeft="10px"
+						paddingRight="10px"
+						shadow="none"
+						outline="none"
+						border="none"
+						borderRadius="10px"
+						backgroundColor={getColor(darkMode, "backgroundPrimary")}
+						color={getColor(darkMode, "textPrimary")}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
 						}}
 					/>
 				</ModalBody>

@@ -730,7 +730,9 @@ const ContextMenus = memo(
 							{!selectedNote.trash && userId === selectedNote.ownerId && (
 								<>
 									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => trash()}>{i18n(lang, "noteTrash")}</ContextMenuItem>
+									<ContextMenuItem onClick={() => trash()}>
+										<Flex color={getColor(darkMode, "red")}>{i18n(lang, "noteTrash")}</Flex>
+									</ContextMenuItem>
 								</>
 							)}
 							{(selectedNote.trash || selectedNote.archive) && userId === selectedNote.ownerId && (
@@ -743,7 +745,7 @@ const ContextMenus = memo(
 								<>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => eventListener.emit("openDeleteNoteModal", selectedNote)}>
-										{i18n(lang, "noteDelete")}
+										<Flex color={getColor(darkMode, "red")}>{i18n(lang, "noteDelete")}</Flex>
 									</ContextMenuItem>
 								</>
 							)}
@@ -751,7 +753,7 @@ const ContextMenus = memo(
 								<>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => eventListener.emit("openLeaveNoteModal", selectedNote)}>
-										{i18n(lang, "leave")}
+										<Flex color={getColor(darkMode, "red")}>{i18n(lang, "leave")}</Flex>
 									</ContextMenuItem>
 								</>
 							)}

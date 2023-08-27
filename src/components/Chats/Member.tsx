@@ -122,6 +122,19 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 				}}
 				justifyContent="space-between"
 				onClick={() => eventListener.emit("openUserProfileModal", user.userId)}
+				onContextMenu={e => {
+					e.preventDefault()
+
+					eventListener.emit("openChatParticipantContextMenu", {
+						participant: user,
+						conversation: currentConversation,
+						event: e,
+						position: {
+							x: e.nativeEvent.clientX,
+							y: e.nativeEvent.clientY
+						}
+					})
+				}}
 			>
 				<Flex
 					alignItems="center"

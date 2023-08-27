@@ -305,6 +305,9 @@ export const UserProfileModal = memo(() => {
 										fontSize={20}
 										wordBreak="break-all"
 										noOfLines={1}
+										userSelect="text"
+										className="user-select-text"
+										cursor="text"
 									>
 										{profile.nickName.length > 0 ? profile.nickName : profile.email}
 									</AppText>
@@ -315,6 +318,21 @@ export const UserProfileModal = memo(() => {
 										fontSize={14}
 										wordBreak="break-all"
 										noOfLines={1}
+										userSelect="text"
+										className="user-select-text"
+										cursor="text"
+										_hover={{
+											color: getColor(darkMode, "textPrimary"),
+											textDecoration: "underline",
+											cursor: "pointer"
+										}}
+										onClick={() =>
+											navigator.clipboard.writeText(profile.email).catch(err => {
+												console.error(err)
+
+												showToast("error", err.toString(), "bottom", 5000)
+											})
+										}
 									>
 										{profile.email}
 									</AppText>
@@ -334,6 +352,9 @@ export const UserProfileModal = memo(() => {
 								wordBreak="break-all"
 								noOfLines={1}
 								marginTop="10px"
+								userSelect="text"
+								className="user-select-text"
+								cursor="text"
 							>
 								{i18n(
 									lang,

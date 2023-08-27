@@ -133,9 +133,32 @@ const ShareModal = memo(({ darkMode, isMobile, lang }: ShareModalProps) => {
 								share()
 							}
 						}}
-						color={getColor(darkMode, "textSecondary")}
+						paddingLeft="10px"
+						paddingRight="10px"
+						shadow="none"
+						outline="none"
+						border="none"
+						borderRadius="10px"
+						backgroundColor={getColor(darkMode, "backgroundPrimary")}
+						color={getColor(darkMode, "textPrimary")}
 						_placeholder={{
 							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
 						}}
 					/>
 				</ModalBody>

@@ -316,9 +316,32 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 														currentItem.key
 													}
 													onChange={() => {}}
-													color={getColor(darkMode, "textSecondary")}
+													paddingLeft="10px"
+													paddingRight="10px"
+													shadow="none"
+													outline="none"
+													border="none"
+													borderRadius="10px"
+													backgroundColor={getColor(darkMode, "backgroundPrimary")}
+													color={getColor(darkMode, "textPrimary")}
 													_placeholder={{
 														color: getColor(darkMode, "textSecondary")
+													}}
+													_hover={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_active={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_focus={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_highlighted={{
+														shadow: "none",
+														outline: "none"
 													}}
 												/>
 												<Button
@@ -372,9 +395,12 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 														expirationText: e.target.value
 													}))
 												}}
-												borderColor={getColor(darkMode, "borderPrimary")}
+												backgroundColor={getColor(darkMode, "backgroundPrimary")}
+												color={getColor(darkMode, "textPrimary")}
+												borderColor="transparent"
 												outline="none"
 												shadow="none"
+												cursor="pointer"
 												_hover={{
 													borderColor: getColor(darkMode, "borderActive"),
 													outline: "none",
@@ -424,9 +450,32 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 												value={passwordDummy}
 												type="password"
 												onChange={e => setPasswordDummy(e.target.value)}
-												color={getColor(darkMode, "textSecondary")}
+												paddingLeft="10px"
+												paddingRight="10px"
+												shadow="none"
+												outline="none"
+												border="none"
+												borderRadius="10px"
+												backgroundColor={getColor(darkMode, "backgroundPrimary")}
+												color={getColor(darkMode, "textPrimary")}
 												_placeholder={{
 													color: getColor(darkMode, "textSecondary")
+												}}
+												_hover={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_active={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_focus={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_highlighted={{
+													shadow: "none",
+													outline: "none"
 												}}
 											/>
 											<Flex
@@ -549,10 +598,32 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 														"#" +
 														key
 													}
-													onChange={() => {}}
-													color={getColor(darkMode, "textSecondary")}
+													paddingLeft="10px"
+													paddingRight="10px"
+													shadow="none"
+													outline="none"
+													border="none"
+													borderRadius="10px"
+													backgroundColor={getColor(darkMode, "backgroundPrimary")}
+													color={getColor(darkMode, "textPrimary")}
 													_placeholder={{
 														color: getColor(darkMode, "textSecondary")
+													}}
+													_hover={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_active={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_focus={{
+														shadow: "none",
+														outline: "none"
+													}}
+													_highlighted={{
+														shadow: "none",
+														outline: "none"
 													}}
 												/>
 												<Button
@@ -658,9 +729,32 @@ const PublicLinkModal = memo(({ darkMode, isMobile, lang, setItems }: PublicLink
 												type="password"
 												onChange={e => setPasswordDummy(e.target.value)}
 												marginTop="5px"
-												color={getColor(darkMode, "textSecondary")}
+												paddingLeft="10px"
+												paddingRight="10px"
+												shadow="none"
+												outline="none"
+												border="none"
+												borderRadius="10px"
+												backgroundColor={getColor(darkMode, "backgroundPrimary")}
+												color={getColor(darkMode, "textPrimary")}
 												_placeholder={{
 													color: getColor(darkMode, "textSecondary")
+												}}
+												_hover={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_active={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_focus={{
+													shadow: "none",
+													outline: "none"
+												}}
+												_highlighted={{
+													shadow: "none",
+													outline: "none"
 												}}
 											/>
 										</>

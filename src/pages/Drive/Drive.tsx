@@ -1297,9 +1297,20 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 							lang={lang}
 						/>
 					) : location.hash.indexOf("notes") !== -1 ? (
-						<Notes sidebarWidth={sidebarWidth} />
+						<Notes
+							sidebarWidth={sidebarWidth}
+							isMobile={isMobile}
+							windowHeight={windowHeight}
+							windowWidth={windowWidth}
+						/>
 					) : location.hash.indexOf("contacts") !== -1 ? (
-						<Contacts sidebarWidth={sidebarWidth} />
+						<Contacts
+							sidebarWidth={sidebarWidth}
+							isMobile={isMobile}
+							darkMode={darkMode}
+							windowWidth={windowWidth}
+							lang={lang}
+						/>
 					) : (
 						<>
 							<Breadcrumbs

@@ -47,6 +47,8 @@ export interface MessagesProps {
 	lastFocusTimestamp: Record<string, number> | undefined
 	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
 	currentConversation: ChatConversation
+	setAtBottom: React.Dispatch<React.SetStateAction<boolean>>
+	atBottom: boolean
 }
 
 export const Messages = memo(
@@ -72,7 +74,9 @@ export const Messages = memo(
 		replyMessageUUID,
 		lastFocusTimestamp,
 		setLastFocusTimestamp,
-		currentConversation
+		currentConversation,
+		setAtBottom,
+		atBottom
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
@@ -82,7 +86,6 @@ export const Messages = memo(
 		const location = useLocation()
 		const [initalLoadDone, setInitialLoadDone] = useState<boolean>(false)
 		const initalLoadDoneTimer = useRef<ReturnType<typeof setTimeout>>()
-		const [atBottom, setAtBottom] = useState<boolean>(true)
 		const isFocused = useWindowFocus()
 		const lastMessageUUID = useRef<string>("")
 		const atBottomRef = useRef<boolean>(atBottom)

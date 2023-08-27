@@ -6,7 +6,7 @@ const ModalCloseButton = memo(({ darkMode }: { darkMode: boolean }) => {
 	return (
 		<ChakraModalCloseButton
 			color={darkMode ? getColor(darkMode, "textSecondary") : "black"}
-			backgroundColor={darkMode ? getColor(darkMode, "backgroundTertiary") : "lightgray"}
+			backgroundColor={getColor(darkMode, "backgroundTertiary")}
 			_hover={{
 				color: darkMode ? getColor(darkMode, "textPrimary") : "black",
 				backgroundColor: darkMode ? getColor(darkMode, "backgroundPrimary") : "lightgray"

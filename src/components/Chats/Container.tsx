@@ -75,6 +75,8 @@ export const Container = memo(
 		const initDoneRef = useRef<boolean>(false)
 		const [userId] = useDb("userId", 0)
 		const userIdRef = useRef<number>(0)
+		const [atBottom, setAtBottom] = useState<boolean>(true)
+		const atBottomRef = useRef<boolean>(true)
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -296,10 +298,12 @@ export const Container = memo(
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				const currentConvoUUID = getCurrentParent(window.location.href)
+
 				if (
 					event.type === "chatMessageNew" &&
 					event.data.senderId === userIdRef.current &&
-					event.data.conversation === getCurrentParent(window.location.href)
+					event.data.conversation === currentConvoUUID
 				) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
@@ -311,7 +315,8 @@ export const Container = memo(
 					event.type === "chatMessageNew" &&
 					event.data.senderId !== userIdRef.current &&
 					windowFocused.current &&
-					event.data.conversation === getCurrentParent(window.location.href)
+					atBottomRef.current &&
+					event.data.conversation === currentConvoUUID
 				) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
@@ -320,7 +325,7 @@ export const Container = memo(
 				}
 
 				if (event.type === "chatMessageNew" && event.data.senderId !== userIdRef.current) {
-					if (getCurrentParent(window.location.href) !== event.data.conversation || !windowFocused.current) {
+					if (currentConvoUUID !== event.data.conversation || !windowFocused.current || atBottomRef.current) {
 						setUnreadConversationsMessages(prev => ({
 							...prev,
 							[event.data.conversation]:
@@ -330,7 +335,7 @@ export const Container = memo(
 				}
 
 				if (event.type === "chatMessageNew") {
-					if (!currentConversationMeRef.current || event.data.conversation !== getCurrentParent(window.location.href)) {
+					if (!currentConversationMeRef.current || event.data.conversation !== currentConvoUUID) {
 						return
 					}
 
@@ -370,7 +375,7 @@ export const Container = memo(
 						prev.map(message => (message.uuid === event.data.uuid ? { ...message, embedDisabled: true } : message))
 					)
 				} else if (event.type === "chatMessageEdited") {
-					if (!currentConversationMeRef.current || event.data.conversation !== getCurrentParent(window.location.href)) {
+					if (!currentConversationMeRef.current || event.data.conversation !== currentConvoUUID) {
 						return
 					}
 
@@ -422,7 +427,8 @@ export const Container = memo(
 			currentConversationMeRef.current = currentConversationMe
 			currentConversationRef.current = currentConversation
 			userIdRef.current = userId
-		}, [scrolledUp, isFocused, currentConversationMe, currentConversation, userId])
+			atBottomRef.current = atBottom
+		}, [scrolledUp, isFocused, currentConversationMe, currentConversation, userId, atBottom])
 
 		useEffect(() => {
 			if (!initDoneRef.current) {
@@ -440,9 +446,7 @@ export const Container = memo(
 
 		useEffect(() => {
 			fetchLastFocus()
-		}, [isFocused, location.hash, currentConversation?.uuid])
 
-		useEffect(() => {
 			lastPreviousFetchTimestamp.current = 0
 
 			setMessages([])
@@ -503,6 +507,8 @@ export const Container = memo(
 							lastFocusTimestamp={lastFocusTimestamp}
 							setLastFocusTimestamp={setLastFocusTimestamp}
 							currentConversation={currentConversation}
+							atBottom={atBottom}
+							setAtBottom={setAtBottom}
 						/>
 					)}
 				</Flex>

@@ -699,7 +699,9 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 								</ContextMenuSubmenu>
 							)}
 							<ContextMenuSeparator />
-							<ContextMenuItem onClick={() => deleteItems()}>{i18n(lang, "trash")}</ContextMenuItem>
+							<ContextMenuItem onClick={() => deleteItems()}>
+								<Flex color={getColor(darkMode, "red")}>{i18n(lang, "trash")}</Flex>
+							</ContextMenuItem>
 						</>
 					)}
 				{location.hash.indexOf("trash") !== -1 && location.pathname.indexOf("/f/") == -1 && (
@@ -708,14 +710,20 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							{i18n(lang, "restore")}
 						</ContextMenuItem>
 						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => deleteItemsPermanently()}>{i18n(lang, "deletePerm")}</ContextMenuItem>
+						<ContextMenuItem onClick={() => deleteItemsPermanently()}>
+							<Flex color={getColor(darkMode, "red")}>{i18n(lang, "deletePerm")}</Flex>
+						</ContextMenuItem>
 					</>
 				)}
 				{location.hash.indexOf("shared-in") !== -1 && location.pathname.indexOf("/f/") == -1 && getCurrentParent().length < 32 && (
-					<ContextMenuItem onClick={() => removeSharedIn()}>{i18n(lang, "remove")}</ContextMenuItem>
+					<ContextMenuItem onClick={() => removeSharedIn()}>
+						<Flex color={getColor(darkMode, "red")}>{i18n(lang, "remove")}</Flex>
+					</ContextMenuItem>
 				)}
 				{location.hash.indexOf("shared-out") !== -1 && location.pathname.indexOf("/f/") == -1 && getCurrentParent().length < 32 && (
-					<ContextMenuItem onClick={() => stopSharing()}>{i18n(lang, "stopSharing")}</ContextMenuItem>
+					<ContextMenuItem onClick={() => stopSharing()}>
+						<Flex color={getColor(darkMode, "red")}>{i18n(lang, "stopSharing")}</Flex>
+					</ContextMenuItem>
 				)}
 			</ContextMenu>
 			<ContextMenu
@@ -873,7 +881,9 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 							</ContextMenuSubmenu>
 						)}
 						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => deleteItems(activeItem)}>{i18n(lang, "trash")}</ContextMenuItem>
+						<ContextMenuItem onClick={() => deleteItems(activeItem)}>
+							<Flex color={getColor(darkMode, "red")}>{i18n(lang, "trash")}</Flex>
+						</ContextMenuItem>
 					</>
 				)}
 			</ContextMenu>

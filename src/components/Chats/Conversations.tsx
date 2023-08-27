@@ -370,16 +370,18 @@ export const Conversations = memo(
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				const currentConvoUUID = getCurrentParent(window.location.href)
+
 				if (event.type === "chatMessageNew") {
 					if (conversationsRef.current) {
-						const [privateKey, userId] = await Promise.all([db.get("privateKey"), db.get("userId")])
+						const privateKey = await db.get("privateKey")
 						const convo = conversationsRef.current.filter(c => c.uuid === event.data.conversation)
 
 						if (convo.length !== 1) {
 							return
 						}
 
-						const metadata = convo[0].participants.filter(p => p.userId === userId)
+						const metadata = convo[0].participants.filter(p => p.userId === userIdRef.current)
 
 						if (metadata.length !== 1) {
 							return
@@ -409,14 +411,14 @@ export const Conversations = memo(
 				} else if (event.type === "chatConversationDeleted") {
 					setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
 
-					if (getCurrentParent(window.location.href) === event.data.uuid) {
+					if (currentConvoUUID === event.data.uuid) {
 						navigate("/#/chats")
 					}
 				} else if (event.type === "chatConversationParticipantLeft") {
-					if (event.data.userId === userId) {
+					if (event.data.userId === userIdRef.current) {
 						setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
 
-						if (getCurrentParent(window.location.href) === event.data.uuid) {
+						if (currentConvoUUID === event.data.uuid) {
 							navigate("/#/chats")
 						}
 					} else {
@@ -447,14 +449,14 @@ export const Conversations = memo(
 					}
 
 					if (conversationsRef.current) {
-						const [privateKey, userId] = await Promise.all([db.get("privateKey"), db.get("userId")])
+						const privateKey = await db.get("privateKey")
 						const convo = conversationsRef.current.filter(c => c.uuid === event.data.uuid)
 
 						if (convo.length !== 1) {
 							return
 						}
 
-						const metadata = convo[0].participants.filter(p => p.userId === userId)
+						const metadata = convo[0].participants.filter(p => p.userId === userIdRef.current)
 
 						if (metadata.length !== 1) {
 							return
@@ -573,7 +575,7 @@ export const Conversations = memo(
 				chatConversationNameEditedListener.remove()
 				chatMessageSentListener.remove()
 			}
-		}, [userId])
+		}, [])
 
 		useEffect(() => {
 			if (!initDone.current) {

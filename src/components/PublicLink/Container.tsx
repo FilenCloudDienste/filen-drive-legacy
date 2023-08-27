@@ -65,7 +65,7 @@ const Container = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, c
 						src={darkMode ? LightLogo : DarkLogo}
 						width="70px"
 						height="70px"
-						onClick={() => toggleColorMode(darkMode)}
+						onClick={() => (window.location.href = "https://filen.io")}
 						cursor="pointer"
 						position="absolute"
 						top="50px"

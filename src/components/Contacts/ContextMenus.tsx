@@ -1,17 +1,12 @@
 import { memo, useState, useEffect } from "react"
-import {
-	Menu as ContextMenu,
-	Item as ContextMenuItem,
-	Separator as ContextMenuSeparator,
-	Submenu as ContextMenuSubmenu,
-	contextMenu,
-	animation
-} from "react-contexify"
+import { Menu as ContextMenu, Item as ContextMenuItem, contextMenu, animation } from "react-contexify"
 import { Contact as IContact } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
 import { i18n } from "../../i18n"
+import { Flex } from "@chakra-ui/react"
+import { getColor } from "../../styles/colors"
 
 const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.SetStateAction<IContact[]>> }) => {
 	const darkMode = useDarkMode()
@@ -53,10 +48,10 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 							{i18n(lang, "profile")}
 						</ContextMenuItem>
 						<ContextMenuItem onClick={() => eventListener.emit("openContactsRemoveModal", selectedContact)}>
-							{i18n(lang, "removeUser")}
+							<Flex color={getColor(darkMode, "red")}>{i18n(lang, "removeUser")}</Flex>
 						</ContextMenuItem>
 						<ContextMenuItem onClick={() => eventListener.emit("openContactsBlockModal", selectedContact)}>
-							{i18n(lang, "blockUser")}
+							<Flex color={getColor(darkMode, "red")}>{i18n(lang, "blockUser")}</Flex>
 						</ContextMenuItem>
 					</>
 				)}

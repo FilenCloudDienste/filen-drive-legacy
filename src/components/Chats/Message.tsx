@@ -400,6 +400,8 @@ export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow, currentCo
 				textOverflow="ellipsis"
 				flexGrow={0}
 				flexFlow="row wrap"
+				noOfLines={1}
+				wordBreak="break-all"
 			>
 				<ReplaceInlineMessageWithComponents
 					darkMode={darkMode}

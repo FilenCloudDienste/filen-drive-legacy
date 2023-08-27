@@ -266,9 +266,32 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 							isDisabled={loading}
 							onKeyDown={inputKeyDown}
 							maxLength={255}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Input
@@ -282,9 +305,32 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 							isDisabled={loading}
 							onKeyDown={inputKeyDown}
 							maxLength={255}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Input
@@ -297,9 +343,32 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 							type="password"
 							isDisabled={loading}
 							onKeyDown={inputKeyDown}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 					</Flex>
@@ -482,9 +551,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -503,9 +595,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -533,9 +648,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -554,9 +692,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -584,9 +745,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -605,9 +789,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={16}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -635,9 +842,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -656,9 +886,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											isDisabled={loading}
 											onKeyDown={inputKeyDown}
 											maxLength={255}
-											color={getColor(darkMode, "textSecondary")}
+											paddingLeft="10px"
+											paddingRight="10px"
+											shadow="none"
+											outline="none"
+											border="none"
+											borderRadius="10px"
+											backgroundColor={getColor(darkMode, "backgroundPrimary")}
+											color={getColor(darkMode, "textPrimary")}
 											_placeholder={{
 												color: getColor(darkMode, "textSecondary")
+											}}
+											_hover={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_active={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_focus={{
+												shadow: "none",
+												outline: "none"
+											}}
+											_highlighted={{
+												shadow: "none",
+												outline: "none"
 											}}
 										/>
 									</Flex>
@@ -680,9 +933,32 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 										isDisabled={loading}
 										onKeyDown={inputKeyDown}
 										maxLength={255}
-										color={getColor(darkMode, "textSecondary")}
+										paddingLeft="10px"
+										paddingRight="10px"
+										shadow="none"
+										outline="none"
+										border="none"
+										borderRadius="10px"
+										backgroundColor={getColor(darkMode, "backgroundPrimary")}
+										color={getColor(darkMode, "textPrimary")}
 										_placeholder={{
 											color: getColor(darkMode, "textSecondary")
+										}}
+										_hover={{
+											shadow: "none",
+											outline: "none"
+										}}
+										_active={{
+											shadow: "none",
+											outline: "none"
+										}}
+										_focus={{
+											shadow: "none",
+											outline: "none"
+										}}
+										_highlighted={{
+											shadow: "none",
+											outline: "none"
 										}}
 									/>
 								</Flex>
@@ -1057,9 +1333,32 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 								}
 							}}
 							maxLength={255}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Input
@@ -1077,9 +1376,32 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 								}
 							}}
 							maxLength={255}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Input
@@ -1096,9 +1418,32 @@ export const PasswordModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 									save()
 								}
 							}}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 					</Flex>
@@ -1252,9 +1597,32 @@ export const DeleteAccountModal = memo(({ darkMode, isMobile, lang }: { darkMode
 									onKeyDown={inputKeyDown}
 									maxLength={64}
 									marginTop="15px"
-									color={getColor(darkMode, "textSecondary")}
+									paddingLeft="10px"
+									paddingRight="10px"
+									shadow="none"
+									outline="none"
+									border="none"
+									borderRadius="10px"
+									backgroundColor={getColor(darkMode, "backgroundPrimary")}
+									color={getColor(darkMode, "textPrimary")}
 									_placeholder={{
 										color: getColor(darkMode, "textSecondary")
+									}}
+									_hover={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_active={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_focus={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_highlighted={{
+										shadow: "none",
+										outline: "none"
 									}}
 								/>
 							)}
@@ -1429,9 +1797,32 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 									value={settings.twoFactorKey}
 									type="text"
 									onChange={() => {}}
-									color={getColor(darkMode, "textSecondary")}
+									paddingLeft="10px"
+									paddingRight="10px"
+									shadow="none"
+									outline="none"
+									border="none"
+									borderRadius="10px"
+									backgroundColor={getColor(darkMode, "backgroundPrimary")}
+									color={getColor(darkMode, "textPrimary")}
 									_placeholder={{
 										color: getColor(darkMode, "textSecondary")
+									}}
+									_hover={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_active={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_focus={{
+										shadow: "none",
+										outline: "none"
+									}}
+									_highlighted={{
+										shadow: "none",
+										outline: "none"
 									}}
 								/>
 								<Button
@@ -1469,9 +1860,32 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 								marginTop="25px"
 								onKeyDown={inputKeyDown}
 								maxLength={64}
-								color={getColor(darkMode, "textSecondary")}
+								paddingLeft="10px"
+								paddingRight="10px"
+								shadow="none"
+								outline="none"
+								border="none"
+								borderRadius="10px"
+								backgroundColor={getColor(darkMode, "backgroundPrimary")}
+								color={getColor(darkMode, "textPrimary")}
 								_placeholder={{
 									color: getColor(darkMode, "textSecondary")
+								}}
+								_hover={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_active={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_focus={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_highlighted={{
+									shadow: "none",
+									outline: "none"
 								}}
 							/>
 						</>
@@ -1550,9 +1964,32 @@ export const TwoFactorRecoveryInfoModal = memo(({ darkMode, isMobile, lang }: { 
 							value={key}
 							type="text"
 							onChange={() => {}}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Button
@@ -1701,9 +2138,32 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 								placeholder={i18n(lang, "enter2FA")}
 								onKeyDown={inputKeyDown}
 								maxLength={64}
-								color={getColor(darkMode, "textSecondary")}
+								paddingLeft="10px"
+								paddingRight="10px"
+								shadow="none"
+								outline="none"
+								border="none"
+								borderRadius="10px"
+								backgroundColor={getColor(darkMode, "backgroundPrimary")}
+								color={getColor(darkMode, "textPrimary")}
 								_placeholder={{
 									color: getColor(darkMode, "textSecondary")
+								}}
+								_hover={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_active={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_focus={{
+									shadow: "none",
+									outline: "none"
+								}}
+								_highlighted={{
+									shadow: "none",
+									outline: "none"
 								}}
 							/>
 						</>
@@ -1981,9 +2441,32 @@ export const AffiliatePayoutModal = memo(({ darkMode, isMobile, lang }: { darkMo
 							autoFocus={false}
 							onChange={e => setAddress(e.target.value)}
 							placeholder={i18n(lang, "yourBtcAddress")}
-							color={getColor(darkMode, "textSecondary")}
+							paddingLeft="10px"
+							paddingRight="10px"
+							shadow="none"
+							outline="none"
+							border="none"
+							borderRadius="10px"
+							backgroundColor={getColor(darkMode, "backgroundPrimary")}
+							color={getColor(darkMode, "textPrimary")}
 							_placeholder={{
 								color: getColor(darkMode, "textSecondary")
+							}}
+							_hover={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_active={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_focus={{
+								shadow: "none",
+								outline: "none"
+							}}
+							_highlighted={{
+								shadow: "none",
+								outline: "none"
 							}}
 						/>
 						<Button

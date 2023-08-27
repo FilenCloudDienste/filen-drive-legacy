@@ -1694,10 +1694,9 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 	return (
 		<Flex
 			width="100%"
-			height={windowHeight - 125 + "px"}
-			paddingTop="5px"
+			height={windowHeight - 90 + "px"}
+			marginTop="25px"
 		>
-			{/* @ts-ignore */}
 			<AutoSizer
 				style={{
 					outline: "none"
@@ -1705,7 +1704,6 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 			>
 				{({ height, width }) => (
 					<>
-						{/* @ts-ignore */}
 						<RVList
 							key="list"
 							height={height}
@@ -1725,8 +1723,7 @@ const Events = memo(({ darkMode, isMobile, windowHeight, lang }: AccountProps) =
 								overflowX: "hidden",
 								overflowY: events.length == 0 ? "hidden" : "auto",
 								zIndex: 1000,
-								outline: "none",
-								paddingTop: events.length == 0 ? "8px" : "0px"
+								outline: "none"
 							}}
 							rowRenderer={rowRenderer}
 						/>
@@ -2140,9 +2137,32 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 					value={"https://filen.io/r/" + userAccount.refId}
 					autoFocus={false}
 					onChange={() => {}}
-					color={getColor(darkMode, "textSecondary")}
+					paddingLeft="10px"
+					paddingRight="10px"
+					shadow="none"
+					outline="none"
+					border="none"
+					borderRadius="10px"
+					backgroundColor={getColor(darkMode, "backgroundSecondary")}
+					color={getColor(darkMode, "textPrimary")}
 					_placeholder={{
 						color: getColor(darkMode, "textSecondary")
+					}}
+					_hover={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_active={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_focus={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_highlighted={{
+						shadow: "none",
+						outline: "none"
 					}}
 				/>
 				<Button
@@ -2154,7 +2174,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 					color={darkMode ? "black" : "white"}
 					border={"1px solid " + (darkMode ? "white" : "gray")}
 					_hover={{
-						backgroundColor: getColor(darkMode, "backgroundSecondary"),
+						backgroundColor: "transparent",
 						border: "1px solid " + (darkMode ? "white" : "gray"),
 						color: darkMode ? "white" : "gray"
 					}}

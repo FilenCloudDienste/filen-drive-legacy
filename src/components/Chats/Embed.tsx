@@ -407,6 +407,8 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData,
 											borderRadius="5px"
 											flexShrink={0}
 											src={ogData["og:image"]}
+											objectFit="contain"
+											padding="5px"
 											fallback={
 												<Flex
 													backgroundColor="gray"
@@ -437,6 +439,8 @@ export const OGEmbedContainer = memo(({ darkMode, isMobile, link, state, ogData,
 											borderRadius="5px"
 											flexShrink={0}
 											src={ogData["twitter:image"]}
+											objectFit="contain"
+											padding="5px"
 											fallback={
 												<Flex
 													backgroundColor="gray"
@@ -763,6 +767,7 @@ export const Embed = memo(
 											<Image
 												src={API_V3_DOMAINS[0] + "/v3/cors?url=" + encodeURIComponent(link)}
 												maxHeight="200px"
+												objectFit="contain"
 												fallback={
 													<Spinner
 														width="32px"

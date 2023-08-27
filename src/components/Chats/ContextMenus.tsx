@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from "react"
 import { Menu as ContextMenu, Item as ContextMenuItem, contextMenu, animation, Separator as ContextMenuSeparator } from "react-contexify"
-import { ChatMessage, ChatConversation } from "../../lib/api"
+import { ChatMessage, ChatConversation, ChatConversationParticipant } from "../../lib/api"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import eventListener from "../../lib/eventListener"
@@ -8,12 +8,14 @@ import { i18n } from "../../i18n"
 import useDb from "../../lib/hooks/useDb"
 import { getColor } from "../../styles/colors"
 import { show as showToast } from "../Toast/Toast"
+import { Flex } from "@chakra-ui/react"
 
 const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.Dispatch<React.SetStateAction<string>> }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [selectedMessage, setSelectedMessage] = useState<ChatMessage | undefined>(undefined)
 	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
+	const [selectedParticipant, setSelectedParticipant] = useState<ChatConversationParticipant | undefined>(undefined)
 	const [userId] = useDb("userId", 0)
 
 	useEffect(() => {
@@ -52,9 +54,34 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 			}
 		)
 
+		const openChatParticipantContextMenuListener = eventListener.on(
+			"openChatParticipantContextMenu",
+			({
+				participant,
+				conversation,
+				position,
+				event
+			}: {
+				participant: ChatConversationParticipant
+				conversation: ChatConversation
+				position: { x: number; y: number }
+				event: KeyboardEvent
+			}) => {
+				setSelectedParticipant(participant)
+				setSelectedConversation(conversation)
+
+				contextMenu.show({
+					id: "chatParticipantContextMenu",
+					event,
+					position
+				})
+			}
+		)
+
 		return () => {
 			openChatMessageContextMenuListener.remove()
 			openChatConversationContextMenuListener.remove()
+			openChatParticipantContextMenuListener.remove()
 		}
 	}, [userId])
 
@@ -178,6 +205,43 @@ const ContextMenus = memo(({ setContextMenuOpen }: { setContextMenuOpen: React.D
 						>
 							{i18n(lang, "copyId")}
 						</ContextMenuItem>
+					</>
+				)}
+			</ContextMenu>
+			<ContextMenu
+				id="chatParticipantContextMenu"
+				animation={{
+					enter: animation.fade,
+					exit: false
+				}}
+				theme={darkMode ? "filendark" : "filenlight"}
+			>
+				{selectedParticipant && selectedConversation && (
+					<>
+						<ContextMenuItem onClick={() => eventListener.emit("openUserProfileModal", selectedParticipant.userId)}>
+							{i18n(lang, "profile")}
+						</ContextMenuItem>
+						{selectedConversation.ownerId === userId && selectedParticipant.userId !== userId && (
+							<ContextMenuItem
+								onClick={() => {
+									eventListener.emit("openChatConversationRemoveParticipantModal", {
+										conversation: selectedConversation,
+										userId: selectedParticipant.userId
+									})
+								}}
+							>
+								<Flex color={getColor(darkMode, "red")}>{i18n(lang, "remove")}</Flex>
+							</ContextMenuItem>
+						)}
+						{selectedConversation.ownerId !== userId && selectedParticipant.userId === userId && (
+							<ContextMenuItem
+								onClick={() => {
+									eventListener.emit("openLeaveChatConversationModal", selectedConversation)
+								}}
+							>
+								<Flex color={getColor(darkMode, "red")}>{i18n(lang, "leave")}</Flex>
+							</ContextMenuItem>
+						)}
 					</>
 				)}
 			</ContextMenu>
