@@ -28,9 +28,8 @@ import eventListener from "../eventListener"
 import { getDirectoryTree } from "../services/items"
 import { v4 as uuidv4 } from "uuid"
 import { FileVersions, ICFG } from "../../types"
-import axios, { AxiosResponse } from "axios"
+import axios from "axios"
 import { bufferToHash } from "../worker/worker.com"
-import { encode as base64Encode } from "base-64"
 
 const createFolderSemaphore = new Semaphore(1)
 const shareItemsSemaphore = new Semaphore(10)
@@ -3568,4 +3567,64 @@ export const chatConversationsDelete = async (uuid: string): Promise<void> => {
 	if (!response.status) {
 		throw new Error(response.message)
 	}
+}
+
+export interface ChatLastFocus {
+	uuid: string
+	lastFocus: number
+}
+
+export const updateChatLastFocus = async (conversations: ChatLastFocus[]): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/lastFocus",
+		data: {
+			conversations
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const getChatLastFocus = async (): Promise<ChatLastFocus[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/lastFocus",
+		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface UserProfile {
+	id: number
+	email: string
+	publicKey: string
+	avatar: string
+	appearOffline: boolean
+	lastActive: number
+	nickName: string
+	createdAt: number
+}
+
+export const getUserProfile = async (id: number): Promise<UserProfile> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/profile",
+		data: {
+			id
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
 }

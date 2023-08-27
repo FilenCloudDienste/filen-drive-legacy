@@ -389,7 +389,7 @@ export const connect = () => {
 
 		PING_INTERVAL = setInterval(() => {
 			SOCKET_HANDLE.emit("authed", Date.now())
-		}, 3000)
+		}, 15000)
 	})
 
 	SOCKET_HANDLE.on("authFailed", () => {

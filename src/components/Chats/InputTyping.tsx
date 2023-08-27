@@ -97,7 +97,7 @@ const InputTyping = memo(({ darkMode, isMobile, lang }: InputTypingProps) => {
 						darkMode={darkMode}
 						isMobile={isMobile}
 						color="transparent"
-						fontSize={12}
+						fontSize={13}
 						wordBreak="break-word"
 						marginLeft="3px"
 					>
@@ -107,13 +107,13 @@ const InputTyping = memo(({ darkMode, isMobile, lang }: InputTypingProps) => {
 					<>
 						<IoEllipsisHorizontalOutline
 							color={getColor(darkMode, "textPrimary")}
-							fontSize={20}
+							fontSize={22}
 						/>
 						<AppText
 							darkMode={darkMode}
 							isMobile={isMobile}
 							color={getColor(darkMode, "textPrimary")}
-							fontSize={12}
+							fontSize={13}
 							wordBreak="break-word"
 							fontWeight="bold"
 							marginLeft="5px"
@@ -124,7 +124,7 @@ const InputTyping = memo(({ darkMode, isMobile, lang }: InputTypingProps) => {
 							darkMode={darkMode}
 							isMobile={isMobile}
 							color={getColor(darkMode, "textSecondary")}
-							fontSize={12}
+							fontSize={13}
 							wordBreak="break-word"
 							marginLeft="3px"
 						>

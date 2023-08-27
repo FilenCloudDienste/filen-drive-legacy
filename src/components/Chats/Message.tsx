@@ -1,9 +1,8 @@
 import { memo, useMemo, useState, useEffect } from "react"
 import { Flex, Avatar, Skeleton } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import { ChatMessage, BlockedContact } from "../../lib/api"
+import { ChatMessage, BlockedContact, ChatConversation } from "../../lib/api"
 import AppText from "../AppText"
-import striptags from "striptags"
 import { getRandomArbitrary, randomStringUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import {
@@ -13,7 +12,9 @@ import {
 	ReplaceMessageWithComponents,
 	extractLinksFromString,
 	getUserNameFromReplyTo,
-	ReplaceInlineMessageWithComponents
+	ReplaceInlineMessageWithComponents,
+	MENTION_REGEX,
+	isTimestampSameMinute
 } from "./utils"
 import { DisplayMessageAs } from "./Container"
 import Embed from "./Embed"
@@ -325,9 +326,10 @@ export interface ReplyToProps {
 	isMobile: boolean
 	message: ChatMessage
 	hideArrow: boolean
+	currentConversation: ChatConversation
 }
 
-export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow }: ReplyToProps) => {
+export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow, currentConversation }: ReplyToProps) => {
 	return (
 		<Flex
 			flexDirection="row"
@@ -378,12 +380,12 @@ export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow }: ReplyTo
 				as="span"
 				flexShrink={0}
 				cursor="pointer"
-				onClick={() => eventListener.emit("openChatUserModal", message.replyTo.senderId)}
+				onClick={() => eventListener.emit("openUserProfileModal", message.replyTo.senderId)}
 				_hover={{
 					textDecoration: "underline"
 				}}
 			>
-				{striptags(getUserNameFromReplyTo(message))}
+				{getUserNameFromReplyTo(message)}
 			</AppText>
 			<Flex
 				color={getColor(darkMode, "textSecondary")}
@@ -401,7 +403,8 @@ export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow }: ReplyTo
 			>
 				<ReplaceInlineMessageWithComponents
 					darkMode={darkMode}
-					content={striptags(message.replyTo.message).split("`").join("")}
+					content={message.replyTo.message}
+					participants={currentConversation.participants}
 				/>
 			</Flex>
 		</Flex>
@@ -414,9 +417,10 @@ export interface MessagTextProps {
 	darkMode: boolean
 	isMobile: boolean
 	lang: string
+	currentConversation: ChatConversation
 }
 
-export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, lang }: MessagTextProps) => {
+export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, lang, currentConversation }: MessagTextProps) => {
 	return (
 		<Flex
 			flexDirection="row"
@@ -437,6 +441,7 @@ export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, 
 				<ReplaceMessageWithComponents
 					content={message.message}
 					darkMode={darkMode}
+					participants={currentConversation.participants}
 				/>
 				{message.edited && (
 					<Flex
@@ -465,18 +470,30 @@ export interface MessageContentProps {
 	failedMessages: string[]
 	isBlocked: boolean
 	lang: string
+	currentConversation: ChatConversation
 }
 
 export const MessageContent = memo(
-	({ message, isMobile, darkMode, hovering, userId, isScrollingChat, failedMessages, isBlocked, lang }: MessageContentProps) => {
+	({
+		message,
+		isMobile,
+		darkMode,
+		hovering,
+		userId,
+		isScrollingChat,
+		failedMessages,
+		isBlocked,
+		lang,
+		currentConversation
+	}: MessageContentProps) => {
 		return (
 			<Flex
 				flexDirection="row"
 				wordBreak="break-all"
 				className="user-select-text"
 				userSelect="text"
-				paddingTop="3px"
-				paddingBottom="3px"
+				paddingTop="2px"
+				paddingBottom="2px"
 			>
 				{isBlocked ? (
 					<Flex
@@ -516,6 +533,7 @@ export const MessageContent = memo(
 									isScrollingChat={isScrollingChat}
 									failedMessages={failedMessages}
 									lang={lang}
+									currentConversation={currentConversation}
 								/>
 								{message.edited && isMessageLink(message.message) && (
 									<Flex
@@ -535,6 +553,7 @@ export const MessageContent = memo(
 								darkMode={darkMode}
 								isMobile={isMobile}
 								lang={lang}
+								currentConversation={currentConversation}
 							/>
 						)}
 					</>
@@ -563,6 +582,7 @@ export interface MessageProps {
 	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
 	editingMessageUUID: string
 	replyMessageUUID: string
+	currentConversation: ChatConversation
 }
 
 export const Message = memo(
@@ -584,7 +604,8 @@ export const Message = memo(
 		lastFocusTimestamp,
 		setLastFocusTimestamp,
 		editingMessageUUID,
-		replyMessageUUID
+		replyMessageUUID,
+		currentConversation
 	}: MessageProps) => {
 		const [hoveringMessage, setHoveringMessage] = useState<boolean>(false)
 
@@ -610,10 +631,7 @@ export const Message = memo(
 				return false
 			}
 
-			return (
-				prevMessage.senderId === message.senderId &&
-				Math.floor(prevMessage.sentTimestamp / 60000) === Math.floor(message.sentTimestamp / 60000)
-			)
+			return prevMessage.senderId === message.senderId && isTimestampSameMinute(message.sentTimestamp, prevMessage.sentTimestamp)
 		}, [message, prevMessage])
 
 		const groupWithNextMessage = useMemo(() => {
@@ -621,10 +639,7 @@ export const Message = memo(
 				return false
 			}
 
-			return (
-				nextMessage.senderId === message.senderId &&
-				Math.floor(nextMessage.sentTimestamp / 60000) === Math.floor(message.sentTimestamp / 60000)
-			)
+			return nextMessage.senderId === message.senderId && isTimestampSameMinute(message.sentTimestamp, nextMessage.sentTimestamp)
 		}, [message, nextMessage])
 
 		const dontGroupWithNextMessage = useMemo(() => {
@@ -632,10 +647,7 @@ export const Message = memo(
 				return true
 			}
 
-			return (
-				nextMessage.senderId !== message.senderId ||
-				Math.floor(nextMessage.sentTimestamp / 60000) !== Math.floor(message.sentTimestamp / 60000)
-			)
+			return nextMessage.senderId !== message.senderId || !isTimestampSameMinute(message.sentTimestamp, nextMessage.sentTimestamp)
 		}, [message, nextMessage])
 
 		const prevMessageSameDay = useMemo(() => {
@@ -646,12 +658,50 @@ export const Message = memo(
 			return isTimestampSameDay(prevMessage.sentTimestamp, message.sentTimestamp)
 		}, [prevMessage, message])
 
+		const mentioningMe = useMemo(() => {
+			const matches = message.message.match(MENTION_REGEX)
+
+			if (!matches || matches.length === 0) {
+				return false
+			}
+
+			const userEmail = currentConversation.participants.filter(p => p.userId === userId)
+
+			if (userEmail.length === 0) {
+				return false
+			}
+
+			return (
+				matches.filter(match => {
+					const email = match.trim().slice(1)
+
+					if (email === "everyone") {
+						return true
+					}
+
+					if (email.startsWith("@") || email.endsWith("@")) {
+						return false
+					}
+
+					return userEmail[0].email === email
+				}).length > 0
+			)
+		}, [message, userId, currentConversation])
+
+		const isNewMessage = useMemo(() => {
+			return (
+				lastFocusTimestamp &&
+				typeof lastFocusTimestamp[message.conversation] === "number" &&
+				message.sentTimestamp > lastFocusTimestamp[message.conversation] &&
+				message.senderId !== userId
+			)
+		}, [message, lastFocusTimestamp, userId])
+
 		if (groupWithPrevMessage) {
 			return (
 				<Flex
 					flexDirection="column"
-					paddingTop="3px"
-					paddingBottom={!nextMessage ? "15px" : "3px"}
+					paddingBottom={!nextMessage ? "15px" : undefined}
 				>
 					<Flex
 						onContextMenu={e => {
@@ -679,15 +729,30 @@ export const Message = memo(
 							flexDirection="column"
 							paddingLeft="25px"
 							paddingRight="15px"
+							paddingBottom="3px"
 							backgroundColor={
-								message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
-									? "rgba(255, 255, 0, 0.04)"
+								(message.replyTo.uuid.length > 0 &&
+									message.replyTo.message.length > 0 &&
+									message.replyTo.senderId === userId) ||
+								mentioningMe
+									? darkMode
+										? "rgba(255, 255, 0, 0.04)"
+										: "rgba(255, 255, 0, 0.2)"
+									: isNewMessage
+									? darkMode
+										? "rgba(255, 255, 255, 0.02)"
+										: "rgba(1, 1, 1, 0.04)"
 									: undefined
 							}
 							borderLeft={
-								message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+								(message.replyTo.uuid.length > 0 &&
+									message.replyTo.message.length > 0 &&
+									message.replyTo.senderId === userId) ||
+								mentioningMe
 									? "3px solid " + getColor(darkMode, "yellow")
-									: undefined
+									: isNewMessage
+									? "3px solid " + getColor(darkMode, "red")
+									: "3px solid transparent"
 							}
 						>
 							{message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && (
@@ -696,6 +761,7 @@ export const Message = memo(
 									isMobile={isMobile}
 									message={message}
 									hideArrow={true}
+									currentConversation={currentConversation}
 								/>
 							)}
 							<Flex flexDirection="row">
@@ -728,6 +794,7 @@ export const Message = memo(
 										isScrollingChat={isScrollingChat}
 										isBlocked={isBlocked}
 										lang={lang}
+										currentConversation={currentConversation}
 									/>
 								</Flex>
 							</Flex>
@@ -755,11 +822,7 @@ export const Message = memo(
 					typeof lastFocusTimestamp[message.conversation] === "number" &&
 					message.sentTimestamp > lastFocusTimestamp[message.conversation] &&
 					message.senderId !== userId &&
-					!(
-						prevMessage &&
-						prevMessage.sentTimestamp > lastFocusTimestamp[message.conversation] &&
-						prevMessage.senderId !== userId
-					) && (
+					!(prevMessage && prevMessage.sentTimestamp > lastFocusTimestamp[message.conversation]) && (
 						<NewDivider
 							darkMode={darkMode}
 							isMobile={isMobile}
@@ -825,14 +888,28 @@ export const Message = memo(
 						className="user-select-text"
 						userSelect="text"
 						backgroundColor={
-							message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
-								? "rgba(255, 255, 0, 0.04)"
+							(message.replyTo.uuid.length > 0 &&
+								message.replyTo.message.length > 0 &&
+								message.replyTo.senderId === userId) ||
+							mentioningMe
+								? darkMode
+									? "rgba(255, 255, 0, 0.04)"
+									: "rgba(255, 255, 0, 0.2)"
+								: isNewMessage
+								? darkMode
+									? "rgba(255, 255, 255, 0.02)"
+									: "rgba(1, 1, 1, 0.04)"
 								: undefined
 						}
 						borderLeft={
-							message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && message.replyTo.senderId === userId
+							(message.replyTo.uuid.length > 0 &&
+								message.replyTo.message.length > 0 &&
+								message.replyTo.senderId === userId) ||
+							mentioningMe
 								? "3px solid " + getColor(darkMode, "yellow")
-								: undefined
+								: isNewMessage
+								? "3px solid " + getColor(darkMode, "red")
+								: "3px solid transparent"
 						}
 					>
 						{message.replyTo.uuid.length > 0 && message.replyTo.message.length > 0 && (
@@ -841,6 +918,7 @@ export const Message = memo(
 								isMobile={isMobile}
 								message={message}
 								hideArrow={false}
+								currentConversation={currentConversation}
 							/>
 						)}
 						<Flex flexDirection="row">
@@ -887,12 +965,12 @@ export const Message = memo(
 										userSelect="text"
 										as="span"
 										cursor="pointer"
-										onClick={() => eventListener.emit("openChatUserModal", message.senderId)}
+										onClick={() => eventListener.emit("openUserProfileModal", message.senderId)}
 										_hover={{
 											textDecoration: "underline"
 										}}
 									>
-										{striptags(getUserNameFromMessage(message))}
+										{getUserNameFromMessage(message)}
 									</AppText>
 									{!isMobile && (
 										<MessageDate
@@ -912,6 +990,7 @@ export const Message = memo(
 									isScrollingChat={isScrollingChat}
 									isBlocked={isBlocked}
 									lang={lang}
+									currentConversation={currentConversation}
 								/>
 							</Flex>
 						</Flex>

@@ -23,9 +23,18 @@ export const EditConversationNameModal = memo(() => {
 	const openRef = useRef<boolean>(false)
 	const conversationRef = useRef<ChatConversation | undefined>(undefined)
 	const [name, setName] = useState<string>("")
+	const nameRef = useRef<string>(name)
 
 	const edit = useCallback(async () => {
-		if (!conversationRef.current || editing || name.length >= 512) {
+		const newName = nameRef.current.trim()
+
+		if (!conversationRef.current || newName.length >= 512) {
+			return
+		}
+
+		if (newName === conversationRef.current.name) {
+			setOpen(false)
+
 			return
 		}
 
@@ -39,7 +48,7 @@ export const EditConversationNameModal = memo(() => {
 		}
 
 		const keyDecrypted = await decryptChatMessageKey(metadata[0].metadata, privateKey)
-		const nameEncrypted = await encryptChatConversationName(name.trim(), keyDecrypted)
+		const nameEncrypted = await encryptChatConversationName(newName, keyDecrypted)
 
 		const [editErr] = await safeAwait(chatConversationNameEdit(conversationRef.current.uuid, nameEncrypted))
 
@@ -55,12 +64,12 @@ export const EditConversationNameModal = memo(() => {
 
 		eventListener.emit("chatConversationNameEdited", {
 			uuid: conversationRef.current.uuid,
-			name: name.trim()
+			name: newName
 		})
 
 		setEditing(false)
 		setOpen(false)
-	}, [editing, name])
+	}, [])
 
 	const windowKeyDownListener = useCallback((e: KeyboardEvent) => {
 		if (openRef.current && e.which === 13) {
@@ -70,7 +79,8 @@ export const EditConversationNameModal = memo(() => {
 
 	useEffect(() => {
 		openRef.current = open
-	}, [open])
+		nameRef.current = name
+	}, [open, name])
 
 	useEffect(() => {
 		window.addEventListener("keydown", windowKeyDownListener)
@@ -79,8 +89,9 @@ export const EditConversationNameModal = memo(() => {
 			"openChatConversationEditNameModal",
 			(convo: ChatConversation) => {
 				setOpen(true)
-				setName("")
+				setName(convo.name || "")
 
+				nameRef.current = convo.name || ""
 				conversationRef.current = convo
 			}
 		)

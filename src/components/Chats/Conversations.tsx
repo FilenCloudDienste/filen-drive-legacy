@@ -355,7 +355,7 @@ export const Conversations = memo(
 			if (conversationsSorted.length > 0) {
 				db.set("chatConversations", conversationsSorted, "chats").catch(console.error)
 			}
-		}, [conversationsSorted])
+		}, [JSON.stringify(conversationsSorted)])
 
 		useEffect(() => {
 			userIdRef.current = userId
@@ -429,9 +429,7 @@ export const Conversations = memo(
 						)
 					}
 				} else if (event.type === "chatMessageDelete") {
-					if (conversationsRef.current.filter(c => c.lastMessageUUID === event.data.uuid).length > 0) {
-						fetchConversations(true)
-					}
+					fetchConversations(true)
 				} else if (event.type === "chatConversationNameEdited") {
 					if (event.data.name.length === 0) {
 						setConversations(prev =>
@@ -465,6 +463,17 @@ export const Conversations = memo(
 						const nameDecrypted = await decryptChatConversationName(event.data.name, metadata[0].metadata, privateKey)
 
 						if (nameDecrypted.length === 0) {
+							setConversations(prev =>
+								prev.map(conversation =>
+									conversation.uuid === event.data.uuid
+										? {
+												...conversation,
+												name: ""
+										  }
+										: conversation
+								)
+							)
+
 							return
 						}
 

@@ -49,6 +49,9 @@ const ContextMenus = memo(({ setContacts }: { setContacts: React.Dispatch<React.
 			>
 				{selectedContact && (
 					<>
+						<ContextMenuItem onClick={() => eventListener.emit("openUserProfileModal", selectedContact.userId)}>
+							{i18n(lang, "profile")}
+						</ContextMenuItem>
 						<ContextMenuItem onClick={() => eventListener.emit("openContactsRemoveModal", selectedContact)}>
 							{i18n(lang, "removeUser")}
 						</ContextMenuItem>

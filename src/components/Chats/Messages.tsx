@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useCallback, useEffect } from "react"
 import { Flex } from "@chakra-ui/react"
-import { ChatMessage, chatConversationsRead, contactsBlocked, BlockedContact } from "../../lib/api"
+import { ChatMessage, chatConversationsRead, contactsBlocked, BlockedContact, ChatConversation } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import Message, { MessageSkeleton, ChatInfo } from "./Message"
 import { DisplayMessageAs } from "./Container"
@@ -8,9 +8,7 @@ import { Virtuoso, VirtuosoHandle, ListItem } from "react-virtuoso"
 import eventListener from "../../lib/eventListener"
 import { useLocation } from "react-router-dom"
 import { BIG_NUMBER } from "./Container"
-import { SocketEvent } from "../../lib/services/socket"
 import { getCurrentParent, Semaphore, safeAwait } from "../../lib/helpers"
-import { useLocalStorage } from "react-use"
 import useWindowFocus from "use-window-focus"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 
@@ -48,6 +46,7 @@ export interface MessagesProps {
 	replyMessageUUID: string
 	lastFocusTimestamp: Record<string, number> | undefined
 	setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
+	currentConversation: ChatConversation
 }
 
 export const Messages = memo(
@@ -72,7 +71,8 @@ export const Messages = memo(
 		editingMessageUUID,
 		replyMessageUUID,
 		lastFocusTimestamp,
-		setLastFocusTimestamp
+		setLastFocusTimestamp,
+		currentConversation
 	}: MessagesProps) => {
 		const [userId] = useDb("userId", 0)
 		const [isScrollingChat, setIsScrollingChat] = useState<boolean>(false)
@@ -92,15 +92,12 @@ export const Messages = memo(
 		const messagesRef = useRef<ChatMessage[]>(messages)
 		const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
 		const mountedRef = useRef<boolean>(false)
-		const lastFocusTimestampTimerRef = useRef<ReturnType<typeof setTimeout>>()
 		const windowHeight = useWindowHeight()
 
 		const getItemKey = useCallback((_: number, message: ChatMessage) => JSON.stringify(message), [])
 
 		const onScroll = useCallback((scrolling: boolean) => {
 			clearTimeout(isScrollingChatTimeout.current)
-
-			isScrollingChatRef.current = scrolling
 
 			if (!scrolling) {
 				isScrollingChatTimeout.current = setTimeout(() => {
@@ -133,8 +130,6 @@ export const Messages = memo(
 
 		const atBottomStateChange = useCallback((bottom: boolean) => {
 			setAtBottom(bottom)
-
-			atBottomRef.current = bottom
 		}, [])
 
 		const atTopStateChange = useCallback(
@@ -149,7 +144,7 @@ export const Messages = memo(
 		const itemsRendered = useCallback(
 			(items: ListItem<ChatMessage>[]) => {
 				if (items.length > 0 && messages.length > 0) {
-					eventListener.emit("showChatScrollDownBtn", messages.length - (items[items.length - 1].originalIndex || 0) > 100)
+					eventListener.emit("showChatScrollDownBtn", messages.length - (items[items.length - 1].originalIndex || 0) > 50)
 				}
 			},
 			[messages]
@@ -185,6 +180,7 @@ export const Messages = memo(
 							setLastFocusTimestamp={setLastFocusTimestamp}
 							editingMessageUUID={editingMessageUUID}
 							replyMessageUUID={replyMessageUUID}
+							currentConversation={currentConversation}
 						/>
 					</div>
 				)
@@ -203,9 +199,9 @@ export const Messages = memo(
 				contextMenuOpen,
 				blockedContacts,
 				lastFocusTimestamp,
-				setLastFocusTimestamp,
 				editingMessageUUID,
-				replyMessageUUID
+				replyMessageUUID,
+				currentConversation
 			]
 		)
 
@@ -236,23 +232,6 @@ export const Messages = memo(
 			}
 		}, [])
 
-		const onFocus = useCallback(() => {
-			return
-
-			clearTimeout(lastFocusTimestampTimerRef.current)
-
-			lastFocusTimestampTimerRef.current = setTimeout(() => {
-				setLastFocusTimestamp(prev => ({
-					...prev,
-					[conversationUUID]: Date.now()
-				}))
-			}, 30000)
-		}, [conversationUUID])
-
-		useEffect(() => {
-			clearTimeout(lastFocusTimestampTimerRef.current)
-		}, [(lastFocusTimestamp || {})[conversationUUID]])
-
 		useEffect(() => {
 			;(async () => {
 				await markNotificationsAsReadMutex.acquire()
@@ -278,10 +257,8 @@ export const Messages = memo(
 
 		useEffect(() => {
 			clearTimeout(initalLoadDoneTimer.current)
-			clearTimeout(lastFocusTimestampTimerRef.current)
 
 			setAtBottom(true)
-			onFocus()
 
 			eventListener.emit("showChatScrollDownBtn", false)
 
@@ -300,13 +277,7 @@ export const Messages = memo(
 			}, 250)
 
 			return () => {
-				clearTimeout(lastFocusTimestampTimerRef.current)
 				clearTimeout(initalLoadDoneTimer.current)
-
-				setLastFocusTimestamp(prev => ({
-					...prev,
-					[conversationUUID]: Date.now()
-				}))
 			}
 		}, [location.hash, conversationUUID, messages[0]?.conversation])
 
@@ -327,53 +298,6 @@ export const Messages = memo(
 		}, [atBottom, messages])
 
 		useEffect(() => {
-			atBottomRef.current = atBottom
-			isFocusedRef.current = isFocused
-			userIdRef.current = userId
-			messagesRef.current = messages
-		}, [atBottom, isFocused, userId, messages])
-
-		useEffect(() => {
-			if (!lastFocusTimestamp || typeof lastFocusTimestamp[conversationUUID] !== "number") {
-				setLastFocusTimestamp(prev => ({
-					...prev,
-					[conversationUUID]: Date.now()
-				}))
-			}
-
-			window.addEventListener("focus", onFocus)
-
-			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
-				if (
-					event.type === "chatMessageNew" &&
-					event.data.senderId === userIdRef.current &&
-					event.data.conversation === conversationUUID
-				) {
-					setLastFocusTimestamp(prev => ({
-						...prev,
-						[conversationUUID]: Date.now()
-					}))
-				}
-
-				if (event.type === "chatMessageNew" && event.data.senderId !== userIdRef.current) {
-					if (getCurrentParent(window.location.href) !== event.data.conversation) {
-						setUnreadConversationsMessages(prev => ({
-							...prev,
-							[event.data.conversation]:
-								typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
-						}))
-					} else {
-						if (!atBottomRef.current || !isFocusedRef.current) {
-							setUnreadConversationsMessages(prev => ({
-								...prev,
-								[event.data.conversation]:
-									typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
-							}))
-						}
-					}
-				}
-			})
-
 			const scrollChatToBottomListener = eventListener.on("scrollChatToBottom", (behavior?: any | undefined) => {
 				if (virtuosoRef.current) {
 					virtuosoRef.current.scrollTo({
@@ -384,21 +308,16 @@ export const Messages = memo(
 			})
 
 			const chatMessageSentListener = eventListener.on("chatMessageSent", (sentMessage: ChatMessage) => {
-				if (sentMessage.conversation === conversationUUID && sentMessage.senderId === userIdRef.current) {
+				if (sentMessage.conversation === getCurrentParent(window.location.href) && sentMessage.senderId === userIdRef.current) {
 					setLastFocusTimestamp(prev => ({
 						...prev,
-						[conversationUUID]: Date.now()
+						[sentMessage.conversation]: Date.now()
 					}))
 				}
 			})
 
 			return () => {
-				clearTimeout(lastFocusTimestampTimerRef.current)
-
-				window.removeEventListener("focus", onFocus)
-
 				scrollChatToBottomListener.remove()
-				socketEventListener.remove()
 				chatMessageSentListener.remove()
 			}
 		}, [])
@@ -420,6 +339,14 @@ export const Messages = memo(
 				contactBlockedListener.remove()
 			}
 		}, [])
+
+		useEffect(() => {
+			atBottomRef.current = atBottom
+			isFocusedRef.current = isFocused
+			userIdRef.current = userId
+			messagesRef.current = messages
+			isScrollingChatRef.current = isScrollingChat
+		}, [atBottom, isFocused, userId, messages, isScrollingChat])
 
 		if (loading) {
 			return (

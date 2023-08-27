@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useRef, useEffect, Fragment } from "react"
 import { Image, Flex, Link, Spinner, Skeleton } from "@chakra-ui/react"
-import { ChatMessage, messageEmbedDisable } from "../../lib/api"
+import { ChatMessage, messageEmbedDisable, ChatConversation } from "../../lib/api"
 import { getRandomArbitrary, randomStringUnsafe, safeAwait, Semaphore, SemaphoreProps } from "../../lib/helpers"
 import { parseFilenPublicLink, extractLinksFromString, getMessageDisplayType, isMessageLink } from "./utils"
 import { MessageDisplayType } from "./Container"
@@ -564,312 +564,316 @@ export interface EmbedProps {
 	isScrollingChat: boolean
 	failedMessages: string[]
 	lang: string
+	currentConversation: ChatConversation
 }
 
-export const Embed = memo(({ isMobile, message, darkMode, userId, hoveringMessage, isScrollingChat, failedMessages, lang }: EmbedProps) => {
-	const links = useRef<string[]>(extractLinksFromString(message.message)).current
-	const initialDisplayAs = useRef<Record<string, MessageDisplayType>>(
-		links.reduce((obj, link) => ({ ...obj, [link]: getMessageDisplayType(link) }), {})
-	).current
-	const [ogData, setOGData] = useState<Record<string, Record<string, string>>>({})
-	const [displayAs, setDisplayAs] = useState<Record<string, MessageDisplayType>>(initialDisplayAs)
-	const didGetHeaders = useRef<Record<string, boolean>>({})
-	const didFetchInfo = useRef<boolean>(false)
+export const Embed = memo(
+	({ isMobile, message, darkMode, userId, hoveringMessage, isScrollingChat, failedMessages, lang, currentConversation }: EmbedProps) => {
+		const links = useRef<string[]>(extractLinksFromString(message.message)).current
+		const initialDisplayAs = useRef<Record<string, MessageDisplayType>>(
+			links.reduce((obj, link) => ({ ...obj, [link]: getMessageDisplayType(link) }), {})
+		).current
+		const [ogData, setOGData] = useState<Record<string, Record<string, string>>>({})
+		const [displayAs, setDisplayAs] = useState<Record<string, MessageDisplayType>>(initialDisplayAs)
+		const didGetHeaders = useRef<Record<string, boolean>>({})
+		const didFetchInfo = useRef<boolean>(false)
 
-	useEffect(() => {
-		if (!didFetchInfo.current) {
-			didFetchInfo.current = true
+		useEffect(() => {
+			if (!didFetchInfo.current) {
+				didFetchInfo.current = true
 
-			for (const link of links) {
-				if (
-					["async", "invalid", "ogEmbed"].includes(initialDisplayAs[link]) &&
-					!message.embedDisabled &&
-					!didGetHeaders.current[link]
-				) {
-					didGetHeaders.current[link] = true
+				for (const link of links) {
+					if (
+						["async", "invalid", "ogEmbed"].includes(initialDisplayAs[link]) &&
+						!message.embedDisabled &&
+						!didGetHeaders.current[link]
+					) {
+						didGetHeaders.current[link] = true
 
-					const mutexKey = message.uuid + ":" + link
+						const mutexKey = message.uuid + ":" + link
 
-					;(async () => {
-						if (!corsMutex[mutexKey]) {
-							corsMutex[mutexKey] = new Semaphore(1)
-						}
-
-						await corsMutex[mutexKey].acquire()
-
-						try {
-							const headers = await corsHead(link)
-
-							if (typeof headers["content-type"] !== "string") {
-								corsMutex[mutexKey].release()
-
-								return
+						;(async () => {
+							if (!corsMutex[mutexKey]) {
+								corsMutex[mutexKey] = new Semaphore(1)
 							}
 
-							const contentType = headers["content-type"].split(";")[0].trim()
+							await corsMutex[mutexKey].acquire()
 
-							if (EMBED_CONTENT_TYPES_IMAGES.includes(contentType)) {
-								corsMutex[mutexKey].release()
+							try {
+								const headers = await corsHead(link)
 
-								setDisplayAs(prev => ({ ...prev, [link]: "image" }))
+								if (typeof headers["content-type"] !== "string") {
+									corsMutex[mutexKey].release()
 
-								return
-							}
+									return
+								}
 
-							if (contentType === "text/html") {
-								const og = await parseOGFromURL(link)
+								const contentType = headers["content-type"].split(";")[0].trim()
 
-								corsMutex[mutexKey].release()
+								if (EMBED_CONTENT_TYPES_IMAGES.includes(contentType)) {
+									corsMutex[mutexKey].release()
 
-								setOGData(prev => ({ ...prev, [link]: og }))
-								setDisplayAs(prev => ({ ...prev, [link]: "ogEmbed" }))
+									setDisplayAs(prev => ({ ...prev, [link]: "image" }))
 
-								return
-							}
-						} catch {}
+									return
+								}
 
-						corsMutex[mutexKey].release()
+								if (contentType === "text/html") {
+									const og = await parseOGFromURL(link)
 
-						setDisplayAs(prev => ({ ...prev, [link]: "invalid" }))
-					})()
+									corsMutex[mutexKey].release()
+
+									setOGData(prev => ({ ...prev, [link]: og }))
+									setDisplayAs(prev => ({ ...prev, [link]: "ogEmbed" }))
+
+									return
+								}
+							} catch {}
+
+							corsMutex[mutexKey].release()
+
+							setDisplayAs(prev => ({ ...prev, [link]: "invalid" }))
+						})()
+					}
 				}
 			}
-		}
-	}, [message, initialDisplayAs])
+		}, [message, initialDisplayAs])
 
-	return (
-		<Flex flexDirection="column">
-			{!isMessageLink(message.message) && (
-				<MessageText
-					message={message}
-					failedMessages={failedMessages}
-					darkMode={darkMode}
-					isMobile={isMobile}
-					lang={lang}
-				/>
-			)}
-			{Object.keys(displayAs).map((link, index) => {
-				return (
-					<Fragment key={link}>
-						{displayAs[link] === "ogEmbed" && (
-							<Flex
-								flexDirection="row"
-								gap="2px"
-							>
-								<OGEmbedContainer
-									darkMode={darkMode}
-									isMobile={isMobile}
-									state="ogEmbed"
-									link={link}
-									ogData={ogData[link]}
-									failedMessages={failedMessages}
-									message={message}
-								/>
-								{index === 0 && (
-									<DisableEmbed
-										darkMode={darkMode}
-										message={message}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										hoveringMessage={hoveringMessage}
-										failedMessages={failedMessages}
-									/>
-								)}
-							</Flex>
-						)}
-						{displayAs[link] === "invalid" && (
-							<Flex
-								flexDirection="row"
-								gap="2px"
-							>
-								<OGEmbedContainer
-									darkMode={darkMode}
-									isMobile={isMobile}
-									state="invalid"
-									link={link}
-									ogData={ogData[link]}
-									failedMessages={failedMessages}
-									message={message}
-								/>
-								{index === 0 && (
-									<DisableEmbed
-										darkMode={darkMode}
-										message={message}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										hoveringMessage={hoveringMessage}
-										failedMessages={failedMessages}
-									/>
-								)}
-							</Flex>
-						)}
-						{displayAs[link] === "async" && (
-							<Flex
-								flexDirection="row"
-								gap="2px"
-							>
-								<OGEmbedContainer
-									darkMode={darkMode}
-									isMobile={isMobile}
-									state="async"
-									link={link}
-									ogData={ogData[link]}
-									failedMessages={failedMessages}
-									message={message}
-								/>
-								{index === 0 && (
-									<DisableEmbed
-										darkMode={darkMode}
-										message={message}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										hoveringMessage={hoveringMessage}
-										failedMessages={failedMessages}
-									/>
-								)}
-							</Flex>
-						)}
-						{displayAs[link] === "image" && (
-							<Flex
-								flexDirection="row"
-								gap="2px"
-							>
-								<EmbedContainer
-									darkMode={darkMode}
-									isMobile={isMobile}
-									title="Image"
-									link={link}
-									borderColor={getColor(darkMode, "blue")}
-									height={250}
-									width={500}
-									linkAsTitle={true}
-									failedMessages={failedMessages}
-									message={message}
+		return (
+			<Flex flexDirection="column">
+				{!isMessageLink(message.message) && (
+					<MessageText
+						message={message}
+						failedMessages={failedMessages}
+						darkMode={darkMode}
+						isMobile={isMobile}
+						lang={lang}
+						currentConversation={currentConversation}
+					/>
+				)}
+				{Object.keys(displayAs).map((link, index) => {
+					return (
+						<Fragment key={link}>
+							{displayAs[link] === "ogEmbed" && (
+								<Flex
+									flexDirection="row"
+									gap="2px"
 								>
-									<Flex
-										flexDirection="column"
-										justifyContent="center"
-										alignItems="center"
-										onClick={() => eventListener.emit("openChatPreviewModal", { type: "image", message: link })}
-										cursor="pointer"
-										backgroundColor={getColor(darkMode, "backgroundSecondary")}
-										borderRadius="5px"
-										height="200px"
-										padding="10px"
+									<OGEmbedContainer
+										darkMode={darkMode}
+										isMobile={isMobile}
+										state="ogEmbed"
+										link={link}
+										ogData={ogData[link]}
+										failedMessages={failedMessages}
+										message={message}
+									/>
+									{index === 0 && (
+										<DisableEmbed
+											darkMode={darkMode}
+											message={message}
+											userId={userId}
+											isScrollingChat={isScrollingChat}
+											hoveringMessage={hoveringMessage}
+											failedMessages={failedMessages}
+										/>
+									)}
+								</Flex>
+							)}
+							{displayAs[link] === "invalid" && (
+								<Flex
+									flexDirection="row"
+									gap="2px"
+								>
+									<OGEmbedContainer
+										darkMode={darkMode}
+										isMobile={isMobile}
+										state="invalid"
+										link={link}
+										ogData={ogData[link]}
+										failedMessages={failedMessages}
+										message={message}
+									/>
+									{index === 0 && (
+										<DisableEmbed
+											darkMode={darkMode}
+											message={message}
+											userId={userId}
+											isScrollingChat={isScrollingChat}
+											hoveringMessage={hoveringMessage}
+											failedMessages={failedMessages}
+										/>
+									)}
+								</Flex>
+							)}
+							{displayAs[link] === "async" && (
+								<Flex
+									flexDirection="row"
+									gap="2px"
+								>
+									<OGEmbedContainer
+										darkMode={darkMode}
+										isMobile={isMobile}
+										state="async"
+										link={link}
+										ogData={ogData[link]}
+										failedMessages={failedMessages}
+										message={message}
+									/>
+									{index === 0 && (
+										<DisableEmbed
+											darkMode={darkMode}
+											message={message}
+											userId={userId}
+											isScrollingChat={isScrollingChat}
+											hoveringMessage={hoveringMessage}
+											failedMessages={failedMessages}
+										/>
+									)}
+								</Flex>
+							)}
+							{displayAs[link] === "image" && (
+								<Flex
+									flexDirection="row"
+									gap="2px"
+								>
+									<EmbedContainer
+										darkMode={darkMode}
+										isMobile={isMobile}
+										title="Image"
+										link={link}
+										borderColor={getColor(darkMode, "blue")}
+										height={250}
+										width={500}
+										linkAsTitle={true}
+										failedMessages={failedMessages}
+										message={message}
 									>
-										<Image
-											src={API_V3_DOMAINS[0] + "/v3/cors?url=" + encodeURIComponent(link)}
-											maxHeight="200px"
-											fallback={
-												<Spinner
-													width="32px"
-													height="32px"
-													color={getColor(darkMode, "textPrimary")}
-												/>
-											}
-											onContextMenu={e => {
-												e.preventDefault()
-												e.stopPropagation()
-											}}
+										<Flex
+											flexDirection="column"
+											justifyContent="center"
+											alignItems="center"
+											onClick={() => eventListener.emit("openChatPreviewModal", { type: "image", message: link })}
+											cursor="pointer"
+											backgroundColor={getColor(darkMode, "backgroundSecondary")}
+											borderRadius="5px"
+											height="200px"
+											padding="10px"
+										>
+											<Image
+												src={API_V3_DOMAINS[0] + "/v3/cors?url=" + encodeURIComponent(link)}
+												maxHeight="200px"
+												fallback={
+													<Spinner
+														width="32px"
+														height="32px"
+														color={getColor(darkMode, "textPrimary")}
+													/>
+												}
+												onContextMenu={e => {
+													e.preventDefault()
+													e.stopPropagation()
+												}}
+											/>
+										</Flex>
+									</EmbedContainer>
+									{index === 0 && (
+										<DisableEmbed
+											darkMode={darkMode}
+											message={message}
+											userId={userId}
+											isScrollingChat={isScrollingChat}
+											hoveringMessage={hoveringMessage}
+											failedMessages={failedMessages}
 										/>
-									</Flex>
-								</EmbedContainer>
-								{index === 0 && (
-									<DisableEmbed
-										darkMode={darkMode}
-										message={message}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										hoveringMessage={hoveringMessage}
-										failedMessages={failedMessages}
-									/>
-								)}
-							</Flex>
-						)}
-						{displayAs[link] === "youtubeEmbed" && (
-							<YouTube
-								darkMode={darkMode}
-								isMobile={isMobile}
-								message={message}
-								failedMessages={failedMessages}
-								link={link}
-								index={index}
-								userId={userId}
-								isScrollingChat={isScrollingChat}
-								hoveringMessage={hoveringMessage}
-							/>
-						)}
-						{displayAs[link] === "twitterEmbed" && (
-							<Twitter
-								darkMode={darkMode}
-								isMobile={isMobile}
-								message={message}
-								failedMessages={failedMessages}
-								link={link}
-								index={index}
-								userId={userId}
-								isScrollingChat={isScrollingChat}
-								hoveringMessage={hoveringMessage}
-							/>
-						)}
-						{displayAs[link] === "filenEmbed" && (
-							<Flex
-								flexDirection="row"
-								gap="2px"
-							>
-								<EmbedContainer
+									)}
+								</Flex>
+							)}
+							{displayAs[link] === "youtubeEmbed" && (
+								<YouTube
 									darkMode={darkMode}
 									isMobile={isMobile}
-									title="Filen"
-									link={link}
-									borderColor={getColor(darkMode, "purple")}
-									failedMessages={failedMessages}
 									message={message}
+									failedMessages={failedMessages}
+									link={link}
+									index={index}
+									userId={userId}
+									isScrollingChat={isScrollingChat}
+									hoveringMessage={hoveringMessage}
+								/>
+							)}
+							{displayAs[link] === "twitterEmbed" && (
+								<Twitter
+									darkMode={darkMode}
+									isMobile={isMobile}
+									message={message}
+									failedMessages={failedMessages}
+									link={link}
+									index={index}
+									userId={userId}
+									isScrollingChat={isScrollingChat}
+									hoveringMessage={hoveringMessage}
+								/>
+							)}
+							{displayAs[link] === "filenEmbed" && (
+								<Flex
+									flexDirection="row"
+									gap="2px"
 								>
-									<Flex paddingTop="6px">
-										<iframe
-											width="100%"
-											height="300px"
-											loading="eager"
-											src={
-												(process.env.NODE_ENV === "development"
-													? "http://localhost:3003/d/"
-													: "https://" + window.location.host + "/d/") +
-												parseFilenPublicLink(link).uuid +
-												"?embed=true&theme=" +
-												(darkMode ? "dark" : "light") +
-												"&bgColor=" +
-												base64Encode(getColor(darkMode, "backgroundTertiary")) +
-												"#" +
-												parseFilenPublicLink(link).key
-											}
-											//sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-presentation"
-											title="Filen"
-											style={{
-												borderRadius: "10px",
-												overflow: "hidden",
-												border: "none"
-											}}
-										/>
-									</Flex>
-								</EmbedContainer>
-								{index === 0 && (
-									<DisableEmbed
+									<EmbedContainer
 										darkMode={darkMode}
-										message={message}
-										userId={userId}
-										isScrollingChat={isScrollingChat}
-										hoveringMessage={hoveringMessage}
+										isMobile={isMobile}
+										title="Filen"
+										link={link}
+										borderColor={getColor(darkMode, "purple")}
 										failedMessages={failedMessages}
-									/>
-								)}
-							</Flex>
-						)}
-					</Fragment>
-				)
-			})}
-		</Flex>
-	)
-})
+										message={message}
+									>
+										<Flex paddingTop="6px">
+											<iframe
+												width="100%"
+												height="300px"
+												loading="eager"
+												src={
+													(process.env.NODE_ENV === "development"
+														? "http://localhost:3003/d/"
+														: "https://" + window.location.host + "/d/") +
+													parseFilenPublicLink(link).uuid +
+													"?embed=true&theme=" +
+													(darkMode ? "dark" : "light") +
+													"&bgColor=" +
+													base64Encode(getColor(darkMode, "backgroundTertiary")) +
+													"#" +
+													parseFilenPublicLink(link).key
+												}
+												//sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-presentation"
+												title="Filen"
+												style={{
+													borderRadius: "10px",
+													overflow: "hidden",
+													border: "none"
+												}}
+											/>
+										</Flex>
+									</EmbedContainer>
+									{index === 0 && (
+										<DisableEmbed
+											darkMode={darkMode}
+											message={message}
+											userId={userId}
+											isScrollingChat={isScrollingChat}
+											hoveringMessage={hoveringMessage}
+											failedMessages={failedMessages}
+										/>
+									)}
+								</Flex>
+							)}
+						</Fragment>
+					)
+				})}
+			</Flex>
+		)
+	}
+)
 
 export default Embed

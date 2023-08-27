@@ -2,12 +2,12 @@ import { memo, useMemo, useState, useEffect, useRef, useCallback } from "react"
 import Conversations from "./Conversations"
 import ChatContainer from "./Container"
 import { Flex, Button } from "@chakra-ui/react"
-import { ChatConversation } from "../../lib/api"
+import { ChatConversation, getChatLastFocus } from "../../lib/api"
 import useDb from "../../lib/hooks/useDb"
 import MemberList from "./MemberList"
 import { useLocation } from "react-router-dom"
 import { validate } from "uuid"
-import { getCurrentParent } from "../../lib/helpers"
+import { getCurrentParent, safeAwait } from "../../lib/helpers"
 import AddModal from "./AddModal"
 import DeleteMessageModal from "./DeleteMessageModal"
 import PreviewModal from "./PreviewModal"
@@ -49,7 +49,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 	const location = useLocation()
 	const [contextMenuOpen, setContextMenuOpen] = useState<string>("")
 	const [emojiInitDone, setEmojiInitDone] = useState<boolean>(false)
-	const didInitEmojis = useRef<boolean>(false)
+	const didInit = useRef<boolean>(false)
 	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
 
 	const sizes: ChatSizes = useMemo(() => {
@@ -96,8 +96,8 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 	}, [])
 
 	useEffect(() => {
-		if (!didInitEmojis.current) {
-			didInitEmojis.current = true
+		if (!didInit.current) {
+			didInit.current = true
 
 			init({
 				data,

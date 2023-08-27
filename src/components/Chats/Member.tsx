@@ -96,10 +96,6 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 	const [hovering, setHovering] = useState<boolean>(false)
 	const [hoveringDelete, setHoveringDelete] = useState<boolean>(false)
 
-	const showUserModal = useCallback(() => {
-		console.log("show user modal", user)
-	}, [user])
-
 	if (!currentConversation || !currentConversationMe) {
 		return null
 	}
@@ -125,6 +121,7 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 					backgroundColor: getColor(darkMode, "backgroundSecondary")
 				}}
 				justifyContent="space-between"
+				onClick={() => eventListener.emit("openUserProfileModal", user.userId)}
 			>
 				<Flex
 					alignItems="center"
@@ -138,7 +135,6 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 						height="30px"
 						borderRadius="full"
 						border="none"
-						onClick={() => showUserModal()}
 					>
 						<AvatarBadge
 							boxSize="12px"
@@ -162,7 +158,6 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 						color={getColor(darkMode, "textSecondary")}
 						marginLeft="10px"
 						fontSize={15}
-						onClick={() => eventListener.emit("openChatUserModal", user.userId)}
 					>
 						{striptags(getUserNameFromParticipant(user))}
 					</AppText>

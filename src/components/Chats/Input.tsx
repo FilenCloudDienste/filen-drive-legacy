@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useRef, useEffect, Suspense, lazy } from "react"
-import { Flex, Menu, MenuButton, MenuList, forwardRef, MenuItem } from "@chakra-ui/react"
+import { Flex, Menu, MenuButton, MenuList, forwardRef, MenuItem, Avatar } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { i18n } from "../../i18n"
 import {
@@ -15,7 +15,7 @@ import {
 import db from "../../lib/db"
 import { v4 as uuidv4 } from "uuid"
 import { encryptChatMessage, decryptChatMessageKey } from "../../lib/worker/worker.com"
-import { safeAwait, getCurrentParent, findClosestIndex } from "../../lib/helpers"
+import { safeAwait, getCurrentParent, findClosestIndex, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
 import { AiOutlineSmile, AiFillPlusCircle, AiOutlineCaretDown, AiFillCloseCircle } from "react-icons/ai"
@@ -34,7 +34,7 @@ import { show as showToast, dismiss as dismissToast } from "../Toast/Toast"
 import throttle from "lodash/throttle"
 import { selectFromCloud } from "../SelectFromCloud/SelectFromCloud"
 import useDb from "../../lib/hooks/useDb"
-import { getUserNameFromMessage } from "./utils"
+import { getUserNameFromMessage, getUserNameFromParticipant } from "./utils"
 import InputTyping, { TYPING_TIMEOUT } from "./InputTyping"
 import { validate } from "uuid"
 
@@ -97,6 +97,10 @@ export const Input = memo(
 		const [userId] = useDb("userId", 0)
 		const [showScrollDownBtn, setShowScrollDownBtn] = useState<boolean>(false)
 		const [replyToMessage, setReplyToMessage] = useState<ChatMessage | undefined>(undefined)
+		const [mentionMode, setMentionMode] = useState<boolean>(false)
+		const [mentionPosition, setMentionPosition] = useState<number>(0)
+		const [mentionSearch, setMentionSearch] = useState<ChatConversationParticipant[]>([])
+		const mentionModeRef = useRef<boolean>(false)
 
 		const selectItemsFromCloud = useCallback(async () => {
 			const items = await selectFromCloud()
@@ -214,6 +218,8 @@ export const Input = memo(
 
 				Transforms.insertText(editor, newText)
 				Transforms.select(editor, Editor.end(editor, []))
+
+				focusEditor()
 			},
 			[editor]
 		)
@@ -232,6 +238,8 @@ export const Input = memo(
 
 				Transforms.insertText(editor, newText)
 				Transforms.select(editor, Editor.end(editor, []))
+
+				focusEditor()
 			},
 			[editor]
 		)
@@ -246,6 +254,8 @@ export const Input = memo(
 
 				Transforms.insertText(editor, text)
 				Transforms.select(editor, Editor.end(editor, []))
+
+				focusEditor()
 			},
 			[editor]
 		)
@@ -263,8 +273,54 @@ export const Input = memo(
 			})
 		}, [editor])
 
-		const replaceEmojiSuggestionWithEmoji = useCallback(
-			(emoji: string) => {
+		const addMentionToInput = useCallback(
+			(id: number) => {
+				if (!editor || !currentConversation) {
+					return
+				}
+
+				const foundParticipant = currentConversation.participants.filter(p => p.userId === id)
+				const selection = editor.selection
+
+				if (selection && selection.anchor && foundParticipant.length !== 0) {
+					const selectedChildrenIndex = selection.anchor.path[0]
+					const selected = editor.children[selectedChildrenIndex] as CustomElement
+
+					if (selected && selected.children && Array.isArray(selected.children) && selected.children.length > 0) {
+						const message = selected.children[0].text
+						const closestIndex = findClosestIndex(message, "@", selection.anchor.offset)
+
+						if (closestIndex !== -1) {
+							const replacedMessage = message.slice(0, closestIndex) + "@" + foundParticipant[0].email + " "
+
+							if (replacedMessage.trim().length > 0) {
+								const currentChildren = editor.children as CustomElement[]
+
+								editor.children = currentChildren.map((child, index) =>
+									index === selectedChildrenIndex
+										? {
+												...child,
+												children: [
+													{
+														...child.children,
+														text: replacedMessage
+													}
+												]
+										  }
+										: child
+								)
+
+								Transforms.select(editor, Editor.end(editor, []))
+							}
+						}
+					}
+				}
+			},
+			[editor, currentConversation]
+		)
+
+		const addTextAfterTextComponent = useCallback(
+			(component: string, text: string) => {
 				if (!editor) {
 					return
 				}
@@ -277,10 +333,10 @@ export const Input = memo(
 
 					if (selected && selected.children && Array.isArray(selected.children) && selected.children.length > 0) {
 						const message = selected.children[0].text
-						const closestIndex = findClosestIndex(message, ":", selection.anchor.offset)
+						const closestIndex = findClosestIndex(message, component, selection.anchor.offset)
 
 						if (closestIndex !== -1) {
-							const replacedMessage = message.slice(0, closestIndex) + emoji + " "
+							const replacedMessage = message.slice(0, closestIndex) + text + " "
 
 							if (replacedMessage.trim().length > 0) {
 								const currentChildren = editor.children as CustomElement[]
@@ -300,6 +356,76 @@ export const Input = memo(
 			[editor]
 		)
 
+		const toggleMentions = useCallback(() => {
+			if (!editor || !currentConversation) {
+				return
+			}
+
+			const selection = editor.selection
+
+			if (selection && selection.anchor) {
+				const selected = editor.children[selection.anchor.path[0]] as CustomElement
+
+				if (selected && selected.children && Array.isArray(selected.children) && selected.children.length > 0) {
+					const message = selected.children[0].text
+
+					if (message.length === 0 || message.indexOf("@") === -1 || selection.anchor.offset <= 0) {
+						setMentionMode(false)
+
+						mentionModeRef.current = false
+
+						return
+					}
+
+					const closestIndex = findClosestIndex(message, "@", selection.anchor.offset)
+					const sliced = message.slice(closestIndex === -1 ? message.lastIndexOf("@") : closestIndex, selection.anchor.offset)
+					const open = sliced.startsWith("@") && sliced.length >= 1 && sliced.indexOf(" ") === -1 && !sliced.endsWith(" ")
+
+					setMentionMode(open)
+
+					if (open && !mentionModeRef.current) {
+						setEmojiSuggestionsPosition(0)
+					}
+
+					mentionModeRef.current = open
+
+					if (open) {
+						const searchFor = sliced.split("@").join("").trim().toLowerCase()
+						const filteredParticipants = currentConversation.participants.filter(
+							p => p.email.toLowerCase().indexOf(searchFor) !== -1 || p.nickName.toLowerCase().indexOf(searchFor) !== -1
+						)
+
+						if (filteredParticipants.length === 0) {
+							setMentionMode(false)
+
+							mentionModeRef.current = false
+
+							return
+						}
+
+						setMentionSearch([
+							...filteredParticipants,
+							...[
+								{
+									userId: 0,
+									email: "everyone",
+									avatar: null,
+									nickName: "everyone",
+									metadata: "",
+									permissionsAdd: false,
+									addedTimestamp: 0
+								}
+							]
+						])
+					} else {
+						setMentionMode(false)
+
+						mentionModeRef.current = false
+					}
+				}
+			}
+		}, [editor, currentConversation])
+
 		const toggleEmojiSuggestions = useCallback(() => {
 			if (!editor) {
 				return
@@ -318,6 +444,8 @@ export const Input = memo(
 						setEmojiSuggestionsPosition(0)
 						setEmojiSuggestionsOpen(false)
 						setEmojiSuggestionsText("")
+
+						emojiSuggestionsOpenRef.current = false
 
 						return
 					}
@@ -659,10 +787,19 @@ export const Input = memo(
 		}, [emojiSuggestions.length])
 
 		useEffect(() => {
+			if (!mentionMode) {
+				setMentionPosition(0)
+				setMentionSearch([])
+			}
+		}, [mentionMode])
+
+		useEffect(() => {
 			clearEditor()
 			setEmojiSuggestionsOpen(false)
 			setEmojiSuggestionsText("")
 			setEmojiSuggestions([])
+			setEditMode(false)
+			setMentionMode(false)
 		}, [conversationUUID])
 
 		useEffect(() => {
@@ -742,6 +879,150 @@ export const Input = memo(
 					>
 						{editorBounds && editorBounds.height > 0 && editorBounds.width > 0 && (
 							<>
+								{mentionMode && currentConversation && (
+									<Flex
+										position="absolute"
+										zIndex={75}
+										bottom={editorBounds.height + 45 + "px"}
+										width={editorBounds.width}
+										height="auto"
+										backgroundColor={getColor(darkMode, "backgroundSecondary")}
+										border={"1px solid " + getColor(darkMode, "borderPrimary")}
+										boxShadow="md"
+										borderRadius="10px"
+										padding="10px"
+										transition="200ms"
+										maxHeight="350px"
+										overflow="hidden"
+										flexDirection="column"
+										gap="10px"
+									>
+										<Flex>
+											<AppText
+												isMobile={isMobile}
+												darkMode={darkMode}
+												fontSize={13}
+												noOfLines={1}
+												wordBreak="break-all"
+												color={getColor(darkMode, "textSecondary")}
+												textTransform="uppercase"
+											>
+												{i18n(lang, "chatParticipants")}
+											</AppText>
+										</Flex>
+										<Flex
+											flexDirection="column"
+											maxHeight="350px"
+											width="100%"
+											overflowX="hidden"
+											overflowY="auto"
+										>
+											{(mentionSearch.length > 0 ? mentionSearch : currentConversation.participants).map(
+												(p, index) => {
+													return (
+														<Flex
+															key={index}
+															flexDirection="column"
+															width="100%"
+														>
+															{p.email === "everyone" && (
+																<Flex
+																	width="100%"
+																	height="1px"
+																	backgroundColor={getColor(darkMode, "borderSecondary")}
+																	marginTop="8px"
+																	marginBottom="8px"
+																/>
+															)}
+															<Flex
+																backgroundColor={
+																	mentionPosition === index
+																		? getColor(darkMode, "backgroundTertiary")
+																		: getColor(darkMode, "backgroundSecondary")
+																}
+																color={getColor(darkMode, "textSecondary")}
+																_hover={{
+																	backgroundColor: getColor(darkMode, "backgroundTertiary"),
+																	color: getColor(darkMode, "textPrimary")
+																}}
+																padding="5px"
+																paddingLeft="10px"
+																paddingRight="10px"
+																borderRadius="5px"
+																flexDirection="row"
+																alignItems="center"
+																justifyContent="space-between"
+																gap="15px"
+																cursor="pointer"
+																onClick={() => {
+																	if (p.email === "everyone") {
+																		addTextAfterTextComponent("@", "@everyone")
+																	} else {
+																		addMentionToInput(p.userId)
+																	}
+
+																	setMentionMode(false)
+																}}
+															>
+																<Flex
+																	flexDirection="row"
+																	alignItems="center"
+																	gap="8px"
+																>
+																	{p.email !== "everyone" && (
+																		<Avatar
+																			name={
+																				typeof p.avatar === "string" &&
+																				p.avatar.indexOf("https://") !== -1
+																					? undefined
+																					: p.email
+																			}
+																			src={
+																				typeof p.avatar === "string" &&
+																				p.avatar.indexOf("https://") !== -1
+																					? p.avatar
+																					: undefined
+																			}
+																			bg={generateAvatarColorCode(p.email, darkMode)}
+																			width="26px"
+																			height="26px"
+																			borderRadius="full"
+																			border="none"
+																		/>
+																	)}
+																	<AppText
+																		isMobile={isMobile}
+																		darkMode={darkMode}
+																		fontSize={14}
+																		noOfLines={1}
+																		wordBreak="break-all"
+																		color={getColor(darkMode, "textPrimary")}
+																	>
+																		{p.email === "everyone"
+																			? "@everyone"
+																			: getUserNameFromParticipant(p)}
+																	</AppText>
+																</Flex>
+																{p.email !== "everyone" && (
+																	<AppText
+																		isMobile={isMobile}
+																		darkMode={darkMode}
+																		fontSize={13}
+																		noOfLines={1}
+																		wordBreak="break-all"
+																		color={getColor(darkMode, "textSecondary")}
+																	>
+																		{p.email}
+																	</AppText>
+																)}
+															</Flex>
+														</Flex>
+													)
+												}
+											)}
+										</Flex>
+									</Flex>
+								)}
 								{typeof replyToMessage !== "undefined" && (
 									<Flex
 										position="absolute"
@@ -874,7 +1155,7 @@ export const Input = memo(
 											</Flex>
 										</Flex>
 									)}
-								{emojiSuggestions.length > 0 && emojiSuggestionsOpen && emojiSuggestionsText.length > 0 && inputFocused && (
+								{emojiSuggestions.length > 0 && emojiSuggestionsOpen && emojiSuggestionsText.length > 0 && (
 									<Flex
 										position="absolute"
 										zIndex={100001}
@@ -1108,6 +1389,7 @@ export const Input = memo(
 							onKeyDown={e => {
 								onKeyDownOrUp()
 								toggleEmojiSuggestions()
+								toggleMentions()
 
 								if (
 									emojiSuggestions.length > 0 &&
@@ -1120,27 +1402,45 @@ export const Input = memo(
 									}
 								}
 
+								if (mentionMode && inputFocused) {
+									if (e.key === "ArrowUp") {
+										e.preventDefault()
+									}
+								}
+
 								if (e.key === "Enter" && !e.shiftKey) {
 									e.preventDefault()
 
-									if (
-										emojiSuggestions.length > 0 &&
-										emojiSuggestionsOpen &&
-										emojiSuggestionsText.length > 0 &&
-										inputFocused
-									) {
-										if (typeof emojiSuggestions[emojiSuggestionsPosition] === "string") {
-											replaceEmojiSuggestionWithEmoji(emojiSuggestions[emojiSuggestionsPosition])
-											setEmojiSuggestionsOpen(false)
-											setEmojiSuggestionsText("")
-											setEmojiSuggestions([])
-											setEmojiSuggestionsPosition(0)
+									if (inputFocused && mentionMode && mentionSearch.length > 0) {
+										if (typeof mentionSearch[mentionPosition] !== "undefined") {
+											if (mentionSearch[mentionPosition].email === "everyone") {
+												addTextAfterTextComponent("@", "@everyone")
+											} else {
+												addMentionToInput(mentionSearch[mentionPosition].userId)
+											}
+
+											setMentionMode(false)
 										}
 									} else {
-										if (editMode) {
-											editMessage()
+										if (
+											emojiSuggestions.length > 0 &&
+											emojiSuggestionsOpen &&
+											emojiSuggestionsText.length > 0 &&
+											inputFocused
+										) {
+											if (typeof emojiSuggestions[emojiSuggestionsPosition] === "string") {
+												addTextAfterTextComponent(":", emojiSuggestions[emojiSuggestionsPosition])
+												setEmojiSuggestionsOpen(false)
+												setEmojiSuggestionsText("")
+												setEmojiSuggestions([])
+												setEmojiSuggestionsPosition(0)
+											}
 										} else {
-											sendMessage()
+											if (editMode) {
+												editMessage()
+											} else {
+												sendMessage()
+											}
 										}
 									}
 								}
@@ -1180,6 +1480,19 @@ export const Input = memo(
 							onKeyUp={e => {
 								onKeyDownOrUp()
 								toggleEmojiSuggestions()
+								toggleMentions()
+
+								if (mentionMode && inputFocused && mentionSearch.length > 0) {
+									e.preventDefault()
+
+									if (e.key === "ArrowUp") {
+										setMentionPosition(prev => (prev - 1 < 0 ? mentionSearch.length - 1 : prev >= 1 ? prev - 1 : prev))
+									} else if (e.key === "ArrowDown") {
+										setMentionPosition(prev =>
+											prev + 1 >= mentionSearch.length ? 0 : prev + 1 <= mentionSearch.length - 1 ? prev + 1 : prev
+										)
+									}
+								}
 
 								if (
 									emojiSuggestions.length > 0 &&

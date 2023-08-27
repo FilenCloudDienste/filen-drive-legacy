@@ -72,6 +72,7 @@ import Notes from "../../components/Notes"
 import Contacts from "../../components/Contacts"
 import { i18n } from "../../i18n"
 import SelectFromCloud from "../../components/SelectFromCloud"
+import UserProfileModal from "../../components/Chats/UserProfileModal"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -1515,6 +1516,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				isMobile={isMobile}
 				lang={lang}
 			/>
+			<UserProfileModal />
 		</Flex>
 	)
 })

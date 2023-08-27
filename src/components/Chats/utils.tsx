@@ -1,4 +1,4 @@
-import { useEffect, createElement, memo, useRef, Fragment } from "react"
+import { useEffect, createElement, memo, useRef, Fragment, Children } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
@@ -9,8 +9,11 @@ import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { Emoji } from "emoji-mart"
 import { getColor } from "../../styles/colors"
-import { Link, Flex } from "@chakra-ui/react"
+import { Link, Flex, Text } from "@chakra-ui/react"
 import { customEmojis } from "./customEmojis"
+import eventListener from "../../lib/eventListener"
+
+export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
 
@@ -71,12 +74,38 @@ export const formatMessageDate = (timestamp: number, lang: string = "en"): strin
 }
 
 export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
-	const dayInMilliseconds = 24 * 60 * 60 * 1000
+	const date1 = new Date(timestamp1)
+	const date2 = new Date(timestamp2)
 
-	const startOfDay1 = Math.floor(timestamp1 / dayInMilliseconds)
-	const startOfDay2 = Math.floor(timestamp2 / dayInMilliseconds)
+	return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()
+}
 
-	return startOfDay1 === startOfDay2
+export const isTimestampSameMinute = (timestamp1: number, timestamp2: number) => {
+	const date1 = new Date(timestamp1)
+	const date2 = new Date(timestamp2)
+	const date1Year = date1.getFullYear()
+	const date1Month = date1.getMonth()
+	const date1Date = date1.getDate()
+	const date1Minutes = date1.getMinutes()
+	const date2Year = date2.getFullYear()
+	const date2Month = date2.getMonth()
+	const date2Date = date2.getDate()
+	const date2Minutes = date2.getMinutes()
+
+	return (
+		date1Year === date2Year &&
+		date1Month === date2Month &&
+		date1Date === date2Date &&
+		(date1Minutes === date2Minutes ||
+			date1Minutes - 1 === date2Minutes ||
+			date1Minutes === date2Minutes - 1 ||
+			date1Minutes + 1 === date2Minutes ||
+			date1Minutes === date2Minutes + 1 ||
+			date1Minutes - 2 === date2Minutes ||
+			date1Minutes === date2Minutes - 2 ||
+			date1Minutes + 2 === date2Minutes ||
+			date1Minutes === date2Minutes + 2)
+	)
 }
 
 export interface FetchChatConversationsResult {
@@ -342,112 +371,198 @@ export const EmojiElement = memo(
 	}
 )
 
-export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { content: string; darkMode: boolean }) => {
-	const lineBreakRegex = /\n/
-	const codeRegex = /```([\s\S]*?)```/
-	const linkRegex = /(https?:\/\/\S+)/
-	const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
-	const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
-	const regex = new RegExp(
-		`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}`
-	)
-	const emojiCount = content.match(emojiRegex)
+export const ReplaceMessageWithComponents = memo(
+	({ content, darkMode, participants }: { content: string; darkMode: boolean; participants: ChatConversationParticipant[] }) => {
+		const lineBreakRegex = /\n/
+		const codeRegex = /```([\s\S]*?)```/
+		const linkRegex = /(https?:\/\/\S+)/
+		const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
+		const mentions = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/
+		const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
+		const regex = new RegExp(
+			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}|${mentions.source}`
+		)
+		const emojiCount = content.match(emojiRegex)
 
-	let size: number | undefined = 32
+		let size: number | undefined = 32
 
-	if (emojiCount) {
-		const emojiCountJoined = emojiCount.join("")
+		if (emojiCount) {
+			const emojiCountJoined = emojiCount.join("")
 
-		if (emojiCountJoined.length !== content.length) {
-			size = 22
+			if (emojiCountJoined.length !== content.length) {
+				size = 22
+			}
 		}
-	}
 
-	const replaced = regexifyString({
-		pattern: regex,
-		decorator: (match, index) => {
-			if (match.split("```").length >= 3) {
-				const code = match.split("```").join("")
+		const replaced = regexifyString({
+			pattern: regex,
+			decorator: (match, index) => {
+				if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
+					const email = match.slice(1).trim()
 
-				return (
-					<Fragment key={match + ":" + index}>
-						<Flex
-							paddingTop="5px"
-							paddingBottom="5px"
-							flexDirection="column"
-						>
-							<pre
-								style={{
-									maxWidth: "100%",
-									whiteSpace: "pre-wrap",
-									overflow: "hidden",
-									margin: "0px",
-									textIndent: 0,
-									backgroundColor: getColor(darkMode, "backgroundTertiary"),
-									borderRadius: "5px",
-									paddingLeft: "10px",
-									paddingRight: "10px",
-									paddingBottom: "10px",
-									paddingTop: "10px",
-									fontWeight: "bold",
-									color: getColor(darkMode, "textSecondary"),
-									border: "1px solid " + getColor(darkMode, "borderPrimary")
-								}}
+					if (email === "everyone") {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text
+									color="white"
+									cursor="pointer"
+									backgroundColor={getColor(darkMode, "indigo")}
+									padding="1px"
+									paddingLeft="3px"
+									paddingRight="3px"
+									borderRadius="5px"
+								>
+									@everyone
+								</Text>
+								<span>&nbsp;</span>
+							</Fragment>
+						)
+					}
+
+					if (email.indexOf("@") === -1) {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text color={getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
+								<span>&nbsp;</span>
+							</Fragment>
+						)
+					}
+
+					const foundParticipant = participants.filter(p => p.email === email)
+
+					if (foundParticipant.length === 0) {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text color={getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
+								<span>&nbsp;</span>
+							</Fragment>
+						)
+					}
+
+					return (
+						<Fragment key={match + ":" + index}>
+							<Text
+								color="white"
+								cursor="pointer"
+								onClick={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
+								backgroundColor={getColor(darkMode, "indigo")}
+								padding="1px"
+								paddingLeft="3px"
+								paddingRight="3px"
+								borderRadius="5px"
 							>
-								<code
+								@{getUserNameFromParticipant(foundParticipant[0])}
+							</Text>
+							<span>&nbsp;</span>
+						</Fragment>
+					)
+				}
+
+				if (match.split("```").length >= 3) {
+					const code = match.split("```").join("")
+
+					return (
+						<Fragment key={match + ":" + index}>
+							<Flex
+								paddingTop="5px"
+								paddingBottom="5px"
+								flexDirection="column"
+							>
+								<pre
 									style={{
 										maxWidth: "100%",
 										whiteSpace: "pre-wrap",
 										overflow: "hidden",
-										margin: "0px"
+										margin: "0px",
+										textIndent: 0,
+										backgroundColor: getColor(darkMode, "backgroundTertiary"),
+										borderRadius: "5px",
+										paddingLeft: "10px",
+										paddingRight: "10px",
+										paddingBottom: "10px",
+										paddingTop: "10px",
+										fontWeight: "bold",
+										color: getColor(darkMode, "textSecondary"),
+										border: "1px solid " + getColor(darkMode, "borderPrimary")
 									}}
 								>
-									{code.startsWith("\n") ? code.slice(1, code.length) : code}
-								</code>
-							</pre>
-						</Flex>
+									<code
+										style={{
+											maxWidth: "100%",
+											whiteSpace: "pre-wrap",
+											overflow: "hidden",
+											margin: "0px"
+										}}
+									>
+										{code.startsWith("\n") ? code.slice(1, code.length) : code}
+									</code>
+								</pre>
+							</Flex>
+							<Flex
+								height="5px"
+								width="100%"
+								flexBasis="100%"
+							/>
+						</Fragment>
+					)
+				}
+
+				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+					return (
+						<Link
+							key={match + ":" + index}
+							color={getColor(darkMode, "linkPrimary")}
+							cursor="pointer"
+							href={match}
+							target="_blank"
+							rel="noreferrer"
+							_hover={{
+								textDecoration: "underline"
+							}}
+							className="user-select-text"
+							userSelect="text"
+							onContextMenu={e => e.stopPropagation()}
+						>
+							{match}
+						</Link>
+					)
+				}
+
+				if (match.indexOf("\n") !== -1) {
+					return (
 						<Flex
+							key={match + ":" + index}
 							height="5px"
 							width="100%"
 							flexBasis="100%"
 						/>
-					</Fragment>
-				)
-			}
+					)
+				}
 
-			if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
-				return (
-					<Link
-						key={match + ":" + index}
-						color={getColor(darkMode, "linkPrimary")}
-						cursor="pointer"
-						href={match}
-						target="_blank"
-						rel="noreferrer"
-						_hover={{
-							textDecoration: "underline"
-						}}
-						className="user-select-text"
-						userSelect="text"
-						onContextMenu={e => e.stopPropagation()}
-					>
-						{match}
-					</Link>
-				)
-			}
+				if (customEmojisList.includes(match.split(":").join("").trim())) {
+					return (
+						<Flex
+							key={match + ":" + index}
+							title={match.indexOf(":") !== -1 ? match : undefined}
+							width={size ? size + 6 + "px" : undefined}
+							height={size ? size + "px" : undefined}
+							alignItems="center"
+							justifyContent="center"
+						>
+							<EmojiElement
+								fallback={match}
+								shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+								size={size ? size + "px" : "34px"}
+								style={{
+									width: size ? size + "px" : undefined,
+									height: size ? size + "px" : undefined,
+									display: "inline-block"
+								}}
+							/>
+						</Flex>
+					)
+				}
 
-			if (match.indexOf("\n") !== -1) {
-				return (
-					<Flex
-						key={match + ":" + index}
-						height="5px"
-						width="100%"
-						flexBasis="100%"
-					/>
-				)
-			}
-
-			if (customEmojisList.includes(match.split(":").join("").trim())) {
 				return (
 					<Flex
 						key={match + ":" + index}
@@ -460,58 +575,95 @@ export const ReplaceMessageWithComponents = memo(({ content, darkMode }: { conte
 						<EmojiElement
 							fallback={match}
 							shortcodes={match.indexOf(":") !== -1 ? match : undefined}
+							native={match.indexOf(":") === -1 ? match : undefined}
 							size={size ? size + "px" : "34px"}
 							style={{
-								width: size ? size + "px" : undefined,
-								height: size ? size + "px" : undefined,
 								display: "inline-block"
 							}}
 						/>
 					</Flex>
 				)
-			}
+			},
+			input: content
+		})
 
-			return (
-				<Flex
-					key={match + ":" + index}
-					title={match.indexOf(":") !== -1 ? match : undefined}
-					width={size ? size + 6 + "px" : undefined}
-					height={size ? size + "px" : undefined}
-					alignItems="center"
-					justifyContent="center"
-				>
-					<EmojiElement
-						fallback={match}
-						shortcodes={match.indexOf(":") !== -1 ? match : undefined}
-						native={match.indexOf(":") === -1 ? match : undefined}
-						size={size ? size + "px" : "34px"}
-						style={{
-							display: "inline-block"
-						}}
-					/>
-				</Flex>
-			)
-		},
-		input: content
-	})
-
-	return <>{replaced}</>
-})
+		return <>{replaced}</>
+	}
+)
 
 export const ReplaceInlineMessageWithComponents = memo(
-	({ content, darkMode, emojiSize, hideLinks }: { content: string; darkMode: boolean; emojiSize?: number; hideLinks?: boolean }) => {
-		const lineBreakRegex = /\n/
+	({
+		content,
+		darkMode,
+		emojiSize,
+		hideLinks,
+		hideMentions,
+		participants
+	}: {
+		content: string
+		darkMode: boolean
+		emojiSize?: number
+		hideLinks?: boolean
+		hideMentions?: boolean
+		participants: ChatConversationParticipant[]
+	}) => {
 		const codeRegex = /```([\s\S]*?)```/
 		const linkRegex = /(https?:\/\/\S+)/
 		const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
+		const mentions = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/
 		const regex = new RegExp(
-			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}`
+			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${linkRegex.source}|${mentions.source}`
 		)
 		const size = emojiSize ? emojiSize : 16
 
 		const replaced = regexifyString({
 			pattern: regex,
 			decorator: (match, index) => {
+				if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
+					const email = match.slice(1).trim()
+
+					if (email === "everyone") {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text color={getColor(darkMode, "textSecondary")}>@everyone</Text>
+							</Fragment>
+						)
+					}
+
+					const foundParticipant = participants.filter(p => p.email === email)
+
+					if (foundParticipant.length === 0) {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text color={getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
+							</Fragment>
+						)
+					}
+
+					if (hideMentions) {
+						return (
+							<Fragment key={match + ":" + index}>
+								<Text color={getColor(darkMode, "textSecondary")}>@{getUserNameFromParticipant(foundParticipant[0])}</Text>
+							</Fragment>
+						)
+					}
+
+					return (
+						<Fragment key={match + ":" + index}>
+							<Text
+								color={getColor(darkMode, "textPrimary")}
+								_hover={{
+									textDecoration: "underline"
+								}}
+								cursor="pointer"
+								onClick={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
+							>
+								@{getUserNameFromParticipant(foundParticipant[0])}
+							</Text>
+						</Fragment>
+					)
+				}
+
 				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
 					if (hideLinks) {
 						return <Fragment key={match + ":" + index}>{match}</Fragment>
@@ -582,7 +734,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 					</Flex>
 				)
 			},
-			input: content.split("\n").join(" ")
+			input: content.split("\n").join(" ").split("`").join("")
 		})
 
 		return <>{replaced}</>

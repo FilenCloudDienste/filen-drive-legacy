@@ -1,8 +1,8 @@
 import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react"
 import { ChatSizes } from "./Chats"
 import { Flex } from "@chakra-ui/react"
-import { ChatMessage, ChatConversation, ChatConversationParticipant } from "../../lib/api"
-import { safeAwait, getCurrentParent } from "../../lib/helpers"
+import { ChatMessage, ChatConversation, ChatConversationParticipant, updateChatLastFocus, getChatLastFocus } from "../../lib/api"
+import { safeAwait, getCurrentParent, Semaphore } from "../../lib/helpers"
 import db from "../../lib/db"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
@@ -15,6 +15,7 @@ import { validate } from "uuid"
 import { useNavigate } from "react-router-dom"
 import { useLocalStorage } from "react-use"
 import useWindowFocus from "use-window-focus"
+import useDb from "../../lib/hooks/useDb"
 
 export interface ContainerProps {
 	darkMode: boolean
@@ -34,6 +35,8 @@ export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitter
 export type DisplayMessageAs = Record<string, MessageDisplayType>
 
 export const BIG_NUMBER = 99999999999
+
+const updateLastFocusMutex = new Semaphore(1)
 
 export const Container = memo(
 	({
@@ -65,6 +68,13 @@ export const Container = memo(
 		const navigate = useNavigate()
 		const [replyMessageUUID, setReplyMessageUUID] = useState<string>("")
 		const [lastFocusTimestamp, setLastFocusTimestamp] = useLocalStorage<Record<string, number>>("chatsLastFocusTimestamp", {})
+		const currentConversationRef = useRef<ChatConversation | undefined>(currentConversation)
+		const currentConversationMeRef = useRef<ChatConversationParticipant | undefined>(currentConversationMe)
+		const lastFocusTimestampRef = useRef<string>("")
+		const [lastFocusInitDone, setLastFocusInitDone] = useState<boolean>(false)
+		const initDoneRef = useRef<boolean>(false)
+		const [userId] = useDb("userId", 0)
+		const userIdRef = useRef<number>(0)
 
 		const heights = useMemo(() => {
 			const inputContainer = 32 + 41
@@ -94,109 +104,183 @@ export const Container = memo(
 				})
 		}, [messages])
 
-		const fetchPreviousMessages = useCallback(
-			async (lastTimestamp: number) => {
-				if (
-					!currentConversation ||
-					!currentConversationMe ||
-					currentConversation.uuid !== getCurrentParent(window.location.href) ||
-					lastPreviousFetchTimestamp.current === lastTimestamp
-				) {
-					return
-				}
+		const fetchPreviousMessages = useCallback(async (lastTimestamp: number) => {
+			if (
+				!currentConversationRef.current ||
+				!currentConversationMeRef.current ||
+				currentConversationRef.current.uuid !== getCurrentParent(window.location.href) ||
+				lastPreviousFetchTimestamp.current === lastTimestamp
+			) {
+				return
+			}
 
-				lastPreviousFetchTimestamp.current = lastTimestamp
+			lastPreviousFetchTimestamp.current = lastTimestamp
 
-				const startURL = window.location.href
+			const startURL = window.location.href
 
-				setLoadingPrevMessages(true)
+			setLoadingPrevMessages(true)
 
-				const [messagesErr, messagesRes] = await safeAwait(
-					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, lastTimestamp, true, false)
+			const [messagesErr, messagesRes] = await safeAwait(
+				fetchChatMessages(
+					currentConversationRef.current.uuid,
+					currentConversationMeRef.current.metadata,
+					lastTimestamp,
+					true,
+					false
 				)
+			)
 
-				if (messagesErr) {
-					console.error(messagesErr)
+			if (messagesErr) {
+				console.error(messagesErr)
 
-					lastPreviousFetchTimestamp.current = 0
+				lastPreviousFetchTimestamp.current = 0
 
-					setLoadingPrevMessages(false)
-
-					if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
-						navigate("/#/chats")
-					}
-
-					return
-				}
-
-				if (window.location.href !== startURL || messagesRes.messages.length === 0) {
-					lastPreviousFetchTimestamp.current = 0
-
-					setLoadingPrevMessages(false)
-
-					return
-				}
-
-				setFirstMessageIndex(prev => prev - messagesRes.messages.length)
-				setMessages(prev => [...messagesRes.messages, ...prev])
 				setLoadingPrevMessages(false)
-			},
-			[currentConversation, currentConversationMe]
-		)
 
-		const fetchMessages = useCallback(
-			async (refresh: boolean = false) => {
-				if (!currentConversation || !currentConversationMe || currentConversation.uuid !== getCurrentParent(window.location.href)) {
-					return
+				if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
+					navigate("/#/chats")
 				}
 
-				const startURL = window.location.href
+				return
+			}
 
-				const cache = await db.get("chatMessages:" + currentConversation.uuid, "chats")
-				const hasCache = cache && Array.isArray(cache)
+			if (window.location.href !== startURL || messagesRes.messages.length === 0) {
+				lastPreviousFetchTimestamp.current = 0
 
-				if (!hasCache) {
-					setLoading(true)
-					setMessages([])
-				}
+				setLoadingPrevMessages(false)
 
-				const [messagesErr, messagesRes] = await safeAwait(
-					fetchChatMessages(currentConversation.uuid, currentConversationMe.metadata, Date.now() + 3600000, refresh)
+				return
+			}
+
+			setFirstMessageIndex(prev => prev - messagesRes.messages.length)
+			setMessages(prev => [...messagesRes.messages, ...prev])
+			setLoadingPrevMessages(false)
+		}, [])
+
+		const fetchMessages = useCallback(async (refresh: boolean = false) => {
+			if (
+				!currentConversationRef.current ||
+				!currentConversationMeRef.current ||
+				currentConversationRef.current.uuid !== getCurrentParent(window.location.href)
+			) {
+				return
+			}
+
+			const startURL = window.location.href
+
+			const cache = await db.get("chatMessages:" + currentConversationRef.current.uuid, "chats")
+			const hasCache = cache && Array.isArray(cache)
+
+			if (!hasCache) {
+				setLoading(true)
+				setMessages([])
+			}
+
+			const [messagesErr, messagesRes] = await safeAwait(
+				fetchChatMessages(
+					currentConversationRef.current.uuid,
+					currentConversationMeRef.current.metadata,
+					Date.now() + 3600000,
+					refresh
 				)
+			)
 
-				if (messagesErr) {
-					console.error(messagesErr)
+			if (messagesErr) {
+				console.error(messagesErr)
 
-					setLoading(false)
-
-					if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
-						navigate("/#/chats")
-					}
-
-					return
-				}
-
-				if (window.location.href !== startURL) {
-					return
-				}
-
-				setMessages(prev => [...prev, ...messagesRes.messages])
 				setLoading(false)
 
-				if (messagesRes.cache) {
-					fetchMessages(true)
+				if (messagesErr.toString().toLowerCase().indexOf("conversation not found") !== -1) {
+					navigate("/#/chats")
 				}
-			},
-			[currentConversation, currentConversationMe]
-		)
 
-		const onFocus = useCallback(async () => {
+				return
+			}
+
+			if (window.location.href !== startURL) {
+				return
+			}
+
+			setMessages(prev => [...prev, ...messagesRes.messages])
+			setLoading(false)
+
+			if (messagesRes.cache) {
+				fetchMessages(true)
+			}
+
+			setTimeout(() => eventListener.emit("scrollChatToBottom"), 250)
+		}, [])
+
+		const fetchLastFocus = useCallback(async () => {
+			const [err, res] = await safeAwait(getChatLastFocus())
+
+			if (err) {
+				console.error(err)
+
+				return
+			}
+
+			if (res.length > 0) {
+				setLastFocusTimestamp(res.reduce((prev, current) => ({ ...prev, [current.uuid]: current.lastFocus }), {}))
+			}
+		}, [])
+
+		const initLastFocus = useCallback(async () => {
+			setLastFocusInitDone(false)
+
+			const [err, res] = await safeAwait(getChatLastFocus())
+
+			if (err) {
+				console.error(err)
+
+				return
+			}
+
+			if (res.length > 0) {
+				setLastFocusTimestamp(res.reduce((prev, current) => ({ ...prev, [current.uuid]: current.lastFocus }), {}))
+			}
+
+			setTimeout(() => setLastFocusInitDone(true), 100)
+		}, [])
+
+		const onFocus = useCallback(() => {
 			const uuid = getCurrentParent(window.location.href)
 
 			if (validate(uuid)) {
 				safeAwait(fetchMessages(true))
 			}
-		}, [currentConversation, scrolledUp])
+		}, [])
+
+		useEffect(() => {
+			if (typeof lastFocusTimestamp !== "undefined" && currentConversationRef.current) {
+				const convoUUID = currentConversationRef.current.uuid
+				const currentLastFocus = lastFocusTimestamp[convoUUID]
+
+				if (typeof currentLastFocus === "number") {
+					const current = JSON.stringify(currentLastFocus)
+
+					if (current !== lastFocusTimestampRef.current) {
+						lastFocusTimestampRef.current = current
+						;(async () => {
+							await updateLastFocusMutex.acquire()
+
+							try {
+								await updateChatLastFocus([
+									{
+										uuid: convoUUID,
+										lastFocus: currentLastFocus
+									}
+								])
+							} catch (e) {
+								console.error(e)
+							}
+
+							updateLastFocusMutex.release()
+						})()
+					}
+				}
+			}
+		}, [JSON.stringify(lastFocusTimestamp)])
 
 		useEffect(() => {
 			if (messages.length > 0) {
@@ -206,31 +290,49 @@ export const Container = memo(
 
 		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				if (
+					event.type === "chatMessageNew" &&
+					event.data.senderId === userIdRef.current &&
+					event.data.conversation === getCurrentParent(window.location.href)
+				) {
+					setLastFocusTimestamp(prev => ({
+						...prev,
+						[event.data.conversation]: event.data.sentTimestamp
+					}))
+				}
+
+				if (
+					event.type === "chatMessageNew" &&
+					event.data.senderId !== userIdRef.current &&
+					windowFocused.current &&
+					event.data.conversation === getCurrentParent(window.location.href)
+				) {
+					setLastFocusTimestamp(prev => ({
+						...prev,
+						[event.data.conversation]: event.data.sentTimestamp
+					}))
+				}
+
+				if (event.type === "chatMessageNew" && event.data.senderId !== userIdRef.current) {
+					if (getCurrentParent(window.location.href) !== event.data.conversation || !windowFocused.current) {
+						setUnreadConversationsMessages(prev => ({
+							...prev,
+							[event.data.conversation]:
+								typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
+						}))
+					}
+				}
+
 				if (event.type === "chatMessageNew") {
-					if (
-						!currentConversation ||
-						!currentConversationMe ||
-						currentConversation.uuid !== event.data.conversation ||
-						currentConversation.uuid !== getCurrentParent(window.location.href)
-					) {
+					if (!currentConversationMeRef.current || event.data.conversation !== getCurrentParent(window.location.href)) {
 						return
 					}
 
-					/*if (windowFocused.current) {
-						setLastFocusTimestamp(prev => ({
-							...prev,
-							[event.data.conversation]:
-								event.data.editedTimestamp > event.data.sentTimestamp
-									? event.data.editedTimestamp
-									: event.data.sentTimestamp
-						}))
-					}*/
-
 					const privateKey = await db.get("privateKey")
-					const message = await decryptChatMessage(event.data.message, currentConversationMe.metadata, privateKey)
+					const message = await decryptChatMessage(event.data.message, currentConversationMeRef.current.metadata, privateKey)
 					const replyToMessageDecrypted =
 						event.data.replyTo.uuid.length > 0 && event.data.replyTo.message.length > 0
-							? await decryptChatMessage(event.data.replyTo.message, currentConversationMe.metadata, privateKey)
+							? await decryptChatMessage(event.data.replyTo.message, currentConversationMeRef.current.metadata, privateKey)
 							: ""
 
 					if (message.length > 0) {
@@ -262,18 +364,16 @@ export const Container = memo(
 						prev.map(message => (message.uuid === event.data.uuid ? { ...message, embedDisabled: true } : message))
 					)
 				} else if (event.type === "chatMessageEdited") {
-					if (
-						!currentConversation ||
-						!currentConversationMe ||
-						currentConversation.uuid !== event.data.conversation ||
-						currentConversation.uuid !== getCurrentParent(window.location.href)
-					) {
+					if (!currentConversationMeRef.current || event.data.conversation !== getCurrentParent(window.location.href)) {
 						return
 					}
 
+					const privateKey = await db.get("privateKey")
+					const message = await decryptChatMessage(event.data.message, currentConversationMeRef.current.metadata, privateKey)
+
 					setMessages(prev =>
 						prev.map(m =>
-							m.uuid === event.data.uuid ? { ...m, edited: true, editedTimestamp: event.data.editedTimestamp } : m
+							m.uuid === event.data.uuid ? { ...m, message, edited: true, editedTimestamp: event.data.editedTimestamp } : m
 						)
 					)
 				}
@@ -302,19 +402,29 @@ export const Container = memo(
 				messagesTopReachedListener.remove()
 				chatMessageEmbedDisabledListener.remove()
 			}
-		}, [currentConversation, currentConversationMe])
-
-		useEffect(() => {
-			windowFocused.current = isFocused
-		}, [isFocused])
+		}, [])
 
 		useEffect(() => {
 			if (messages.length > 0) {
 				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
-		}, [messages])
+		}, [JSON.stringify(messages)])
 
 		useEffect(() => {
+			scrolledUpRef.current = scrolledUp
+			windowFocused.current = isFocused
+			currentConversationMeRef.current = currentConversationMe
+			currentConversationRef.current = currentConversation
+			userIdRef.current = userId
+		}, [scrolledUp, isFocused, currentConversationMe, currentConversation, userId])
+
+		useEffect(() => {
+			if (!initDoneRef.current) {
+				initDoneRef.current = true
+
+				initLastFocus()
+			}
+
 			window.addEventListener("focus", onFocus)
 
 			return () => {
@@ -323,8 +433,8 @@ export const Container = memo(
 		}, [])
 
 		useEffect(() => {
-			scrolledUpRef.current = scrolledUp
-		}, [scrolledUp])
+			fetchLastFocus()
+		}, [isFocused, location.hash, currentConversation?.uuid])
 
 		useEffect(() => {
 			lastPreviousFetchTimestamp.current = 0
@@ -332,7 +442,7 @@ export const Container = memo(
 			setMessages([])
 			setFirstMessageIndex(BIG_NUMBER)
 			fetchMessages()
-		}, [currentConversation?.uuid])
+		}, [location.hash, currentConversation?.uuid])
 
 		return (
 			<Flex
@@ -349,8 +459,12 @@ export const Container = memo(
 					<Topbar
 						darkMode={darkMode}
 						isMobile={isMobile}
-						currentConversation={currentConversation}
+						currentConversation={!lastFocusInitDone ? undefined : currentConversation}
 						currentConversationMe={currentConversationMe}
+						lastFocusTimestamp={lastFocusTimestamp}
+						messages={sortedMessages}
+						setLastFocusTimestamp={setLastFocusTimestamp}
+						lang={lang}
 					/>
 				</Flex>
 				<Flex
@@ -367,7 +481,7 @@ export const Container = memo(
 							messages={sortedMessages}
 							width={sizes.chatContainer}
 							height={heights.messagesContainer}
-							loading={loading}
+							loading={!lastFocusInitDone ? true : loading}
 							displayMessageAs={displayMessageAs}
 							setDisplayMessageAs={setDisplayMessageAs}
 							emojiPickerOpen={emojiPickerOpen}
@@ -382,6 +496,7 @@ export const Container = memo(
 							replyMessageUUID={replyMessageUUID}
 							lastFocusTimestamp={lastFocusTimestamp}
 							setLastFocusTimestamp={setLastFocusTimestamp}
+							currentConversation={currentConversation}
 						/>
 					)}
 				</Flex>
@@ -391,7 +506,7 @@ export const Container = memo(
 					paddingLeft="15px"
 					paddingRight="15px"
 				>
-					{currentConversation && emojiInitDone && (
+					{currentConversation && emojiInitDone && lastFocusInitDone && (
 						<Input
 							darkMode={darkMode}
 							isMobile={isMobile}

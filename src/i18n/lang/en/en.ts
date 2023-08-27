@@ -497,7 +497,14 @@ const en: {
 	chatConversationEditName: "Edit name",
 	copyId: "Copy ID",
 	replyToChatMessage: "Reply",
-	chatReplyingTo: "Replying to"
+	chatReplyingTo: "Replying to",
+	chatUnreadMessagesSince: "unread messages since __DATE__",
+	chatMarkAsRead: "Mark as read",
+	profileMemberSince: "Member since __DATE__",
+	profileAddContact: "Send contact request",
+	profileBlockContact: "Block",
+	profileUnblockContact: "Unblock",
+	profile: "Profile"
 }
 
 export default en

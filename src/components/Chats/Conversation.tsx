@@ -336,12 +336,16 @@ export const Conversation = memo(
 										flexFlow="row wrap"
 										alignItems="center"
 										maxWidth="100%"
+										wordBreak="break-all"
+										noOfLines={1}
 									>
 										<ReplaceInlineMessageWithComponents
 											darkMode={darkMode}
 											content={conversation.lastMessage.split("`").join("")}
 											hideLinks={true}
 											emojiSize={14}
+											participants={conversation.participants}
+											hideMentions={true}
 										/>
 									</Flex>
 								)}
