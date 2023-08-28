@@ -510,7 +510,15 @@ const ru: {
 	chatConversationEditName: "Редактировать название",
 	copyId: "Скопировать ID",
 	replyToChatMessage: "Ответить",
-	chatReplyingTo: "Ответ на"
+	chatReplyingTo: "Ответ на",
+	chatUnreadMessagesSince: "непрочитанных сообщений с __DATE__",
+	chatMarkAsRead: "Пометить как прочитанное",
+	profileMemberSince: "Участник с __DATE__",
+	profileAddContact: "Отправить запрос на контакт",
+	profileBlockContact: "Заблокировать",
+	profileUnblockContact: "Разблокировать",
+	profile: "Профиль",
+	chatMessageLimitReached: "Лимит сообщений составляет __LIMIT__ символов"
 }
 
 export default ru
