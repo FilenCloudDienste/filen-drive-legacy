@@ -110,9 +110,35 @@ export const Button = memo(({ darkMode, isMobile, type, text, to }: ButtonProps)
 		setContactRequestsIn(inRes)
 	}, [])
 
+	const updateFavicon = useCallback(
+		debounce((notifications: number) => {
+			const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
+
+			if (!link) {
+				return
+			}
+
+			const oldHref = link.href
+			const newHref = notifications > 0 ? "./notification-favicon.ico" : "./favicon.ico"
+
+			if (newHref === oldHref) {
+				return
+			}
+
+			link.href = newHref
+		}, 250),
+		[]
+	)
+
 	useEffect(() => {
 		focusedRef.current = focused
 	}, [focused])
+
+	useEffect(() => {
+		if (type === "chats" || type === "contacts") {
+			updateFavicon(unreadChatMessages + contactRequestsIn)
+		}
+	}, [unreadChatMessages, contactRequestsIn, type])
 
 	useEffect(() => {
 		let refreshTimer: ReturnType<typeof setInterval> | undefined

@@ -58,6 +58,12 @@ const EmptryTrashModal = memo(({ darkMode, isMobile, setItems, lang }: DeletePer
 
 	useEffect(() => {
 		const openEmptyTrashModalListener = eventListener.on("openEmptyTrashModal", () => {
+			const url = window.location.href
+
+			if (url.indexOf("notes") !== -1 || url.indexOf("contacts") !== -1 || url.indexOf("chats") !== -1) {
+				return
+			}
+
 			setOpen(true)
 		})
 

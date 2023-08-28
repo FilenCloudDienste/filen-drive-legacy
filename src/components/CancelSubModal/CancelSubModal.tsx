@@ -39,6 +39,12 @@ const CancelSubModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; 
 
 	useEffect(() => {
 		const openCancelSubModalListener = eventListener.on("openCancelSubModal", (id: string) => {
+			const url = window.location.href
+
+			if (url.indexOf("notes") !== -1 || url.indexOf("contacts") !== -1 || url.indexOf("chats") !== -1) {
+				return
+			}
+
 			planId.current = id
 
 			setOpen(true)

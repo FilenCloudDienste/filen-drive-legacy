@@ -372,7 +372,17 @@ export const EmojiElement = memo(
 )
 
 export const ReplaceMessageWithComponents = memo(
-	({ content, darkMode, participants }: { content: string; darkMode: boolean; participants: ChatConversationParticipant[] }) => {
+	({
+		content,
+		darkMode,
+		participants,
+		failed
+	}: {
+		content: string
+		darkMode: boolean
+		participants: ChatConversationParticipant[]
+		failed: boolean
+	}) => {
 		const lineBreakRegex = /\n/
 		const codeRegex = /```([\s\S]*?)```/
 		const linkRegex = /(https?:\/\/\S+)/
@@ -404,7 +414,7 @@ export const ReplaceMessageWithComponents = memo(
 						return (
 							<Fragment key={match + ":" + index}>
 								<Text
-									color="white"
+									color={failed ? getColor(darkMode, "red") : "white"}
 									cursor="pointer"
 									backgroundColor={getColor(darkMode, "indigo")}
 									padding="1px"
@@ -422,7 +432,7 @@ export const ReplaceMessageWithComponents = memo(
 					if (email.indexOf("@") === -1) {
 						return (
 							<Fragment key={match + ":" + index}>
-								<Text color={getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
+								<Text color={failed ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
 								<span>&nbsp;</span>
 							</Fragment>
 						)
@@ -433,7 +443,7 @@ export const ReplaceMessageWithComponents = memo(
 					if (foundParticipant.length === 0) {
 						return (
 							<Fragment key={match + ":" + index}>
-								<Text color={getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
+								<Text color={failed ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")}>@UnknownUser</Text>
 								<span>&nbsp;</span>
 							</Fragment>
 						)
@@ -442,7 +452,7 @@ export const ReplaceMessageWithComponents = memo(
 					return (
 						<Fragment key={match + ":" + index}>
 							<Text
-								color="white"
+								color={failed ? getColor(darkMode, "red") : "white"}
 								cursor="pointer"
 								onClick={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
 								backgroundColor={getColor(darkMode, "indigo")}
@@ -482,7 +492,7 @@ export const ReplaceMessageWithComponents = memo(
 										paddingBottom: "10px",
 										paddingTop: "10px",
 										fontWeight: "bold",
-										color: getColor(darkMode, "textSecondary"),
+										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary"),
 										border: "1px solid " + getColor(darkMode, "borderPrimary")
 									}}
 								>
@@ -511,7 +521,7 @@ export const ReplaceMessageWithComponents = memo(
 					return (
 						<Link
 							key={match + ":" + index}
-							color={getColor(darkMode, "linkPrimary")}
+							color={failed ? getColor(darkMode, "red") : getColor(darkMode, "linkPrimary")}
 							cursor="pointer"
 							href={match}
 							target="_blank"

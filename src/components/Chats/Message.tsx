@@ -400,8 +400,6 @@ export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow, currentCo
 				textOverflow="ellipsis"
 				flexGrow={0}
 				flexFlow="row wrap"
-				noOfLines={1}
-				wordBreak="break-all"
 			>
 				<ReplaceInlineMessageWithComponents
 					darkMode={darkMode}
@@ -444,6 +442,7 @@ export const MessageText = memo(({ message, failedMessages, darkMode, isMobile, 
 					content={message.message}
 					darkMode={darkMode}
 					participants={currentConversation.participants}
+					failed={failedMessages.includes(message.uuid)}
 				/>
 				{message.edited && (
 					<Flex

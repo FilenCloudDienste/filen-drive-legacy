@@ -103,7 +103,20 @@ const CreateFolderModal = memo(({ darkMode, isMobile, windowHeight, windowWidth,
 	}, [items])
 
 	useEffect(() => {
-		const openCreateFolderModalListener = eventListener.on("openCreateFolderModal", () => setOpen(true))
+		const openCreateFolderModalListener = eventListener.on("openCreateFolderModal", () => {
+			const url = window.location.href
+
+			if (
+				url.indexOf("notes") !== -1 ||
+				url.indexOf("contacts") !== -1 ||
+				url.indexOf("chats") !== -1 ||
+				url.indexOf("account") !== -1
+			) {
+				return
+			}
+
+			setOpen(true)
+		})
 
 		return () => {
 			openCreateFolderModalListener.remove()

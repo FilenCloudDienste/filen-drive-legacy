@@ -138,6 +138,17 @@ const RenameModal = memo(({ darkMode, isMobile, setItems, items, lang }: RenameM
 
 	useEffect(() => {
 		const openRenameModalListener = eventListener.on("openRenameModal", ({ item }: { item: ItemProps }) => {
+			const url = window.location.href
+
+			if (
+				url.indexOf("notes") !== -1 ||
+				url.indexOf("contacts") !== -1 ||
+				url.indexOf("chats") !== -1 ||
+				url.indexOf("account") !== -1
+			) {
+				return
+			}
+
 			setCurrentItem(item)
 			setNewName(item.name)
 			setOpen(true)

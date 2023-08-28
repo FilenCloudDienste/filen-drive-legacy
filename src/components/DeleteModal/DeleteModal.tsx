@@ -116,6 +116,17 @@ const DeleteModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setIt
 		window.addEventListener("keydown", windowOnKeyDown)
 
 		const openDeleteModalListener = eventListener.on("openDeleteModal", ({ items }: { items: ItemProps[] }) => {
+			const url = window.location.href
+
+			if (
+				url.indexOf("notes") !== -1 ||
+				url.indexOf("contacts") !== -1 ||
+				url.indexOf("chats") !== -1 ||
+				url.indexOf("account") !== -1
+			) {
+				return
+			}
+
 			toDelete.current = items
 
 			setSelected(items)

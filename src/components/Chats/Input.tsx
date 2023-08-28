@@ -512,7 +512,7 @@ export const Input = memo(
 				return
 			}
 
-			if (message.length > 2000) {
+			if (message.length > 4096) {
 				showToast("error", i18n(lang, "chatMessageLimitReached", true, ["__LIMIT__"], ["2000"]))
 
 				return
@@ -654,7 +654,7 @@ export const Input = memo(
 				return
 			}
 
-			if (message.length > 2000) {
+			if (message.length > 4096) {
 				showToast("error", i18n(lang, "chatMessageLimitReached", true, ["__LIMIT__"], ["2000"]))
 
 				return

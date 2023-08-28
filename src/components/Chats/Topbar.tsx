@@ -144,6 +144,13 @@ export const Topbar = memo(
 						borderBottomRadius="5px"
 						justifyContent="space-between"
 						padding="10px"
+						cursor="pointer"
+						onClick={() =>
+							setLastFocusTimestamp(prev => ({
+								...prev,
+								[currentConversation.uuid]: Date.now()
+							}))
+						}
 					>
 						<Flex
 							flexDirection="row"
@@ -181,12 +188,6 @@ export const Topbar = memo(
 							flexDirection="row"
 							alignItems="center"
 							gap="5px"
-							onClick={() =>
-								setLastFocusTimestamp(prev => ({
-									...prev,
-									[currentConversation.uuid]: Date.now()
-								}))
-							}
 							color="white"
 						>
 							<AppText
@@ -196,16 +197,13 @@ export const Topbar = memo(
 								noOfLines={1}
 								wordBreak="break-all"
 								color="white"
-								cursor="pointer"
-								fontWeight="600"
 							>
 								{i18n(lang, "chatMarkAsRead")}
 							</AppText>
 							<AiOutlineCheck
 								size={16}
 								style={{
-									flexShrink: 0,
-									cursor: "pointer"
+									flexShrink: 0
 								}}
 							/>
 						</Flex>

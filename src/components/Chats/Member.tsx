@@ -158,7 +158,7 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 								onlineUsers[user.userId].lastActive > 0
 									? onlineUsers[user.userId].lastActive > Date.now() - ONLINE_TIMEOUT
 										? getColor(darkMode, "green")
-										: getColor(darkMode, "red")
+										: "gray"
 									: "gray"
 							}
 						/>

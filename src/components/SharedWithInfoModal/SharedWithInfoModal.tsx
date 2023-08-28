@@ -61,6 +61,17 @@ const SharedWithInfoModal = memo(({ darkMode, isMobile, lang }: { darkMode: bool
 
 	useEffect(() => {
 		const openSharedWithInfoModalListener = eventListener.on("openSharedWithInfoModal", (passed: ItemProps) => {
+			const url = window.location.href
+
+			if (
+				url.indexOf("notes") !== -1 ||
+				url.indexOf("contacts") !== -1 ||
+				url.indexOf("chats") !== -1 ||
+				url.indexOf("account") !== -1
+			) {
+				return
+			}
+
 			setItem(passed)
 			setOpen(true)
 		})

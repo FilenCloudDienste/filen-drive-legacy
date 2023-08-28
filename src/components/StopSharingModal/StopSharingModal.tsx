@@ -120,6 +120,17 @@ const StopSharingModal = memo(({ darkMode, isMobile, setItems, lang }: StopShari
 
 	useEffect(() => {
 		const openStopSharingModalListener = eventListener.on("openStopSharingModal", ({ items }: { items: ItemProps[] }) => {
+			const url = window.location.href
+
+			if (
+				url.indexOf("notes") !== -1 ||
+				url.indexOf("contacts") !== -1 ||
+				url.indexOf("chats") !== -1 ||
+				url.indexOf("account") !== -1
+			) {
+				return
+			}
+
 			stopSharingItems.current = items
 
 			setSelected(items)

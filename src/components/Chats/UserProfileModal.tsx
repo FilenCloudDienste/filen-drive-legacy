@@ -292,7 +292,7 @@ export const UserProfileModal = memo(() => {
 											!profile.appearOffline && profile.lastActive > 0
 												? profile.lastActive > Date.now() - ONLINE_TIMEOUT
 													? getColor(darkMode, "green")
-													: getColor(darkMode, "red")
+													: "gray"
 												: "gray"
 										}
 									/>

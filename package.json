@@ -92,6 +92,7 @@
 		"react-twitter-embed": "^4.0.4",
 		"react-use": "17.4.0",
 		"react-use-measure": "^2.1.1",
+		"react-usestateref": "^1.0.8",
 		"react-virtualized": "9.22.3",
 		"react-virtuoso": "^4.3.10",
 		"react-window": "^1.8.9",
