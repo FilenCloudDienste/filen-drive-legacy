@@ -518,7 +518,7 @@ const ru: {
 	profileBlockContact: "Заблокировать",
 	profileUnblockContact: "Разблокировать",
 	profile: "Профиль",
-	chatMessageLimitReached: "Лимит сообщений составляет __LIMIT__ символов"
+	chatMessageLimitReached: "Лимит сообщения составляет __LIMIT__ символов"
 }
 
 export default ru
