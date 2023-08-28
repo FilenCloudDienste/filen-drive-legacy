@@ -504,7 +504,21 @@ const fr: {
 	copyText: "Copier le texte",
 	chatEdited: "modifié",
 	chatViewingOlderMessages: "Vous consultez d'anciens messages",
-	chatJumpToPresent: "Revenir aux derniers messages"
+	chatJumpToPresent: "Revenir aux derniers messages",
+	twoFactorConfirmAlert: "J'ai bien sauvegardé ma clé de récupération 2FA",
+	chatIsTyping: "est en train d'écrire",
+	chatConversationEditName: "Modifier le nom",
+	copyId: "Copier l'ID",
+	replyToChatMessage: "Répondre",
+	chatReplyingTo: "Répondre à",
+	chatUnreadMessagesSince: "message(s) non lu(s) depuis __DATE__",
+	chatMarkAsRead: "Marquer comme lu",
+	profileMemberSince: "Membre depuis __DATE__",
+	profileAddContact: "Envoyer une demande de contact",
+	profileBlockContact: "Bloquer",
+	profileUnblockContact: "Débloquer",
+	profile: "Profil",
+	chatMessageLimitReached: "La taille limite d'un message est de __LIMIT__ caractères"
 }
 
 export default fr
