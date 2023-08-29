@@ -509,7 +509,15 @@ const uk: {
 	chatConversationEditName: "Редагувати назву",
 	copyId: "Скопіювати ID",
 	replyToChatMessage: "Відповісти",
-	chatReplyingTo: "Відповідь на"
+	chatReplyingTo: "Відповідь на",
+	chatUnreadMessagesSince: "непрочитаних повідомлень з __DATE__",
+	chatMarkAsRead: "Позначити як прочитане",
+	profileMemberSince: "Учасник з __DATE__",
+	profileAddContact: "Надіслати запит на контакт",
+	profileBlockContact: "Заблокувати",
+	profileUnblockContact: "Розблокувати",
+	profile: "Профіль",
+	chatMessageLimitReached: "Ліміт повідомлення складає __LIMIT__ символів"
 }
 
 export default uk
