@@ -650,18 +650,18 @@ export const orderItemsByType = (
 		| "lastModifiedDesc",
 	href?: string
 ) => {
-	const files = []
-	const folders = []
+	const files: ItemProps[] = []
+	const folders: ItemProps[] = []
 
 	for (let i = 0; i < items.length; i++) {
-		if (items[i].type == "file") {
+		if (items[i].type === "file") {
 			files.push(items[i])
 		} else {
 			folders.push(items[i])
 		}
 	}
 
-	if (typeof href == "string" && href.indexOf("recent") !== -1) {
+	if (typeof href === "string" && href.indexOf("recent") !== -1) {
 		const sortedFiles = files.sort((a, b) => {
 			return b.timestamp - a.timestamp
 		})
@@ -673,7 +673,7 @@ export const orderItemsByType = (
 		return sortedFolders.concat(sortedFiles)
 	}
 
-	if (type == "nameAsc" || typeof type == "undefined" || type == null) {
+	if (type === "nameAsc" || typeof type === "undefined" || type === null) {
 		const sortedFiles = files.sort((a, b) => {
 			return a.name.localeCompare(b.name, "en", { numeric: true })
 		})
@@ -683,17 +683,17 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "sizeAsc") {
+	} else if (type === "sizeAsc") {
 		const sortedFiles = files.sort((a, b) => {
 			return a.size - b.size
 		})
 
 		const sortedFolders = folders.sort((a, b) => {
-			return b.timestamp - a.timestamp
+			return b.size - a.size
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "dateAsc") {
+	} else if (type === "dateAsc") {
 		const sortedFiles = files.sort((a, b) => {
 			return a.lastModifiedSort - b.lastModifiedSort
 		})
@@ -703,7 +703,7 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "typeAsc") {
+	} else if (type === "typeAsc") {
 		const sortedFiles = files.sort((a, b) => {
 			if (typeof a.mime == "undefined") {
 				a.mime = "_"
@@ -729,7 +729,7 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "nameDesc") {
+	} else if (type === "nameDesc") {
 		const sortedFiles = files.sort((a, b) => {
 			return b.name.localeCompare(a.name, "en", { numeric: true })
 		})
@@ -739,17 +739,17 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "sizeDesc") {
+	} else if (type === "sizeDesc") {
 		const sortedFiles = files.sort((a, b) => {
 			return b.size - a.size
 		})
 
 		const sortedFolders = folders.sort((a, b) => {
-			return b.timestamp - a.timestamp
+			return b.size - a.size
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "typeDesc") {
+	} else if (type === "typeDesc") {
 		const sortedFiles = files.sort((a, b) => {
 			if (typeof a.mime == "undefined") {
 				a.mime = "_"
@@ -775,7 +775,7 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "lastModifiedAsc") {
+	} else if (type === "lastModifiedAsc") {
 		const sortedFiles = files.sort((a, b) => {
 			return a.lastModifiedSort - b.lastModifiedSort
 		})
@@ -785,7 +785,7 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "lastModifiedDesc") {
+	} else if (type === "lastModifiedDesc") {
 		const sortedFiles = files.sort((a, b) => {
 			return b.lastModifiedSort - a.lastModifiedSort
 		})
@@ -795,7 +795,7 @@ export const orderItemsByType = (
 		})
 
 		return sortedFolders.concat(sortedFiles)
-	} else if (type == "dateDesc") {
+	} else if (type === "dateDesc") {
 		const sortedFiles = files.sort((a, b) => {
 			return b.timestamp - a.timestamp
 		})
