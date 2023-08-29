@@ -1,6 +1,6 @@
 import { memo, useState } from "react"
 import { AppBaseProps } from "../../types"
-import { Flex, Image, Spinner } from "@chakra-ui/react"
+import { Flex, Image, Spinner, InputGroup, InputRightElement } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
@@ -18,6 +18,7 @@ import db from "../../lib/db"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import cookies from "../../lib/cookies"
 import { i18n } from "../../i18n"
+import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai"
 
 const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
 	const [email, setEmail] = useState<string>("")
@@ -27,6 +28,7 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 	const [loading, setLoading] = useState<boolean>(false)
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 
 	const toggleColorMode = (): void => {
 		Cookies.set("colorMode", darkMode ? "light" : "dark")
@@ -154,29 +156,103 @@ const LoginForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps)
 						login()
 					}
 				}}
-				color={getColor(darkMode, "textSecondary")}
+				paddingLeft="10px"
+				paddingRight="10px"
+				shadow="none"
+				outline="none"
+				border="none"
+				borderRadius="10px"
+				backgroundColor={getColor(darkMode, "backgroundTertiary")}
+				color={getColor(darkMode, "textPrimary")}
 				_placeholder={{
 					color: getColor(darkMode, "textSecondary")
 				}}
-			/>
-			<Input
-				darkMode={darkMode}
-				isMobile={isMobile}
-				value={password}
-				onChange={e => setPassword(e.target.value)}
-				marginTop="10px"
-				placeholder={i18n(lang, "password")}
-				type="password"
-				onKeyDown={e => {
-					if (e.which == 13) {
-						login()
-					}
+				_hover={{
+					shadow: "none",
+					outline: "none"
 				}}
-				color={getColor(darkMode, "textSecondary")}
-				_placeholder={{
-					color: getColor(darkMode, "textSecondary")
+				_active={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_focus={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_highlighted={{
+					shadow: "none",
+					outline: "none"
 				}}
 			/>
+			<InputGroup>
+				<Input
+					darkMode={darkMode}
+					isMobile={isMobile}
+					value={password}
+					onChange={e => setPassword(e.target.value)}
+					marginTop="10px"
+					placeholder={i18n(lang, "password")}
+					type={showPassword ? "text" : "password"}
+					onKeyDown={e => {
+						if (e.which == 13) {
+							login()
+						}
+					}}
+					paddingLeft="10px"
+					paddingRight="45px"
+					shadow="none"
+					outline="none"
+					border="none"
+					borderRadius="10px"
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					color={getColor(darkMode, "textPrimary")}
+					_placeholder={{
+						color: getColor(darkMode, "textSecondary")
+					}}
+					_hover={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_active={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_focus={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_highlighted={{
+						shadow: "none",
+						outline: "none"
+					}}
+				/>
+				<InputRightElement
+					height="full"
+					paddingTop="10px"
+				>
+					{showPassword ? (
+						<AiOutlineEyeInvisible
+							size={22}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0,
+								cursor: "pointer"
+							}}
+							onClick={() => setShowPassword(prev => !prev)}
+						/>
+					) : (
+						<AiOutlineEye
+							size={22}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0,
+								cursor: "pointer"
+							}}
+							onClick={() => setShowPassword(prev => !prev)}
+						/>
+					)}
+				</InputRightElement>
+			</InputGroup>
 			{showTfa && (
 				<Input
 					darkMode={darkMode}

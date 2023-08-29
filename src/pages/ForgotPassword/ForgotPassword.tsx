@@ -1,6 +1,6 @@
 import { memo, useState, useRef } from "react"
 import { AppBaseProps } from "../../types"
-import { Flex, Image, Spinner, Checkbox } from "@chakra-ui/react"
+import { Flex, Image, Spinner, Checkbox, InputGroup, InputRightElement } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
@@ -15,6 +15,7 @@ import { apiRequest, encryptMetadata, generatePasswordAndMasterKeysBasedOnAuthVe
 import { useParams, useNavigate } from "react-router-dom"
 import { generateRandomString, toggleColorMode } from "../../lib/helpers"
 import { AUTH_VERSION } from "../../lib/constants"
+import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai"
 
 const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
 	const [newPassword, setNewPassword] = useState<string>("")
@@ -26,6 +27,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 	const [checkboxRequired, setCheckboxRequired] = useState<boolean>(false)
 	const [masterKeys, setMasterKeys] = useState<string>("")
 	const importInputRef = useRef(null)
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 
 	const reset = async () => {
 		const sNewPassword: string = newPassword.trim()
@@ -194,30 +196,104 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 					onClick={() => toggleColorMode(darkMode)}
 					cursor="pointer"
 				/>
-				<Input
-					darkMode={darkMode}
-					isMobile={isMobile}
-					value={newPassword}
-					onChange={e => setNewPassword(e.target.value)}
-					marginTop="30px"
-					placeholder={i18n(lang, "newPassword") + " *"}
-					type="password"
-					color={getColor(darkMode, "textSecondary")}
-					_placeholder={{
-						color: getColor(darkMode, "textSecondary")
-					}}
-				/>
+				<InputGroup>
+					<Input
+						darkMode={darkMode}
+						isMobile={isMobile}
+						value={newPassword}
+						onChange={e => setNewPassword(e.target.value)}
+						marginTop="30px"
+						placeholder={i18n(lang, "newPassword")}
+						type={showPassword ? "text" : "password"}
+						paddingLeft="10px"
+						paddingRight="45px"
+						shadow="none"
+						outline="none"
+						border="none"
+						borderRadius="10px"
+						backgroundColor={getColor(darkMode, "backgroundTertiary")}
+						color={getColor(darkMode, "textPrimary")}
+						_placeholder={{
+							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
+						}}
+					/>
+					<InputRightElement
+						height="full"
+						paddingTop="30px"
+					>
+						{showPassword ? (
+							<AiOutlineEyeInvisible
+								size={22}
+								color={getColor(darkMode, "textPrimary")}
+								style={{
+									flexShrink: 0,
+									cursor: "pointer"
+								}}
+								onClick={() => setShowPassword(prev => !prev)}
+							/>
+						) : (
+							<AiOutlineEye
+								size={22}
+								color={getColor(darkMode, "textPrimary")}
+								style={{
+									flexShrink: 0,
+									cursor: "pointer"
+								}}
+								onClick={() => setShowPassword(prev => !prev)}
+							/>
+						)}
+					</InputRightElement>
+				</InputGroup>
 				<Input
 					darkMode={darkMode}
 					isMobile={isMobile}
 					value={confirmNewPassword}
 					onChange={e => setConfirmNewPassword(e.target.value)}
 					marginTop="10px"
-					placeholder={i18n(lang, "confirmNewPassword") + " *"}
-					type="password"
-					color={getColor(darkMode, "textSecondary")}
+					placeholder={i18n(lang, "confirmNewPassword")}
+					type={showPassword ? "text" : "password"}
+					paddingLeft="10px"
+					paddingRight="10px"
+					shadow="none"
+					outline="none"
+					border="none"
+					borderRadius="10px"
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					color={getColor(darkMode, "textPrimary")}
 					_placeholder={{
 						color: getColor(darkMode, "textSecondary")
+					}}
+					_hover={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_active={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_focus={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_highlighted={{
+						shadow: "none",
+						outline: "none"
 					}}
 				/>
 				<Flex
@@ -232,9 +308,32 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 						onChange={e => setMasterKeys(e.target.value)}
 						placeholder={i18n(lang, "recoveryMasterKeysInput")}
 						type="text"
-						color={getColor(darkMode, "textSecondary")}
+						paddingLeft="10px"
+						paddingRight="10px"
+						shadow="none"
+						outline="none"
+						border="none"
+						borderRadius="10px"
+						backgroundColor={getColor(darkMode, "backgroundTertiary")}
+						color={getColor(darkMode, "textPrimary")}
 						_placeholder={{
 							color: getColor(darkMode, "textSecondary")
+						}}
+						_hover={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_active={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_focus={{
+							shadow: "none",
+							outline: "none"
+						}}
+						_highlighted={{
+							shadow: "none",
+							outline: "none"
 						}}
 					/>
 					<input
@@ -438,11 +537,34 @@ const ForgotPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppB
 				value={email}
 				onChange={e => setEmail(e.target.value)}
 				marginTop="30px"
-				placeholder={i18n(lang, "email") + " *"}
+				placeholder={i18n(lang, "email")}
 				type="email"
-				color={getColor(darkMode, "textSecondary")}
+				paddingLeft="10px"
+				paddingRight="10px"
+				shadow="none"
+				outline="none"
+				border="none"
+				borderRadius="10px"
+				backgroundColor={getColor(darkMode, "backgroundTertiary")}
+				color={getColor(darkMode, "textPrimary")}
 				_placeholder={{
 					color: getColor(darkMode, "textSecondary")
+				}}
+				_hover={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_active={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_focus={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_highlighted={{
+					shadow: "none",
+					outline: "none"
 				}}
 			/>
 			<Button

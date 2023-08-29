@@ -17,6 +17,7 @@ const AuthContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lan
 					height="100%"
 					justifyContent="center"
 					alignItems="center"
+					padding="25px"
 				>
 					{children}
 				</Flex>

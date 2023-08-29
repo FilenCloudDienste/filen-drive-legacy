@@ -1,6 +1,17 @@
 import { memo, useState, useEffect } from "react"
 import { AppBaseProps } from "../../types"
-import { Flex, Image, Spinner, Modal, ModalFooter, ModalBody, ModalContent, ModalOverlay } from "@chakra-ui/react"
+import {
+	Flex,
+	Image,
+	Spinner,
+	Modal,
+	ModalFooter,
+	ModalBody,
+	ModalContent,
+	ModalOverlay,
+	InputGroup,
+	InputRightElement
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
@@ -17,6 +28,7 @@ import { deriveKeyFromPassword, apiRequest } from "../../lib/worker/worker.com"
 import { generateRandomString } from "../../lib/helpers"
 import { AUTH_VERSION } from "../../lib/constants"
 import { MdOutlineMarkEmailRead } from "react-icons/md"
+import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai"
 
 const CryptoJS = require("crypto-js")
 
@@ -104,6 +116,7 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const [loading, setLoading] = useState<boolean>(false)
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 
 	const toggleColorMode = (): void => {
 		Cookies.set("colorMode", darkMode ? "light" : "dark")
@@ -251,24 +264,98 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 				marginTop="30px"
 				placeholder={i18n(lang, "email")}
 				type="email"
-				color={getColor(darkMode, "textSecondary")}
+				paddingLeft="10px"
+				paddingRight="10px"
+				shadow="none"
+				outline="none"
+				border="none"
+				borderRadius="10px"
+				backgroundColor={getColor(darkMode, "backgroundTertiary")}
+				color={getColor(darkMode, "textPrimary")}
 				_placeholder={{
 					color: getColor(darkMode, "textSecondary")
 				}}
-			/>
-			<Input
-				darkMode={darkMode}
-				isMobile={isMobile}
-				value={password}
-				onChange={e => setPassword(e.target.value)}
-				marginTop="10px"
-				placeholder={i18n(lang, "password")}
-				type="password"
-				color={getColor(darkMode, "textSecondary")}
-				_placeholder={{
-					color: getColor(darkMode, "textSecondary")
+				_hover={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_active={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_focus={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_highlighted={{
+					shadow: "none",
+					outline: "none"
 				}}
 			/>
+			<InputGroup>
+				<Input
+					darkMode={darkMode}
+					isMobile={isMobile}
+					value={password}
+					onChange={e => setPassword(e.target.value)}
+					marginTop="10px"
+					placeholder={i18n(lang, "password")}
+					type={showPassword ? "text" : "password"}
+					paddingLeft="10px"
+					paddingRight="45px"
+					shadow="none"
+					outline="none"
+					border="none"
+					borderRadius="10px"
+					backgroundColor={getColor(darkMode, "backgroundTertiary")}
+					color={getColor(darkMode, "textPrimary")}
+					_placeholder={{
+						color: getColor(darkMode, "textSecondary")
+					}}
+					_hover={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_active={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_focus={{
+						shadow: "none",
+						outline: "none"
+					}}
+					_highlighted={{
+						shadow: "none",
+						outline: "none"
+					}}
+				/>
+				<InputRightElement
+					height="full"
+					paddingTop="10px"
+				>
+					{showPassword ? (
+						<AiOutlineEyeInvisible
+							size={22}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0,
+								cursor: "pointer"
+							}}
+							onClick={() => setShowPassword(prev => !prev)}
+						/>
+					) : (
+						<AiOutlineEye
+							size={22}
+							color={getColor(darkMode, "textPrimary")}
+							style={{
+								flexShrink: 0,
+								cursor: "pointer"
+							}}
+							onClick={() => setShowPassword(prev => !prev)}
+						/>
+					)}
+				</InputRightElement>
+			</InputGroup>
 			<Input
 				darkMode={darkMode}
 				isMobile={isMobile}
@@ -276,10 +363,33 @@ const RegisterForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBasePro
 				onChange={e => setConfirmPassword(e.target.value)}
 				marginTop="10px"
 				placeholder={i18n(lang, "confirmPassword")}
-				type="password"
-				color={getColor(darkMode, "textSecondary")}
+				type={showPassword ? "text" : "password"}
+				paddingLeft="10px"
+				paddingRight="45px"
+				shadow="none"
+				outline="none"
+				border="none"
+				borderRadius="10px"
+				backgroundColor={getColor(darkMode, "backgroundTertiary")}
+				color={getColor(darkMode, "textPrimary")}
 				_placeholder={{
 					color: getColor(darkMode, "textSecondary")
+				}}
+				_hover={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_active={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_focus={{
+					shadow: "none",
+					outline: "none"
+				}}
+				_highlighted={{
+					shadow: "none",
+					outline: "none"
 				}}
 			/>
 			<Button
