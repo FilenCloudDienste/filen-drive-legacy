@@ -494,7 +494,15 @@ const zh: {
 	chatConversationEditName: "编辑名称",
 	copyId: "复制 ID",
 	replyToChatMessage: "回复",
-	chatReplyingTo: "正在回复给"
+	chatReplyingTo: "正在回复给",
+	chatUnreadMessagesSince: "自 __DATE__ 以来的未读消息",
+	chatMarkAsRead: "标为已读",
+	profileMemberSince: "自 __DATE__ 起成为聊天成员",
+	profileAddContact: "发送联系请求",
+	profileBlockContact: "黑名单",
+	profileUnblockContact: "取消拉黑",
+	profile: "资料",
+	chatMessageLimitReached: "消息限制为 __LIMIT__ 个字符"
 }
 
 export default zh
