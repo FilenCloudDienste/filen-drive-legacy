@@ -56,7 +56,7 @@ const DragAndDropModal = memo(
 			let hasFile: boolean = false
 
 			for (let i = 0; i < fileList.length; i++) {
-				if (fileList[i].kind == "file") {
+				if (fileList[i].kind === "file") {
 					hasFile = true
 				}
 			}
@@ -78,7 +78,7 @@ const DragAndDropModal = memo(
 			let hasFile: boolean = false
 
 			for (let i = 0; i < fileList.length; i++) {
-				if (fileList[i].kind == "file") {
+				if (fileList[i].kind === "file") {
 					hasFile = true
 				}
 			}

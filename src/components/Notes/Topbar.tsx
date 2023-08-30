@@ -1,11 +1,11 @@
-import { memo, useState } from "react"
-import { Flex, Skeleton, Tooltip } from "@chakra-ui/react"
+import { memo, useState, useCallback, useEffect } from "react"
+import { Flex, Skeleton, Tooltip, Avatar, Spinner } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote } from "../../lib/api"
-import { randomStringUnsafe, getRandomArbitrary, getCurrentParent } from "../../lib/helpers"
+import { randomStringUnsafe, getRandomArbitrary, getCurrentParent, generateAvatarColorCode } from "../../lib/helpers"
 import { NotesSizes } from "./Notes"
 import Title from "./Title"
 import { AiOutlineSync, AiOutlineCheckCircle } from "react-icons/ai"
@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom"
 import eventListener from "../../lib/eventListener"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
+import { fetchUserInfo } from "../../lib/services/user"
+import { UserInfo } from "../../types"
 
 export const Topbar = memo(
 	({
@@ -34,6 +36,17 @@ export const Topbar = memo(
 		const [hoveringEllipsis, setHoveringEllipsis] = useState<boolean>(false)
 		const navigate = useNavigate()
 		const lang = useLang()
+		const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
+
+		const fetchData = useCallback(() => {
+			fetchUserInfo()
+				.then(info => setUserInfo(info))
+				.catch(console.error)
+		}, [])
+
+		useEffect(() => {
+			fetchData()
+		}, [])
 
 		return (
 			<Flex
@@ -156,6 +169,27 @@ export const Topbar = memo(
 							/>
 						</Flex>
 					)}
+					<Flex alignItems="center">
+						{!userInfo ? (
+							<Spinner
+								width="20px"
+								height="20px"
+								color={getColor(darkMode, "textPrimary")}
+							/>
+						) : (
+							<Avatar
+								name={typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
+								width="28px"
+								height="28px"
+								src={
+									typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
+								}
+								bg={generateAvatarColorCode(userInfo.email, darkMode)}
+								cursor="pointer"
+								onClick={() => navigate("/#/account/general")}
+							/>
+						)}
+					</Flex>
 				</Flex>
 			</Flex>
 		)

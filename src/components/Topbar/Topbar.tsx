@@ -17,12 +17,12 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 
 	const uploadButtonEnabled: boolean = useMemo(() => {
 		return (
-			location.hash.indexOf("shared-in") == -1 &&
-			location.hash.indexOf("trash") == -1 &&
-			location.hash.indexOf("links") == -1 &&
-			location.hash.indexOf("favorites") == -1 &&
-			location.hash.indexOf("recent") == -1 &&
-			location.hash.indexOf("account") == -1 &&
+			location.hash.indexOf("shared-in") === -1 &&
+			location.hash.indexOf("trash") === -1 &&
+			location.hash.indexOf("links") === -1 &&
+			location.hash.indexOf("favorites") === -1 &&
+			location.hash.indexOf("recent") === -1 &&
+			location.hash.indexOf("account") === -1 &&
 			getCurrentParent(window.location.href) !== "shared-out"
 		)
 	}, [location])
@@ -93,7 +93,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 					lang={lang}
 					enabled={uploadButtonEnabled}
 				/>
-				{typeof userInfo == "undefined" ? (
+				{!userInfo ? (
 					<Spinner
 						width="20px"
 						height="20px"
@@ -101,10 +101,10 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 					/>
 				) : (
 					<Avatar
-						name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
+						name={typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 						width="28px"
 						height="28px"
-						src={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
+						src={typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
 						bg={generateAvatarColorCode(userInfo.email, darkMode)}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}

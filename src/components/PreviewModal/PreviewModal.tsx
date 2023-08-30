@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react"
 import { PreviewModalProps, ItemProps } from "../../types"
-import { Modal, ModalOverlay, ModalContent, ModalBody, Flex } from "@chakra-ui/react"
+import { Modal, ModalOverlay, ModalContent, ModalBody, Flex, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import { getFilePreviewType, getFileExt } from "../../lib/helpers"
@@ -17,6 +17,7 @@ import AudioViewer from "./AudioViewer"
 import { useMountedState } from "react-use"
 import DocXViewer from "./DocXViewer"
 import ModalCloseButton from "../ModalCloseButton"
+import AppText from "../AppText"
 
 const previewCache = new Map()
 let blobURLs: string[] = []
@@ -30,6 +31,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 	const [previous, setPrevious] = useState<ItemProps | null>(null)
 	const currentItems = useRef<ItemProps[]>(items)
 	const [text, setText] = useState<string>("")
+	const [textLoaded, setTextLoaded] = useState<boolean>(false)
 	const [pdf, setPDF] = useState<string>("")
 	const [currentItem, setCurrentItem] = useState<ItemProps>()
 	const [error, setError] = useState<string>("")
@@ -46,6 +48,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 		setVideo("")
 		setError("")
 		setDocX(new Uint8Array())
+		setTextLoaded(false)
 	}, [])
 
 	const close = useCallback((): void => {
@@ -67,7 +70,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 		blobURLs = []
 	}, [])
 
-	const getFileBuffer = useCallback((item: ItemProps): Promise<Uint8Array> => {
+	const getFileBuffer = useCallback((item: ItemProps, showProgress?: boolean): Promise<Uint8Array> => {
 		return new Promise((resolve, reject) => {
 			if (previewCache.has("buffer:" + item.uuid)) {
 				if (!isMounted.current) {
@@ -79,17 +82,15 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 
 			const hideProgress = item.size < 1024 * 1024 * 16
 
-			if (hideProgress) {
+			if (hideProgress && !showProgress) {
 				memoryCache.set("hideTransferProgress:" + item.uuid, true)
 			}
 
 			downloadFile(item, false)
 				.then(buffer => {
-					if (buffer instanceof Uint8Array) {
-						if (hideProgress) {
-							memoryCache.remove("hideTransferProgress:" + item.uuid)
-						}
+					memoryCache.remove("hideTransferProgress:" + item.uuid)
 
+					if (buffer instanceof Uint8Array) {
 						if (buffer.byteLength < 1024 * 1024 * 32) {
 							previewCache.set("buffer:" + item.uuid, buffer)
 						}
@@ -212,7 +213,7 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 					setError(err.toString())
 				})
 		} else if (previewType == "video") {
-			getFileBuffer(item)
+			getFileBuffer(item, true)
 				.then(buffer => {
 					try {
 						const blob = new Blob([buffer], {
@@ -262,21 +263,26 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 					setError(err.toString())
 				})
 		} else if (previewType == "text") {
+			setTextLoaded(false)
+
 			getFileBuffer(item)
 				.then(buffer => {
 					try {
 						memoryCache.set("textEditorChanged", false)
 
 						setText(new TextDecoder().decode(buffer))
+						setTextLoaded(true)
 					} catch (e: any) {
 						console.error(e)
 
+						setTextLoaded(false)
 						setError(e.toString())
 					}
 				})
 				.catch(err => {
 					console.error(err)
 
+					setTextLoaded(false)
 					setError(err.toString())
 				})
 		} else if (previewType == "pdf") {
@@ -491,15 +497,60 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 									/>
 								)}
 								{type == "text" && typeof currentItem !== "undefined" && (
-									<TextEditor
-										darkMode={darkMode}
-										isMobile={isMobile}
-										windowWidth={windowWidth}
-										windowHeight={windowHeight}
-										currentItem={currentItem}
-										text={text}
-										lang={lang}
-									/>
+									<>
+										{textLoaded ? (
+											<TextEditor
+												darkMode={darkMode}
+												isMobile={isMobile}
+												windowWidth={windowWidth}
+												windowHeight={windowHeight}
+												currentItem={currentItem}
+												text={text}
+												lang={lang}
+											/>
+										) : (
+											<Flex
+												className="full-viewport"
+												flexDirection="column"
+												backgroundColor={getColor(darkMode, "backgroundSecondary")}
+											>
+												<Flex
+													width={windowWidth}
+													height="50px"
+													flexDirection="row"
+													alignItems="center"
+													justifyContent="space-between"
+													paddingLeft="15px"
+													paddingRight="15px"
+													borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+												>
+													<Flex>
+														<AppText
+															darkMode={darkMode}
+															isMobile={isMobile}
+															noOfLines={1}
+															wordBreak="break-all"
+															color={getColor(darkMode, "textSecondary")}
+														>
+															{currentItem.name}
+														</AppText>
+													</Flex>
+												</Flex>
+												<Flex
+													width={windowWidth + "px"}
+													height={windowHeight - 50 + "px"}
+													alignItems="center"
+													justifyContent="center"
+												>
+													<Spinner
+														color={getColor(darkMode, "textPrimary")}
+														width="64px"
+														height="64px"
+													/>
+												</Flex>
+											</Flex>
+										)}
+									</>
 								)}
 								{type == "pdf" && typeof currentItem !== "undefined" && (
 									<PDFViewer

@@ -58,6 +58,7 @@ const ImageViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 						image={image}
 						maxWidth={windowWidth}
 						maxHeight={windowHeight - 50}
+						draggable={true}
 					/>
 				) : (
 					<Spinner

@@ -59,7 +59,8 @@ const VideoViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 						src={video}
 						style={{
 							maxHeight: windowHeight - 50 + "px",
-							maxWidth: windowWidth + "px"
+							maxWidth: windowWidth + "px",
+							borderRadius: "10px"
 						}}
 					/>
 				) : (

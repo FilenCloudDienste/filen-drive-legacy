@@ -1002,7 +1002,9 @@ const ItemBody = memo(
 										paddingLeft="5px"
 										paddingRight="5px"
 										backgroundColor={
-											hoveringActions ? (darkMode ? "white" : "black") : getColor(darkMode, "backgroundPrimary")
+											hoveringActions
+												? getColor(darkMode, "backgroundTertiary")
+												: getColor(darkMode, "backgroundSecondary")
 										}
 										borderRadius="20px"
 										marginLeft="15px"
@@ -1013,8 +1015,8 @@ const ItemBody = memo(
 										className="item-actions-trigger"
 									>
 										<BsThreeDots
-											size={14}
-											color={hoveringActions ? (darkMode ? "black" : "white") : getColor(darkMode, "textPrimary")}
+											size={18}
+											color={getColor(darkMode, "textPrimary")}
 											className="item-actions-trigger"
 											style={{
 												flexShrink: 0

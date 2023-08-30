@@ -85,6 +85,9 @@ const AudioViewer = memo(({ darkMode, isMobile, windowHeight, windowWidth, curre
 								db.set("audioViewerVolume", playerRef.current.muted ? 0 : playerRef.current.volume).catch(console.error)
 							}
 						}}
+						style={{
+							borderRadius: "10px"
+						}}
 					/>
 				) : (
 					<Spinner

@@ -363,7 +363,20 @@ export const AddContactModal = memo(() => {
 							height="auto"
 							flexDirection="column"
 						>
-							{contactsFiltered.length > 0 ? (
+							{loadingContacts ? (
+								<Flex
+									justifyContent="center"
+									alignItems="center"
+									width="100%"
+									height="50px"
+								>
+									<Spinner
+										color={getColor(darkMode, "textPrimary")}
+										width="32px"
+										height="32px"
+									/>
+								</Flex>
+							) : contactsFiltered.length > 0 ? (
 								<Virtuoso
 									data={contactsFiltered}
 									height={containerHeight}
@@ -683,7 +696,7 @@ export const AddParticipantModal = memo(() => {
 	}, [note, noteParticipantsFiltered])
 
 	const itemContent = useCallback(
-		(index: number, participant: NoteParticipant) => {
+		(_: number, participant: NoteParticipant) => {
 			return (
 				<Participant
 					key={participant.userId}
