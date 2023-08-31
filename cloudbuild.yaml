@@ -1,0 +1,24 @@
+steps:
+
+  # Docker Build and Tag to GCR
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - build
+      - '--no-cache'
+      - '-t'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_IMAGE_NAME:$SHORT_SHA'
+      - .
+      - '-f'
+      - Dockerfile
+    id: Docker Build
+
+  # Docker Push to GCR
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_IMAGE_NAME:$SHORT_SHA'
+    id: Docker Push
+substitutions:
+  _GCR_HOSTNAME: gcr.io
+  _IMAGE_NAME: filen-drive
+  _SHORT_SHA: $SHORT_SHA
