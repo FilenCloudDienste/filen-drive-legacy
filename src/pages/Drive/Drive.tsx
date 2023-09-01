@@ -316,6 +316,14 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 				if (filteredFiles.length > 0) {
 					if (window.location.href.indexOf("chats") !== -1) {
+						if (filteredFiles.length > 3) {
+							dismissToast(preparingToast)
+
+							showToast("error", i18n(lang, "chatAttachmentTooManyFiles", true, ["__LIMIT__"], ["3"]), "bottom", 5000)
+
+							return
+						}
+
 						const requestId = window.location.href
 
 						const sub = eventListener.on(

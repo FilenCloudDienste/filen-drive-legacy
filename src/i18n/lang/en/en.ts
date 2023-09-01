@@ -505,7 +505,8 @@ const en: {
 	profileBlockContact: "Block",
 	profileUnblockContact: "Unblock",
 	profile: "Profile",
-	chatMessageLimitReached: "Message limit is __LIMIT__ characters"
+	chatMessageLimitReached: "Message limit is __LIMIT__ characters",
+	chatAttachmentTooManyFiles: "You cannot attach more than __LIMIT__ files per message"
 }
 
 export default en

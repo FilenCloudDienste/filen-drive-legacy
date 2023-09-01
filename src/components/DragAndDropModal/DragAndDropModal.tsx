@@ -53,7 +53,7 @@ const DragAndDropModal = memo(
 				return
 			}
 
-			let hasFile: boolean = false
+			let hasFile = false
 
 			for (let i = 0; i < fileList.length; i++) {
 				if (fileList[i].kind === "file") {
