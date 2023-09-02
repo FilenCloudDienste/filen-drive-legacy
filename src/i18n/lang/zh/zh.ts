@@ -502,7 +502,8 @@ const zh: {
 	profileBlockContact: "黑名单",
 	profileUnblockContact: "取消拉黑",
 	profile: "资料",
-	chatMessageLimitReached: "消息限制为 __LIMIT__ 个字符"
+	chatMessageLimitReached: "消息限制为 __LIMIT__ 个字符",
+	chatAttachmentTooManyFiles: "每条消息不能附加超过 __LIMIT__ 个文件"
 }
 
 export default zh
