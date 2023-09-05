@@ -295,7 +295,7 @@ export const queueFileDownload = (item: ItemProps, streamToDisk: boolean = true)
 	})
 }
 
-export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [key: string]: string }): Promise<boolean> => {
+export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [key: string]: string }, name?: string): Promise<boolean> => {
 	return new Promise(async (resolve, reject) => {
 		const totalSize: number = items.reduce((prev, current) => prev + current.size, 0)
 		let streamDestroyed: boolean = false
@@ -308,7 +308,7 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 
 		try {
 			const stream = await showSaveFilePicker({
-				suggestedName: "Download_" + Date.now() + ".zip"
+				suggestedName: name ? name : "Download_" + Date.now() + ".zip"
 			})
 
 			writer = await stream.createWritable()
@@ -319,7 +319,7 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 				return
 			}
 
-			const stream = streamSaver.createWriteStream("Download_" + Date.now() + ".zip", {
+			const stream = streamSaver.createWriteStream(name ? name : "Download_" + Date.now() + ".zip", {
 				size: totalSize
 			})
 
@@ -507,17 +507,17 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 }
 
 export const normalDownload = async (selected: ItemProps[], loadCallback?: Function) => {
-	const paths: { [key: string]: string } = {}
-	const pathExists: { [key: string]: boolean } = {}
-	const folderCount: number = selected.filter(item => item.type == "folder").length
+	const paths: Record<string, string> = {}
+	const pathExists: Record<string, boolean> = {}
+	const folders = selected.filter(item => item.type === "folder")
+	const folderCount = folders.length
 	const zipItems: ItemProps[] = []
-
 	const userId = await db.get("userId")
 
 	if (folderCount > 0) {
 		for (let i = 0; i < selected.length; i++) {
-			if (selected[i].type == "file") {
-				if (typeof pathExists[selected[i].name] == "undefined") {
+			if (selected[i].type === "file") {
+				if (!pathExists[selected[i].name]) {
 					pathExists[selected[i].name] = true
 					paths[selected[i].uuid] = selected[i].name
 
@@ -525,7 +525,7 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 				}
 			} else {
 				const folderItems =
-					typeof selected[i].linkUUID == "string"
+					typeof selected[i].linkUUID === "string"
 						? await getDirectoryTree(
 								selected[i].uuid,
 								"linked",
@@ -535,10 +535,10 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 								selected[i].linkSalt,
 								selected[i].linkKey
 						  )
-						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId == userId ? "shared" : "normal")
+						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId === userId ? "shared" : "normal")
 
 				for (let x = 0; x < folderItems.length; x++) {
-					if (folderItems[x].item.type == "file" && typeof pathExists[folderItems[x].path] == "undefined") {
+					if (folderItems[x].item.type === "file" && !pathExists[folderItems[x].path]) {
 						pathExists[folderItems[x].path] = true
 						paths[folderItems[x].item.uuid] = folderItems[x].path
 
@@ -548,7 +548,7 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 			}
 		}
 
-		if (typeof loadCallback == "function") {
+		if (typeof loadCallback === "function") {
 			loadCallback(true)
 		}
 
@@ -556,12 +556,16 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 			return
 		}
 
-		downloadMultipleFilesAsZipStream(zipItems, paths).catch(console.error)
+		downloadMultipleFilesAsZipStream(
+			zipItems,
+			paths,
+			folderCount === 1 ? (folders[0].name || "Download_" + Date.now()) + ".zip" : undefined
+		).catch(console.error)
 	} else {
 		if (selected.length <= 1) {
 			queueFileDownload(selected[0]).catch(console.error)
 
-			if (typeof loadCallback == "function") {
+			if (typeof loadCallback === "function") {
 				loadCallback(true)
 			}
 
@@ -570,7 +574,7 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 
 		for (let i = 0; i < selected.length; i++) {
 			if (selected[i].type === "file") {
-				if (typeof pathExists[selected[i].name] == "undefined") {
+				if (!pathExists[selected[i].name]) {
 					pathExists[selected[i].name] = true
 					paths[selected[i].uuid] = selected[i].name
 
@@ -579,7 +583,7 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 			}
 		}
 
-		if (typeof loadCallback == "function") {
+		if (typeof loadCallback === "function") {
 			loadCallback(true)
 		}
 
@@ -592,19 +596,17 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 }
 
 export const zipDownload = async (selected: ItemProps[], loadCallback?: Function) => {
-	const paths: { [key: string]: string } = {}
-	const pathExists: { [key: string]: boolean } = {}
-
-	const folderCount: number = selected.filter(item => item.type == "folder").length
-
+	const paths: Record<string, string> = {}
+	const pathExists: Record<string, boolean> = {}
+	const folders = selected.filter(item => item.type === "folder")
+	const folderCount = folders.length
 	const userId = await db.get("userId")
+	const zipItems: ItemProps[] = []
 
 	if (folderCount > 0) {
-		const zipItems: ItemProps[] = []
-
 		for (let i = 0; i < selected.length; i++) {
-			if (selected[i].type == "file") {
-				if (typeof pathExists[selected[i].name] == "undefined") {
+			if (selected[i].type === "file") {
+				if (!pathExists[selected[i].name]) {
 					pathExists[selected[i].name] = true
 					paths[selected[i].uuid] = selected[i].name
 
@@ -612,7 +614,7 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
 				}
 			} else {
 				const folderItems =
-					typeof selected[i].linkUUID == "string"
+					typeof selected[i].linkUUID === "string"
 						? await getDirectoryTree(
 								selected[i].uuid,
 								"linked",
@@ -622,10 +624,10 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
 								selected[i].linkSalt,
 								selected[i].linkKey
 						  )
-						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId == userId ? "shared" : "normal")
+						: await getDirectoryTree(selected[i].uuid, selected[i].receiverId === userId ? "shared" : "normal")
 
 				for (let x = 0; x < folderItems.length; x++) {
-					if (folderItems[x].item.type == "file" && typeof pathExists[folderItems[x].path] == "undefined") {
+					if (folderItems[x].item.type === "file" && !pathExists[folderItems[x].path]) {
 						pathExists[folderItems[x].path] = true
 						paths[folderItems[x].item.uuid] = folderItems[x].path
 
@@ -635,7 +637,7 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
 			}
 		}
 
-		if (typeof loadCallback == "function") {
+		if (typeof loadCallback === "function") {
 			loadCallback(true)
 		}
 
@@ -643,17 +645,24 @@ export const zipDownload = async (selected: ItemProps[], loadCallback?: Function
 			return
 		}
 
-		downloadMultipleFilesAsZipStream(zipItems, paths).catch(console.error)
+		downloadMultipleFilesAsZipStream(
+			zipItems,
+			paths,
+			folderCount === 1 ? (folders[0].name || "Download_" + Date.now()) + ".zip" : undefined
+		).catch(console.error)
 	} else {
 		for (let i = 0; i < selected.length; i++) {
-			paths[selected[i].uuid] = selected[i].name
+			if (!pathExists[selected[i].name]) {
+				pathExists[selected[i].name] = true
+				paths[selected[i].uuid] = selected[i].name
+			}
 		}
 
 		if (selected.length > 0) {
 			downloadMultipleFilesAsZipStream(selected, paths).catch(console.error)
 		}
 
-		if (typeof loadCallback == "function") {
+		if (typeof loadCallback === "function") {
 			loadCallback(true)
 		}
 	}

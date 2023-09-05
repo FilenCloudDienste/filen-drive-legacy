@@ -7,7 +7,7 @@ import {
 	contextMenu,
 	animation
 } from "react-contexify"
-import { normalDownload, zipDownload } from "../../lib/services/download"
+import { normalDownload } from "../../lib/services/download"
 import db from "../../lib/db"
 import { ItemProps, ContextMenusProps, MoveSubmenuProps, FolderColors } from "../../types"
 import { getFileExt, getFilePreviewType, getFolderColor, getCurrentParent } from "../../lib/helpers"
