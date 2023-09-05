@@ -463,71 +463,24 @@ const ContextMenus = memo(({ darkMode, isMobile, items, lang, activeItem }: Cont
 						<ContextMenuSeparator />
 					</>
 				)}
-				{selectedCount > 0 && folderCount > 0 ? (
-					<>
-						<ContextMenuItem
-							onClick={() => {
-								const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
+				<ContextMenuItem
+					onClick={() => {
+						const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
-								normalDownload(selected, () => {
-									dismissToast(downloadingToast)
-								}).catch(err => {
-									console.error(err)
+						normalDownload(selected, () => {
+							dismissToast(downloadingToast)
+						}).catch(err => {
+							console.error(err)
 
-									showToast("error", err.toString(), "bottom", 5000)
+							showToast("error", err.toString(), "bottom", 5000)
 
-									dismissToast(downloadingToast)
-								})
-							}}
-						>
-							{i18n(lang, "download")}
-						</ContextMenuItem>
-						{location.pathname.indexOf("/f/") == -1 && <ContextMenuSeparator />}
-					</>
-				) : (
-					<>
-						<ContextMenuSubmenu
-							label={i18n(lang, "download")}
-							arrow={<IoChevronForward fontSize={16} />}
-						>
-							<ContextMenuItem
-								onClick={() => {
-									const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
-
-									normalDownload(selected, () => {
-										dismissToast(downloadingToast)
-									}).catch(err => {
-										console.error(err)
-
-										showToast("error", err.toString(), "bottom", 5000)
-
-										dismissToast(downloadingToast)
-									})
-								}}
-							>
-								{i18n(lang, "normalDownload")}
-							</ContextMenuItem>
-							<ContextMenuItem
-								onClick={() => {
-									const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
-
-									zipDownload(selected, () => {
-										dismissToast(downloadingToast)
-									}).catch(err => {
-										console.error(err)
-
-										showToast("error", err.toString(), "bottom", 5000)
-
-										dismissToast(downloadingToast)
-									})
-								}}
-							>
-								{i18n(lang, "zipDownload")}
-							</ContextMenuItem>
-						</ContextMenuSubmenu>
-						{location.pathname.indexOf("/f/") == -1 && <ContextMenuSeparator />}
-					</>
-				)}
+							dismissToast(downloadingToast)
+						})
+					}}
+				>
+					{i18n(lang, "download")}
+				</ContextMenuItem>
+				{location.pathname.indexOf("/f/") == -1 && <ContextMenuSeparator />}
 				{location.hash.indexOf("trash") == -1 &&
 					location.hash.indexOf("shared-in") == -1 &&
 					location.pathname.indexOf("/f/") == -1 && (

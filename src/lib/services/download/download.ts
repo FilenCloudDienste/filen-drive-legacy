@@ -7,6 +7,7 @@ import { downloadAndDecryptChunk } from "../../worker/worker.com"
 import { getDirectoryTree } from "../items"
 import db from "../../db"
 import { downloadZip } from "client-zip"
+import { showSaveFilePicker, FileSystemWritableFileStream } from "native-file-system-adapter"
 
 const downloadSemaphore = new Semaphore(MAX_CONCURRENT_DOWNLOADS)
 const downloadThreadsSemaphore = new Semaphore(MAX_DOWNLOAD_THREADS)
@@ -22,13 +23,39 @@ export const downloadFile = (
 		let paused = false
 		let stopped = false
 		let chunksConcatted: Uint8Array = new Uint8Array()
+		let writer: FileSystemWritableFileStream | WritableStreamDefaultWriter
 
 		if (streamToDisk) {
-			var stream = streamSaver.createWriteStream(item.name, {
-				size: item.size
-			})
+			try {
+				const stream = await showSaveFilePicker({
+					suggestedName: item.name
+				})
 
-			var writer = stream.getWriter()
+				writer = await stream.createWritable()
+			} catch (e: any) {
+				if (e.toString().toLowerCase().indexOf("aborted") !== -1) {
+					reject(e)
+
+					eventListener.emit("download", {
+						type: "done",
+						data: item
+					})
+
+					return
+				}
+
+				const stream = streamSaver.createWriteStream(item.name, {
+					size: item.size
+				})
+
+				writer = stream.getWriter()
+			}
+
+			if (!writer) {
+				reject(new Error("Could not get download stream writer"))
+
+				return
+			}
 		}
 
 		const pauseListener = eventListener.on("pauseTransfer", (uuid: string) => {
@@ -273,14 +300,37 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 		const totalSize: number = items.reduce((prev, current) => prev + current.size, 0)
 		let streamDestroyed: boolean = false
 		let cleanedUp: boolean = false
+		let writer: FileSystemWritableFileStream | WritableStreamDefaultWriter | WritableStream<any>
 
 		if (totalSize <= 0 || items.length == 0) {
 			return reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
 		}
 
-		const stream = streamSaver.createWriteStream("Download_" + Date.now() + ".zip", {
-			size: totalSize
-		})
+		try {
+			const stream = await showSaveFilePicker({
+				suggestedName: "Download_" + Date.now() + ".zip"
+			})
+
+			writer = await stream.createWritable()
+		} catch (e: any) {
+			if (e.toString().toLowerCase().indexOf("aborted") !== -1) {
+				reject(e)
+
+				return
+			}
+
+			const stream = streamSaver.createWriteStream("Download_" + Date.now() + ".zip", {
+				size: totalSize
+			})
+
+			writer = stream
+		}
+
+		if (!writer) {
+			reject(new Error("Could not get download stream writer"))
+
+			return
+		}
 
 		const cleanup = () => {
 			if (cleanedUp) return
@@ -442,7 +492,7 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 				}
 			})
 		)
-			.body?.pipeTo(stream)
+			.body?.pipeTo(writer)
 			.then(() => {
 				return resolve(true)
 			})
@@ -459,14 +509,12 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 export const normalDownload = async (selected: ItemProps[], loadCallback?: Function) => {
 	const paths: { [key: string]: string } = {}
 	const pathExists: { [key: string]: boolean } = {}
-
 	const folderCount: number = selected.filter(item => item.type == "folder").length
+	const zipItems: ItemProps[] = []
 
 	const userId = await db.get("userId")
 
 	if (folderCount > 0) {
-		const zipItems: ItemProps[] = []
-
 		for (let i = 0; i < selected.length; i++) {
 			if (selected[i].type == "file") {
 				if (typeof pathExists[selected[i].name] == "undefined") {
@@ -510,13 +558,36 @@ export const normalDownload = async (selected: ItemProps[], loadCallback?: Funct
 
 		downloadMultipleFilesAsZipStream(zipItems, paths).catch(console.error)
 	} else {
+		if (selected.length <= 1) {
+			queueFileDownload(selected[0]).catch(console.error)
+
+			if (typeof loadCallback == "function") {
+				loadCallback(true)
+			}
+
+			return
+		}
+
 		for (let i = 0; i < selected.length; i++) {
-			queueFileDownload(selected[i]).catch(console.error)
+			if (selected[i].type === "file") {
+				if (typeof pathExists[selected[i].name] == "undefined") {
+					pathExists[selected[i].name] = true
+					paths[selected[i].uuid] = selected[i].name
+
+					zipItems.push(selected[i])
+				}
+			}
 		}
 
 		if (typeof loadCallback == "function") {
 			loadCallback(true)
 		}
+
+		if (zipItems.length <= 0) {
+			return
+		}
+
+		downloadMultipleFilesAsZipStream(zipItems, paths).catch(console.error)
 	}
 }
 

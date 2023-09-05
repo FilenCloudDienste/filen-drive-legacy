@@ -1,5 +1,5 @@
 import streamsaver from "streamsaver"
 
-streamsaver.mitm = window.origin + "/mitm.html"
+streamsaver.mitm = window.origin + "/ss.html"
 
 export default streamsaver

@@ -2,11 +2,36 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import "./styles/globals.css"
 import App from "./App"
-import reportWebVitals from "./reportWebVitals"
-import { ChakraProvider, extendTheme, theme } from "@chakra-ui/react"
+import { ChakraProvider, extendTheme, theme, ToastId } from "@chakra-ui/react"
 import { HelmetProvider } from "react-helmet-async"
 import { toastActiveCount } from "./components/Toast/Toast"
 import "./lib/services/socket/socket"
+import { ItemProps } from "./types"
+
+declare global {
+	interface Window {
+		currentReceiverId: number
+		doingSetup: boolean
+		transfersToastId: ToastId | undefined
+		visibleItems: ItemProps[]
+		swFsRegistered: boolean
+	}
+}
+
+window.doingSetup = false
+window.transfersToastId = undefined
+window.visibleItems = []
+window.currentReceiverId = 0
+window.swFsRegistered = false
+
+navigator.serviceWorker
+	.register("./swfs.js")
+	.then(() => {
+		window.swFsRegistered = true
+
+		console.log("native-file-system-adapter service-worker registered")
+	})
+	.catch(console.error)
 
 const extendedTheme = extendTheme({
 	...theme,
@@ -41,5 +66,3 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 		</ChakraProvider>
 	</React.StrictMode>
 )
-
-reportWebVitals()

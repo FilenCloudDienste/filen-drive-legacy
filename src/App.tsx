@@ -8,8 +8,7 @@ import useWindowHeight from "./lib/hooks/useWindowHeight"
 import useCookie from "./lib/hooks/useCookie"
 import { getColor } from "./styles/colors"
 import { Helmet } from "react-helmet-async"
-import { ItemProps, ICFG } from "./types"
-import { ToastId } from "@chakra-ui/react"
+import { ICFG } from "./types"
 import eventListener from "./lib/eventListener"
 import cookies from "./lib/cookies"
 import { getCfg } from "./lib/api"
@@ -31,20 +30,6 @@ const PublicLinkFolder = lazy(() => import("./pages/PublicLinkFolder"))
 const CookieConsent = lazy(() => import("./components/CookieConsent"))
 const Announcements = lazy(() => import("./components/Announcements"))
 const AppText = lazy(() => import("./components/AppText"))
-
-declare global {
-	interface Window {
-		currentReceiverId: number
-		doingSetup: boolean
-		transfersToastId: ToastId | undefined
-		visibleItems: ItemProps[]
-	}
-}
-
-window.doingSetup = false
-window.transfersToastId = undefined
-window.visibleItems = []
-window.currentReceiverId = 0
 
 const App = memo(() => {
 	const windowWidth = useWindowWidth()

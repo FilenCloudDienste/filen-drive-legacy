@@ -251,7 +251,7 @@ export const Editor = memo(
 											className="user-select-text"
 											style={{
 												width: !canEdit ? width : Math.floor(width / 2) + "px",
-												height: height + "px",
+												height: height + 10 + "px",
 												paddingLeft: "15px",
 												paddingRight: "15px",
 												paddingTop: "10px",
@@ -261,7 +261,8 @@ export const Editor = memo(
 												backgroundColor: getColor(darkMode, "backgroundPrimary"),
 												borderLeft: !canEdit ? undefined : "1px solid " + getColor(darkMode, "borderPrimary"),
 												overflowY: "auto",
-												overflowX: "auto"
+												overflowX: "auto",
+												borderRadius: canEdit ? "0px" : "10px"
 											}}
 											rehypeRewrite={(node, index, parent) => {
 												try {
