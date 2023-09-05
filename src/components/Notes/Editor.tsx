@@ -248,6 +248,7 @@ export const Editor = memo(
 										<MarkdownPreview
 											key={"md-preview-" + currentNote?.uuid}
 											source={content}
+											className="user-select-text"
 											style={{
 												width: !canEdit ? width : Math.floor(width / 2) + "px",
 												height: height + "px",
@@ -256,11 +257,11 @@ export const Editor = memo(
 												paddingTop: "10px",
 												paddingBottom: "15px",
 												color: getColor(darkMode, "textPrimary"),
-												userSelect: "all",
+												userSelect: "text",
 												backgroundColor: getColor(darkMode, "backgroundPrimary"),
 												borderLeft: !canEdit ? undefined : "1px solid " + getColor(darkMode, "borderPrimary"),
 												overflowY: "auto",
-												overflowX: "hidden"
+												overflowX: "auto"
 											}}
 											rehypeRewrite={(node, index, parent) => {
 												try {
