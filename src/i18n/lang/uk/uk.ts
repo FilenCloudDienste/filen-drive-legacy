@@ -517,7 +517,8 @@ const uk: {
 	profileBlockContact: "Заблокувати",
 	profileUnblockContact: "Розблокувати",
 	profile: "Профіль",
-	chatMessageLimitReached: "Ліміт повідомлення складає __LIMIT__ символів"
+	chatMessageLimitReached: "Ліміт повідомлення складає __LIMIT__ символів",
+	chatAttachmentTooManyFiles: "До одного повідомлення можна прикріпити не більше __LIMIT__ файлів"
 }
 
 export default uk
