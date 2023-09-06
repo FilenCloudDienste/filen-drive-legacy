@@ -518,7 +518,8 @@ const ru: {
 	profileBlockContact: "Заблокировать",
 	profileUnblockContact: "Разблокировать",
 	profile: "Профиль",
-	chatMessageLimitReached: "Лимит сообщения составляет __LIMIT__ символов"
+	chatMessageLimitReached: "Лимит сообщения составляет __LIMIT__ символов",
+	chatAttachmentTooManyFiles: "К одному сообщению нельзя прикрепить более __LIMIT__ файлов"
 }
 
 export default ru
