@@ -48,7 +48,7 @@
 		"axios-retry": "3.3.1",
 		"base-64": "^1.0.0",
 		"browser-image-compression": "2.0.0",
-		"client-zip": "^2.3.0",
+		"client-zip": "^2.4.4",
 		"comlink": "4.3.1",
 		"cors": "2.8.5",
 		"crypto-api-v1": "1.0.0",

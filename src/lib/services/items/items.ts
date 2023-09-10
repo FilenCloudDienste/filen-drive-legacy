@@ -112,7 +112,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 					new Promise((resolve, reject) => {
 						decryptFileMetadataPrivateKey(file.metadata, privateKey)
 							.then(fileMetadata => {
-								fileMetadata.name = striptags(fileMetadata.name)
+								//fileMetadata.name = striptags(fileMetadata.name)
 
 								if (
 									typeof fileMetadata.name !== "string" ||
@@ -175,7 +175,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 					new Promise((resolve, reject) => {
 						decryptFolderName(folder.metadata, masterKeys)
 							.then(folderName => {
-								folderName = striptags(folderName)
+								//folderName = striptags(folderName)
 
 								if (
 									typeof folderName !== "string" ||
@@ -236,7 +236,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 									return
 								}
 
-								fileMetadata.name = striptags(fileMetadata.name)
+								//fileMetadata.name = striptags(fileMetadata.name)
 
 								const lastModified =
 									typeof fileMetadata.lastModified == "number" &&
@@ -286,7 +286,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 					new Promise((resolve, reject) => {
 						decryptFileMetadata(file.metadata, masterKeys)
 							.then(fileMetadata => {
-								fileMetadata.name = striptags(fileMetadata.name)
+								//fileMetadata.name = striptags(fileMetadata.name)
 
 								if (typeof fileMetadata.name !== "string" || fileMetadata.name.length <= 0) {
 									resolve(null)
@@ -342,7 +342,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 					new Promise((resolve, reject) => {
 						decryptFolderName(folder.name, masterKeys)
 							.then(folderName => {
-								folderName = striptags(folderName)
+								//folderName = striptags(folderName)
 
 								if (typeof folderName !== "string" || folderName.length <= 0) {
 									resolve(null)
@@ -389,7 +389,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 					new Promise((resolve, reject) => {
 						decryptFileMetadata(file.metadata, masterKeys)
 							.then(fileMetadata => {
-								fileMetadata.name = striptags(fileMetadata.name)
+								//fileMetadata.name = striptags(fileMetadata.name)
 
 								if (typeof fileMetadata.name !== "string" || fileMetadata.name.length <= 0) {
 									resolve(null)
@@ -476,7 +476,7 @@ export const loadItems = async (href: string, skipCache: boolean = false): Promi
 
 		const sorted: ItemProps[] = orderItemsByType(items, sortBy[href], href)
 
-		await db.set("loadItems:" + uuid, sorted, "metadata")
+		await db.set("loadItems:" + uuid, sorted, "metadata").catch(console.error)
 
 		return {
 			cache: false,
@@ -516,7 +516,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 					new Promise((resolve, reject) => {
 						decryptFolderName(folder.name, masterKeys)
 							.then(folderName => {
-								folderName = striptags(folderName)
+								//folderName = striptags(folderName)
 
 								if (typeof folderName !== "string" || folderName.length <= 0) {
 									resolve(null)
@@ -566,7 +566,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 					new Promise((resolve, reject) => {
 						decryptFolderName(folder.name, masterKeys)
 							.then(folderName => {
-								folderName = striptags(folderName)
+								//folderName = striptags(folderName)
 
 								if (typeof folderName !== "string" || folderName.length <= 0) {
 									resolve(null)
@@ -612,7 +612,7 @@ export const loadSidebarItems = async (uuid: string, skipCache: boolean = false)
 		const items: ItemProps[] = (await Promise.all(promises)).filter(item => item !== null) as ItemProps[]
 		const sorted = orderItemsByType(items, "nameAsc")
 
-		await db.set("loadSidebarItems:" + uuid, sorted, "metadata")
+		await db.set("loadSidebarItems:" + uuid, sorted, "metadata").catch(console.error)
 
 		return {
 			cache: false,

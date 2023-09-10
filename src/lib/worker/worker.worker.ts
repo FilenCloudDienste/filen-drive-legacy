@@ -1,5 +1,5 @@
 import { expose, transfer } from "comlink"
-import axios, { AxiosResponse } from "axios"
+import axios from "axios"
 import memoryCache from "../memoryCache"
 import {
 	arrayBufferToHex,
@@ -34,7 +34,8 @@ const apiRequest = (
 	method: string = "POST",
 	endpoint: string,
 	data: any,
-	apiKey: string | null
+	apiKey: string | null,
+	signal?: AbortSignal
 ): Promise<{ status: boolean; message: string; code: string; data: any }> => {
 	return new Promise((resolve, reject) => {
 		let current = -1
@@ -45,8 +46,16 @@ const apiRequest = (
 				const req = () => {
 					current += 1
 
+					if (signal?.aborted) {
+						reject(new Error(signal.reason) || new Error("aborted"))
+
+						return
+					}
+
 					if (current >= MAX_API_RETRIES) {
-						return reject(lastErr)
+						reject(lastErr)
+
+						return
 					}
 
 					const promise =
@@ -55,12 +64,14 @@ const apiRequest = (
 									headers: {
 										Authorization: "Bearer " + apiKey,
 										Checksum: checksum
-									}
+									},
+									signal
 							  })
 							: axios.get(getAPIV3Server() + endpoint, {
 									headers: {
 										Authorization: "Bearer " + apiKey
-									}
+									},
+									signal
 							  })
 
 					promise
@@ -73,7 +84,7 @@ const apiRequest = (
 								return
 							}
 
-							return resolve(response.data)
+							resolve(response.data)
 						})
 						.catch(err => {
 							lastErr = err
@@ -572,7 +583,14 @@ const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" |
 	return hashHex
 }
 
-const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, uuid: string, apiKey: string): Promise<any> => {
+const encryptAndUploadFileChunk = (
+	chunk: Uint8Array,
+	key: string,
+	url: string,
+	uuid: string,
+	apiKey: string,
+	signal?: AbortSignal
+): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		encryptData(chunk, key)
 			.then(encryptedChunk => {
@@ -597,8 +615,16 @@ const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, 
 								const req = () => {
 									current += 1
 
+									if (signal?.aborted) {
+										reject(new Error(signal.reason) || new Error("aborted"))
+
+										return
+									}
+
 									if (current >= MAX_UPLOAD_RETRIES) {
-										return reject(lastErr)
+										reject(lastErr)
+
+										return
 									}
 
 									lastBytes = 0
@@ -636,7 +662,7 @@ const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, 
 										}
 									})
 										.then(response => {
-											if (response.status !== 200) {
+											if (response.status !== 200 || typeof response.data !== "object") {
 												lastErr = new Error("Request status: " + response.status)
 
 												setTimeout(req, UPLOAD_RETRY_TIMEOUT)
@@ -645,10 +671,12 @@ const encryptAndUploadFileChunk = (chunk: Uint8Array, key: string, url: string, 
 											}
 
 											if (!response.data.status) {
-												return reject(response.data.message)
+												reject(response.data.message)
+
+												return
 											}
 
-											return resolve(response.data)
+											resolve(response.data)
 										})
 										.catch(err => {
 											lastErr = err
@@ -753,7 +781,7 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 	}
 }
 
-export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<Uint8Array> => {
+export const downloadAndDecryptChunk = (item: ItemProps, url: string, signal?: AbortSignal): Promise<Uint8Array> => {
 	return new Promise((resolve, reject) => {
 		let lastBytes: number = 0
 		const uuid: string = item.uuid
@@ -763,8 +791,16 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 		const req = () => {
 			current += 1
 
+			if (signal?.aborted) {
+				reject(new Error(signal.reason) || new Error("aborted"))
+
+				return
+			}
+
 			if (current >= MAX_DOWNLOAD_RETRIES) {
-				return reject(lastErr)
+				reject(lastErr)
+
+				return
 			}
 
 			lastBytes = 0
@@ -809,8 +845,8 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 					}
 
 					if (
-						typeof response == "undefined" ||
-						typeof response.data == "undefined" ||
+						typeof response === "undefined" ||
+						typeof response.data === "undefined" ||
 						typeof response.data !== "object" ||
 						!(response.data instanceof ArrayBuffer)
 					) {
@@ -831,7 +867,6 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string): Promise<U
 					lastErr = err
 
 					console.error(lastErr)
-					console.error("Axios error")
 
 					setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
 				})

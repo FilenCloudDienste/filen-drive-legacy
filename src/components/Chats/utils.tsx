@@ -157,7 +157,8 @@ export const fetchChatConversations = async (skipCache: boolean = false): Promis
 		}
 
 		await Promise.all(promises)
-		await db.set("chatConversations", conversationsDecrypted, "chats")
+
+		await db.set("chatConversations", conversationsDecrypted, "chats").catch(console.error)
 
 		cleanupLocalDb(conversationsDecrypted).catch(console.error)
 
@@ -238,7 +239,7 @@ export const fetchChatMessages = async (
 		await Promise.all(promises)
 
 		if (saveToLocalDb) {
-			await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats")
+			await db.set("chatMessages:" + conversationUUID, messagesDecrypted.slice(-100), "chats").catch(console.error)
 		}
 
 		return {

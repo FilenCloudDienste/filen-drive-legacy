@@ -39,7 +39,7 @@ export const fetchContacts = async (skipCache: boolean = false): Promise<FetchCo
 			blocked: result[3]
 		}
 
-		await db.set("contacts", obj, "contacts")
+		await db.set("contacts", obj, "contacts").catch(console.error)
 
 		return {
 			...obj,

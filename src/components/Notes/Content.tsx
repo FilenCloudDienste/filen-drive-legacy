@@ -187,7 +187,7 @@ export const Content = memo(
 			await Promise.all([
 				db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes"),
 				db.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type, "notes")
-			])
+			]).catch(console.error)
 
 			saveMutex.release()
 		}, [])

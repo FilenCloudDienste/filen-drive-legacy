@@ -166,31 +166,17 @@ const ListFooter = memo(
 								borderRadius="full"
 								cursor="pointer"
 								onClick={() => {
-									if (folderCount > 0 || fileCount >= 2) {
-										const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
+									const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
 
-										zipDownload(selected, () => {
-											dismissToast(downloadingToast)
-										}).catch(err => {
-											console.error(err)
+									normalDownload(selected, () => {
+										dismissToast(downloadingToast)
+									}).catch(err => {
+										console.error(err)
 
-											showToast("error", err.toString(), "bottom", 5000)
+										showToast("error", err.toString(), "bottom", 5000)
 
-											dismissToast(downloadingToast)
-										})
-									} else {
-										const downloadingToast = showToast("loading", i18n(lang, "preparingDownload"), "bottom", ONE_YEAR)
-
-										normalDownload(selected, () => {
-											dismissToast(downloadingToast)
-										}).catch(err => {
-											console.error(err)
-
-											showToast("error", err.toString(), "bottom", 5000)
-
-											dismissToast(downloadingToast)
-										})
-									}
+										dismissToast(downloadingToast)
+									})
 								}}
 							>
 								<MdOutlineDownloading fontSize={24} />

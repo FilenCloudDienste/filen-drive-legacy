@@ -123,14 +123,16 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 
 		await Promise.all(promises)
 
-		await db.set(
-			"notesAndTags",
-			{
-				notes: sortAndFilterNotes(notes, "", ""),
-				tags: sortAndFilterTags(tags)
-			},
-			"notes"
-		)
+		await db
+			.set(
+				"notesAndTags",
+				{
+					notes: sortAndFilterNotes(notes, "", ""),
+					tags: sortAndFilterTags(tags)
+				},
+				"notes"
+			)
+			.catch(console.error)
 
 		cleanupLocalDb(notes, tags).catch(console.error)
 
@@ -227,7 +229,10 @@ export const fetchNoteContent = async (
 				content = ""
 			}
 
-			await Promise.all([db.set("noteContent:" + note.uuid, content, "notes"), db.set("noteType:" + note.uuid, result.type, "notes")])
+			await Promise.all([
+				db.set("noteContent:" + note.uuid, content, "notes"),
+				db.set("noteType:" + note.uuid, result.type, "notes")
+			]).catch(console.error)
 
 			return {
 				cache: false,
@@ -255,7 +260,10 @@ export const fetchNoteContent = async (
 			content = contentDecrypted
 		}
 
-		await Promise.all([db.set("noteContent:" + note.uuid, content, "notes"), db.set("noteType:" + note.uuid, result.type, "notes")])
+		await Promise.all([
+			db.set("noteContent:" + note.uuid, content, "notes"),
+			db.set("noteType:" + note.uuid, result.type, "notes")
+		]).catch(console.error)
 
 		return {
 			cache: false,

@@ -6,8 +6,8 @@ import streamSaver from "../../streamSaver"
 import { downloadAndDecryptChunk } from "../../worker/worker.com"
 import { getDirectoryTree } from "../items"
 import db from "../../db"
-import { downloadZip } from "client-zip"
 import { showSaveFilePicker, FileSystemWritableFileStream } from "native-file-system-adapter"
+import { ZipWriter } from "@zip.js/zip.js"
 
 const downloadSemaphore = new Semaphore(MAX_CONCURRENT_DOWNLOADS)
 const downloadThreadsSemaphore = new Semaphore(MAX_DOWNLOAD_THREADS)
@@ -303,7 +303,9 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 		let writer: FileSystemWritableFileStream | WritableStreamDefaultWriter | WritableStream<any>
 
 		if (totalSize <= 0 || items.length == 0) {
-			return reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
+			reject(new Error("downloadMultipleFilesAsZipStream: File list empty"))
+
+			return
 		}
 
 		try {
@@ -333,7 +335,9 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 		}
 
 		const cleanup = () => {
-			if (cleanedUp) return
+			if (cleanedUp) {
+				return
+			}
 
 			cleanedUp = true
 
@@ -352,17 +356,24 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 			}
 		}
 
-		downloadZip(
-			items.map(item => {
-				return {
-					name: paths[item.uuid],
-					lastModified: item.lastModified,
-					input: new ReadableStream({
+		const stream = new ZipWriter(writer, {
+			level: 0,
+			zip64: true
+		})
+		let itemsEnqueued = 0
+
+		for (const item of items) {
+			stream
+				.add(
+					paths[item.uuid],
+					new ReadableStream({
 						async start(controller) {
 							if (streamDestroyed) {
 								cleanup()
 
-								return controller.close()
+								controller.close()
+
+								return
 							}
 
 							eventListener.emit("download", {
@@ -376,12 +387,16 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 
 							const write = (index: number, chunk: Uint8Array) => {
 								if (index !== currentWriteIndex) {
-									return setTimeout(() => {
+									setTimeout(() => {
 										write(index, chunk)
 									}, 10)
+
+									return
 								}
 
-								controller.enqueue(chunk)
+								if (chunk.byteLength > 0) {
+									controller.enqueue(chunk)
+								}
 
 								currentWriteIndex += 1
 
@@ -389,22 +404,25 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 							}
 
 							const download = (index: number): Promise<{ index: number; chunk: Uint8Array }> => {
-								return new Promise(async (resolve, reject) => {
+								return new Promise((resolve, reject) => {
 									if (streamDestroyed) {
 										cleanup()
 
-										return reject("stopped")
+										reject("stopped")
+
+										return
 									}
 
-									const url = getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
-
-									downloadAndDecryptChunk(item, url)
-										.then(chunk => {
-											return resolve({
+									downloadAndDecryptChunk(
+										item,
+										getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
+									)
+										.then(chunk =>
+											resolve({
 												index,
 												chunk
 											})
-										})
+										)
 										.catch(reject)
 								})
 							}
@@ -415,8 +433,8 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 							})
 
 							try {
-								await new Promise(resolve => {
-									let done: number = 0
+								await new Promise<void>(resolve => {
+									let done = 0
 
 									for (let i = 0; i < item.chunks; i++) {
 										Promise.all([downloadThreadsSemaphore.acquire(), writersSemaphore.acquire()]).then(() => {
@@ -427,7 +445,9 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 
 														downloadThreadsSemaphore.release()
 
-														return reject("stopped")
+														reject("stopped")
+
+														return
 													}
 
 													write(index, chunk)
@@ -437,29 +457,33 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 													downloadThreadsSemaphore.release()
 
 													if (done >= item.chunks) {
-														return resolve(true)
+														resolve()
 													}
 												})
 												.catch(err => {
 													downloadThreadsSemaphore.release()
 													writersSemaphore.release()
 
-													return reject(err)
+													reject(err)
 												})
 										})
 									}
 								})
 
-								await new Promise(resolve => {
+								await new Promise<void>(resolve => {
 									if (currentWriteIndex >= item.chunks) {
-										return resolve(true)
+										resolve()
+
+										return
 									}
 
 									const wait = setInterval(() => {
 										if (currentWriteIndex >= item.chunks) {
 											clearInterval(wait)
 
-											return resolve(true)
+											resolve()
+
+											return
 										}
 									}, 10)
 								})
@@ -470,10 +494,12 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 									data: item
 								})
 
-								if (e == "stopped") {
+								if (e === "stopped") {
 									downloadSemaphore.release()
 
-									return controller.close()
+									controller.close()
+
+									return
 								}
 
 								throw e
@@ -485,24 +511,54 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 							})
 
 							downloadSemaphore.release()
-
-							return controller.close()
+							controller.close()
 						}
-					})
+					}),
+					{
+						lastModDate: new Date(item.lastModified),
+						lastAccessDate: new Date(item.lastModified),
+						creationDate: new Date(item.lastModified)
+					}
+				)
+				.then(() => {
+					itemsEnqueued += 1
+				})
+				.catch(err => {
+					streamDestroyed = true
+
+					cleanup()
+					reject(err)
+				})
+		}
+
+		try {
+			await new Promise<void>(resolve => {
+				if (itemsEnqueued >= items.length) {
+					resolve()
+
+					return
 				}
-			})
-		)
-			.body?.pipeTo(writer)
-			.then(() => {
-				return resolve(true)
-			})
-			.catch(err => {
-				streamDestroyed = true
 
-				cleanup()
+				const wait = setInterval(() => {
+					if (itemsEnqueued >= items.length) {
+						clearInterval(wait)
 
-				return reject(err)
+						resolve()
+
+						return
+					}
+				}, 10)
 			})
+
+			await stream.close()
+		} catch (e) {
+			streamDestroyed = true
+
+			cleanup()
+			reject(e)
+		}
+
+		resolve(true)
 	})
 }
 

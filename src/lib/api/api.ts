@@ -32,8 +32,8 @@ import axios from "axios"
 import { bufferToHash } from "../worker/worker.com"
 
 const createFolderSemaphore = new Semaphore(1)
-const shareItemsSemaphore = new Semaphore(10)
-const linkItemsSemaphore = new Semaphore(10)
+const shareItemsSemaphore = new Semaphore(128)
+const linkItemsSemaphore = new Semaphore(128)
 const fetchFolderSizeSemaphores: Record<string, SemaphoreProps> = {}
 
 export const getCfg = async (): Promise<ICFG> => {

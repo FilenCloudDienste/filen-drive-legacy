@@ -20,12 +20,12 @@ const getWorkerAPI = () => {
 		const workerAPI = wrap<typeof api>(workerInstance)
 
 		workerInstance.onmessage = message => {
-			if (typeof message.data?.type == "string") {
-				if (message.data.type == "uploadProgress") {
+			if (typeof message.data?.type === "string") {
+				if (message.data.type === "uploadProgress") {
 					eventListener.emit("uploadProgress", message.data)
 				}
 
-				if (message.data.type == "downloadProgress") {
+				if (message.data.type === "downloadProgress") {
 					eventListener.emit("downloadProgress", message.data)
 				}
 			}
@@ -48,18 +48,20 @@ export const apiRequest = async ({
 	method = "POST",
 	endpoint,
 	data,
-	apiKey
+	apiKey,
+	signal
 }: {
 	method: string
 	endpoint: string
 	data?: any
 	apiKey?: string | null | undefined
+	signal?: AbortSignal
 }): Promise<any> => {
 	const dbAPIKey = typeof apiKey === "string" && apiKey.length === 64 ? apiKey : await db.get("apiKey")
-	const response = await getWorkerAPI().apiRequest(method, endpoint, data, dbAPIKey)
+	const response = await getWorkerAPI().apiRequest(method, endpoint, data, dbAPIKey, signal)
 
-	if (typeof response == "object") {
-		if (typeof response.message == "string") {
+	if (typeof response === "object") {
+		if (typeof response.message === "string") {
 			if (
 				response.message.toLowerCase().indexOf("api key not found") !== -1 ||
 				response.message.toLowerCase().indexOf("invalid api key") !== -1
@@ -147,9 +149,10 @@ export const encryptAndUploadFileChunk = async (
 	key: string,
 	url: string,
 	uuid: string,
-	apiKey: string
+	apiKey: string,
+	signal?: AbortSignal
 ): Promise<any> => {
-	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, apiKey)
+	return await getWorkerAPI().encryptAndUploadFileChunk(transfer(chunk, [chunk.buffer]), key, url, uuid, apiKey, signal)
 }
 
 export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
@@ -172,8 +175,8 @@ export const decryptData = async (data: Uint8Array, key: string, version: number
 	return await getWorkerAPI().decryptData(transfer(data, [data.buffer]), key, version)
 }
 
-export const downloadAndDecryptChunk = async (item: ItemProps, url: string): Promise<Uint8Array> => {
-	return await getWorkerAPI().downloadAndDecryptChunk(item, url)
+export const downloadAndDecryptChunk = async (item: ItemProps, url: string, signal?: AbortSignal): Promise<Uint8Array> => {
+	return await getWorkerAPI().downloadAndDecryptChunk(item, url, signal)
 }
 
 export const decryptFolderNameLink = async (metadata: string, linkKey: string): Promise<string> => {
