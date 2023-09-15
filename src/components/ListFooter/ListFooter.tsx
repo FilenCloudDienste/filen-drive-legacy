@@ -127,7 +127,7 @@ const ListFooter = memo(
 						padding="5px"
 						paddingLeft="10px"
 						paddingRight="10px"
-						backgroundColor={getColor(darkMode, "backgroundPrimary")}
+						backgroundColor={getColor(darkMode, "backgroundTertiary")}
 						borderRadius="20px"
 						marginLeft="15px"
 						marginTop="2px"
@@ -160,9 +160,10 @@ const ListFooter = memo(
 									backgroundColor: getColor(darkMode, "backgroundPrimary"),
 									color: getColor(darkMode, "textPrimary")
 								}}
-								padding="5px"
-								paddingLeft="10px"
-								paddingRight="10px"
+								width="36px"
+								height="36px"
+								justifyContent="center"
+								alignItems="center"
 								borderRadius="full"
 								cursor="pointer"
 								onClick={() => {
@@ -179,7 +180,12 @@ const ListFooter = memo(
 									})
 								}}
 							>
-								<MdOutlineDownloading fontSize={24} />
+								<MdOutlineDownloading
+									fontSize={24}
+									style={{
+										flexShrink: 0
+									}}
+								/>
 							</Flex>
 						</Tooltip>
 						{location.hash.indexOf("trash") == -1 &&
@@ -201,9 +207,10 @@ const ListFooter = memo(
 											backgroundColor: getColor(darkMode, "backgroundPrimary"),
 											color: getColor(darkMode, "textPrimary")
 										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
+										width="36px"
+										height="36px"
+										justifyContent="center"
+										alignItems="center"
 										borderRadius="full"
 										cursor="pointer"
 										onClick={() => {
@@ -212,7 +219,12 @@ const ListFooter = memo(
 											})
 										}}
 									>
-										<MdShare fontSize={22} />
+										<MdShare
+											fontSize={22}
+											style={{
+												flexShrink: 0
+											}}
+										/>
 									</Flex>
 								</Tooltip>
 							)}
@@ -236,14 +248,20 @@ const ListFooter = memo(
 											backgroundColor: getColor(darkMode, "backgroundPrimary"),
 											color: getColor(darkMode, "textPrimary")
 										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
+										width="36px"
+										height="36px"
+										justifyContent="center"
+										alignItems="center"
 										borderRadius="full"
 										cursor="pointer"
 										onClick={() => markAsFavorite(selected, 0)}
 									>
-										<MdFavoriteBorder fontSize={22} />
+										<MdFavoriteBorder
+											fontSize={22}
+											style={{
+												flexShrink: 0
+											}}
+										/>
 									</Flex>
 								</Tooltip>
 							)}
@@ -267,14 +285,20 @@ const ListFooter = memo(
 											backgroundColor: getColor(darkMode, "backgroundPrimary"),
 											color: getColor(darkMode, "textPrimary")
 										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
+										width="36px"
+										height="36px"
+										justifyContent="center"
+										alignItems="center"
 										borderRadius="full"
 										cursor="pointer"
 										onClick={() => markAsFavorite(selected, 1)}
 									>
-										<MdFavorite fontSize={22} />
+										<MdFavorite
+											fontSize={22}
+											style={{
+												flexShrink: 0
+											}}
+										/>
 									</Flex>
 								</Tooltip>
 							)}
@@ -298,9 +322,10 @@ const ListFooter = memo(
 											backgroundColor: getColor(darkMode, "backgroundPrimary"),
 											color: getColor(darkMode, "textPrimary")
 										}}
-										padding="5px"
-										paddingLeft="10px"
-										paddingRight="10px"
+										width="36px"
+										height="36px"
+										justifyContent="center"
+										alignItems="center"
 										borderRadius="full"
 										cursor="pointer"
 										onClick={() => {
@@ -309,7 +334,12 @@ const ListFooter = memo(
 											})
 										}}
 									>
-										<MdEditNote fontSize={22} />
+										<MdEditNote
+											fontSize={22}
+											style={{
+												flexShrink: 0
+											}}
+										/>
 									</Flex>
 								</Tooltip>
 							)}
@@ -334,9 +364,10 @@ const ListFooter = memo(
 												backgroundColor: getColor(darkMode, "backgroundPrimary"),
 												color: getColor(darkMode, "textPrimary")
 											}}
-											padding="5px"
-											paddingLeft="10px"
-											paddingRight="10px"
+											width="36px"
+											height="36px"
+											justifyContent="center"
+											alignItems="center"
 											borderRadius="full"
 											cursor="pointer"
 											onClick={() => {
@@ -345,7 +376,12 @@ const ListFooter = memo(
 												})
 											}}
 										>
-											<IoMove fontSize={22} />
+											<IoMove
+												fontSize={22}
+												style={{
+													flexShrink: 0
+												}}
+											/>
 										</Flex>
 									</Tooltip>
 									<Tooltip
@@ -364,9 +400,10 @@ const ListFooter = memo(
 												backgroundColor: getColor(darkMode, "backgroundPrimary"),
 												color: getColor(darkMode, "textPrimary")
 											}}
-											padding="5px"
-											paddingLeft="10px"
-											paddingRight="10px"
+											width="36px"
+											height="36px"
+											justifyContent="center"
+											alignItems="center"
 											borderRadius="full"
 											cursor="pointer"
 											onClick={() => {
@@ -375,7 +412,12 @@ const ListFooter = memo(
 												})
 											}}
 										>
-											<IoTrashBinOutline fontSize={22} />
+											<IoTrashBinOutline
+												fontSize={22}
+												style={{
+													flexShrink: 0
+												}}
+											/>
 										</Flex>
 									</Tooltip>
 								</>
