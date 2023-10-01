@@ -493,6 +493,20 @@ const cs: {
 	chatViewingOlderMessages: "Prohlížíte starší zprávy",
 	chatJumpToPresent: "Přeskočit na aktuální",
 	twoFactorConfirmAlert: "Bezpečně jsem uložil svůj klíč pro obnovu 2FA",
+	chatIsTyping: "píše",
+	chatConversationEditName: "Přejmenovat konverzaci",
+	copyId: "Kopírovat ID",
+	replyToChatMessage: "Odpovědět",
+	chatReplyingTo: "Odpovídáte",
+	chatUnreadMessagesSince: "nepřečtené zprávy od __DATE__",
+	chatMarkAsRead: "Označit jako přečtené",
+	profileMemberSince: "Členem od __DATE__",
+	profileAddContact: "Poslat žádost o kontakt",
+	profileBlockContact: "Blokovat",
+	profileUnblockContact: "Odblokovat",
+	profile: "Profil",
+	chatMessageLimitReached: "Limit zpráv je __LIMIT__ znaků",
+	chatAttachmentTooManyFiles: "Nemůžete připojit více než __LIMIT__ souborů na zprávu",
 }
 
 export default cs
