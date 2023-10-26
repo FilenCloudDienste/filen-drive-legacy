@@ -53,7 +53,7 @@ const FolderContainer = memo(
 			return [selectedItems, selectedItemsSize]
 		}, [items])
 
-		if (typeof info == "undefined") {
+		if (typeof info === "undefined") {
 			return null
 		}
 
@@ -70,6 +70,9 @@ const FolderContainer = memo(
 					borderTopRadius={isMobile ? "0px" : "5px"}
 					paddingLeft="15px"
 					paddingRight="15px"
+					borderTop={"1px solid " + getColor(darkMode, "borderSecondary")}
+					borderLeft={"1px solid " + getColor(darkMode, "borderSecondary")}
+					borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
 				>
 					{breadcrumbs}
 				</Flex>
@@ -80,6 +83,8 @@ const FolderContainer = memo(
 					padding="5px"
 					paddingLeft={isMobile ? "0px" : "5px"}
 					paddingRight={isMobile ? "0px" : "5px"}
+					borderLeft={"1px solid " + getColor(darkMode, "borderSecondary")}
+					borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
 				>
 					<Flex
 						width="100%"
@@ -101,6 +106,9 @@ const FolderContainer = memo(
 					paddingLeft="15px"
 					paddingRight="15px"
 					paddingBottom="10px"
+					borderLeft={"1px solid " + getColor(darkMode, "borderSecondary")}
+					borderRight={"1px solid " + getColor(darkMode, "borderSecondary")}
+					borderBottom={"1px solid " + getColor(darkMode, "borderSecondary")}
 				>
 					{selectedItems.length > 0 && windowWidth > 400 ? (
 						<Flex
@@ -150,7 +158,7 @@ const FolderContainer = memo(
 							color={darkMode ? "black" : "white"}
 							border={"1px solid " + (darkMode ? "white" : "gray")}
 							height="35px"
-							disabled={loadingDownload || items.length == 0}
+							disabled={loadingDownload || items.length === 0}
 							_hover={{
 								backgroundColor: getColor(darkMode, "backgroundSecondary"),
 								border: "1px solid " + (darkMode ? "white" : "gray"),
@@ -186,15 +194,15 @@ const FolderContainer = memo(
 							border={"1px solid " + (darkMode ? "white" : "gray")}
 							height="35px"
 							marginLeft="10px"
-							disabled={loadingDownload || items.length == 0}
+							disabled={loadingDownload || items.length === 0}
 							_hover={{
 								backgroundColor: getColor(darkMode, "backgroundSecondary"),
 								border: "1px solid " + (darkMode ? "white" : "gray"),
 								color: darkMode ? "white" : "gray"
 							}}
-							onClick={() => setViewMode(viewMode == "list" ? "grid" : "list")}
+							onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
 						>
-							{viewMode == "list" ? <IoGridOutline fontSize={24} /> : <IoList fontSize={24} />}
+							{viewMode === "list" ? <IoGridOutline fontSize={24} /> : <IoList fontSize={24} />}
 						</Button>
 						<Button
 							darkMode={darkMode}
@@ -204,7 +212,7 @@ const FolderContainer = memo(
 							border={"1px solid " + (darkMode ? "white" : "gray")}
 							height="35px"
 							marginLeft="10px"
-							disabled={loadingDownload || items.length == 0}
+							disabled={loadingDownload || items.length === 0}
 							_hover={{
 								backgroundColor: getColor(darkMode, "backgroundSecondary"),
 								border: "1px solid " + (darkMode ? "white" : "gray"),

@@ -168,7 +168,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 
 			const parent: string = getCurrentParent(url)
 
-			if (validateUUID(parent) && typeof params.uuid == "string" && validateUUID(params.uuid) && typeof info !== "undefined") {
+			if (validateUUID(parent) && typeof params.uuid === "string" && validateUUID(params.uuid) && typeof info !== "undefined") {
 				const getContents = async () => {
 					if (!cache.has(url)) {
 						setLoadingItems(true)
@@ -180,7 +180,7 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 						info.hasPassword
 							? info.salt.length == 32
 								? ((await deriveKeyFromPassword(password, info.salt, 200000, "SHA-512", 512, true)) as string)
-								: await hashFn(password.length == 0 ? "empty" : password)
+								: await hashFn(password.length === 0 ? "empty" : password)
 							: await hashFn("empty")
 					)
 						.then(async content => {
@@ -686,7 +686,6 @@ const PublicLinkFolder = memo(({ windowWidth, windowHeight, darkMode, isMobile, 
 							}
 						>
 							<>
-								{/* @ts-ignore */}
 								<AutoSizer
 									style={{
 										outline: "none"

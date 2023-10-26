@@ -25,7 +25,7 @@ window.currentReceiverId = 0
 window.swFsRegistered = false
 
 navigator.serviceWorker
-	.register("./swfs.js")
+	.register("/swfs.js")
 	.then(() => {
 		window.swFsRegistered = true
 

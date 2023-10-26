@@ -165,7 +165,9 @@ const PreviewModal = memo(({ darkMode, isMobile, windowHeight, windowWidth, setI
 
 		setNext(getNextItem(item.uuid, previewType))
 		setPrevious(getPreviousItem(item.uuid, previewType))
-		setItems(prev => prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, seleted: true } : { ...mapItem, seleted: false })))
+		setItems(prev =>
+			prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
+		)
 		setType(previewType)
 		setCurrentItem(item)
 

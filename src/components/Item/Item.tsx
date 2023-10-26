@@ -56,16 +56,16 @@ export const SkeletonItem = memo(({ darkMode, isMobile, style, listWidth, mode }
 			flexDirection="row"
 			alignItems="center"
 			justifyContent="space-between"
-			width={mode == "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
-			height={(mode == "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
-			paddingLeft={mode == "grid" ? "10px" : "20px"}
-			paddingRight={mode == "grid" ? "0px" : "20px"}
-			paddingTop={mode == "grid" ? "10px" : "10px"}
-			paddingBottom={mode == "grid" ? "0px" : "10px"}
+			width={mode === "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
+			height={(mode === "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
+			paddingLeft={mode === "grid" ? "10px" : "20px"}
+			paddingRight={mode === "grid" ? "0px" : "20px"}
+			paddingTop={mode === "grid" ? "10px" : "10px"}
+			paddingBottom={mode === "grid" ? "0px" : "10px"}
 			cursor="auto"
 			userSelect="none"
 		>
-			{mode == "grid" ? (
+			{mode === "grid" ? (
 				<>
 					<Skeleton
 						startColor={getColor(darkMode, "backgroundSecondary")}
@@ -268,8 +268,8 @@ export const Item = memo(
 				}
 
 				if (e.detail >= 2) {
-					if (item.type == "folder") {
-						if (item.root.indexOf("trash") == -1 && window.location.href.indexOf(item.uuid) == -1) {
+					if (item.type === "folder") {
+						if (item.root.indexOf("trash") === -1 && window.location.href.indexOf(item.uuid) === -1) {
 							if (location.pathname.indexOf("/f/") !== -1) {
 								eventListener.emit("publicLinkNavigate", item.uuid)
 							} else {
@@ -296,7 +296,7 @@ export const Item = memo(
 
 				if (e.ctrlKey && !(mobileDevice || tabletDevice)) {
 					setItems(prev =>
-						prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : mapItem))
+						prev.map(mapItem => (mapItem.uuid === item.uuid ? { ...mapItem, selected: !mapItem.selected } : mapItem))
 					)
 				} else if (e.shiftKey && !(mobileDevice || tabletDevice)) {
 					setItems(prev => {
@@ -350,13 +350,13 @@ export const Item = memo(
 					if (currentItems.current.filter(filterItem => filterItem.selected).length > 1) {
 						setItems(prev =>
 							prev.map(mapItem =>
-								mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }
+								mapItem.uuid === item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }
 							)
 						)
 					} else {
 						setItems(prev =>
 							prev.map(mapItem =>
-								mapItem.uuid == item.uuid ? { ...mapItem, selected: !mapItem.selected } : { ...mapItem, selected: false }
+								mapItem.uuid === item.uuid ? { ...mapItem, selected: !mapItem.selected } : { ...mapItem, selected: false }
 							)
 						)
 					}
@@ -372,10 +372,10 @@ export const Item = memo(
 				const selectedCount: number = currentItems.current.filter(filterItem => filterItem.selected).length
 
 				if (selectedCount > 1) {
-					setItems(prev => prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem)))
+					setItems(prev => prev.map(mapItem => (mapItem.uuid === item.uuid ? { ...mapItem, selected: true } : mapItem)))
 				} else {
 					setItems(prev =>
-						prev.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
+						prev.map(mapItem => (mapItem.uuid === item.uuid ? { ...mapItem, selected: true } : { ...mapItem, selected: false }))
 					)
 				}
 
@@ -544,7 +544,7 @@ export const Item = memo(
 			return {
 				onMouseEnter: () => setHovering(true),
 				onMouseLeave: () => setHovering(false),
-				draggable: window.location.hash.indexOf("shared-in") == -1,
+				draggable: window.location.hash.indexOf("shared-in") === -1,
 				onDragStart: handleItemOnDragStart,
 				onDragEnd: handleItemOnDragEnd,
 				onDragOver: handleItemOnDragOver,
@@ -721,17 +721,17 @@ const ItemBody = memo(
 				flexDirection="row"
 				alignItems="center"
 				justifyContent="space-between"
-				width={mode == "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
-				height={(mode == "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
-				paddingLeft={mode == "grid" ? "20px" : "20px"}
-				paddingRight={mode == "grid" ? "0px" : "20px"}
-				paddingTop={mode == "grid" ? "10px" : "10px"}
-				paddingBottom={mode == "grid" ? "0px" : "10px"}
-				cursor={mode == "grid" ? "auto" : "pointer"}
+				width={mode === "grid" ? GRID_CELL_WIDTH + "px" : "100%"}
+				height={(mode === "grid" ? GRID_CELL_HEIGHT : LIST_ITEM_HEIGHT) + "px"}
+				paddingLeft={mode === "grid" ? "20px" : "20px"}
+				paddingRight={mode === "grid" ? "0px" : "20px"}
+				paddingTop={mode === "grid" ? "10px" : "10px"}
+				paddingBottom={mode === "grid" ? "0px" : "10px"}
+				cursor={mode === "grid" ? "auto" : "pointer"}
 				userSelect="none"
 				backgroundColor={bgHover && mode == "list" ? getColor(darkMode, "backgroundSecondary") : "transparent"}
 				_hover={{
-					backgroundColor: mode == "grid" ? "transparent" : getColor(darkMode, "backgroundSecondary")
+					backgroundColor: mode === "grid" ? "transparent" : getColor(darkMode, "backgroundSecondary")
 				}}
 				{...(mode === "list" ? interactionProps : {})}
 			>
@@ -751,7 +751,7 @@ const ItemBody = memo(
 							backgroundColor={bgHover ? getColor(darkMode, "backgroundSecondary") : undefined}
 							{...interactionProps}
 						>
-							{item.favorited == 1 && (
+							{item.favorited === 1 && (
 								<Flex
 									position="absolute"
 									top={18}
@@ -766,7 +766,7 @@ const ItemBody = memo(
 									/>
 								</Flex>
 							)}
-							{item.type == "folder" ? (
+							{item.type === "folder" ? (
 								<IoFolder
 									size={45}
 									color={getFolderColor(item.color)}

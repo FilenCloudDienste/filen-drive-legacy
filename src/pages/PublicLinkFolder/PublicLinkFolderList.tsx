@@ -23,17 +23,7 @@ export interface PublicLinkFolderListProps {
 }
 
 const PublicLinkFolderList = memo(
-	({
-		items,
-		darkMode,
-		isMobile,
-		lang,
-		width,
-		height,
-		loadingItems,
-		viewMode,
-		setItems
-	}: PublicLinkFolderListProps) => {
+	({ items, darkMode, isMobile, lang, width, height, loadingItems, viewMode, setItems }: PublicLinkFolderListProps) => {
 		const [columnCount, rowCount] = useMemo(() => {
 			const containerWidth: number = width
 			const columnCount: number = Math.floor(containerWidth / GRID_CELL_WIDTH)
@@ -65,17 +55,7 @@ const PublicLinkFolderList = memo(
 		)
 
 		const rowRenderer = useCallback(
-			({
-				style,
-				key,
-				index,
-				width
-			}: {
-				style: React.CSSProperties
-				key: string
-				index: number
-				width: number
-			}) => {
+			({ style, key, index, width }: { style: React.CSSProperties; key: string; index: number; width: number }) => {
 				const item = items[index]
 
 				return loadingItems || items.length == 0 ? (
@@ -109,17 +89,7 @@ const PublicLinkFolderList = memo(
 		)
 
 		const cellRenderer = useCallback(
-			({
-				columnIndex,
-				key,
-				rowIndex,
-				style
-			}: {
-				columnIndex: number
-				key: string
-				rowIndex: number
-				style: React.CSSProperties
-			}) => {
+			({ columnIndex, key, rowIndex, style }: { columnIndex: number; key: string; rowIndex: number; style: React.CSSProperties }) => {
 				columnIndex += 1
 				rowIndex += 1
 
@@ -139,7 +109,7 @@ const PublicLinkFolderList = memo(
 					return null
 				}
 
-				return loadingItems || items.length == 0 ? (
+				return loadingItems || items.length === 0 ? (
 					<SkeletonItem
 						key={key}
 						darkMode={darkMode}
@@ -156,7 +126,7 @@ const PublicLinkFolderList = memo(
 						style={style}
 						item={item}
 						items={items}
-						setItems={() => {}}
+						setItems={setItems}
 						setActiveItem={() => {}}
 						setItemDragState={() => {}}
 						setDragSelectState={() => {}}
@@ -206,9 +176,8 @@ const PublicLinkFolderList = memo(
 					</Flex>
 				) : (
 					<>
-						{viewMode == "list" ? (
+						{viewMode === "list" ? (
 							<>
-								{/* @ts-ignore */}
 								<RVList
 									key="list"
 									height={height}
@@ -229,7 +198,6 @@ const PublicLinkFolderList = memo(
 							</>
 						) : (
 							<>
-								{/* @ts-ignore */}
 								<RVGrid
 									key="grid"
 									height={height}
