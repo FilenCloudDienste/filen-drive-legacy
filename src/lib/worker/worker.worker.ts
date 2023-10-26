@@ -783,10 +783,11 @@ export const decryptData = async (data: ArrayBuffer, key: string, version: numbe
 
 export const downloadAndDecryptChunk = (item: ItemProps, url: string, signal?: AbortSignal): Promise<Uint8Array> => {
 	return new Promise((resolve, reject) => {
-		let lastBytes: number = 0
-		const uuid: string = item.uuid
+		let lastBytes = 0
+		const uuid = item.uuid
 		let lastErr: Error
 		let current = -1
+		let maxTries = MAX_DOWNLOAD_RETRIES
 
 		const req = () => {
 			current += 1
@@ -797,7 +798,7 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string, signal?: A
 				return
 			}
 
-			if (current >= MAX_DOWNLOAD_RETRIES) {
+			if (current >= maxTries) {
 				reject(lastErr)
 
 				return
@@ -836,6 +837,16 @@ export const downloadAndDecryptChunk = (item: ItemProps, url: string, signal?: A
 
 			promise
 				.then(response => {
+					if (response.status === 404) {
+						maxTries = 32
+
+						lastErr = new Error("Request status: " + response.status)
+
+						setTimeout(req, DOWNLOAD_RETRY_TIMEOUT)
+
+						return
+					}
+
 					if (response.status !== 200) {
 						lastErr = new Error("Request status: " + response.status)
 

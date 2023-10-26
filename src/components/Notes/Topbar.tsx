@@ -184,7 +184,7 @@ export const Topbar = memo(
 								src={
 									typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}
-								bg={generateAvatarColorCode(userInfo.email, darkMode)}
+								bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 								cursor="pointer"
 								onClick={() => navigate("/#/account/general")}
 							/>

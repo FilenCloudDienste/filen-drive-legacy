@@ -139,7 +139,7 @@ export const Contact = memo(
 					<Avatar
 						name={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? undefined : contact.email}
 						src={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? contact.avatar : undefined}
-						bg={generateAvatarColorCode(contact.email, darkMode)}
+						bg={generateAvatarColorCode(contact.email, darkMode, contact.avatar)}
 						width="25px"
 						height="25px"
 						borderRadius="full"
@@ -490,7 +490,7 @@ export const Participant = memo(({ participant, note }: { participant: NoteParti
 							? participant.avatar
 							: undefined
 					}
-					bg={generateAvatarColorCode(participant.email, darkMode)}
+					bg={generateAvatarColorCode(participant.email, darkMode, participant.avatar)}
 					width="25px"
 					height="25px"
 					borderRadius="full"

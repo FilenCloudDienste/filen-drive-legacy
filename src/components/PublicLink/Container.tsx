@@ -11,7 +11,6 @@ import { FaLock } from "react-icons/fa"
 import { MdVisibilityOff } from "react-icons/md"
 import Button from "../Button"
 import useCookie from "../../lib/hooks/useCookie"
-import { toggleColorMode } from "../../lib/helpers"
 import { decode as decodeBase64 } from "js-base64"
 
 export interface PublicLinkContainerProps extends AppBaseProps {

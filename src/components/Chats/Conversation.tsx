@@ -255,7 +255,11 @@ export const Conversation = memo(
 											? conversationParticipantsFilteredWithoutMe[0]?.avatar
 											: undefined
 									}
-									bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0]?.email, darkMode)}
+									bg={generateAvatarColorCode(
+										conversationParticipantsFilteredWithoutMe[0]?.email,
+										darkMode,
+										conversationParticipantsFilteredWithoutMe[0]?.avatar
+									)}
 									width="30px"
 									height="30px"
 									borderRadius="full"

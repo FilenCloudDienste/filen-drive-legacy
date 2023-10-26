@@ -360,7 +360,7 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 									name={
 										typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email
 									}
-									bg={generateAvatarColorCode(userInfo.email, darkMode)}
+									bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 									width="32px"
 									height="32px"
 									src={
@@ -1589,7 +1589,7 @@ const EventRow = memo(({ style, darkMode, userInfo, isMobile, event, masterKeys,
 								name={typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? undefined : userInfo.email}
 								width="22px"
 								height="22px"
-								bg={generateAvatarColorCode(userInfo.email, darkMode)}
+								bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 								src={
 									typeof userInfo.avatarURL == "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined
 								}
@@ -2100,12 +2100,12 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 			<AppText
 				darkMode={darkMode}
 				isMobile={isMobile}
-				color={getColor(darkMode, "textPrimary")}
+				color={getColor(darkMode, "textSecondary")}
 				fontWeight="bold"
 			>
 				{i18n(lang, "referInfo", true, ["__STORAGE__"], [formatBytes(userAccount.refStorage * userAccount.refLimit)])}
 			</AppText>
-			<AppText
+			{/*<AppText
 				darkMode={darkMode}
 				isMobile={isMobile}
 				color={getColor(darkMode, "textSecondary")}
@@ -2125,10 +2125,10 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 						(userAccount.affRate * 100).toFixed(0).toString()
 					]
 				)}
-			</AppText>
+				</AppText>*/}
 			<Flex
 				alignItems="center"
-				marginTop="40px"
+				marginTop="30px"
 			>
 				<Input
 					width={isMobile ? "100%" : "450px"}
@@ -2205,7 +2205,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 				)}{" "}
 				of {formatBytes(userAccount.refStorage * userAccount.refLimit)}
 			</AppText>
-			<AppText
+			{/*<AppText
 				darkMode={darkMode}
 				isMobile={isMobile}
 				color={getColor(darkMode, "textPrimary")}
@@ -2241,7 +2241,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 				darkMode={darkMode}
 				isMobile={isMobile}
 				lang={lang}
-			/>
+					/>*/}
 		</Flex>
 	)
 })

@@ -8,7 +8,7 @@ export const MAX_CONCURRENT_DOWNLOADS = 32
 export const MAX_UPLOAD_THREADS = 16
 export const MAX_DOWNLOAD_THREADS = 64
 export const MAX_DOWNLOAD_WRITERS = 1024
-export const MAX_DOWNLOAD_RETRIES = 128
+export const MAX_DOWNLOAD_RETRIES = Number.MAX_SAFE_INTEGER
 export const MAX_UPLOAD_RETRIES = Number.MAX_SAFE_INTEGER
 export const DOWNLOAD_RETRY_TIMEOUT = 1000
 export const UPLOAD_RETRY_TIMEOUT = 1000
@@ -34,6 +34,8 @@ export const ONLINE_TIMEOUT = 900000
 export const API_V3_DOMAINS =
 	process.env.NODE_ENV === "development"
 		? ["http://localhost:1337"]
+		: location.host.endsWith(".dev")
+		? ["https://gateway.filen.dev"]
 		: [
 				"https://gateway.filen.io",
 				"https://gateway.filen.net",
@@ -46,22 +48,24 @@ export const API_V3_DOMAINS =
 		  ]
 
 export const DOWNLOAD_DOMAINS =
-	process.env.NODE_ENV === "development"
-		? ["http://localhost:1339"]
+	process.env.NODE_ENV === "development" || location.host.endsWith(".dev")
+		? ["https://egest.filen.dev"]
 		: [
-				"https://down.filen.io",
-				"https://down.filen.net",
-				"https://down.filen-1.net",
-				"https://down.filen-2.net",
-				"https://down.filen-3.net",
-				"https://down.filen-4.net",
-				"https://down.filen-5.net",
-				"https://down.filen-6.net"
+				"https://egest.filen.io",
+				"https://egest.filen.net",
+				"https://egest.filen-1.net",
+				"https://egest.filen-2.net",
+				"https://egest.filen-3.net",
+				"https://egest.filen-4.net",
+				"https://egest.filen-5.net",
+				"https://egest.filen-6.net"
 		  ]
 
 export const UPLOAD_V3_DOMAINS =
 	process.env.NODE_ENV === "development"
 		? ["http://localhost:1338"]
+		: location.host.endsWith(".dev")
+		? ["https://ingest.filen.dev"]
 		: [
 				"https://ingest.filen.io",
 				"https://ingest.filen.net",
@@ -73,7 +77,7 @@ export const UPLOAD_V3_DOMAINS =
 				"https://ingest.filen-6.net"
 		  ]
 
-export const SOCKET = "https://socket.filen.io"
+export const SOCKET = location.host.endsWith(".dev") ? "https://socket.filen.dev" : "https://socket.filen.io"
 
 export const REPORT_API_URL =
 	process.env.NODE_ENV === "development" ? "http://localhost:3000/api/v1/ticket/submit" : "https://filen.io/api/v1/ticket/submit"

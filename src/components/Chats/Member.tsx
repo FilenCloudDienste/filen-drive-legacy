@@ -143,7 +143,7 @@ export const Member = memo(({ user, darkMode, onlineUsers, isMobile, currentConv
 					<Avatar
 						name={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? undefined : user.email}
 						src={typeof user.avatar === "string" && user.avatar.indexOf("https://") !== -1 ? user.avatar : undefined}
-						bg={generateAvatarColorCode(user.email, darkMode)}
+						bg={generateAvatarColorCode(user.email, darkMode, user.avatar)}
 						width="30px"
 						height="30px"
 						borderRadius="full"

@@ -5,11 +5,11 @@ import { Flex } from "@chakra-ui/react"
 import { IoFolder, IoTrash } from "react-icons/io5"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
-import { MdOutlineFavorite } from "react-icons/md"
-import { HiClock } from "react-icons/hi"
 import { RiFolderSharedFill, RiLink, RiFolderReceivedFill } from "react-icons/ri"
 import { i18n } from "../../i18n"
 import { AiOutlineSearch } from "react-icons/ai"
+import { AiOutlineHeart } from "react-icons/ai"
+import { HiOutlineClock } from "react-icons/hi"
 
 const Parent = memo(({ children }: { children: React.ReactNode }) => {
 	return (
@@ -172,7 +172,7 @@ const ListEmpty = memo(
 		if (location.hash.indexOf("favorites") !== -1) {
 			return (
 				<Parent>
-					<MdOutlineFavorite
+					<AiOutlineHeart
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
 					/>
@@ -204,7 +204,7 @@ const ListEmpty = memo(
 		if (location.hash.indexOf("recent") !== -1) {
 			return (
 				<Parent>
-					<HiClock
+					<HiOutlineClock
 						size={sizes.icon}
 						color={getColor(darkMode, "textSecondary")}
 					/>

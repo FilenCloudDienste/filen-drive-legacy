@@ -536,6 +536,7 @@ export const canCompressThumbnail = (ext: string) => {
 		case "svg":
 		case "mp4":
 		case "webm":
+		case "webp":
 			return true
 		default:
 			return false
@@ -551,6 +552,7 @@ export const canShowThumbnail = (ext: string) => {
 		case "svg":
 		case "mp4":
 		case "webm":
+		case "webp":
 			return true
 		default:
 			return false
@@ -568,6 +570,7 @@ export const getFilePreviewType = (ext: string) => {
 		case "svg":
 		case "heic":
 		case "heif":
+		case "webp":
 			return "image"
 		case "mp3":
 		case "wav":
@@ -1223,7 +1226,11 @@ export const parseURLParams = (url: string) => {
 }
 
 export const generateAvatarColorCode = memoize(
-	(input: string, darkMode: boolean): string => {
+	(input: string, darkMode: boolean, avatarURL?: string | null): string => {
+		if (typeof avatarURL === "string" && avatarURL.length >= 1) {
+			return "transparent"
+		}
+
 		if (typeof input !== "string") {
 			input = "default"
 		}

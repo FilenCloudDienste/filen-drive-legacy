@@ -85,7 +85,7 @@ export const Request = memo(({ request, activeTab }: { request: ContactRequest; 
 					<Avatar
 						name={typeof request.avatar === "string" && request.avatar.indexOf("https://") !== -1 ? undefined : request.email}
 						src={typeof request.avatar === "string" && request.avatar.indexOf("https://") !== -1 ? request.avatar : undefined}
-						bg={generateAvatarColorCode(request.email, darkMode)}
+						bg={generateAvatarColorCode(request.email, darkMode, request.avatar)}
 						width="35px"
 						height="35px"
 						borderRadius="full"

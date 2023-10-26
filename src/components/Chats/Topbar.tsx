@@ -248,7 +248,11 @@ export const Topbar = memo(
 									? conversationParticipantsFilteredWithoutMe[0]?.avatar
 									: undefined
 							}
-							bg={generateAvatarColorCode(conversationParticipantsFilteredWithoutMe[0]?.email, darkMode)}
+							bg={generateAvatarColorCode(
+								conversationParticipantsFilteredWithoutMe[0]?.email,
+								darkMode,
+								conversationParticipantsFilteredWithoutMe[0]?.avatar
+							)}
 							width="25px"
 							height="25px"
 							borderRadius="full"

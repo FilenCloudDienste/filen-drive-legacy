@@ -1008,6 +1008,8 @@ const Usage = memo(({ sidebarWidth }: { sidebarWidth: number }) => {
 									}}
 									cursor="pointer"
 									onClick={() => navigate("/#/account/plans")}
+									bgGradient="linear(to-r, #7928CA, #FF0080)"
+									bgClip="text"
 								>
 									{i18n(lang, "upgrade")}
 								</AppText>
@@ -1158,7 +1160,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "trash")}
 				to="/#/trash"
 			/>
-			<Divider
+			{/*<Divider
 				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
@@ -1183,7 +1185,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				type="contacts"
 				text={i18n(lang, "contacts")}
 				to="/#/contacts/online"
-			/>
+				/>*/}
 			<Divider
 				darkMode={darkMode}
 				marginTop={10}

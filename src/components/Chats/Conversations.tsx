@@ -140,7 +140,7 @@ const Me = memo(({ darkMode, isMobile, lang }: MeProps) => {
 							? userAccount.avatarURL
 							: undefined
 					}
-					bg={generateAvatarColorCode(userAccount.email, darkMode)}
+					bg={generateAvatarColorCode(userAccount.email, darkMode, userAccount.avatarURL)}
 					width="30px"
 					height="30px"
 					borderRadius="full"

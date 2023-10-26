@@ -105,7 +105,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						width="28px"
 						height="28px"
 						src={typeof userInfo.avatarURL === "string" && userInfo.avatarURL.length > 0 ? userInfo.avatarURL : undefined}
-						bg={generateAvatarColorCode(userInfo.email, darkMode)}
+						bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}
 					/>

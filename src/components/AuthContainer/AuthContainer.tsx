@@ -2,7 +2,7 @@ import { memo } from "react"
 import { AuthContainerProps } from "../../types"
 import { Flex, Image } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
-import LoginImage from "../../assets/images/login.jpg"
+import { getRandomArbitrary } from "../../lib/helpers"
 
 const AuthContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang, children }: AuthContainerProps) => {
 	return (
@@ -48,7 +48,7 @@ const AuthContainer = memo(({ windowWidth, windowHeight, darkMode, isMobile, lan
 							bottom="-100px"
 						>
 							<Image
-								src={LoginImage}
+								src={"/login" + getRandomArbitrary(1, 6) + ".webp"}
 								fit="cover"
 								filter="blur(1px)"
 							/>

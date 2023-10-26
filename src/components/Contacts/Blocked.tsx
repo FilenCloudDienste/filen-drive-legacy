@@ -63,7 +63,7 @@ export const Blocked = memo(
 						<Avatar
 							name={typeof block.avatar === "string" && block.avatar.indexOf("https://") !== -1 ? undefined : block.email}
 							src={typeof block.avatar === "string" && block.avatar.indexOf("https://") !== -1 ? block.avatar : undefined}
-							bg={generateAvatarColorCode(block.email, darkMode)}
+							bg={generateAvatarColorCode(block.email, darkMode, block.avatar)}
 							width="35px"
 							height="35px"
 							borderRadius="full"

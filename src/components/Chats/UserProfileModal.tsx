@@ -279,7 +279,7 @@ export const UserProfileModal = memo(() => {
 											? profile.avatar
 											: undefined
 									}
-									bg={generateAvatarColorCode(profile.email, darkMode)}
+									bg={generateAvatarColorCode(profile.email, darkMode, profile.avatar)}
 									width="55px"
 									height="55px"
 									borderRadius="full"

@@ -68,7 +68,7 @@ export const Contact = memo(({ contact }: { contact: IContact }) => {
 					<Avatar
 						name={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? undefined : contact.email}
 						src={typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? contact.avatar : undefined}
-						bg={generateAvatarColorCode(contact.email, darkMode)}
+						bg={generateAvatarColorCode(contact.email, darkMode, contact.avatar)}
 						width="35px"
 						height="35px"
 						borderRadius="full"

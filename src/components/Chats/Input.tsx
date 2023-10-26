@@ -995,7 +995,7 @@ export const Input = memo(
 																					? p.avatar
 																					: undefined
 																			}
-																			bg={generateAvatarColorCode(p.email, darkMode)}
+																			bg={generateAvatarColorCode(p.email, darkMode, p.avatar)}
 																			width="26px"
 																			height="26px"
 																			borderRadius="full"

@@ -360,7 +360,7 @@ export const ReplyTo = memo(({ darkMode, isMobile, message, hideArrow, currentCo
 						? message.replyTo.senderAvatar
 						: undefined
 				}
-				bg={generateAvatarColorCode(message.replyTo.senderEmail, darkMode)}
+				bg={generateAvatarColorCode(message.replyTo.senderEmail, darkMode, message.replyTo.senderAvatar)}
 				width="16px"
 				height="16px"
 				borderRadius="full"
@@ -935,7 +935,7 @@ export const Message = memo(
 											? message.senderAvatar
 											: undefined
 									}
-									bg={generateAvatarColorCode(message.senderEmail, darkMode)}
+									bg={generateAvatarColorCode(message.senderEmail, darkMode, message.senderAvatar)}
 									width="32px"
 									height="32px"
 									borderRadius="full"

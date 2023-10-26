@@ -34,7 +34,7 @@ const InvalidLink = lazy(() => import("../../components/PublicLink/InvalidLink")
 const SUPPORTED_PREVIEW_TYPES: string[] = ["image", "text", "pdf", "video", "docx"]
 const MAX_SIZE: number = 1024 * 1024 * 16
 
-const getItemFromFile = (info: LinkGetInfo, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
+export const getItemFromFile = (info: LinkGetInfo, file: { name: string; size: number; mime: string }, key: string): ItemProps => {
 	const item: ItemProps = {
 		root: "",
 		type: "file",
@@ -103,9 +103,9 @@ const PublicLinkFile = memo(({ windowWidth, windowHeight, darkMode, isMobile, la
 
 		downloadTimeout.current = Date.now() + 2500
 
-		queueFileDownload(getItemFromFile(info as LinkGetInfo, file as { name: string; size: number; mime: string }, key))
-			.then(console.log)
-			.catch(console.error)
+		queueFileDownload(getItemFromFile(info as LinkGetInfo, file as { name: string; size: number; mime: string }, key)).catch(
+			console.error
+		)
 	}, [info, file, key, downloadTimeout.current])
 
 	const fetchInfo = useCallback(() => {

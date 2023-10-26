@@ -165,13 +165,17 @@ const App = memo(() => {
 							width={windowWidth + "px"}
 							height={windowHeight + "px"}
 						>
-							{window.location.href.indexOf("?embed") === -1 && (
-								<Image
-									src={require("./assets/images/logo_animated.gif")}
-									width="128px"
-									height="128px"
-								/>
-							)}
+							{window.location.href.indexOf("?embed") === -1 &&
+								window.location.href.indexOf("login") === -1 &&
+								window.location.href.indexOf("register") === -1 &&
+								window.location.href.indexOf("resend-confirmation") === -1 &&
+								window.location.href.indexOf("forgot-password") === -1 && (
+									<Image
+										src={require("./assets/images/logo_animated.gif")}
+										width="128px"
+										height="128px"
+									/>
+								)}
 						</Flex>
 					}
 				>

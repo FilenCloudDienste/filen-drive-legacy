@@ -341,7 +341,7 @@ export const Note = memo(({ note, userId }: { note: INote; userId: number }) => 
 											? participant.avatar
 											: undefined
 									}
-									bg={generateAvatarColorCode(participant.email, darkMode)}
+									bg={generateAvatarColorCode(participant.email, darkMode, participant.email)}
 									width="25px"
 									height="25px"
 									border="none"
