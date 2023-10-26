@@ -518,7 +518,8 @@ const fr: {
 	profileBlockContact: "Bloquer",
 	profileUnblockContact: "Débloquer",
 	profile: "Profil",
-	chatMessageLimitReached: "La taille limite d'un message est de __LIMIT__ caractères"
+	chatMessageLimitReached: "La taille limite d'un message est de __LIMIT__ caractères",
+	chatAttachmentTooManyFiles: "Vous ne pouvez pas joindre plus de __LIMIT__ fichiers par message"
 }
 
 export default fr
