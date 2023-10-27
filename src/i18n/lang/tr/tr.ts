@@ -32,8 +32,7 @@ const tr: {
 	abuseReport: "Kötüye kullanımı raporla",
 	abuseReportModalInfo: "Bu formu kullanarak uygunsuz, yasa dışı veya faklı türdeki zararlı dosyaları bildirin.",
 	yourEmailAddress: "E-posta adresiniz",
-	abuseReportModalInfoPlaceholder:
-		"Gerekli önlemleri alabilmemiz için lütfen bize tüm ayrıntıları bildirin (İsteğe bağlı)",
+	abuseReportModalInfoPlaceholder: "Gerekli önlemleri alabilmemiz için lütfen bize tüm ayrıntıları bildirin (İsteğe bağlı)",
 	send: "Gönder",
 	abuseReportModalReason: "Lütfen bir neden seçin",
 	avatarUploadMaxFileSize: "Dosya boyutu 3 MB'ı geçmemelidir",
@@ -98,8 +97,7 @@ const tr: {
 	postalCode: "Posta kodu",
 	country: "Ülke",
 	areYouSure: "Emin misiniz?",
-	areYouSureDeleteAllVersioned:
-		"Tüm sürümlendirilmiş dosyaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz",
+	areYouSureDeleteAllVersioned: "Tüm sürümlendirilmiş dosyaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz",
 	areYouSureDeleteAll: "Tüm dosya ve klasörleri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz",
 	invalidNewPassword: "Geçersiz yeni parola",
 	invalidCurrentPassword: "Geçersiz mevcut parola",
@@ -110,8 +108,7 @@ const tr: {
 	confirmNewPassword: "Yeni parolayı onayla",
 	currentPassword: "Mevcut parola",
 	deleteAccountConfirm: "Lütfen e-postanıza gönderilen bağlantıya tıklayarak hesap silme işlemini onaylayın",
-	areYouSureDeleteAccount:
-		"Hesabınızı silmek istediğinizden emin misiniz? E-posta adresinize bir onay bağlantısı göndereceğiz.",
+	areYouSureDeleteAccount: "Hesabınızı silmek istediğinizden emin misiniz? E-posta adresinize bir onay bağlantısı göndereceğiz.",
 	invalid2FACode: "Geçersiz iki faktörlü kimlik doğrulama kodu",
 	enable2FA: "İki faktörlü kimlik doğrulamayı etkinleştir",
 	copy: "Kopyala",
@@ -136,8 +133,7 @@ const tr: {
 	oneTimePayment: "Tek seferlik ödeme",
 	buyRecurringInfo:
 		"Bir plan satın alarak, siz iptal edene kadar Filen'in her fatura döneminde sizden otomatik olarak ücret almasına izin vermiş olursunuz. Hesap sayfanız üzerinden istediğiniz zaman iptal edebilirsiniz. Kısmi geri ödeme yoktur.",
-	buyLifetimeInfo:
-		"Bir plan satın alarak Filen'e ödeme yönteminizden ücret alma yetkisi vermiş olursunuz. Kısmi geri ödeme yoktur.",
+	buyLifetimeInfo: "Bir plan satın alarak Filen'e ödeme yönteminizden ücret alma yetkisi vermiş olursunuz. Kısmi geri ödeme yoktur.",
 	creditDebit: "Kredi / Banka kartı",
 	cancelSub: "Aboneliği iptal et",
 	cancelSubSure: "Bu aboneliği iptal etmek istediğinizden emin misiniz?",
@@ -243,8 +239,7 @@ const tr: {
 	upgrade: "Yükselt",
 	stoppedSharingItems: "__COUNT__ öğenin paylaşımı durduruldu",
 	couldNotStopSharingItem: "__NAME__ paylaşımı durdurulamadı: __ERR__",
-	stopSharingModalSure:
-		"__COUNT__ öğenin paylaşımını durdurmak istediğinizden emin misiniz? Diğer kişiler artık bunlara erişemeyecektir",
+	stopSharingModalSure: "__COUNT__ öğenin paylaşımını durdurmak istediğinizden emin misiniz? Diğer kişiler artık bunlara erişemeyecektir",
 	aboutRemaining: "Yaklaşık __TIME__ kaldı",
 	transferringItems: "__COUNT__ öğe aktarılıyor",
 	uploadingItems: "__COUNT__ öğe yükleniyor",
@@ -340,11 +335,9 @@ const tr: {
 	registration: "Registration",
 	registrationEmailInstructions:
 		"Kaydınızı tamamlamak için lütfen e-posta adresinizi onaylayın. Talimatları içeren bir bağlantı size gönderildi",
-	forgotPasswordEmailSent:
-		"Parolanızı nasıl sıfırlayacağınıza ilişkin talimatları içeren bir e-posta size gönderildi.",
+	forgotPasswordEmailSent: "Parolanızı nasıl sıfırlayacağınıza ilişkin talimatları içeren bir e-posta size gönderildi.",
 	maxStorageReached: "Depolama alanı dolu",
-	maxStorageReachedInfo:
-		"Maksimum depolama alanınıza ulaştınız. Daha fazla dosya yüklemek için lütfen hesabınızı yükseltin.",
+	maxStorageReachedInfo: "Maksimum depolama alanınıza ulaştınız. Daha fazla dosya yüklemek için lütfen hesabınızı yükseltin.",
 	upgradeNow: "Şimdi yükseltin",
 	abuseReportSubmitted: "Kötüye kullanım raporu gönderildi",
 	invalidAbuseReason: "Geçersiz neden",
@@ -373,7 +366,7 @@ const tr: {
 	receivedBonusStorage: "Toplam kazanılan ek depolama",
 	referInfo: "Başkalarını davet ederek __STORAGE__ depolama alanına kadar kazanın",
 	referInfo2:
-		"referInfo2: "Filen'e davet ettiğiniz her arkadaşınız için __STORAGE__ alırsınız ve arkadaşınız da __OTHER_STORAGE__ alır. Arkadaşınız bir abonelik için kaydolduğunda siz de komisyon kazanırsınız. Komisyon ödeme sınırı __THRESHOLD__€'dur. Oranınız %__RATE__'dur.",
+		"Filen'e davet ettiğiniz her arkadaşınız için __STORAGE__ alırsınız ve arkadaşınız da __OTHER_STORAGE__ alır. Arkadaşınız bir abonelik için kaydolduğunda siz de komisyon kazanırsınız. Komisyon ödeme sınırı __THRESHOLD__€'dur. Oranınız %__RATE__'dur.",
 	yourBtcAddress: "Bitcoin adresiniz",
 	openUploads: "Yüklenenleri aç",
 	payNow: "Faturayı şimdi ödeyin",
@@ -383,8 +376,8 @@ const tr: {
 	subCancelled: "İptal edildi",
 	support: "Destek",
 	finishing: "Bitiriliyor",
-	searchNothingFound: '"__TERM__" bulunamadı'
-        queued: "Sıradaki",
+	searchNothingFound: '"__TERM__" bulunamadı',
+	queued: "Sıradaki",
 	searchInThisFolder: "Bu klasörde ara...",
 	fileVersioning: "Dosya sürümlendiriliyor",
 	loginAlerts: "Oturum açma uyarıları",
