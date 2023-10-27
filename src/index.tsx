@@ -24,14 +24,16 @@ window.visibleItems = []
 window.currentReceiverId = 0
 window.swFsRegistered = false
 
-navigator.serviceWorker
-	.register("/swfs.js")
-	.then(() => {
-		window.swFsRegistered = true
+if (navigator && navigator.serviceWorker) {
+	navigator.serviceWorker
+		.register("/swfs.js")
+		.then(() => {
+			window.swFsRegistered = true
 
-		console.log("native-file-system-adapter service-worker registered")
-	})
-	.catch(console.error)
+			console.log("native-file-system-adapter service-worker registered")
+		})
+		.catch(console.error)
+}
 
 const extendedTheme = extendTheme({
 	...theme,
