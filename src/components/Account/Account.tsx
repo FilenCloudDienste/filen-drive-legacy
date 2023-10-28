@@ -2105,7 +2105,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 			>
 				{i18n(lang, "referInfo", true, ["__STORAGE__"], [formatBytes(userAccount.refStorage * userAccount.refLimit)])}
 			</AppText>
-			{/*<AppText
+			<AppText
 				darkMode={darkMode}
 				isMobile={isMobile}
 				color={getColor(darkMode, "textSecondary")}
@@ -2125,7 +2125,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 						(userAccount.affRate * 100).toFixed(0).toString()
 					]
 				)}
-				</AppText>*/}
+			</AppText>
 			<Flex
 				alignItems="center"
 				marginTop="30px"
@@ -2205,7 +2205,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 				)}{" "}
 				of {formatBytes(userAccount.refStorage * userAccount.refLimit)}
 			</AppText>
-			{/*<AppText
+			<AppText
 				darkMode={darkMode}
 				isMobile={isMobile}
 				color={getColor(darkMode, "textPrimary")}
@@ -2241,7 +2241,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 				darkMode={darkMode}
 				isMobile={isMobile}
 				lang={lang}
-					/>*/}
+			/>
 		</Flex>
 	)
 })
