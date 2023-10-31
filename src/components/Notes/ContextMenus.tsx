@@ -19,7 +19,6 @@ import {
 	NoteType,
 	noteParticipantsAdd,
 	createNote,
-	notes as getNotes,
 	editNoteContent,
 	noteHistory,
 	NoteTag,
@@ -37,8 +36,6 @@ import {
 	decryptNoteKeyParticipant,
 	encryptNotePreview,
 	encryptNoteContent,
-	decryptNoteTitle,
-	decryptNotePreview,
 	encryptMetadata,
 	encryptMetadataPublicKey,
 	encryptNoteTitle,
@@ -559,7 +556,7 @@ const ContextMenus = memo(
 							)}
 							<ContextMenuSeparator />
 							<ContextMenuItem onClick={() => eventListener.emit("openDeleteNotesTagModal", selectedTag)}>
-								{i18n(lang, "delete")}
+								<Flex color={getColor(darkMode, "red")}>{i18n(lang, "delete")}</Flex>
 							</ContextMenuItem>
 						</>
 					)}
@@ -617,7 +614,7 @@ const ContextMenus = memo(
 							{userHasWritePermissions && (
 								<>
 									<ContextMenuSubmenu
-										label="Type"
+										label={i18n(lang, "notesType")}
 										arrow={<IoChevronForward fontSize={16} />}
 									>
 										<ContextMenuItem onClick={() => changeType("text")}>
@@ -661,7 +658,7 @@ const ContextMenus = memo(
 							)}
 							{tagsSorted.length > 0 && (
 								<ContextMenuSubmenu
-									label="Tags"
+									label={i18n(lang, "notesTags")}
 									arrow={<IoChevronForward fontSize={16} />}
 								>
 									{tagsSorted.map(tag => {

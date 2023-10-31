@@ -30,6 +30,7 @@ export const ONE_YEAR = 86400000 * 365
 export const AUTH_VERSION = 2
 export const PREVIEW_MAX_SIZE = 1024 * 1024 * 128
 export const ONLINE_TIMEOUT = 900000
+export const MAX_NOTE_SIZE = 1024 * 1024 - 1
 
 export const API_V3_DOMAINS =
 	process.env.NODE_ENV === "development"

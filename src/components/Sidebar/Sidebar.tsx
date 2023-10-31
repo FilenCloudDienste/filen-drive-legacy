@@ -1160,7 +1160,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "trash")}
 				to="/#/trash"
 			/>
-			{/*<Divider
+			<Divider
 				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
@@ -1185,7 +1185,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				type="contacts"
 				text={i18n(lang, "contacts")}
 				to="/#/contacts/online"
-				/>*/}
+			/>
 			<Divider
 				darkMode={darkMode}
 				marginTop={10}

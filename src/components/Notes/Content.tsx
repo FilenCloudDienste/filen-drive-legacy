@@ -6,7 +6,15 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { Note as INote, editNoteContent, NoteType } from "../../lib/api"
-import { safeAwait, randomStringUnsafe, getRandomArbitrary, Semaphore, SemaphoreProps, getCurrentParent } from "../../lib/helpers"
+import {
+	safeAwait,
+	randomStringUnsafe,
+	getRandomArbitrary,
+	Semaphore,
+	SemaphoreProps,
+	getCurrentParent,
+	formatBytes
+} from "../../lib/helpers"
 import db from "../../lib/db"
 import { decryptNoteContent, encryptNoteContent, encryptNotePreview, decryptNoteKeyParticipant } from "../../lib/worker/worker.com"
 import debounce from "lodash/debounce"
@@ -18,6 +26,9 @@ import Topbar from "./Topbar"
 import { SocketEvent } from "../../lib/services/socket"
 import useDb from "../../lib/hooks/useDb"
 import { useNavigate } from "react-router-dom"
+import { show as showToast } from "../Toast/Toast"
+import { MAX_NOTE_SIZE } from "../../lib/constants"
+import { i18n } from "../../i18n"
 
 export const ContentSkeleton = memo(() => {
 	const isMobile = useIsMobile()
@@ -55,11 +66,13 @@ export const Content = memo(
 	({
 		sizes,
 		currentNote,
-		setNotes
+		setNotes,
+		lang
 	}: {
 		sizes: NotesSizes
 		currentNote: INote | undefined
 		setNotes: React.Dispatch<React.SetStateAction<INote[]>>
+		lang: string
 	}) => {
 		const windowHeight = useWindowHeight()
 		const [content, setContent] = useState<string>("")
@@ -139,60 +152,76 @@ export const Content = memo(
 
 			await saveMutex.acquire()
 
-			const userId = await db.get("userId")
+			try {
+				const userId = await db.get("userId")
 
-			if (
-				!currentNoteRef.current ||
-				currentNoteRef.current.participants.filter(participant => participant.userId === userId && participant.permissionsWrite)
-					.length === 0 ||
-				getCurrentParent(window.location.href) !== currentNoteRef.current.uuid ||
-				(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContent.current.length)
-			) {
-				saveMutex.release()
+				if (
+					!currentNoteRef.current ||
+					currentNoteRef.current.participants.filter(participant => participant.userId === userId && participant.permissionsWrite)
+						.length === 0 ||
+					getCurrentParent(window.location.href) !== currentNoteRef.current.uuid ||
+					(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContent.current.length)
+				) {
+					saveMutex.release()
+
+					setSynced(prev => ({ ...prev, content: true }))
+
+					return
+				}
+
+				setSynced(prev => ({ ...prev, content: false }))
+
+				const privateKey = await db.get("privateKey")
+				const noteKey = await decryptNoteKeyParticipant(
+					currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
+					privateKey
+				)
+				const preview = createNotePreviewFromContentText(newContent, currentNoteRef.current.type)
+				const contentEncrypted = await encryptNoteContent(newContent, noteKey)
+				const previewEncrypted = await encryptNotePreview(preview, noteKey)
+
+				if (contentEncrypted.length >= MAX_NOTE_SIZE) {
+					showToast("error", i18n(lang, "noteTooBig", true, ["__MAXSIZE__"], [formatBytes(MAX_NOTE_SIZE)]), "bottom", 5000)
+
+					saveMutex.release()
+
+					setSynced(prev => ({ ...prev, content: false }))
+
+					return
+				}
+
+				await editNoteContent({
+					uuid: currentNoteRef.current.uuid,
+					preview: previewEncrypted,
+					content: contentEncrypted,
+					type: currentNoteRef.current.type
+				})
+
+				prevContent.current = newContent
 
 				setSynced(prev => ({ ...prev, content: true }))
+				setNotes(prev =>
+					prev.map(note =>
+						currentNoteRef.current && note.uuid === currentNoteRef.current.uuid
+							? { ...note, editedTimestamp: Date.now(), preview }
+							: note
+					)
+				)
 
-				return
+				await Promise.all([
+					db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes"),
+					db.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type, "notes")
+				]).catch(console.error)
+			} catch (e: any) {
+				console.error(e)
+
+				showToast("error", e.toString(), "bottom", 5000)
 			}
 
-			setSynced(prev => ({ ...prev, content: false }))
-
-			const privateKey = await db.get("privateKey")
-			const noteKey = await decryptNoteKeyParticipant(
-				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
-				privateKey
-			)
-			const preview = createNotePreviewFromContentText(newContent, currentNoteRef.current.type)
-			const contentEncrypted = await encryptNoteContent(newContent, noteKey)
-			const previewEncrypted = await encryptNotePreview(preview, noteKey)
-
-			await editNoteContent({
-				uuid: currentNoteRef.current.uuid,
-				preview: previewEncrypted,
-				content: contentEncrypted,
-				type: currentNoteRef.current.type
-			})
-
-			prevContent.current = newContent
-
-			setSynced(prev => ({ ...prev, content: true }))
-			setNotes(prev =>
-				prev.map(note =>
-					currentNoteRef.current && note.uuid === currentNoteRef.current.uuid
-						? { ...note, editedTimestamp: Date.now(), preview }
-						: note
-				)
-			)
-
-			await Promise.all([
-				db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes"),
-				db.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type, "notes")
-			]).catch(console.error)
-
 			saveMutex.release()
-		}, [])
+		}, [lang])
 
-		const debouncedSave = useCallback(debounce(save, 3000), [])
+		const debouncedSave = useCallback(debounce(save, 2000), [])
 
 		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
 			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {

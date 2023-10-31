@@ -494,7 +494,26 @@ const AddModal = memo(() => {
 								height="50px"
 								color={getColor(darkMode, "textSecondary")}
 							>
-								{i18n(lang, "noContactsFound")}
+								<Flex
+									flexDirection="column"
+									justifyContent="center"
+									alignItems="center"
+									marginTop="10px"
+								>
+									<Flex>{i18n(lang, "noContactsFound")}</Flex>
+									<Flex
+										marginTop="5px"
+										fontSize={14}
+										cursor="pointer"
+										color={getColor(darkMode, "linkPrimary")}
+										_hover={{
+											textDecoration: "underline"
+										}}
+										onClick={() => (window.location.href = "/#/contacts")}
+									>
+										{i18n(lang, "addContact")}
+									</Flex>
+								</Flex>
 							</Flex>
 						)}
 					</Flex>

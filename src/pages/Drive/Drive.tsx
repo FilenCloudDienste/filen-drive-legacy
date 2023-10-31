@@ -73,6 +73,7 @@ import Contacts from "../../components/Contacts"
 import { i18n } from "../../i18n"
 import SelectFromCloud from "../../components/SelectFromCloud"
 import UserProfileModal from "../../components/Chats/UserProfileModal"
+import ChatSettingsModal from "../../components/Chats/SettingsModal"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -1310,6 +1311,7 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 							isMobile={isMobile}
 							windowHeight={windowHeight}
 							windowWidth={windowWidth}
+							lang={lang}
 						/>
 					) : location.hash.indexOf("contacts") !== -1 ? (
 						<Contacts
@@ -1536,6 +1538,11 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 				lang={lang}
 			/>
 			<UserProfileModal />
+			<ChatSettingsModal
+				darkMode={darkMode}
+				isMobile={isMobile}
+				lang={lang}
+			/>
 		</Flex>
 	)
 })

@@ -124,7 +124,7 @@ export const YouTube = memo(
 										</Flex>
 									)}
 									<Image
-										src={"https://img.youtube.com/vi/" + parseYouTubeVideoId(link) + "/maxresdefault.jpg"}
+										src={"https://img.youtube.com/vi/" + parseYouTubeVideoId(link) + "/hqdefault.jpg"}
 										width="100%"
 										height="300px"
 										borderRadius="10px"

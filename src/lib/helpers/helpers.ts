@@ -1227,7 +1227,7 @@ export const parseURLParams = (url: string) => {
 
 export const generateAvatarColorCode = memoize(
 	(input: string, darkMode: boolean, avatarURL?: string | null): string => {
-		if (typeof avatarURL === "string" && avatarURL.length >= 1) {
+		if (typeof avatarURL === "string" && avatarURL.length >= 1 && avatarURL.indexOf("https://") !== -1) {
 			return "transparent"
 		}
 

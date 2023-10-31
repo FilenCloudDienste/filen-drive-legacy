@@ -18,8 +18,7 @@ import { customEmojis } from "./customEmojis"
 import DeleteConversationModal from "./DeleteConversationModal"
 import LeaveConversationModal from "./LeaveConversationModal"
 import RemoveParticipantModal from "./RemoveParticipantModal"
-import SettingsModal from "./SettingsModal"
-import { IoChatbubblesSharp } from "react-icons/io5"
+import { IoChatbubblesOutline } from "react-icons/io5"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { i18n } from "../../i18n"
@@ -162,7 +161,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 						padding="15px"
 						textAlign="center"
 					>
-						<IoChatbubblesSharp
+						<IoChatbubblesOutline
 							color={getColor(darkMode, "textSecondary")}
 							size={isMobile ? 70 : 100}
 							style={{
@@ -173,7 +172,7 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 							darkMode={darkMode}
 							isMobile={isMobile}
 							color={getColor(darkMode, "textPrimary")}
-							fontSize={18}
+							fontSize={20}
 							marginTop="25px"
 						>
 							{i18n(lang, "chatConversationCreateSidebar")}
@@ -182,8 +181,8 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 							darkMode={darkMode}
 							isMobile={isMobile}
 							color={getColor(darkMode, "textSecondary")}
-							fontSize={14}
-							marginTop="15px"
+							fontSize={15}
+							marginTop="5px"
 						>
 							{i18n(lang, "chatInfoSubtitle1")}
 						</AppText>
@@ -251,11 +250,6 @@ const Chats = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidt
 			<DeleteConversationModal />
 			<LeaveConversationModal />
 			<RemoveParticipantModal />
-			<SettingsModal
-				darkMode={darkMode}
-				isMobile={isMobile}
-				lang={lang}
-			/>
 			<EditConversationNameModal />
 		</Flex>
 	)

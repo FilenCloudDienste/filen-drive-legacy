@@ -501,7 +501,10 @@ const de: {
 	profileUnblockContact: "Entblockieren",
 	profile: "Profil",
 	chatMessageLimitReached: "Nachrichten limit sind __LIMIT__ Zeichen",
-	chatAttachmentTooManyFiles: "Du kannst nicht mehr als __LIMIT__ Dateien pro Nachricht anhängen"
+	chatAttachmentTooManyFiles: "Du kannst nicht mehr als __LIMIT__ Dateien pro Nachricht anhängen",
+	noteTooBig: "Maximale Notizgröße ist __MAXSIZE__",
+	notesTags: "Tag",
+	notesType: "Typ"
 }
 
 export default de

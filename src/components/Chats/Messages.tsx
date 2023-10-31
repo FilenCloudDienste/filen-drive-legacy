@@ -192,7 +192,7 @@ export const Messages = memo(
 				darkMode,
 				isMobile,
 				failedMessages,
-				messages,
+				JSON.stringify(messages),
 				userId,
 				isScrollingChat,
 				displayMessageAs,
@@ -413,7 +413,7 @@ export const Messages = memo(
 				rangeChanged={rangeChanged}
 				atTopStateChange={atTopStateChange}
 				onScroll={scrollEvent}
-				atTopThreshold={300}
+				atTopThreshold={500}
 				itemsRendered={itemsRendered}
 				overscan={Math.round(windowHeight * 2)}
 				style={{

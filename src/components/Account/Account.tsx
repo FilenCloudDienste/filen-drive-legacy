@@ -463,6 +463,37 @@ const General = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 					justifyContent="space-between"
 					height="60px"
 					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
+				>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+						>
+							{i18n(lang, "chatSettings")}
+						</AppText>
+					</Flex>
+					<Flex>
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							color={getColor(darkMode, "textSecondary")}
+							marginLeft="20px"
+							textDecoration="underline"
+							fontWeight="bold"
+							cursor="pointer"
+							noOfLines={1}
+							onClick={() => eventListener.emit("openChatSettingsModal")}
+						>
+							{i18n(lang, "edit")}
+						</AppText>
+					</Flex>
+				</Flex>
+				<Flex
+					alignItems="center"
+					justifyContent="space-between"
+					height="60px"
+					borderBottom={"1px solid " + getColor(darkMode, "borderPrimary")}
 					marginTop="50px"
 				>
 					<Flex>

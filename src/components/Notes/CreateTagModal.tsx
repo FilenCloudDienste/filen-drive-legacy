@@ -85,6 +85,7 @@ export const CreateTagModal = memo(({ setTags }: { setTags: React.Dispatch<React
 			...prev,
 			{ uuid: createRes.uuid, name, favorite: false, editedTimestamp: Date.now(), createdTimestamp: Date.now() }
 		])
+
 		setCreating(false)
 		setOpen(false)
 		setTag("")

@@ -261,7 +261,7 @@ export const fetchNoteContent = async (
 		}
 
 		await Promise.all([
-			db.set("noteContent:" + note.uuid, content, "notes"),
+			content.length < 128 * 1024 ? db.set("noteContent:" + note.uuid, content, "notes") : Promise.resolve(),
 			db.set("noteType:" + note.uuid, result.type, "notes")
 		]).catch(console.error)
 

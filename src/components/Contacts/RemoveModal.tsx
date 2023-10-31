@@ -43,7 +43,7 @@ export const RemoveModal = memo(({ setContacts }: { setContacts: React.Dispatch<
 		setRemoving(false)
 		setContacts(prev => prev.filter(contact => contact.uuid !== selectedContact.uuid))
 		setOpen(false)
-	}, [removing])
+	}, [removing, selectedContact])
 
 	const windowKeyDownListener = useCallback((e: KeyboardEvent) => {
 		if (openRef.current && e.which === 13) {

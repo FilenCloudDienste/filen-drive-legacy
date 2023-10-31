@@ -202,6 +202,8 @@ export const Contacts = memo(({ sidebarWidth, windowWidth, darkMode, isMobile, l
 		const removeContactRequestListener = eventListener.on("removeContactRequest", (uuid: string) => {
 			setIncomingRequests(prev => prev.filter(request => request.uuid !== uuid))
 			setOutgoingRequests(prev => prev.filter(request => request.uuid !== uuid))
+
+			loadContacts(true)
 		})
 
 		const updateInterval = setInterval(() => {

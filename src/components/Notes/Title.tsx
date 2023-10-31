@@ -10,6 +10,7 @@ import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
 import { getCurrentParent, Semaphore, SemaphoreProps } from "../../lib/helpers"
 import useDb from "../../lib/hooks/useDb"
+import { show as showToast } from "../Toast/Toast"
 
 export const Title = memo(
 	({
@@ -40,39 +41,45 @@ export const Title = memo(
 		const editTitle = useCallback(async () => {
 			await editMutex.acquire()
 
-			const userId = await db.get("userId")
+			try {
+				const userId = await db.get("userId")
 
-			if (
-				!currentNoteRef.current ||
-				JSON.stringify(startTitle.current) === JSON.stringify(titleRef.current) ||
-				getCurrentParent(window.location.href) !== currentNoteRef.current.uuid
-			) {
-				editMutex.release()
+				if (
+					!currentNoteRef.current ||
+					JSON.stringify(startTitle.current) === JSON.stringify(titleRef.current) ||
+					getCurrentParent(window.location.href) !== currentNoteRef.current.uuid
+				) {
+					editMutex.release()
+
+					setSynced(prev => ({ ...prev, title: true }))
+
+					return
+				}
+
+				setSynced(prev => ({ ...prev, title: false }))
+
+				const privateKey = await db.get("privateKey")
+				const noteKey = await decryptNoteKeyParticipant(
+					currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
+					privateKey
+				)
+				const titleEncrypted = await encryptNoteTitle(titleRef.current, noteKey)
+
+				await editNoteTitle(currentNoteRef.current.uuid, titleEncrypted)
+
+				startTitle.current = titleRef.current
 
 				setSynced(prev => ({ ...prev, title: true }))
+			} catch (e: any) {
+				console.error(e)
 
-				return
+				showToast("error", e.toString(), "bottom", 5000)
 			}
-
-			setSynced(prev => ({ ...prev, title: false }))
-
-			const privateKey = await db.get("privateKey")
-			const noteKey = await decryptNoteKeyParticipant(
-				currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
-				privateKey
-			)
-			const titleEncrypted = await encryptNoteTitle(titleRef.current, noteKey)
-
-			await editNoteTitle(currentNoteRef.current.uuid, titleEncrypted)
-
-			startTitle.current = titleRef.current
-
-			setSynced(prev => ({ ...prev, title: true }))
 
 			editMutex.release()
 		}, [])
 
-		const debouncedSave = useCallback(debounce(editTitle, 3000), [])
+		const debouncedSave = useCallback(debounce(editTitle, 2000), [])
 
 		const windowOnKeyDownListener = useCallback((e: KeyboardEvent) => {
 			if (e.which === 83 && (e.ctrlKey || e.metaKey)) {
@@ -93,14 +100,14 @@ export const Title = memo(
 		}, [])
 
 		useEffect(() => {
-			currentNoteRef.current = currentNote
-		}, [currentNote])
-
-		useEffect(() => {
 			if (currentNote) {
 				setTitle(currentNote.title)
 			}
 
+			currentNoteRef.current = currentNote
+		}, [currentNote])
+
+		useEffect(() => {
 			const socketEventListener = eventListener.on("socketEvent", async (data: SocketEvent) => {
 				try {
 					if (data.type === "noteTitleEdited" && currentNote) {
@@ -161,6 +168,7 @@ export const Title = memo(
 					if (currentNote) {
 						setSynced(prev => ({ ...prev, title: false }))
 						setNotes(prev => prev.map(note => (note.uuid === currentNote.uuid ? { ...note, title: e.target.value } : note)))
+						setTitle(e.target.value)
 					}
 
 					debouncedSave()
@@ -173,7 +181,11 @@ export const Title = memo(
 					editTitle()
 				}}
 				onKeyDown={e => {
-					if (e.key === "Enter" && userHasWritePermissions) {
+					if (!userHasWritePermissions) {
+						return
+					}
+
+					if (e.key === "Enter") {
 						editTitle()
 					}
 				}}

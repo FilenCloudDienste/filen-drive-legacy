@@ -305,55 +305,57 @@ export const Conversation = memo(
 											.map(participant => striptags(getUserNameFromParticipant(participant)))
 											.join(", ")}
 							</AppText>
-							<Flex
-								flexDirection="row"
-								gap="5px"
-							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									noOfLines={1}
-									wordBreak="break-all"
-									color={getColor(darkMode, "textSecondary")}
-									marginLeft="10px"
-									fontSize={12}
-									flexShrink={0}
+							{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
+								<Flex
+									flexDirection="row"
+									gap="5px"
 								>
-									{typeof conversation.lastMessage !== "string" || conversation.lastMessage.length === 0 ? (
-										<>&nbsp;</>
-									) : (
-										youOrElse
-									)}
-								</AppText>
-								{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
-									<Flex
-										color={getColor(darkMode, "textSecondary")}
-										fontSize={12}
-										className="user-select-text"
-										userSelect="text"
-										gap="4px"
-										flexDirection="row"
-										maxHeight="18px"
-										overflow="hidden"
-										textOverflow="ellipsis"
-										flexGrow={0}
-										flexFlow="row wrap"
-										alignItems="center"
-										maxWidth="100%"
-										wordBreak="break-all"
+									<AppText
+										darkMode={darkMode}
+										isMobile={isMobile}
 										noOfLines={1}
+										wordBreak="break-all"
+										color={getColor(darkMode, "textSecondary")}
+										marginLeft="10px"
+										fontSize={12}
+										flexShrink={0}
 									>
-										<ReplaceInlineMessageWithComponents
-											darkMode={darkMode}
-											content={conversation.lastMessage.split("`").join("")}
-											hideLinks={true}
-											emojiSize={14}
-											participants={conversation.participants}
-											hideMentions={true}
-										/>
-									</Flex>
-								)}
-							</Flex>
+										{typeof conversation.lastMessage !== "string" || conversation.lastMessage.length === 0 ? (
+											<>&nbsp;</>
+										) : (
+											youOrElse
+										)}
+									</AppText>
+									{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
+										<Flex
+											color={getColor(darkMode, "textSecondary")}
+											fontSize={12}
+											className="user-select-text"
+											userSelect="text"
+											gap="4px"
+											flexDirection="row"
+											maxHeight="18px"
+											overflow="hidden"
+											textOverflow="ellipsis"
+											flexGrow={0}
+											flexFlow="row wrap"
+											alignItems="center"
+											maxWidth="100%"
+											wordBreak="break-all"
+											noOfLines={1}
+										>
+											<ReplaceInlineMessageWithComponents
+												darkMode={darkMode}
+												content={conversation.lastMessage.split("`").join("")}
+												hideLinks={true}
+												emojiSize={14}
+												participants={conversation.participants}
+												hideMentions={true}
+											/>
+										</Flex>
+									)}
+								</Flex>
+							)}
 						</Flex>
 					</Flex>
 					<Flex>

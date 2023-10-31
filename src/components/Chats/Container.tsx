@@ -183,7 +183,8 @@ export const Container = memo(
 					currentConversationRef.current.uuid,
 					currentConversationMeRef.current.metadata,
 					Date.now() + 3600000,
-					refresh
+					refresh,
+					true
 				)
 			)
 
@@ -419,7 +420,7 @@ export const Container = memo(
 			if (messages.length > 0) {
 				db.set("chatMessages:" + messages[0].conversation, sortedMessages, "chats").catch(console.error)
 			}
-		}, [JSON.stringify(messages)])
+		}, [JSON.stringify(messages), JSON.stringify(sortedMessages)])
 
 		useEffect(() => {
 			scrolledUpRef.current = scrolledUp

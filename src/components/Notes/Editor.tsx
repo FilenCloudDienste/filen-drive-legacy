@@ -42,6 +42,7 @@ export const Editor = memo(
 		const darkMode = useDarkMode()
 		const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
 		const quillRef = useRef<ReactQuill>(null)
+		const checkListLastValueRef = useRef<string>(content)
 
 		const codeExt = useMemo(() => {
 			if (!currentNote) {
@@ -405,6 +406,12 @@ export const Editor = memo(
 										if (value === "" || value.indexOf("<ul data-checked") === -1 || value === "<p><br></p>") {
 											value = '<ul data-checked="false"><li><br></li></ul>'
 										}
+
+										if (value.indexOf("<p") !== -1) {
+											value = value.replace(/<p>.*?<\/p>/g, "")
+										}
+
+										checkListLastValueRef.current = value
 
 										if (typeof onContentChange === "function") {
 											onContentChange(value)

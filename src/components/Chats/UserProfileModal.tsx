@@ -64,23 +64,19 @@ export const UserProfileModal = memo(() => {
 		}
 
 		return (
-			contacts.filter(c => c.userId !== profile.id).length === 0 &&
-			blockedContacts.filter(c => c.userId !== profile.id).length === 0 &&
-			requestsOut.filter(c => c.userId !== profile.id).length === 0
+			contacts.filter(c => c.userId === profile.id).length === 0 &&
+			blockedContacts.filter(c => c.userId === profile.id).length === 0 &&
+			requestsOut.filter(c => c.userId === profile.id).length === 0
 		)
-	}, [contacts, contactsBlocked, requestsOut, profile, added])
+	}, [contacts, blockedContacts, requestsOut, profile, added])
 
 	const canBlockContact = useMemo(() => {
 		if (!profile || blocked) {
 			return false
 		}
 
-		return (
-			contacts.filter(c => c.userId !== profile.id).length !== 0 &&
-			blockedContacts.filter(c => c.userId !== profile.id).length === 0 &&
-			requestsOut.filter(c => c.userId !== profile.id).length === 0
-		)
-	}, [contacts, contactsBlocked, requestsOut, profile, blocked])
+		return blockedContacts.filter(c => c.userId !== profile.id).length === 0
+	}, [contacts, blockedContacts, profile, blocked])
 
 	const canUnblockContact = useMemo(() => {
 		if (!profile) {
@@ -88,7 +84,7 @@ export const UserProfileModal = memo(() => {
 		}
 
 		return blockedContacts.filter(c => c.userId === profile.id).length !== 0
-	}, [contactsBlocked, profile])
+	}, [blockedContacts, profile])
 
 	const unblock = useCallback(async () => {
 		if (!profile) {
@@ -220,8 +216,6 @@ export const UserProfileModal = memo(() => {
 	useEffect(() => {
 		const openUserProfileModalListener = eventListener.on("openUserProfileModal", (userId: number) => {
 			setOpen(true)
-			setAdded(false)
-			setBlocked(false)
 
 			userIdRef.current = userId
 

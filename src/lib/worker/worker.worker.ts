@@ -1,5 +1,5 @@
 import { expose, transfer } from "comlink"
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
 import memoryCache from "../memoryCache"
 import {
 	arrayBufferToHex,
@@ -575,7 +575,7 @@ const encryptData = async (data: ArrayBuffer, key: string): Promise<Uint8Array> 
 	return transfer(result, [result.buffer])
 }
 
-const bufferToHash = async (buffer: Uint8Array, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
+const bufferToHash = async (buffer: Uint8Array | ArrayBuffer, algorithm: "SHA-1" | "SHA-256" | "SHA-512" | "SHA-384"): Promise<string> => {
 	const digest = await globalThis.crypto.subtle.digest(algorithm, buffer)
 	const hashArray = Array.from(new Uint8Array(digest))
 	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("")
@@ -1241,7 +1241,19 @@ export const decryptNoteTagName = async (name: string, masterKeys: string[]): Pr
 }
 
 export const parseOGFromURL = async (url: string): Promise<Record<string, string>> => {
-	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+	let response: AxiosResponse<any, any>
+
+	try {
+		response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
+			timeout: 15000
+		})
+
+		if (typeof response.headers["content-type"] !== "string" || response.headers["content-type"].split(";")[0].trim() !== "text/html") {
+			throw new Error("Response type is not text/html: " + url)
+		}
+	} catch {}
+
+	response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
 		timeout: 15000
 	})
 
@@ -1317,6 +1329,18 @@ export const parseOGFromURL = async (url: string): Promise<Record<string, string
 }
 
 export const corsHead = async (url: string): Promise<Record<string, string>> => {
+	try {
+		const response = await axios.head(url, {
+			timeout: 15000
+		})
+
+		if (typeof response.headers["content-type"] !== "string") {
+			throw new Error("Response type is not string: " + url)
+		}
+
+		return response.headers
+	} catch {}
+
 	const response = await axios.head(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
 		timeout: 15000
 	})
@@ -1329,6 +1353,18 @@ export const corsHead = async (url: string): Promise<Record<string, string>> => 
 }
 
 export const corsGet = async (url: string): Promise<Record<string, string>> => {
+	try {
+		const response = await axios.get(url, {
+			timeout: 15000
+		})
+
+		if (typeof response.headers["content-type"] !== "string") {
+			throw new Error("Response type is not string: " + url)
+		}
+
+		return response.data
+	} catch {}
+
 	const response = await axios.get(getAPIV3Server() + "/v3/cors?url=" + encodeURIComponent(url), {
 		timeout: 15000
 	})

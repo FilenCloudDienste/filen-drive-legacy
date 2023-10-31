@@ -30,9 +30,10 @@ export interface NotesProps {
 	windowWidth: number
 	isMobile: boolean
 	windowHeight: number
+	lang: string
 }
 
-export const Notes = memo(({ sidebarWidth, windowWidth, isMobile, windowHeight }: NotesProps) => {
+export const Notes = memo(({ sidebarWidth, windowWidth, isMobile, windowHeight, lang }: NotesProps) => {
 	const [currentNoteUUID, setCurrentNoteUUID] = useState<string>("")
 	const [notes, setNotes] = useState<INote[]>([])
 	const location = useLocation()
@@ -262,6 +263,7 @@ export const Notes = memo(({ sidebarWidth, windowWidth, isMobile, windowHeight }
 						sizes={sizes}
 						currentNote={currentNote}
 						setNotes={setNotes}
+						lang={lang}
 					/>
 				)}
 			</Flex>

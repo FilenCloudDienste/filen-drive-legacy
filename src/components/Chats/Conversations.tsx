@@ -411,12 +411,16 @@ export const Conversations = memo(
 				} else if (event.type === "chatConversationDeleted") {
 					setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
 
+					fetchConversations(true)
+
 					if (currentConvoUUID === event.data.uuid) {
 						navigate("/#/chats")
 					}
 				} else if (event.type === "chatConversationParticipantLeft") {
 					if (event.data.userId === userIdRef.current) {
 						setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
+
+						fetchConversations(true)
 
 						if (currentConvoUUID === event.data.uuid) {
 							navigate("/#/chats")

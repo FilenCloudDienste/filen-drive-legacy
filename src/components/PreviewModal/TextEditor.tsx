@@ -378,7 +378,7 @@ const BeforeCloseModal = memo(({ darkMode, isMobile, lang, isNewFile }: BeforeCl
 })
 
 const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, currentItem, text, lang, isNewFile }: TextEditorProps) => {
-	const [textEdited, setTextEdited] = useState<string>("")
+	const [textEdited, setTextEdited] = useState<string>(text)
 	const newText = useRef<string>("")
 	const beforeText = useRef<string>(text)
 	const location = useLocation()
@@ -560,65 +560,67 @@ const TextEditor = memo(({ darkMode, isMobile, windowHeight, windowWidth, curren
 							}}
 							extensions={[getCodeMirrorLanguageExtensionForFile(currentItem.name), EditorView.lineWrapping]}
 						/>
-						{showMarkDownPreview && window.location.href.indexOf("/f/") == -1 && window.location.href.indexOf("/d/") == -1 && (
-							<Flex
-								width={textEditorWidth + "px"}
-								height={windowHeight - 50 + "px"}
-								overflowY="auto"
-								overflowX="hidden"
-								backgroundColor={getColor(darkMode, "backgroundPrimary")}
-								borderLeft={"2px solid " + getColor(darkMode, "borderPrimary")}
-							>
-								<MarkdownPreview
-									source={textEdited}
-									style={{
-										width: textEditorWidth + "px",
-										height: windowHeight - 50 + "px",
-										paddingLeft: "15px",
-										paddingRight: "15px",
-										paddingTop: "6px",
-										paddingBottom: "15px",
-										color: getColor(darkMode, "textPrimary"),
-										userSelect: "all",
-										backgroundColor: getColor(darkMode, "backgroundPrimary")
-									}}
-									rehypeRewrite={(node, index, parent) => {
-										try {
-											if (
-												// @ts-ignore
-												node.tagName === "a" &&
-												parent &&
-												// @ts-ignore
-												/^h(1|2|3|4|5|6)/.test(parent.tagName)
-											) {
-												parent.children = parent.children.slice(1)
-											}
+						{showMarkDownPreview &&
+							window.location.href.indexOf("/f/") === -1 &&
+							window.location.href.indexOf("/d/") === -1 && (
+								<Flex
+									width={textEditorWidth + "px"}
+									height={windowHeight - 50 + "px"}
+									overflowY="auto"
+									overflowX="hidden"
+									backgroundColor={getColor(darkMode, "backgroundPrimary")}
+									borderLeft={"2px solid " + getColor(darkMode, "borderPrimary")}
+								>
+									<MarkdownPreview
+										source={textEdited}
+										style={{
+											width: textEditorWidth + "px",
+											height: windowHeight - 50 + "px",
+											paddingLeft: "15px",
+											paddingRight: "15px",
+											paddingTop: "6px",
+											paddingBottom: "15px",
+											color: getColor(darkMode, "textPrimary"),
+											userSelect: "all",
+											backgroundColor: getColor(darkMode, "backgroundPrimary")
+										}}
+										rehypeRewrite={(node, index, parent) => {
+											try {
+												if (
+													// @ts-ignore
+													node.tagName === "a" &&
+													parent &&
+													// @ts-ignore
+													/^h(1|2|3|4|5|6)/.test(parent.tagName)
+												) {
+													parent.children = parent.children.slice(1)
+												}
 
-											if (
-												// @ts-ignore
-												node.tagName === "a" &&
-												// @ts-ignore
-												node.properties &&
-												// @ts-ignore
-												node.properties.href &&
-												// @ts-ignore
-												node.properties.href.indexOf("#") !== -1
-											) {
-												// @ts-ignore
-												node.properties.href = window.location.hash
+												if (
+													// @ts-ignore
+													node.tagName === "a" &&
+													// @ts-ignore
+													node.properties &&
+													// @ts-ignore
+													node.properties.href &&
+													// @ts-ignore
+													node.properties.href.indexOf("#") !== -1
+												) {
+													// @ts-ignore
+													node.properties.href = window.location.hash
+												}
+											} catch (e) {
+												console.error(e)
 											}
-										} catch (e) {
-											console.error(e)
-										}
-									}}
-									skipHtml={true}
-									linkTarget="_blank"
-									warpperElement={{
-										"data-color-mode": darkMode ? "dark" : "light"
-									}}
-								/>
-							</Flex>
-						)}
+										}}
+										skipHtml={true}
+										linkTarget="_blank"
+										warpperElement={{
+											"data-color-mode": darkMode ? "dark" : "light"
+										}}
+									/>
+								</Flex>
+							)}
 					</Flex>
 				</Flex>
 				<BeforeCloseModal
