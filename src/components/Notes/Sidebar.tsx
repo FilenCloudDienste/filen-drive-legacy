@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useCallback, useEffect } from "react"
+import { memo, useState, useMemo, useCallback, useEffect, useRef } from "react"
 import { Flex, Spinner, Input, Tooltip } from "@chakra-ui/react"
 import useWindowHeight from "../../lib/hooks/useWindowHeight"
 import useIsMobile from "../../lib/hooks/useIsMobile"
@@ -7,7 +7,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
 import AppText from "../AppText"
 import { i18n } from "../../i18n"
-import { Virtuoso } from "react-virtuoso"
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import { IoIosAdd } from "react-icons/io"
 import { Note as INote, createNote, noteParticipantsAdd, NoteTag } from "../../lib/api"
 import { safeAwait, generateRandomString, getCurrentParent, simpleDate } from "../../lib/helpers"
@@ -61,6 +61,8 @@ export const Sidebar = memo(
 			tagsContainerBounds.height
 		)
 		const [userId] = useDb("userId", 0)
+		const virtuosoRef = useRef<VirtuosoHandle>(null)
+		const virtuosoInitialIndexScrollDone = useRef<boolean>(false)
 
 		const notesSorted = useMemo(() => {
 			return sortAndFilterNotes(notes, search, activeTag)
@@ -215,6 +217,16 @@ export const Sidebar = memo(
 		useEffect(() => {
 			if (notesSorted.length > 0 && !validate(getCurrentParent(location.hash))) {
 				navigate("#/notes/" + notesSorted[0].uuid)
+			}
+
+			if (
+				!virtuosoInitialIndexScrollDone.current &&
+				virtuosoRef.current &&
+				notesSorted.length > 0 &&
+				notesSorted.filter(note => note.uuid === getCurrentParent(location.hash)).length > 0
+			) {
+				virtuosoInitialIndexScrollDone.current = true
+				virtuosoRef.current.scrollToIndex(notesSorted.findIndex(note => note.uuid === getCurrentParent(location.hash)))
 			}
 		}, [notesSorted, location.hash])
 
@@ -407,6 +419,7 @@ export const Sidebar = memo(
 						>
 							{notesSorted.length > 0 ? (
 								<Virtuoso
+									ref={virtuosoRef}
 									data={notesSorted}
 									height={windowHeight - 100 - (notesTagsContainerHeight || 0)}
 									width={sizes.notes}

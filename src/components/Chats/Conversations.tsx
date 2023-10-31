@@ -15,7 +15,7 @@ import { UserGetAccount } from "../../types"
 import { getUserNameFromAccount, fetchChatConversations, sortAndFilterConversations } from "./utils"
 import AppText from "../AppText"
 import { HiCog } from "react-icons/hi"
-import { Virtuoso } from "react-virtuoso"
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso"
 import { i18n } from "../../i18n"
 import { IoIosAdd } from "react-icons/io"
 import db from "../../lib/db"
@@ -237,6 +237,8 @@ export const Conversations = memo(
 		const initDone = useRef<boolean>(false)
 		const location = useLocation()
 		const [search, setSearch] = useState<string>("")
+		const virtuosoRef = useRef<VirtuosoHandle>(null)
+		const virtuosoInitialIndexScrollDone = useRef<boolean>(false)
 
 		const conversationsSorted = useMemo(() => {
 			return sortAndFilterConversations(conversations, search, userId)
@@ -365,6 +367,16 @@ export const Conversations = memo(
 		useEffect(() => {
 			if (conversationsSorted.length > 0 && !validate(getCurrentParent(location.hash))) {
 				navigate("#/chats/" + conversationsSorted[0].uuid)
+			}
+
+			if (
+				!virtuosoInitialIndexScrollDone.current &&
+				virtuosoRef.current &&
+				conversationsSorted.length > 0 &&
+				conversationsSorted.filter(convo => convo.uuid === getCurrentParent(location.hash)).length > 0
+			) {
+				virtuosoInitialIndexScrollDone.current = true
+				virtuosoRef.current.scrollToIndex(conversationsSorted.findIndex(convo => convo.uuid === getCurrentParent(location.hash)))
 			}
 		}, [conversationsSorted, location.hash])
 
@@ -761,6 +773,7 @@ export const Conversations = memo(
 					</Flex>
 				) : (
 					<Virtuoso
+						ref={virtuosoRef}
 						data={conversationsSorted}
 						height={windowHeight - 50 - 50 - (isMobile ? 50 : 60)}
 						width={sizes.conversations}
