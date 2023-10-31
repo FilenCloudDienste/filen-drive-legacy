@@ -101,6 +101,7 @@ export const Input = memo(
 		const [mentionPosition, setMentionPosition] = useState<number>(0)
 		const [mentionSearch, setMentionSearch] = useState<ChatConversationParticipant[]>([])
 		const mentionModeRef = useRef<boolean>(false)
+		const focusEditorTimeout = useRef<ReturnType<typeof setTimeout>>()
 
 		const selectItemsFromCloud = useCallback(async () => {
 			const items = await selectFromCloud()
@@ -813,6 +814,16 @@ export const Input = memo(
 			setEditMode(false)
 			setMentionMode(false)
 		}, [conversationUUID])
+
+		useEffect(() => {
+			if (editor) {
+				clearTimeout(focusEditorTimeout.current)
+
+				focusEditorTimeout.current = setTimeout(() => {
+					focusEditor()
+				}, 300)
+			}
+		}, [conversationUUID, editor])
 
 		useEffect(() => {
 			eventListener.emit("scrollChatToBottom")
