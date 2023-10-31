@@ -21,7 +21,7 @@ const SettingsModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; i
 	const [appearOffline, setAppearOffline] = useState<boolean>(false)
 
 	const save = useCallback(async () => {
-		if (saving || displayName.trim().length === 0) {
+		if (saving) {
 			return
 		}
 
