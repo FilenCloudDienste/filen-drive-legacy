@@ -503,7 +503,12 @@ const zh: {
 	profileUnblockContact: "取消拉黑",
 	profile: "资料",
 	chatMessageLimitReached: "消息限制为 __LIMIT__ 个字符",
-	chatAttachmentTooManyFiles: "每条消息不能附加超过 __LIMIT__ 个文件"
+	chatAttachmentTooManyFiles: "每条消息不能附加超过 __LIMIT__ 个文件",
+	noteTooBig: "最大的笔记大小是 __MAXSIZE__",
+	notesTags: "标签",
+	notesType: "类型",
+	notesAll: "所有",
+	notesPinned: "已置顶"
 }
 
 export default zh
