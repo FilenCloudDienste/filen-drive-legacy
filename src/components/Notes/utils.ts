@@ -208,6 +208,14 @@ export const sortAndFilterNotes = (notes: INote[], search: string, activeTag: st
 		})
 
 	if (activeTag.length > 0) {
+		if (activeTag === "favorites") {
+			return filtered.filter(note => note.favorite)
+		}
+
+		if (activeTag === "pinned") {
+			return filtered.filter(note => note.pinned)
+		}
+
 		return filtered.filter(note => note.tags.map(t => t.uuid).includes(activeTag))
 	}
 

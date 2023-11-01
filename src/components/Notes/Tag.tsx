@@ -58,6 +58,8 @@ export const Tag = memo(
 	({
 		tag,
 		all,
+		favorites,
+		pinned,
 		add,
 		index,
 		activeTag,
@@ -66,6 +68,8 @@ export const Tag = memo(
 		tag?: NoteTag
 		all?: boolean
 		add?: boolean
+		favorites?: boolean
+		pinned?: boolean
 		index: number
 		activeTag: string
 		setActiveTag: React.Dispatch<React.SetStateAction<string>>
@@ -77,8 +81,14 @@ export const Tag = memo(
 		const lang = useLang()
 
 		const active = useMemo(() => {
-			return hovering || (activeTag.length === 0 && all) || activeTag === tag?.uuid
-		}, [hovering, activeTag, tag, all, add])
+			return (
+				hovering ||
+				(activeTag.length === 0 && all) ||
+				activeTag === tag?.uuid ||
+				(favorites && activeTag === "favorites") ||
+				(pinned && activeTag === "pinned")
+			)
+		}, [hovering, activeTag, tag, all, add, favorites, pinned])
 
 		if (typeof add === "boolean" && add === true) {
 			return (
@@ -157,6 +167,18 @@ export const Tag = memo(
 						return
 					}
 
+					if (favorites) {
+						setActiveTag("favorites")
+
+						return
+					}
+
+					if (pinned) {
+						setActiveTag("pinned")
+
+						return
+					}
+
 					if (tag) {
 						setActiveTag(tag.uuid)
 					}
@@ -179,7 +201,15 @@ export const Tag = memo(
 					color={getColor(darkMode, "textSecondary")}
 					fontSize={14}
 				>
-					{all ? <>All</> : tag ? <>{tag?.name}</> : null}
+					{favorites
+						? i18n(lang, "favorites")
+						: pinned
+						? i18n(lang, "notesPinned")
+						: all
+						? i18n(lang, "notesAll")
+						: tag
+						? tag?.name
+						: null}
 				</AppText>
 			</Flex>
 		)

@@ -396,11 +396,23 @@ export const Sidebar = memo(
 								activeTag={activeTag}
 								setActiveTag={setActiveTag}
 							/>
+							<Tag
+								favorites={true}
+								index={1}
+								activeTag={activeTag}
+								setActiveTag={setActiveTag}
+							/>
+							<Tag
+								pinned={true}
+								index={1}
+								activeTag={activeTag}
+								setActiveTag={setActiveTag}
+							/>
 							{tagsSorted.map((tag, index) => (
 								<Tag
 									tag={tag}
 									key={tag.uuid}
-									index={index + 1}
+									index={index + 3}
 									activeTag={activeTag}
 									setActiveTag={setActiveTag}
 								/>

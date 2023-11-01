@@ -509,7 +509,9 @@ const en: {
 	chatAttachmentTooManyFiles: "You cannot attach more than __LIMIT__ files per message",
 	noteTooBig: "Maximum note size is __MAXSIZE__",
 	notesTags: "Tags",
-	notesType: "Type"
+	notesType: "Type",
+	notesAll: "All",
+	notesPinned: "Pinned"
 }
 
 export default en
