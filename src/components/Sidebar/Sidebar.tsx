@@ -51,6 +51,8 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useWindowFocus from "use-window-focus"
+import { useLocalStorage } from "react-use"
+import { validate } from "uuid"
 
 export const Divider = memo(({ darkMode, marginTop, marginBottom }: DividerProps) => {
 	return (
@@ -1170,14 +1172,22 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				isMobile={isMobile}
 				type="notes"
 				text={i18n(lang, "notes")}
-				to="/#/notes"
+				to={
+					validate(window.localStorage.getItem("lastSelectedNoteUUID") || "")
+						? "/#/notes/" + window.localStorage.getItem("lastSelectedNoteUUID")
+						: "/#/notes"
+				}
 			/>
 			<Button
 				darkMode={darkMode}
 				isMobile={isMobile}
 				type="chats"
 				text={i18n(lang, "chats")}
-				to="/#/chats"
+				to={
+					validate(window.localStorage.getItem("lastSelectedConversationUUID") || "")
+						? "/#/chats/" + window.localStorage.getItem("lastSelectedConversationUUID")
+						: "/#/chats"
+				}
 			/>
 			<Button
 				darkMode={darkMode}

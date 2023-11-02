@@ -365,7 +365,24 @@ export const Conversations = memo(
 		}, [userId, conversations])
 
 		useEffect(() => {
-			if (conversationsSorted.length > 0 && !validate(getCurrentParent(location.hash))) {
+			const convoUUID = getCurrentParent(location.hash)
+
+			if (
+				conversationsSorted.length > 0 &&
+				validate(convoUUID) &&
+				conversationsSorted.filter(convo => convo.uuid === convoUUID).length !== 0
+			) {
+				window.localStorage.setItem("lastSelectedConversationUUID", convoUUID)
+			}
+		}, [location.hash, conversationsSorted])
+
+		useEffect(() => {
+			const convoUUID = getCurrentParent(location.hash)
+
+			if (
+				conversationsSorted.length > 0 &&
+				(!validate(convoUUID) || conversationsSorted.filter(note => note.uuid === convoUUID).length === 0)
+			) {
 				navigate("#/chats/" + conversationsSorted[0].uuid)
 			}
 
@@ -376,7 +393,11 @@ export const Conversations = memo(
 				conversationsSorted.filter(convo => convo.uuid === getCurrentParent(location.hash)).length > 0
 			) {
 				virtuosoInitialIndexScrollDone.current = true
-				virtuosoRef.current.scrollToIndex(conversationsSorted.findIndex(convo => convo.uuid === getCurrentParent(location.hash)))
+				virtuosoRef.current.scrollToIndex({
+					index: conversationsSorted.findIndex(convo => convo.uuid === getCurrentParent(location.hash)),
+					align: "center",
+					behavior: "smooth"
+				})
 			}
 		}, [conversationsSorted, location.hash])
 

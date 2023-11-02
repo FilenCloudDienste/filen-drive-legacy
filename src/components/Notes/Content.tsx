@@ -148,9 +148,9 @@ export const Content = memo(
 		}, [])
 
 		const save = useCallback(async () => {
-			const newContent = `${contentRef.current}`
-
 			await saveMutex.acquire()
+
+			const newContent = `${contentRef.current}`
 
 			try {
 				const userId = await db.get("userId")
@@ -160,7 +160,7 @@ export const Content = memo(
 					currentNoteRef.current.participants.filter(participant => participant.userId === userId && participant.permissionsWrite)
 						.length === 0 ||
 					getCurrentParent(window.location.href) !== currentNoteRef.current.uuid ||
-					(JSON.stringify(newContent) === JSON.stringify(prevContent.current) && newContent.length === prevContent.current.length)
+					JSON.stringify(newContent) === JSON.stringify(prevContent.current)
 				) {
 					saveMutex.release()
 
@@ -177,8 +177,10 @@ export const Content = memo(
 					privateKey
 				)
 				const preview = createNotePreviewFromContentText(newContent, currentNoteRef.current.type)
-				const contentEncrypted = await encryptNoteContent(newContent, noteKey)
-				const previewEncrypted = await encryptNotePreview(preview, noteKey)
+				const [contentEncrypted, previewEncrypted] = await Promise.all([
+					encryptNoteContent(newContent, noteKey),
+					encryptNotePreview(preview, noteKey)
+				])
 
 				if (contentEncrypted.length >= MAX_NOTE_SIZE) {
 					showToast("error", i18n(lang, "noteTooBig", true, ["__MAXSIZE__"], [formatBytes(MAX_NOTE_SIZE)]), "bottom", 5000)
@@ -209,7 +211,9 @@ export const Content = memo(
 				)
 
 				await Promise.all([
-					db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes"),
+					newContent.length < 128 * 1024
+						? db.set("noteContent:" + currentNoteRef.current.uuid, newContent, "notes")
+						: Promise.resolve(),
 					db.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type, "notes")
 				]).catch(console.error)
 			} catch (e: any) {
@@ -258,6 +262,13 @@ export const Content = memo(
 				lastContentFetchUUID.current = currentNote.uuid
 
 				loadNoteContent()
+				;(async () => {
+					await saveMutex.acquire()
+
+					setTimeout(() => {
+						saveMutex.release()
+					}, 250)
+				})()
 			}
 
 			const refreshNoteContentListener = eventListener.on("refreshNoteContent", (uuid: string) => {

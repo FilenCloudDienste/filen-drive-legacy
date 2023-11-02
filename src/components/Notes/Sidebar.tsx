@@ -215,7 +215,17 @@ export const Sidebar = memo(
 		}, [])
 
 		useEffect(() => {
-			if (notesSorted.length > 0 && !validate(getCurrentParent(location.hash))) {
+			const noteUUID = getCurrentParent(location.hash)
+
+			if (notesSorted.length > 0 && validate(noteUUID) && notesSorted.filter(note => note.uuid === noteUUID).length !== 0) {
+				window.localStorage.setItem("lastSelectedNoteUUID", noteUUID)
+			}
+		}, [location.hash, notesSorted])
+
+		useEffect(() => {
+			const noteUUID = getCurrentParent(location.hash)
+
+			if (notesSorted.length > 0 && (!validate(noteUUID) || notesSorted.filter(note => note.uuid === noteUUID).length === 0)) {
 				navigate("#/notes/" + notesSorted[0].uuid)
 			}
 
@@ -223,10 +233,14 @@ export const Sidebar = memo(
 				!virtuosoInitialIndexScrollDone.current &&
 				virtuosoRef.current &&
 				notesSorted.length > 0 &&
-				notesSorted.filter(note => note.uuid === getCurrentParent(location.hash)).length > 0
+				notesSorted.filter(note => note.uuid === noteUUID).length > 0
 			) {
 				virtuosoInitialIndexScrollDone.current = true
-				virtuosoRef.current.scrollToIndex(notesSorted.findIndex(note => note.uuid === getCurrentParent(location.hash)))
+				virtuosoRef.current.scrollToIndex({
+					index: notesSorted.findIndex(note => note.uuid === noteUUID),
+					align: "center",
+					behavior: "smooth"
+				})
 			}
 		}, [notesSorted, location.hash])
 
