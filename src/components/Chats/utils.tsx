@@ -1,4 +1,4 @@
-import { useEffect, createElement, memo, useRef, Fragment, Children } from "react"
+import { useEffect, createElement, memo, useRef, Fragment } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages } from "../../lib/api"
 import { UserGetAccount } from "../../types"
 import db from "../../lib/db"
@@ -43,34 +43,46 @@ export const formatTime = (date: Date): string => {
 
 export const formatMessageDate = (timestamp: number, lang: string = "en"): string => {
 	const now = Date.now()
+	const nowDate = new Date()
+	const thenDate = new Date(timestamp)
 	const diff = now - timestamp
 	const seconds = Math.floor(diff / 1000)
+	const nowDay = nowDate.getDate()
+	const thenDay = thenDate.getDate()
 
 	if (seconds <= 0) {
 		return "now"
-	} else if (seconds < 60) {
+	}
+
+	if (seconds < 60) {
 		return `${seconds} seconds ago`
-	} else if (seconds < 3600) {
+	}
+
+	if (seconds < 3600) {
 		const minutes = Math.floor(seconds / 60)
 
 		return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
-	} else if (seconds < 86400 / 2) {
+	}
+
+	if (seconds < 3600 * 4) {
 		const hours = Math.floor(seconds / 3600)
 
 		return `${hours} hour${hours > 1 ? "s" : ""} ago`
-	} else if (seconds < 86400) {
+	}
+
+	if (nowDay === thenDay) {
 		const date = new Date(timestamp)
 
 		return `Today at ${formatTime(date)}`
-	} else if (seconds > 86400 && seconds < 86400 * 2) {
+	}
+
+	if (nowDay - 1 === thenDay) {
 		const date = new Date(timestamp)
 
 		return `Yesterday at ${formatTime(date)}`
-	} else {
-		const date = new Date(timestamp)
-
-		return `${formatDate(date)} ${formatTime(date)}`
 	}
+
+	return `${formatDate(thenDate)} ${formatTime(thenDate)}`
 }
 
 export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
@@ -91,11 +103,14 @@ export const isTimestampSameMinute = (timestamp1: number, timestamp2: number) =>
 	const date2Month = date2.getMonth()
 	const date2Date = date2.getDate()
 	const date2Minutes = date2.getMinutes()
+	const date1Hours = date1.getHours()
+	const date2Hours = date2.getHours()
 
 	return (
 		date1Year === date2Year &&
 		date1Month === date2Month &&
 		date1Date === date2Date &&
+		date1Hours === date2Hours &&
 		(date1Minutes === date2Minutes ||
 			date1Minutes - 1 === date2Minutes ||
 			date1Minutes === date2Minutes - 1 ||
