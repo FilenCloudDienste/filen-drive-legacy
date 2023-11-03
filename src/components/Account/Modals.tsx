@@ -1,5 +1,17 @@
 import { memo, useEffect, useState, useCallback } from "react"
-import { Flex, Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, ModalHeader, Spinner, FormLabel, Button } from "@chakra-ui/react"
+import {
+	Flex,
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalBody,
+	ModalFooter,
+	ModalHeader,
+	Spinner,
+	FormLabel,
+	Button,
+	Select
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import eventListener from "../../lib/eventListener"
 import AppText from "../AppText"
@@ -402,7 +414,7 @@ export const EmailModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolea
 	)
 })
 
-const countries: string[] = [
+export const countries: string[] = [
 	"Afghanistan",
 	"Albania",
 	"Algeria",
@@ -628,29 +640,38 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 			const account = await fetchUserAccount()
 
 			setPersonal({
-				city: typeof account.personal.city == "string" && account.personal.city.length > 0 ? account.personal.city : "",
+				city: typeof account.personal.city === "string" && account.personal.city.length > 0 ? account.personal.city : "",
 				companyName:
-					typeof account.personal.companyName == "string" && account.personal.companyName.length > 0
+					typeof account.personal.companyName === "string" && account.personal.companyName.length > 0
 						? account.personal.companyName
 						: "",
-				country: typeof account.personal.country == "string" && account.personal.country.length > 0 ? account.personal.country : "",
+				country:
+					typeof account.personal.country === "string" && account.personal.country.length > 0 ? account.personal.country : "",
 				firstName:
-					typeof account.personal.firstName == "string" && account.personal.firstName.length > 0
+					typeof account.personal.firstName === "string" && account.personal.firstName.length > 0
 						? account.personal.firstName
 						: "",
 				lastName:
-					typeof account.personal.lastName == "string" && account.personal.lastName.length > 0 ? account.personal.lastName : "",
+					typeof account.personal.lastName === "string" && account.personal.lastName.length > 0 ? account.personal.lastName : "",
 				postalCode:
-					typeof account.personal.postalCode == "string" && account.personal.postalCode.length > 0
+					typeof account.personal.postalCode === "string" && account.personal.postalCode.length > 0
 						? account.personal.postalCode
 						: "",
-				street: typeof account.personal.street == "string" && account.personal.street.length > 0 ? account.personal.street : "",
+				street: typeof account.personal.street === "string" && account.personal.street.length > 0 ? account.personal.street : "",
 				streetNumber:
-					typeof account.personal.streetNumber == "string" && account.personal.streetNumber.length > 0
+					typeof account.personal.streetNumber === "string" && account.personal.streetNumber.length > 0
 						? account.personal.streetNumber
 						: "",
-				vatId: typeof account.personal.vatId == "string" && account.personal.vatId.length > 0 ? account.personal.vatId : ""
+				vatId: typeof account.personal.vatId === "string" && account.personal.vatId.length > 0 ? account.personal.vatId : ""
 			})
+
+			if (
+				typeof account.personal.country === "string" &&
+				account.personal.country.length &&
+				countries.includes(account.personal.country)
+			) {
+				setSelectedCountry(account.personal.country)
+			}
 		} catch (e: any) {
 			console.error(e)
 
@@ -1124,18 +1145,10 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 									marginTop="15px"
 								>
 									<FormLabel color={getColor(darkMode, "textSecondary")}>{i18n(lang, "country")}</FormLabel>
-									<Input
-										darkMode={darkMode}
-										isMobile={isMobile}
-										value={personal.country}
-										onChange={e => setPersonal(prev => ({ ...prev, country: e.target.value }))}
+									<Select
 										placeholder={i18n(lang, "country")}
-										type="text"
+										value={selectedCountry}
 										isDisabled={loading}
-										onKeyDown={inputKeyDown}
-										maxLength={255}
-										paddingLeft="10px"
-										paddingRight="10px"
 										shadow="none"
 										outline="none"
 										border="none"
@@ -1161,7 +1174,26 @@ export const PersonalModal = memo(({ darkMode, isMobile, lang }: { darkMode: boo
 											shadow: "none",
 											outline: "none"
 										}}
-									/>
+										onChange={e => {
+											setPersonal(prev => ({ ...prev, country: e.target.value }))
+											setSelectedCountry(e.target.value)
+										}}
+									>
+										{countries.map(country => {
+											return (
+												<option
+													key={country}
+													value={country}
+													style={{
+														backgroundColor: getColor(darkMode, "backgroundSecondary"),
+														borderColor: getColor(darkMode, "borderPrimary")
+													}}
+												>
+													{country}
+												</option>
+											)
+										})}
+									</Select>
 								</Flex>
 							</>
 						)}
