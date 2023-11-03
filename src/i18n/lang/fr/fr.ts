@@ -519,7 +519,12 @@ const fr: {
 	profileUnblockContact: "Débloquer",
 	profile: "Profil",
 	chatMessageLimitReached: "La taille limite d'un message est de __LIMIT__ caractères",
-	chatAttachmentTooManyFiles: "Vous ne pouvez pas joindre plus de __LIMIT__ fichiers par message"
+	chatAttachmentTooManyFiles: "Vous ne pouvez pas joindre plus de __LIMIT__ fichiers par message",
+	noteTooBig: "La taille maximum d'une note est de __MAXSIZE__",
+	notesTags: "Labels",
+	notesType: "Type",
+	notesAll: "Toutes",
+	notesPinned: "Épinglées"
 }
 
 export default fr
