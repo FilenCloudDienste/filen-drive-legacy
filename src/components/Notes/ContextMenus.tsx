@@ -1,5 +1,4 @@
-import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react"
-import "react-contexify/dist/ReactContexify.css"
+import { memo, useState, useEffect, useCallback, useMemo } from "react"
 import {
 	Menu as ContextMenu,
 	Item as ContextMenuItem,
@@ -42,7 +41,7 @@ import {
 	decryptNoteContent
 } from "../../lib/worker/worker.com"
 import db from "../../lib/db"
-import { createNotePreviewFromContentText, sortAndFilterTags } from "./utils"
+import { createNotePreviewFromContentText, sortAndFilterTags, fetchNoteContent } from "./utils"
 import { useNavigate } from "react-router-dom"
 import useDb from "../../lib/hooks/useDb"
 import striptags from "striptags"
@@ -64,8 +63,6 @@ const ContextMenus = memo(
 		const darkMode = useDarkMode()
 		const lang = useLang()
 		const [selectedNote, setSelectedNote] = useState<INote | undefined>(undefined)
-		const [content, setContent] = useState<string>("")
-		const contentRef = useRef<string>("")
 		const navigate = useNavigate()
 		const [userId] = useDb("userId", 0)
 		const [dupliating, setDuplicating] = useState<boolean>(false)
@@ -224,8 +221,21 @@ const ContextMenus = memo(
 					selectedNote.participants.filter(participant => participant.userId === userId)[0].metadata,
 					privateKey
 				)
-				const preview = createNotePreviewFromContentText(contentRef.current, selectedNote.type)
-				const contentEncrypted = await encryptNoteContent(contentRef.current, noteKey)
+
+				const [contentErr, contentRes] = await safeAwait(fetchNoteContent(selectedNote, true))
+
+				if (contentErr) {
+					console.error(contentErr)
+
+					dismissToast(loadingToast)
+
+					showToast("error", contentErr.message, "bottom", 5000)
+
+					return
+				}
+
+				const preview = createNotePreviewFromContentText(contentRes.content, selectedNote.type)
+				const contentEncrypted = await encryptNoteContent(contentRes.content, noteKey)
 				const previewEncrypted = await encryptNotePreview(preview, noteKey)
 
 				const [err] = await safeAwait(
@@ -242,31 +252,46 @@ const ContextMenus = memo(
 					return
 				}
 
-				dismissToast(loadingToast)
-
 				setNotes(prev => prev.map(note => (note.uuid === selectedNote.uuid ? { ...note, type } : note)))
 
 				eventListener.emit("refreshNoteContent", selectedNote.uuid)
+
+				dismissToast(loadingToast)
 			},
 			[selectedNote, lang]
 		)
 
-		const exportText = useCallback(() => {
-			if (!selectedNote || contentRef.current.length === 0) {
+		const exportText = useCallback(async () => {
+			if (!selectedNote) {
 				return
 			}
 
-			let exportString = `${contentRef.current}`
+			const [contentErr, contentRes] = await safeAwait(fetchNoteContent(selectedNote, true))
+
+			if (contentErr) {
+				console.error(contentErr)
+
+				showToast("error", contentErr.message, "bottom", 5000)
+
+				return
+			}
+
+			let content = contentRes.content
+
+			if (content.length === 0) {
+				return
+			}
+
 			const ext = getFileExt(selectedNote.title)
 
 			try {
 				if (selectedNote.type === "rich") {
-					exportString = striptags(exportString.split("<p><br></p>").join("\n"))
+					content = striptags(content.split("<p><br></p>").join("\n"))
 				}
 
 				if (selectedNote.type === "checklist") {
 					let list: string[] = []
-					const ex = exportString
+					const ex = content
 						.split('<ul data-checked="false">')
 						.join("")
 						.split('<ul data-checked="true">')
@@ -283,21 +308,21 @@ const ContextMenus = memo(
 						}
 					}
 
-					exportString = list.join("\n")
+					content = list.join("\n")
 				}
 
 				if (ext.length === 0) {
-					downloadObjectAsTextWithExt(exportString, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
+					downloadObjectAsTextWithExt(content, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
 				} else {
-					downloadObjectAsTextWithoutExt(exportString, selectedNote.title.slice(0, 64))
+					downloadObjectAsTextWithoutExt(content, selectedNote.title.slice(0, 64))
 				}
 			} catch (e) {
 				console.error(e)
 
 				if (ext.length === 0) {
-					downloadObjectAsTextWithExt(contentRef.current, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
+					downloadObjectAsTextWithExt(content, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
 				} else {
-					downloadObjectAsTextWithoutExt(contentRef.current, selectedNote.title.slice(0, 64))
+					downloadObjectAsTextWithoutExt(content, selectedNote.title.slice(0, 64))
 				}
 			}
 		}, [selectedNote])
@@ -343,8 +368,20 @@ const ContextMenus = memo(
 				return
 			}
 
-			const preview = createNotePreviewFromContentText(contentRef.current, selectedNote.type)
-			const contentEncrypted = await encryptNoteContent(contentRef.current, key)
+			const [contentErr, contentRes] = await safeAwait(fetchNoteContent(selectedNote, true))
+
+			if (contentErr) {
+				console.error(contentErr)
+
+				setDuplicating(false)
+
+				showToast("error", contentErr.message, "bottom", 5000)
+
+				return
+			}
+
+			const preview = createNotePreviewFromContentText(contentRes.content, selectedNote.type)
+			const contentEncrypted = await encryptNoteContent(contentRes.content, key)
 			const previewEncrypted = await encryptNotePreview(preview, key)
 
 			const [changeTypeErr] = await safeAwait(
@@ -493,10 +530,6 @@ const ContextMenus = memo(
 		)
 
 		useEffect(() => {
-			contentRef.current = content
-		}, [content])
-
-		useEffect(() => {
 			const openNoteContextMenuListener = eventListener.on(
 				"openNoteContextMenu",
 				({ note, position, event }: { note: INote; position: { x: number; y: number }; event: KeyboardEvent }) => {
@@ -523,13 +556,8 @@ const ContextMenus = memo(
 				}
 			)
 
-			const noteContentChangedListener = eventListener.on("noteContentChanged", (data: { note: INote; content: string }) => {
-				setContent(data.content)
-			})
-
 			return () => {
 				openNoteContextMenuListener.remove()
-				noteContentChangedListener.remove()
 				openNoteTagContextMenuListener.remove()
 			}
 		}, [])

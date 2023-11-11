@@ -106,6 +106,7 @@ export const Content = memo(
 				db.get("noteContent:" + currentNoteRef.current.uuid, "notes"),
 				db.get("noteType:" + currentNoteRef.current.uuid, "notes")
 			])
+
 			const hasCache = cache && type && typeof cache === "string" && typeof type === "string"
 
 			if (!hasCache) {
@@ -370,7 +371,7 @@ export const Content = memo(
 									setContent={setContent}
 									currentNote={currentNote}
 									type={contentType}
-									onBlur={() => save()}
+									onBlur={() => {}}
 									showMarkdownPreview={true}
 									onContentChange={() => {
 										setSynced(prev => ({ ...prev, content: false }))

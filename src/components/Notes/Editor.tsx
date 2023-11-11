@@ -1,4 +1,4 @@
-import { memo, useRef, useMemo, useEffect, lazy, Suspense } from "react"
+import { memo, useRef, useMemo, useEffect, lazy, Suspense, useState } from "react"
 import { Flex } from "@chakra-ui/react"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { Note as INote, NoteType } from "../../lib/api"
@@ -41,7 +41,7 @@ export const Editor = memo(
 	}) => {
 		const darkMode = useDarkMode()
 		const codeMirrorRef = useRef<ReactCodeMirrorRef>(null)
-		const quillRef = useRef<ReactQuill>(null)
+		const [quillRef, setQuillRef] = useState<ReactQuill>()
 		const checkListLastValueRef = useRef<string>(content)
 
 		const codeExt = useMemo(() => {
@@ -53,8 +53,9 @@ export const Editor = memo(
 		}, [currentNote])
 
 		useEffect(() => {
-			quillRef.current?.editor?.root.setAttribute("spellcheck", "false")
-		}, [type])
+			quillRef?.editor?.root?.setAttribute("spellcheck", "false")
+			quillRef?.getEditor()?.root?.setAttribute("spellcheck", "false")
+		}, [quillRef])
 
 		return (
 			<ErrorBoundary
@@ -107,6 +108,7 @@ export const Editor = memo(
 								theme={createCodeMirrorThemeNotesText(darkMode)}
 								placeholder={canEdit ? "Note content..." : undefined}
 								autoFocus={content.length === 0}
+								spellCheck={false}
 								basicSetup={{
 									crosshairCursor: false,
 									searchKeymap: false,
@@ -156,6 +158,7 @@ export const Editor = memo(
 								theme={createCodeMirrorTheme(darkMode)}
 								indentWithTab={true}
 								autoFocus={content.length === 0}
+								spellCheck={false}
 								basicSetup={{
 									crosshairCursor: false,
 									searchKeymap: false,
@@ -204,6 +207,7 @@ export const Editor = memo(
 											placeholder={canEdit ? "Note content..." : undefined}
 											theme={createCodeMirrorThemeNotesText(darkMode)}
 											indentWithTab={true}
+											spellCheck={false}
 											onBlur={onBlur}
 											autoFocus={content.length === 0}
 											basicSetup={{
@@ -310,7 +314,11 @@ export const Editor = memo(
 								theme="snow"
 								value={content}
 								placeholder={canEdit ? "Note content..." : undefined}
-								ref={quillRef}
+								ref={ref => {
+									if (ref) {
+										setQuillRef(ref)
+									}
+								}}
 								onBlur={() => {
 									if (typeof onBlur === "function") {
 										onBlur(undefined as any)
@@ -377,7 +385,11 @@ export const Editor = memo(
 									key={"checklist-editor-" + currentNote?.uuid}
 									theme="snow"
 									value={content}
-									ref={quillRef}
+									ref={ref => {
+										if (ref) {
+											setQuillRef(ref)
+										}
+									}}
 									onBlur={() => {
 										if (typeof onBlur === "function") {
 											onBlur(undefined as any)
