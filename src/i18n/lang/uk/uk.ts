@@ -518,7 +518,12 @@ const uk: {
 	profileUnblockContact: "Розблокувати",
 	profile: "Профіль",
 	chatMessageLimitReached: "Ліміт повідомлення складає __LIMIT__ символів",
-	chatAttachmentTooManyFiles: "До одного повідомлення можна прикріпити не більше __LIMIT__ файлів"
+	chatAttachmentTooManyFiles: "До одного повідомлення можна прикріпити не більше __LIMIT__ файлів",
+	noteTooBig: "Максимальний розмір нотатки становить __MAXSIZE__",
+	notesTags: "Теги",
+	notesType: "Тип",
+	notesAll: "Всі",
+	notesPinned: "Закріплене"
 }
 
 export default uk
