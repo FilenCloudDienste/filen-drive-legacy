@@ -463,7 +463,7 @@ const ja: {
 	leaveNoteWarning: "このノートのメンバーから抜けますか？編集・閲覧はできなくなります。キャンセルはできません。",
 	noteRemoveParticipant: "この人との共有を取り消し",
 	noteRemoveParticipantWarning: "この人との共有を取り消しますか？キャンセルはできません。",
-	block: ブロック",
+	block: "ブロック",
 	blockUserWarning: "__NAME__をブロックしますか？",
 	removeUserWarning: "__NAME__を連絡先から削除しますか？",
 	chatYou: "あなた",
