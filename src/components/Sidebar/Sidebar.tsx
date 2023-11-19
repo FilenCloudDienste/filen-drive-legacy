@@ -1030,7 +1030,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 	const navigate = useNavigate()
 
 	const treeMaxHeight: number = useMemo(() => {
-		const sidebarOtherHeight: number = 40 * 14
+		const sidebarOtherHeight: number = 40 * 16
 		const treeHeight: number = windowHeight - sidebarOtherHeight
 		const treeMaxHeight: number = treeHeight < 40 ? 40 : treeHeight
 
@@ -1222,6 +1222,54 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "links")}
 				to="/#/links"
 			/>
+			<Divider
+				darkMode={darkMode}
+				marginTop={10}
+				marginBottom={10}
+			/>
+			<Flex
+				width="100%"
+				height="auto"
+				paddingLeft="10px"
+				paddingRight="10px"
+				marginBottom="2px"
+			>
+				<Flex
+					width="100%"
+					height="auto"
+					alignItems="center"
+					paddingLeft="10px"
+					paddingRight="10px"
+					paddingTop="7px"
+					paddingBottom="7px"
+					cursor="pointer"
+					transition="200ms"
+					justifyContent={isMobile ? "center" : "flex-start"}
+					color="white"
+					border={"1px solid transparent"}
+					borderRadius="10px"
+					onClick={() => (window.location.href = "/#/account/plans")}
+					_hover={{
+						backgroundColor: getColor(darkMode, "backgroundTertiary")
+					}}
+				>
+					<Flex fontSize={18}>🎉</Flex>
+					{!isMobile && (
+						<AppText
+							darkMode={darkMode}
+							isMobile={isMobile}
+							marginLeft="12px"
+							noOfLines={1}
+							fontSize={15}
+							fontWeight="bold"
+							color={getColor(darkMode, "textSecondary")}
+							paddingTop="3px"
+						>
+							Black Friday
+						</AppText>
+					)}
+				</Flex>
+			</Flex>
 			<Usage sidebarWidth={sidebarWidth} />
 		</Flex>
 	)

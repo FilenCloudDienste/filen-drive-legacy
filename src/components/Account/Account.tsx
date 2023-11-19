@@ -1882,7 +1882,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 										width="100%"
 										height="100%"
 										backgroundColor={
-											activeTerm == term.termType ? getColor(darkMode, "backgroundPrimary") : "transparent"
+											activeTerm == term.termType ? getColor(darkMode, "backgroundTertiary") : "transparent"
 										}
 										padding="10px"
 										paddingTop="5px"
@@ -1938,8 +1938,8 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 							return (
 								<Flex
 									key={index}
-									border={price.popular ? "2px solid " + "none" : "none"}
-									borderRadius="25px"
+									border={"1px solid " + getColor(darkMode, "borderPrimary")}
+									borderRadius="15px"
 									flexDirection="column"
 									flex={1}
 									minWidth={price.termType == 1 ? "400px" : "300px"}

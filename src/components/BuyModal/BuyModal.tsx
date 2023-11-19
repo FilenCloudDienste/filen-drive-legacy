@@ -141,7 +141,11 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 							borderRadius="10px"
 						>
 							{Object.keys(PAYMENT_METHODS).map(method => {
-								if (!plan.lifetime && method == "crypto") {
+								if (!plan.lifetime && method === "crypto") {
+									return null
+								}
+
+								if (plan.cost >= 500 && method === "crypto") {
 									return null
 								}
 
