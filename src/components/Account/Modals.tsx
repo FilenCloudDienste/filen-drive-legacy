@@ -1935,6 +1935,9 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 			const recoveryKey = await enable2FA(code.trim())
 
 			eventListener.emit("open2FARecoveryInfoModal", recoveryKey)
+			eventListener.emit("reloadAccountSecurity")
+
+			setOpen(false)
 		} catch (e: any) {
 			console.error(e)
 
@@ -2303,6 +2306,8 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 			await disable2FA(code.trim())
 
 			eventListener.emit("reloadAccountSecurity")
+
+			setOpen(false)
 		} catch (e: any) {
 			console.error(e)
 

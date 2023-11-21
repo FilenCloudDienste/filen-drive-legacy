@@ -681,9 +681,6 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 	const [versionedSize, setVersionedSize] = useState<number>(0)
 
 	const fetchSettings = useCallback(async () => {
-		setUserSettings(undefined)
-		setVersionedSize(0)
-
 		try {
 			const settings = await fetchUserSettings()
 
@@ -950,8 +947,6 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
 
 	const fetchSettings = () => {
-		setUserSettings(undefined)
-
 		fetchUserSettings()
 			.then(settings => setUserSettings(settings))
 			.catch(err => {
@@ -2078,7 +2073,7 @@ const Plans = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Acc
 const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
 	const [userAccount, setUserAccount] = useState<UserGetAccount | undefined>(undefined)
 
-	const copy = (text: string) => {
+	const copy = useCallback((text: string) => {
 		try {
 			navigator.clipboard.writeText(text)
 
@@ -2088,11 +2083,9 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 
 			showToast("error", e.toString(), "bottom", 5000)
 		}
-	}
+	}, [])
 
-	const load = () => {
-		setUserAccount(undefined)
-
+	const load = useCallback(() => {
 		fetchUserAccount()
 			.then(account => {
 				setUserAccount(account)
@@ -2102,7 +2095,7 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 
 				showToast("error", err.toString(), "bottom", 5000)
 			})
-	}
+	}, [])
 
 	useEffect(() => {
 		load()
