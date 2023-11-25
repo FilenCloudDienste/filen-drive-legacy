@@ -145,7 +145,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 									return null
 								}
 
-								if (plan.cost >= 500 && method === "crypto") {
+								if (plan.cost >= 2500 && method === "crypto") {
 									return null
 								}
 
@@ -197,7 +197,7 @@ const BuyModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobi
 					>
 						{activePaymentMethod == "paypal" && i18n(lang, "paypal")}
 						{activePaymentMethod == "stripe" && i18n(lang, "creditDebit")}
-						{activePaymentMethod == "crypto" && "Bitcoin, Ethereum, Litecoin, Bitcoin Cash, Dogecoin"}
+						{activePaymentMethod == "crypto" && "Bitcoin, Ethereum, Litecoin, USDC, Tether"}
 					</AppText>
 					<AppText
 						darkMode={darkMode}
