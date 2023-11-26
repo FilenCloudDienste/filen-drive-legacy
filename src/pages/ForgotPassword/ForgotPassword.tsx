@@ -1,6 +1,20 @@
-import { memo, useState, useRef } from "react"
+import { memo, useState, useRef, useEffect } from "react"
 import { AppBaseProps } from "../../types"
-import { Flex, Image, Spinner, Checkbox, InputGroup, InputRightElement } from "@chakra-ui/react"
+import {
+	Flex,
+	Image,
+	Spinner,
+	Checkbox,
+	InputGroup,
+	InputRightElement,
+	Modal,
+	ModalBody,
+	ModalContent,
+	ModalFooter,
+	ModalOverlay,
+	ModalHeader,
+	Button as ChakraButton
+} from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import DarkLogo from "../../assets/images/dark_logo.svg"
 import LightLogo from "../../assets/images/light_logo.svg"
@@ -16,6 +30,94 @@ import { useParams, useNavigate } from "react-router-dom"
 import { generateRandomString, toggleColorMode } from "../../lib/helpers"
 import { AUTH_VERSION } from "../../lib/constants"
 import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai"
+import eventListener from "../../lib/eventListener"
+import ModalCloseButton from "../../components/ModalCloseButton"
+
+const AcknowledgeModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
+	const [open, setOpen] = useState<boolean>(false)
+
+	useEffect(() => {
+		const openForgotPasswordAcknowledgeModalListener = eventListener.on("openForgotPasswordAcknowledgeModal", () => {
+			setOpen(true)
+		})
+
+		return () => {
+			openForgotPasswordAcknowledgeModalListener.remove()
+		}
+	}, [])
+
+	return (
+		<Modal
+			onClose={() => setOpen(false)}
+			isOpen={open}
+			isCentered={true}
+			size={isMobile ? "xl" : "md"}
+			autoFocus={false}
+		>
+			<ModalOverlay backgroundColor="rgba(0, 0, 0, 0.4)" />
+			<ModalContent
+				backgroundColor={getColor(darkMode, "backgroundSecondary")}
+				color={getColor(darkMode, "textSecondary")}
+				borderRadius="10px"
+				border={"1px solid " + getColor(darkMode, "borderPrimary")}
+			>
+				<ModalHeader color={getColor(darkMode, "textPrimary")}>{i18n(lang, "warning")}</ModalHeader>
+				<ModalCloseButton darkMode={darkMode} />
+				<ModalBody
+					height="100%"
+					width="100%"
+				>
+					<Flex flexDirection="column">
+						<Flex
+							backgroundColor={getColor(darkMode, "red")}
+							borderRadius="5px"
+							padding="15px"
+							gap="15px"
+							flexDirection="column"
+						>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								color="white"
+								fontSize={15}
+							>
+								{i18n(lang, "resetPasswordCheckbox")}
+							</AppText>
+							<AppText
+								darkMode={darkMode}
+								isMobile={isMobile}
+								color="white"
+								fontSize={15}
+							>
+								{i18n(lang, "forgotPasswordAcknowledgeWarning")}
+							</AppText>
+						</Flex>
+						<ChakraButton
+							onClick={() => {
+								eventListener.emit("forgotPasswordAcknowledged")
+
+								setOpen(false)
+							}}
+							marginTop="20px"
+							backgroundColor={darkMode ? "white" : "gray"}
+							color={darkMode ? "black" : "white"}
+							border={"1px solid " + (darkMode ? "white" : "gray")}
+							_hover={{
+								backgroundColor: getColor(darkMode, "backgroundSecondary"),
+								border: "1px solid " + (darkMode ? "white" : "gray"),
+								color: darkMode ? "white" : "gray"
+							}}
+							autoFocus={false}
+						>
+							{i18n(lang, "iUnderstand")}
+						</ChakraButton>
+					</Flex>
+				</ModalBody>
+				<ModalFooter />
+			</ModalContent>
+		</Modal>
+	)
+})
 
 const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBaseProps) => {
 	const [newPassword, setNewPassword] = useState<string>("")
@@ -28,6 +130,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 	const [masterKeys, setMasterKeys] = useState<string>("")
 	const importInputRef = useRef(null)
 	const [showPassword, setShowPassword] = useState<boolean>(false)
+	const [forgotPasswordAcknowledged, setForgotPasswordAcknowledged] = useState<boolean>(false)
 
 	const reset = async () => {
 		const sNewPassword: string = newPassword.trim()
@@ -37,15 +140,6 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 		setLoading(true)
 
 		if (!checkboxRef.current) {
-			setLoading(false)
-
-			return
-		}
-
-		const checkbox = checkboxRef.current as HTMLInputElement
-
-		if (!checkbox.checked) {
-			setCheckboxRequired(true)
 			setLoading(false)
 
 			return
@@ -135,6 +229,27 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 				return
 			}
 
+			const checkbox = checkboxRef.current as HTMLInputElement
+			const hasRecoveryKeys = newMasterKeys.length >= 2 ? true : false
+
+			if (!hasRecoveryKeys && !checkbox.checked) {
+				setCheckboxRequired(true)
+				setLoading(false)
+
+				return
+			}
+
+			if (!hasRecoveryKeys && !forgotPasswordAcknowledged) {
+				setLoading(false)
+				setCheckboxRequired(true)
+
+				checkbox.checked = false
+
+				eventListener.emit("openForgotPasswordAcknowledgeModal")
+
+				return
+			}
+
 			const res = await apiRequest({
 				method: "POST",
 				endpoint: "/v3/user/password/forgot/reset",
@@ -144,7 +259,7 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 					salt,
 					authVersion: AUTH_VERSION,
 					newMasterKeys: await encryptMetadata(newMasterKeys.join("|"), newMasterKeys[newMasterKeys.length - 1]),
-					hasRecoveryKeys: newMasterKeys.length >= 2 ? true : false
+					hasRecoveryKeys
 				}
 			})
 
@@ -179,6 +294,16 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 
 		setLoading(false)
 	}
+
+	useEffect(() => {
+		const forgotPasswordAcknowledgedListener = eventListener.on("forgotPasswordAcknowledged", () => {
+			setForgotPasswordAcknowledged(true)
+		})
+
+		return () => {
+			forgotPasswordAcknowledgedListener.remove()
+		}
+	}, [])
 
 	return (
 		<Flex
@@ -450,6 +575,11 @@ const ResetPasswordForm = memo(({ windowWidth, darkMode, isMobile, lang }: AppBa
 					</Link>
 				</AppText>
 			</Flex>
+			<AcknowledgeModal
+				darkMode={darkMode}
+				isMobile={isMobile}
+				lang={lang}
+			/>
 		</Flex>
 	)
 })
