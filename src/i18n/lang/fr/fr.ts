@@ -524,7 +524,10 @@ const fr: {
 	notesTags: "Labels",
 	notesType: "Type",
 	notesAll: "Toutes",
-	notesPinned: "Épinglées"
+	notesPinned: "Épinglées",
+	warning: "Attention",
+	iUnderstand: "Je comprends",
+	forgotPasswordAcknowledgeWarning: "Si vous réinitialisez votre mot de passe sans avoir récupéré vos clés maîtres, vos fichiers ainsi que vos dossiers seront perdus !"
 }
 
 export default fr
