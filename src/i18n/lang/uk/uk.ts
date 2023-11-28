@@ -523,7 +523,11 @@ const uk: {
 	notesTags: "Теги",
 	notesType: "Тип",
 	notesAll: "Всі",
-	notesPinned: "Закріплене"
+	notesPinned: "Закріплене",
+	warning: "Увага",
+	iUnderstand: "Я розумію",
+	forgotPasswordAcknowledgeWarning:
+		"При скиданні пароля без використання резервних майстер-ключів всі ваші попередньо завантажені файли і папки будуть видалені!"
 }
 
 export default uk
