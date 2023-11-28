@@ -524,7 +524,11 @@ const ru: {
 	notesTags: "Теги",
 	notesType: "Тип",
 	notesAll: "Все",
-	notesPinned: "Закреплённые"
+	notesPinned: "Закреплённые",
+	warning: "Внимание",
+	iUnderstand: "Я понимаю",
+	forgotPasswordAcknowledgeWarning:
+		"При сбросе пароля без использования резервных мастер-ключей все ваши ранее загруженные файлы и папки будут удалены!"
 }
 
 export default ru
