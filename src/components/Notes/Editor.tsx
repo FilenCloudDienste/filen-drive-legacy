@@ -334,8 +334,7 @@ export const Editor = memo(
 										[{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
 										[{ indent: "-1" }, { indent: "+1" }],
 										[{ script: "sub" }, { script: "super" }],
-										[{ direction: "rtl" }],
-										["clean"]
+										[{ direction: "rtl" }]
 									]
 								}}
 								formats={[
