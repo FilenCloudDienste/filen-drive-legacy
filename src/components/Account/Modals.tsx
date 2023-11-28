@@ -40,6 +40,7 @@ import cookies from "../../lib/cookies"
 import useDb from "../../lib/hooks/useDb"
 import { Base64 } from "js-base64"
 import ModalCloseButton from "../ModalCloseButton"
+import { useLocalStorage } from "react-use"
 
 export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -1935,6 +1936,9 @@ export const TwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkMode: bo
 			const recoveryKey = await enable2FA(code.trim())
 
 			eventListener.emit("open2FARecoveryInfoModal", recoveryKey)
+			eventListener.emit("reloadAccountSecurity")
+
+			setOpen(false)
 		} catch (e: any) {
 			console.error(e)
 
@@ -2303,6 +2307,8 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 			await disable2FA(code.trim())
 
 			eventListener.emit("reloadAccountSecurity")
+
+			setOpen(false)
 		} catch (e: any) {
 			console.error(e)
 
@@ -2428,6 +2434,7 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
 	const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
+	const [showExportMasterKeys, setShowExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 	const copy = useCallback((text: string) => {
 		try {
@@ -2442,6 +2449,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 	useEffect(() => {
 		const openExportMasterKeysModalListener = eventListener.on("openExportMasterKeysModal", () => {
 			setOpen(true)
+			setShowExportMasterKeys("false")
 		})
 
 		return () => {
@@ -2484,7 +2492,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 							isMobile={isMobile}
 							color={getColor(darkMode, "textSecondary")}
 							marginBottom="15px"
-							fontSize={13}
+							fontSize={14}
 						>
 							{i18n(lang, "exportMasterKeysInfo")}
 						</AppText>
@@ -2563,23 +2571,7 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 						</Button>
 					</Flex>
 				</ModalBody>
-				<ModalFooter>
-					<AppText
-						darkMode={darkMode}
-						isMobile={isMobile}
-						noOfLines={1}
-						wordBreak="break-all"
-						color={getColor(darkMode, "textSecondary")}
-						cursor="pointer"
-						onClick={() => setOpen(false)}
-						_hover={{
-							color: getColor(darkMode, "textPrimary"),
-							textDecoration: "underline"
-						}}
-					>
-						{i18n(lang, "close")}
-					</AppText>
-				</ModalFooter>
+				<ModalFooter />
 			</ModalContent>
 		</Modal>
 	)

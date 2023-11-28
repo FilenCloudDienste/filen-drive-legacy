@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useEffect } from "react"
-import { Flex, Skeleton, Tooltip, Avatar, Spinner } from "@chakra-ui/react"
+import { Flex, Skeleton, Tooltip, Avatar, Spinner, AvatarBadge } from "@chakra-ui/react"
 import useIsMobile from "../../lib/hooks/useIsMobile"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../styles/colors"
@@ -16,6 +16,7 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { fetchUserInfo } from "../../lib/services/user"
 import { UserInfo } from "../../types"
+import { useLocalStorage } from "react-use"
 
 export const Topbar = memo(
 	({
@@ -37,6 +38,7 @@ export const Topbar = memo(
 		const navigate = useNavigate()
 		const lang = useLang()
 		const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
+		const [showExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 		const fetchData = useCallback(() => {
 			fetchUserInfo()
@@ -187,7 +189,22 @@ export const Topbar = memo(
 								bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 								cursor="pointer"
 								onClick={() => navigate("/#/account/general")}
-							/>
+							>
+								{showExportMasterKeys !== "false" && (
+									<AvatarBadge
+										boxSize="16px"
+										border="none"
+										backgroundColor={getColor(darkMode, "red")}
+										fontSize={12}
+										color="white"
+										fontWeight="bold"
+										justifyContent="center"
+										alignItems="center"
+									>
+										!
+									</AvatarBadge>
+								)}
+							</Avatar>
 						)}
 					</Flex>
 				</Flex>

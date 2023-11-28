@@ -506,7 +506,11 @@ const de: {
 	notesTags: "Tag",
 	notesType: "Typ",
 	notesAll: "Alle",
-	notesPinned: "Angepinnt"
+	notesPinned: "Angepinnt",
+	warning: "Warnung",
+	iUnderstand: "Verstanden",
+	forgotPasswordAcknowledgeWarning:
+		"Wenn Du Dein Passwort ohne Deinen gesicherten Hauptschlüssel zurücksetzt, gehen alle Deine zuvor hochgeladenen Dateien und Ordner verloren!"
 }
 
 export default de

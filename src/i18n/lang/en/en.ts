@@ -511,7 +511,11 @@ const en: {
 	notesTags: "Tags",
 	notesType: "Type",
 	notesAll: "All",
-	notesPinned: "Pinned"
+	notesPinned: "Pinned",
+	warning: "Warning",
+	iUnderstand: "I understand",
+	forgotPasswordAcknowledgeWarning:
+		"By resetting your password without your backed up master keys all your previous uploaded files and folders will be gone!"
 }
 
 export default en
