@@ -396,6 +396,11 @@ export const quillStyle = (darkMode: boolean) => {
             background-color: ${getColor(darkMode, "purple")};
         }
 
+        .ql-editor ul[data-checked=true] > li {
+            text-decoration: line-through !important;
+            color: ${getColor(darkMode, "textSecondary")} !important;
+        }
+
         .ql-editor ul[data-checked=false] > li {
             margin-top: 8px;
         }
