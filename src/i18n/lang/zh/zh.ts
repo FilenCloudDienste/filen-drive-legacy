@@ -508,7 +508,11 @@ const zh: {
 	notesTags: "标签",
 	notesType: "类型",
 	notesAll: "所有",
-	notesPinned: "已置顶"
+	notesPinned: "已置顶",
+	warning: "警告",
+	iUnderstand: "我理解",
+	forgotPasswordAcknowledgeWarning:
+		"若在没有备份主密钥的情况下重置密码，您以前上传的所有文件和文件夹都将消失！"
 }
 
 export default zh
