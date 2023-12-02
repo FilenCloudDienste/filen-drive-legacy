@@ -1,7 +1,7 @@
 const tr: {
 	[key: string]: string
 } = {
-	forgotPasswordSendInstructions: "Talimatları gönderin",
+	forgotPasswordSendInstructions: "Sıfırlama talimatlarını gönderin",
 	goBack: "Geri git",
 	invalidEmailAndPassword: "Geçersiz e-posta adresi ve parola",
 	email: "E-posta",
@@ -352,7 +352,7 @@ const tr: {
 	resetPasswordCheckbox:
 		"Dışa aktarılmış master key olmadan parola sıfırlayarak, sıfır bilgi uçtan uca şifrelemesinin çalışma şekli nedeniyle hesabımda depolanan tüm verilerin erişilemez hale geleceğini anlıyorum.",
 	invalidAuthVersion: "Geçersiz kimlik doğrulama sürümü",
-	recoveryMasterKeysInput: "Dışa aktarılmış master key'ler",
+	recoveryMasterKeysInput: "Dışa aktarılmış master key",
 	exportMasterKeysInfo:
 		"Master key'i dışa aktarmak, parolanızı unutmanız durumunda hesabınızı veri kaybı olmadan kurtarmanızı sağlar. Lütfen parolanızı her değiştirdiğinizde yeni master key'i dışa aktardığınızdan emin olun.",
 	import: "İçe aktar",
@@ -513,6 +513,9 @@ const tr: {
 	notesType: "Not türü",
 	notesAll: "Tümü",
 	notesPinned: "Sabitlenenler"
+        warning: "Uyarı",
+	iUnderstand: "Anladım",
+	forgotPasswordAcknowledgeWarning: "Yedeklenmiş master key olmadan şifrenizi sıfırladığınızda daha önce yüklediğiniz tüm dosya ve klasörler silinecektir"
 }
 
 export default tr
