@@ -42,7 +42,7 @@
 		"@uiw/codemirror-themes": "4.12.4",
 		"@uiw/react-codemirror": "4.12.4",
 		"@uiw/react-markdown-preview": "^4.1.6",
-		"@zip.js/zip.js": "git+https://github.com/gildas-lormeau/zip.js.git",
+		"@zip.js/zip.js": "github:gildas-lormeau/zip.js",
 		"await-semaphore": "0.1.3",
 		"axios": "0.27.2",
 		"axios-retry": "3.3.1",

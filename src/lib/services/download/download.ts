@@ -403,28 +403,22 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 								writersSemaphore.release()
 							}
 
-							const download = (index: number): Promise<{ index: number; chunk: Uint8Array }> => {
-								return new Promise((resolve, reject) => {
-									if (streamDestroyed) {
-										cleanup()
+							const download = async (index: number): Promise<{ index: number; chunk: Uint8Array }> => {
+								if (streamDestroyed) {
+									cleanup()
 
-										reject("stopped")
+									throw "stopped"
+								}
 
-										return
-									}
+								const chunk = await downloadAndDecryptChunk(
+									item,
+									getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
+								)
 
-									downloadAndDecryptChunk(
-										item,
-										getDownloadServer() + "/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index
-									)
-										.then(chunk =>
-											resolve({
-												index,
-												chunk
-											})
-										)
-										.catch(reject)
-								})
+								return {
+									index,
+									chunk
+								}
 							}
 
 							eventListener.emit("download", {
