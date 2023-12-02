@@ -9,6 +9,7 @@ import { SocketEvent } from "../../lib/services/socket"
 import AppText from "../AppText"
 import { IoEllipsisHorizontalOutline } from "react-icons/io5"
 import { useLocation } from "react-router-dom"
+import { getUserNameFromParticipant } from "./utils"
 
 export interface InputTypingProps {
 	darkMode: boolean
@@ -118,7 +119,7 @@ const InputTyping = memo(({ darkMode, isMobile, lang }: InputTypingProps) => {
 							fontWeight="bold"
 							marginLeft="5px"
 						>
-							{usersTyping.map(user => user.email).join(", ")}
+							{usersTyping.map(user => getUserNameFromParticipant(user)).join(", ")}
 						</AppText>
 						<AppText
 							darkMode={darkMode}

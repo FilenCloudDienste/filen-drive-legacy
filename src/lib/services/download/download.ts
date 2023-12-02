@@ -357,9 +357,9 @@ export const downloadMultipleFilesAsZipStream = (items: ItemProps[], paths: { [k
 		}
 
 		const stream = new ZipWriter(writer, {
-			level: 0,
-			zip64: true
+			level: 0
 		})
+
 		let itemsEnqueued = 0
 
 		for (const item of items) {
