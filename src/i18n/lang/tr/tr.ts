@@ -515,7 +515,7 @@ const tr: {
 	notesPinned: "Sabitlenenler"
         warning: "Uyarı",
 	iUnderstand: "Anladım",
-	forgotPasswordAcknowledgeWarning: "Yedeklenmiş master key olmadan şifrenizi sıfırladığınızda daha önce yüklediğiniz tüm dosya ve klasörler silinecektir"
+	forgotPasswordAcknowledgeWarning: "Master key'i yedeklemeden şifrenizi sıfırladığınızda daha önce yüklediğiniz tüm dosya ve klasörler silinecektir"
 }
 
 export default tr
