@@ -3628,3 +3628,17 @@ export const getUserProfile = async (id: number): Promise<UserProfile> => {
 
 	return response.data
 }
+
+export const lastActiveDesktop = async (timestamp: number): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/lastActive/desktop",
+		data: {
+			timestamp
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
