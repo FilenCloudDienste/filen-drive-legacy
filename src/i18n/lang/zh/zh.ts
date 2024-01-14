@@ -180,8 +180,8 @@ const zh: {
 	date: "日期",
 	ipAddress: "IP 地址",
 	na: "不适用",
-	listEmpty_1: "还没有与你分享的文件或文件夹",
-	listEmpty_2: "一旦有人与你分享文件或文件夹，它们将出现在这里",
+	listEmpty_1: "还没有与你共享的文件或文件夹",
+	listEmpty_2: "一旦有人与你共享文件或文件夹，它们将出现在这里",
 	listEmpty_3: "还没有与他人共享的文件或文件夹",
 	listEmpty_4: "一旦你与他人共享文件或文件夹，它们将出现在这里。",
 	listEmpty_5: "暂时没有公开链接",
@@ -471,7 +471,7 @@ const zh: {
 	chatInfoSubtitle1: "Filen 默认使用零知识端到端加密来保护每次聊天。",
 	chatInfoSubtitle2: "只有聊天的成员才能解密和阅读内容。",
 	chatInfoSubtitle3:
-		"系统确保接收到的数据确实上来自显示的用户，并且在此期间没有被更改。",
+		"系统确保接收到的数据确实来自显示的用户，并且在此期间没有被更改。",
 	chatEmojisMatching: "表情符号匹配中",
 	selectFromCloud: "从云端选择",
 	creatingPublicLinks: "正在创建公共链接",
@@ -510,7 +510,7 @@ const zh: {
 	notesAll: "所有",
 	notesPinned: "已置顶",
 	warning: "警告",
-	iUnderstand: "我理解",
+	iUnderstand: "我明白",
 	forgotPasswordAcknowledgeWarning:
 		"若在没有备份主密钥的情况下重置密码，您以前上传的所有文件和文件夹都将消失！"
 }
