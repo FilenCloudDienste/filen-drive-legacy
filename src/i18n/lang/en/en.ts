@@ -440,7 +440,7 @@ const en: {
 	notesTagsCreate: "Create tag",
 	newNote: "New note",
 	notesNoNotesFoundUnderTag: "No notes found.",
-	notesCreate: "Create one",
+	notesCreate: "Create none",
 	notesCreateInfo: "You have no notes yet.",
 	notesDeleteWarning: "Are you sure you want to delete this note? This action cannot be undone!",
 	notesTagDeleteWarning: "Are you sure you want to delete this tag? This action cannot be undone!",
