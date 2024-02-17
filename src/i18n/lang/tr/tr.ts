@@ -507,8 +507,8 @@ const tr: {
 	profileUnblockContact: "Engeli kaldır",
 	profile: "Profil",
 	chatMessageLimitReached: "Mesaj sınırı __LIMIT__ karakterdir",
-	chatAttachmentTooManyFiles: "Mesaj başına __LIMIT__ dosyadan fazlasını ekleyemezsiniz"
-	noteTooBig: "Maksimum not boyutu __MAXSIZE__ 'dir",
+	chatAttachmentTooManyFiles: "Mesaj başına __LIMIT__ dosyadan fazlasını ekleyemezsiniz",
+	noteTooBig: "Maksimum not boyutu __MAXSIZE__",
 	notesTags: "Etiketler",
 	notesType: "Not türü",
 	notesAll: "Tümü",
