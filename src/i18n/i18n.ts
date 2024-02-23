@@ -12,6 +12,7 @@ import tr from "./lang/tr"
 import it from "./lang/it"
 import pt from "./lang/pt"
 import cs from "./lang/cs"
+import cs from "./lang/sk"
 
 const translations: Record<string, Record<string, string>> = {
 	en,
@@ -28,6 +29,7 @@ const translations: Record<string, Record<string, string>> = {
 	it,
 	pt,
 	cs
+	sk
 }
 
 export const i18n = (
