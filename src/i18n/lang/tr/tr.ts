@@ -375,7 +375,7 @@ const tr: {
 	itemRenamed: "Öğe yeniden adlandırıldı",
 	subCancelled: "İptal edildi",
 	support: "Destek",
-	finishing: "Bitiriliyor",
+	finishing: "Tamamlanıyor",
 	searchNothingFound: '"__TERM__" bulunamadı',
 	queued: "Sıradaki",
 	searchInThisFolder: "Bu klasörde ara...",
