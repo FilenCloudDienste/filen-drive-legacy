@@ -1222,7 +1222,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 				text={i18n(lang, "links")}
 				to="/#/links"
 			/>
-			<Divider
+			{/*<Divider
 				darkMode={darkMode}
 				marginTop={10}
 				marginBottom={10}
@@ -1269,7 +1269,7 @@ const Sidebar = memo(({ darkMode, isMobile, sidebarWidth, windowHeight, lang, it
 						</AppText>
 					)}
 				</Flex>
-			</Flex>
+					</Flex>*/}
 			<Usage sidebarWidth={sidebarWidth} />
 		</Flex>
 	)

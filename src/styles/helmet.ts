@@ -384,7 +384,7 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-editor ul[data-checked=true] > li::before {
             content: '\\2714';
-            color: white;
+            color: ${getColor(darkMode, "backgroundPrimary")};
             display: inline-block;
             width: 18px;
             height: 18px;

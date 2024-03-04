@@ -34,7 +34,6 @@ import { i18n } from "../../i18n"
 import Input from "../Input"
 import axios from "axios"
 import packageJSON from "../../../package.json"
-import { useLocalStorage } from "react-use"
 
 const SHOW_PLANS: boolean = true
 
@@ -944,7 +943,6 @@ const Settings = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarW
 
 const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: AccountProps) => {
 	const [userSettings, setUserSettings] = useState<UserGetSettings | undefined>(undefined)
-	const [showExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 	const fetchSettings = () => {
 		fetchUserSettings()
@@ -1050,27 +1048,6 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 					marginTop="50px"
 				>
 					<Flex alignItems="center">
-						{showExportMasterKeys !== "false" && (
-							<Flex
-								width="16px"
-								height="16px"
-								backgroundColor={getColor(darkMode, "red")}
-								borderRadius="full"
-								justifyContent="center"
-								alignItems="center"
-								marginRight="10px"
-							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									fontSize={13}
-									fontWeight="normal"
-									color="white"
-								>
-									!
-								</AppText>
-							</Flex>
-						)}
 						<AppText
 							darkMode={darkMode}
 							isMobile={isMobile}
@@ -1083,7 +1060,7 @@ const Security = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: 
 						<AppText
 							darkMode={darkMode}
 							isMobile={isMobile}
-							color={showExportMasterKeys !== "false" ? getColor(darkMode, "red") : getColor(darkMode, "textSecondary")}
+							color={getColor(darkMode, "textSecondary")}
 							marginLeft="20px"
 							textDecoration="underline"
 							fontWeight="bold"
@@ -2294,7 +2271,6 @@ const Invite = memo(({ darkMode, isMobile, windowHeight, windowWidth, lang }: Ac
 const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWidth, lang }: AccountProps) => {
 	const location = useLocation()
 	const navigate = useNavigate()
-	const [showExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 	const [activeTab, activeTabIndex] = useMemo(() => {
 		const activeTab = location.hash.split("/").slice(1).join("/").split("?")[0]
@@ -2352,27 +2328,6 @@ const Account = memo(({ darkMode, isMobile, windowHeight, windowWidth, sidebarWi
 						onClick={() => navigate("/#/account/security")}
 					>
 						{i18n(lang, "security")}
-						{showExportMasterKeys !== "false" && (
-							<Flex
-								width="16px"
-								height="16px"
-								backgroundColor={getColor(darkMode, "red")}
-								borderRadius="full"
-								justifyContent="center"
-								alignItems="center"
-								marginLeft="8px"
-							>
-								<AppText
-									darkMode={darkMode}
-									isMobile={isMobile}
-									fontSize={13}
-									fontWeight="normal"
-									color="white"
-								>
-									!
-								</AppText>
-							</Flex>
-						)}
 					</Tab>
 					{SHOW_PLANS && (
 						<Tab

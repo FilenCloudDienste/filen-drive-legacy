@@ -40,7 +40,6 @@ import cookies from "../../lib/cookies"
 import useDb from "../../lib/hooks/useDb"
 import { Base64 } from "js-base64"
 import ModalCloseButton from "../ModalCloseButton"
-import { useLocalStorage } from "react-use"
 
 export const LanguageModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -2434,7 +2433,6 @@ export const DisableTwoFactorModal = memo(({ darkMode, isMobile, lang }: { darkM
 export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkMode: boolean; isMobile: boolean; lang: string }) => {
 	const [open, setOpen] = useState<boolean>(false)
 	const [masterKeys, setMasterKeys] = useDb("masterKeys", [])
-	const [showExportMasterKeys, setShowExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 	const copy = useCallback((text: string) => {
 		try {
@@ -2449,7 +2447,6 @@ export const ExportMasterKeysModal = memo(({ darkMode, isMobile, lang }: { darkM
 	useEffect(() => {
 		const openExportMasterKeysModalListener = eventListener.on("openExportMasterKeysModal", () => {
 			setOpen(true)
-			setShowExportMasterKeys("false")
 		})
 
 		return () => {

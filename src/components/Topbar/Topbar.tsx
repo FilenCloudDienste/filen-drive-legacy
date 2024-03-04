@@ -1,5 +1,5 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react"
-import { Flex, Avatar, Spinner, AvatarBadge } from "@chakra-ui/react"
+import { Flex, Avatar, Spinner } from "@chakra-ui/react"
 import { getColor } from "../../styles/colors"
 import { TopbarProps, UserInfo } from "../../types"
 import Input from "../../components/Input"
@@ -9,13 +9,11 @@ import { fetchUserInfo } from "../../lib/services/user"
 import UploadButton from "./UploadButton"
 import { i18n } from "../../i18n"
 import { getCurrentParent, generateAvatarColorCode } from "../../lib/helpers"
-import { useLocalStorage } from "react-use"
 
 const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSearchTerm }: TopbarProps) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined)
-	const [showExportMasterKeys] = useLocalStorage<string>("showExportMasterKeys")
 
 	const uploadButtonEnabled: boolean = useMemo(() => {
 		return (
@@ -110,22 +108,7 @@ const Topbar = memo(({ darkMode, isMobile, windowWidth, lang, searchTerm, setSea
 						bg={generateAvatarColorCode(userInfo.email, darkMode, userInfo.avatarURL)}
 						cursor="pointer"
 						onClick={() => navigate("/#/account/general")}
-					>
-						{showExportMasterKeys !== "false" && (
-							<AvatarBadge
-								boxSize="16px"
-								border="none"
-								backgroundColor={getColor(darkMode, "red")}
-								fontSize={12}
-								color="white"
-								fontWeight="bold"
-								justifyContent="center"
-								alignItems="center"
-							>
-								!
-							</AvatarBadge>
-						)}
-					</Avatar>
+					/>
 				)}
 			</Flex>
 		</Flex>

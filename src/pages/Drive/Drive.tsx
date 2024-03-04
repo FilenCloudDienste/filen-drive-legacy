@@ -74,6 +74,7 @@ import { i18n } from "../../i18n"
 import SelectFromCloud from "../../components/SelectFromCloud"
 import UserProfileModal from "../../components/Chats/UserProfileModal"
 import ChatSettingsModal from "../../components/Chats/SettingsModal"
+import { lastActiveDesktop } from "../../lib/api"
 
 const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: AppBaseProps) => {
 	const navigate = useNavigate()
@@ -101,6 +102,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const currentSearchTerm = useRef<string>("")
 	const [showDragAndDropModal, setShowDragAndDropModal] = useState<boolean>(false)
+	const windowFocusedRef = useRef<boolean>(true)
+	const nextLastActiveDesktopUpdate = useRef<number>(0)
+	const isUpdatingLastActiveDesktop = useRef<boolean>(false)
 
 	const debounceReloadSizesEvent = useCallback(
 		debounce(() => {
@@ -587,12 +591,18 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 	)
 
 	const windowOnFocus = useCallback(() => {
+		windowFocusedRef.current = true
+
 		if (currentSearchTerm.current.length > 0) {
 			return
 		}
 
 		populateList(true)
 	}, [searchTerm])
+
+	const windowOnBlur = useCallback(() => {
+		windowFocusedRef.current = false
+	}, [])
 
 	const unduplicatedItems = useMemo(() => {
 		return items.filter((value, index, self) => {
@@ -694,6 +704,23 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 
 		window.addEventListener("keydown", windowOnKeyDown)
 		window.addEventListener("focus", windowOnFocus)
+		window.addEventListener("blur", windowOnBlur)
+
+		const updateLastActiveDesktopInterval = setInterval(() => {
+			if (windowFocusedRef.current && !isUpdatingLastActiveDesktop.current && Date.now() > nextLastActiveDesktopUpdate.current) {
+				isUpdatingLastActiveDesktop.current = true
+				;(async () => {
+					try {
+						await lastActiveDesktop(Date.now())
+					} catch (e) {
+						console.error(e)
+					} finally {
+						nextLastActiveDesktopUpdate.current = Date.now() + 15000
+						isUpdatingLastActiveDesktop.current = false
+					}
+				})()
+			}
+		}, 1000)
 
 		document.body.addEventListener("mousedown", mouseDownListener)
 		document.body.addEventListener("mouseup", resetDragSelect)
@@ -1052,6 +1079,9 @@ const Drive = memo(({ windowWidth, windowHeight, darkMode, isMobile, lang }: App
 		return () => {
 			window.removeEventListener("keydown", windowOnKeyDown)
 			window.removeEventListener("focus", windowOnFocus)
+			window.removeEventListener("blur", windowOnBlur)
+
+			clearInterval(updateLastActiveDesktopInterval)
 
 			document.body.removeEventListener("mousedown", mouseDownListener)
 			document.body.removeEventListener("mouseup", resetDragSelect)
