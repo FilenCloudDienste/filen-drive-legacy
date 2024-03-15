@@ -235,7 +235,7 @@ const tr: {
 	sharingItems: "Öğeler paylaşılıyor",
 	sharingItemsProgress: "__LEFT__ öğe paylaşılıyor",
 	itemsSharedWith: "__COUNT__ öğe __EMAIL__ ile paylaşıldı",
-	shareReceiver: "Alıcının Filen hesabının e-postası",
+	shareReceiver: "Alıcının Filen e-posta hesabı",
 	upgrade: "Yükselt",
 	stoppedSharingItems: "__COUNT__ öğenin paylaşımı durduruldu",
 	couldNotStopSharingItem: "__NAME__ paylaşımı durdurulamadı: __ERR__",
