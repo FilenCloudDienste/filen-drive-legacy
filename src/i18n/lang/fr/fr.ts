@@ -67,7 +67,7 @@ const fr: {
 	noSubs: "Vous n'avez actuellement aucune souscription active.",
 	noInvoices: "Vous n'avez pas de factures.",
 	planFeatures_1: "Bande passante illimitée",
-	planFeatures_2: "Encryptage coté client",
+	planFeatures_2: "Chiffrement coté client",
 	planFeatures_3: "Technologie Zero-knowledge",
 	planTerms_monthly: "Mensuel",
 	planTerms_annually: "Annuel",
@@ -99,8 +99,8 @@ const fr: {
 	postalCode: "Code postal",
 	country: "Pays",
 	areYouSure: "Êtes-vous sûr ?",
-	areYouSureDeleteAllVersioned:
-		"Êtes-vous sûr de vouloir supprimer tous les fichiers versionnés ? Cette action est irréversible !",
+	areYouSureDeleteAllned:
+		"Êtes-vous sûr de vouloir supprimer tous les fichiers nnés ? Cette action est irréversible !",
 	areYouSureDeleteAll:
 		"Êtes-vous sûr de vouloir supprimer tous les fichiers et dossiers ? Cette action est irréversible !",
 	invalidNewPassword: "Nouveau mot de passe non valide",
@@ -391,7 +391,7 @@ const fr: {
 	searchNothingFound: '"__TERM__" n\'existe pas',
 	queued: "En attente",
 	searchInThisFolder: "Rechercher dans ce dossier ...",
-	fileVersioning: "Versionnage de fichier",
+	fileVersioning: "Versionnement de fichier",
 	loginAlerts: "Alertes de connexion",
 	chats: "Conversations",
 	chatsMessageInput: "Envoyer un message à __NAME__",
@@ -485,7 +485,7 @@ const fr: {
 	chatConversationRemoveParticipantWarning: "Êtes-vous sûr de vouloir retirer ce participant de la conversation ?",
 	chatInfoTitle: "Conversation chiffrée de bout en bout",
 	chatInfoSubtitle1: "Par défaut Filen sécurise toutes les conversations avec un chiffrement zero-knowledge de bout en bout.",
-	chatInfoSubtitle2: "Seuls les participants de la conversation peuvent décrypter et lire son contenu.",
+	chatInfoSubtitle2: "Seuls les participants à la conversation peuvent décrypter et lire son contenu.",
 	chatInfoSubtitle3:
 		"Le système s'assure que les données reçues viennent bien de l'utilisateur affiché sans avoir été modifiées entre-temps.",
 	chatEmojisMatching: "Emojis correspondants",
@@ -506,7 +506,7 @@ const fr: {
 	chatViewingOlderMessages: "Vous consultez d'anciens messages",
 	chatJumpToPresent: "Revenir aux derniers messages",
 	twoFactorConfirmAlert: "J'ai bien sauvegardé ma clé de récupération 2FA",
-	chatIsTyping: "est en train d'écrire",
+	chatIsTyping: "écrit",
 	chatConversationEditName: "Modifier le nom",
 	copyId: "Copier l'ID",
 	replyToChatMessage: "Répondre",
@@ -525,6 +525,10 @@ const fr: {
 	notesType: "Type",
 	notesAll: "Toutes",
 	notesPinned: "Épinglées"
+	warning: "Attention",
+	iUnderstand: "J'ai compris",
+	forgotPasswordAcknowledgeWarning:
+		"En réinitialisant votre mot de passe sans utiliser les clés maitres que vous avez sauvegardé, toutes les données précédemment chargées seront supprimées !"
 }
 
 export default fr
