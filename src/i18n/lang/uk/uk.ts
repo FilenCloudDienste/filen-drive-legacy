@@ -518,7 +518,16 @@ const uk: {
 	profileUnblockContact: "Розблокувати",
 	profile: "Профіль",
 	chatMessageLimitReached: "Ліміт повідомлення складає __LIMIT__ символів",
-	chatAttachmentTooManyFiles: "До одного повідомлення можна прикріпити не більше __LIMIT__ файлів"
+	chatAttachmentTooManyFiles: "До одного повідомлення можна прикріпити не більше __LIMIT__ файлів",
+	noteTooBig: "Максимальний розмір нотатки становить __MAXSIZE__",
+	notesTags: "Теги",
+	notesType: "Тип",
+	notesAll: "Всі",
+	notesPinned: "Закріплене",
+	warning: "Увага",
+	iUnderstand: "Я розумію",
+	forgotPasswordAcknowledgeWarning:
+		"При скиданні пароля без використання резервних майстер-ключів всі ваші попередньо завантажені файли і папки будуть видалені!"
 }
 
 export default uk

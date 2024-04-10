@@ -519,7 +519,16 @@ const ru: {
 	profileUnblockContact: "Разблокировать",
 	profile: "Профиль",
 	chatMessageLimitReached: "Лимит сообщения составляет __LIMIT__ символов",
-	chatAttachmentTooManyFiles: "К одному сообщению можно прикрепить не более __LIMIT__ файлов"
+	chatAttachmentTooManyFiles: "К одному сообщению можно прикрепить не более __LIMIT__ файлов",
+	noteTooBig: "Максимальный размер заметки составляет __MAXSIZE__",
+	notesTags: "Теги",
+	notesType: "Тип",
+	notesAll: "Все",
+	notesPinned: "Закреплённые",
+	warning: "Внимание",
+	iUnderstand: "Я понимаю",
+	forgotPasswordAcknowledgeWarning:
+		"При сбросе пароля без использования резервных мастер-ключей все ваши ранее загруженные файлы и папки будут удалены!"
 }
 
 export default ru
