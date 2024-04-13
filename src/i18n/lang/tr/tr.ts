@@ -148,7 +148,7 @@ const tr: {
 	zipDownload: "ZIP biçiminde indir",
 	publicLink: "Herkese açık bağlantı",
 	share: "Paylaş",
-	versions: "Önceki sürümler",
+	versions: "Sürüm geçmişi",
 	color: "Renklendir",
 	color_default: "Varsayılan",
 	color_blue: "Mavi",
