@@ -460,7 +460,7 @@ const tr: {
 	noteRemoveParticipantWarning: "Bu katılımcıyı bu nottan kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz!",
 	block: "Engelle",
 	blockUserWarning: "__NAME__ adlı kişiyi engellemek istediğinizden emin misiniz?",
-	removeUserWarning: "__NAME__ adlı kişiyi kişi listenizden kaldırmak istediğinizden emin misiniz?",
+	removeUserWarning: "__NAME__ adlı kişiyi listenizden kaldırmak istediğinizden emin misiniz?",
 	chatYou: "Siz",
 	chatNoMessagesYet: "Henüz mesaj yok",
 	chatMessageDelete: "Mesajı sil",
